@@ -1,5 +1,6 @@
 *.exe binary
 *.ico binary
+*.pdf binary
 *.pdb binary
 *.dll binary
 *.md text eol=lf

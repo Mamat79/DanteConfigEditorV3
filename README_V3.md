@@ -26,9 +26,11 @@ Le fichier autonome à transmettre est :
 dist\DanteConfigEditorV3_Installer.exe
 ```
 
-La personne le lance, choisit le dossier d'installation si besoin, puis l'application est installée avec un raccourci dans le Menu Démarrer. Un raccourci Bureau est proposé en option.
+La personne le lance, choisit le dossier d'installation si besoin, puis l'application est installée par défaut dans Program Files avec un raccourci dans le Menu Démarrer. Un raccourci Bureau est proposé en option.
 
 Cette version est publiée en mode `self-contained win-x64` : le runtime .NET nécessaire est inclus dans l'exécutable de l'application. La machine destinataire n'a pas besoin d'installer le SDK .NET ni le runtime .NET pour utiliser Dante Config Editor V3.
+
+L'installateur ne déploie pas les sources du projet. Il installe uniquement l'application autonome et la documentation utilisateur.
 
 Pour lancer sans installer, utiliser la version portable :
 

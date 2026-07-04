@@ -50,3 +50,6 @@
 - Renforcement de la mise à jour des patchs quand un canal TX est renommé : tous les champs d'abonnement reconnus du fichier sont parcourus.
 - Ajout d'une copie archive de la V2 dans `legacy/V2`.
 - Ajout d'un installateur Windows professionnel `dist\DanteConfigEditorV3_Installer.exe` avec choix du dossier, raccourcis et désinstallation.
+- Installation par défaut dans Program Files avec demande de droits administrateur.
+- Ajout de la signature `By Mamat` et du lien GitHub public dans l'assistant d'installation.
+- Ajout des release notes et de la notice PDF dans l'installateur, avec proposition d'ouverture en fin d'installation.

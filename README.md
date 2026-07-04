@@ -31,11 +31,13 @@ Outil Windows pour éditer hors ligne des fichiers XML de configuration Dante.
 
 Deux options sont fournies dans le dossier `dist` :
 
-- `dist/DanteConfigEditorV3_Installer.exe` : installateur Windows recommandé, avec choix du dossier d'installation, raccourcis Menu Démarrer/Bureau et désinstallation propre.
+- `dist/DanteConfigEditorV3_Installer.exe` : installateur Windows recommandé, avec installation par défaut dans Program Files, choix du dossier d'installation, raccourcis Menu Démarrer/Bureau et désinstallation propre.
 - `dist/DanteConfigEditorV3_Setup.exe` : ancien installateur autonome simple.
 - `dist/portable/DanteConfigEditorV3.exe` : version portable, lançable sans installation.
 
 La version autonome inclut le runtime .NET nécessaire. Sur une machine Windows x64, il ne devrait pas être nécessaire d'installer .NET séparément pour utiliser l'application.
+
+L'installateur contient uniquement l'application autonome et la documentation utilisateur. Les sources du projet ne sont pas installees sur la machine de l'utilisateur.
 
 ## Versions incluses
 

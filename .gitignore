@@ -16,6 +16,7 @@ dist/
 *.log
 *.tmp
 *.bak
+tmp/
 
 # OS files
 Thumbs.db
