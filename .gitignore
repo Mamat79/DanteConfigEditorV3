@@ -1,0 +1,22 @@
+# Build outputs
+bin/
+obj/
+publish/
+
+# Distribution output is published through GitHub Releases, not committed.
+dist/
+
+# User and IDE files
+.vs/
+.vscode/
+*.user
+*.suo
+
+# Logs and temporary files
+*.log
+*.tmp
+*.bak
+
+# OS files
+Thumbs.db
+Desktop.ini
