@@ -16,6 +16,7 @@ public partial class MainWindow : Window
     private const string AllReceiversItem = "Tous les récepteurs";
     private readonly ObservableCollection<DanteSubscription> _patchRows = [];
     private readonly ObservableCollection<string> _logs = [];
+    private readonly ObservableCollection<GlobalSearchResult> _searchResults = [];
     private readonly string[] _latencies = ["250", "1000", "2000", "5000"];
     private DanteProject? _project;
     private bool _refreshingUi;
@@ -25,6 +26,21 @@ public partial class MainWindow : Window
         public override string ToString()
         {
             return $"{Index} - {Name}";
+        }
+    }
+
+    private sealed record GlobalSearchResult(
+        string Kind,
+        string Label,
+        string? DeviceName = null,
+        DanteChannelKind? ChannelKind = null,
+        int? ChannelIndex = null,
+        string? RxDevice = null,
+        int? RxIndex = null)
+    {
+        public override string ToString()
+        {
+            return $"{Kind} - {Label}";
         }
     }
 
@@ -41,9 +57,11 @@ public partial class MainWindow : Window
         ChannelKindComboBox.SelectedItem = "TX";
         PatchGrid.ItemsSource = _patchRows;
         LogListBox.ItemsSource = _logs;
+        GlobalSearchListBox.ItemsSource = _searchResults;
         GlobalDaisychainRadioButton.IsChecked = true;
         DaisychainRadioButton.IsChecked = true;
         SetTheme(useLightTheme: false);
+        RefreshRecentFiles();
         RefreshAll();
     }
 
@@ -63,12 +81,32 @@ public partial class MainWindow : Window
         LoadProjectFromPath(dialog.FileName);
     }
 
+    private void OpenRecentButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (RecentFilesComboBox.SelectedItem is not string path || string.IsNullOrWhiteSpace(path))
+        {
+            ShowError("Aucun fichier récent", "Sélectionnez un fichier récent à ouvrir.");
+            return;
+        }
+
+        if (!File.Exists(path))
+        {
+            ShowError("Fichier introuvable", "Ce fichier récent n'existe plus.");
+            RefreshRecentFiles();
+            return;
+        }
+
+        LoadProjectFromPath(path);
+    }
+
     public void LoadProjectFromPath(string path)
     {
         try
         {
             _project = DanteProject.Load(path);
             _logs.Clear();
+            RecentFilesService.Add(path);
+            RefreshRecentFiles();
             AddLog("Fichier chargé : " + path);
             RefreshAll();
             SetStatus("Fichier chargé.");
@@ -184,6 +222,26 @@ public partial class MainWindow : Window
         }
     }
 
+    private void UndoLastButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (!EnsureProjectLoaded())
+        {
+            return;
+        }
+
+        try
+        {
+            string label = _project!.UndoLastChange();
+            AddLog("Action annulée : " + label);
+            RefreshAll();
+            SetStatus("Dernière action annulée.");
+        }
+        catch (Exception ex)
+        {
+            ShowError("Annulation impossible", ex.Message);
+        }
+    }
+
     private void NavigationButton_Click(object sender, RoutedEventArgs e)
     {
         if (sender is Button button && int.TryParse(button.Tag?.ToString(), out int index))
@@ -268,6 +326,24 @@ public partial class MainWindow : Window
         {
             _project!.RenameChannel(SelectedDeviceName(), channel.Kind, channel.Index, NewChannelNameTextBox.Text);
         });
+    }
+
+    private void BatchRenameButton_Click(object sender, RoutedEventArgs e)
+    {
+        DanteChannelKind kind = string.Equals(ChannelKindComboBox.SelectedItem as string, "RX", StringComparison.OrdinalIgnoreCase)
+            ? DanteChannelKind.Rx
+            : DanteChannelKind.Tx;
+
+        if (!int.TryParse(BatchRenameStartTextBox.Text.Trim(), out int firstNumber))
+        {
+            ShowError("Numéro invalide", "Indiquez un numéro de départ valide.");
+            return;
+        }
+
+        RunProjectAction(
+            "Renommage en série appliqué.",
+            () => _project!.BatchRenameChannels(SelectedDeviceName(), kind, BatchRenamePrefixTextBox.Text, firstNumber),
+            "Les noms des canaux sélectionnés seront remplacés en série. Continuer ?");
     }
 
     private void ApplyAllNetworkButton_Click(object sender, RoutedEventArgs e)
@@ -359,6 +435,55 @@ public partial class MainWindow : Window
         }
 
         RefreshPatchRows();
+    }
+
+    private void GlobalSearchTextBox_TextChanged(object sender, TextChangedEventArgs e)
+    {
+        RefreshGlobalSearchResults();
+    }
+
+    private void GlobalSearchListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (_refreshingUi || GlobalSearchListBox.SelectedItem is not GlobalSearchResult result)
+        {
+            return;
+        }
+
+        if (!string.IsNullOrWhiteSpace(result.RxDevice) && result.RxIndex.HasValue)
+        {
+            MainTabs.SelectedIndex = 1;
+            SenderDeviceList.SelectedItem = AllSendersItem;
+            ReceiverDeviceList.SelectedItem = AllReceiversItem;
+            RefreshPatchRows();
+            DanteSubscription? subscription = _patchRows.FirstOrDefault(row =>
+                string.Equals(row.RxDevice, result.RxDevice, StringComparison.OrdinalIgnoreCase)
+                && row.RxIndex == result.RxIndex.Value);
+            if (subscription is not null)
+            {
+                PatchGrid.SelectedItem = subscription;
+                PatchGrid.ScrollIntoView(subscription);
+            }
+
+            return;
+        }
+
+        if (!string.IsNullOrWhiteSpace(result.DeviceName))
+        {
+            MainTabs.SelectedIndex = 0;
+            DeviceComboBox.SelectedItem = result.DeviceName;
+
+            if (result.ChannelKind.HasValue && result.ChannelIndex.HasValue)
+            {
+                ChannelKindComboBox.SelectedItem = result.ChannelKind.Value == DanteChannelKind.Rx ? "RX" : "TX";
+                RefreshChannelSelector();
+                ChannelChoice? channel = (ChannelComboBox.ItemsSource as IEnumerable<ChannelChoice>)
+                    ?.FirstOrDefault(choice => choice.Kind == result.ChannelKind.Value && choice.Index == result.ChannelIndex.Value);
+                if (channel is not null)
+                {
+                    ChannelComboBox.SelectedItem = channel;
+                }
+            }
+        }
     }
 
     private void ChannelSelector_Changed(object sender, SelectionChangedEventArgs e)
@@ -505,6 +630,102 @@ public partial class MainWindow : Window
         SaveSummaryTextBox.Text = _project?.BuildSaveSummary() ?? "Aucun fichier chargé.";
     }
 
+    private void ExportTxtButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (!EnsureProjectLoaded())
+        {
+            return;
+        }
+
+        SaveFileDialog dialog = new()
+        {
+            Filter = "Rapport texte (*.txt)|*.txt|Tous les fichiers (*.*)|*.*",
+            Title = "Exporter le rapport TXT",
+            FileName = BuildDefaultReportFileName(".txt"),
+            InitialDirectory = Path.GetDirectoryName(_project!.OriginalFilePath)
+        };
+
+        if (dialog.ShowDialog(this) != true)
+        {
+            return;
+        }
+
+        try
+        {
+            ReportExportService.ExportText(dialog.FileName, _project!.BuildReportText());
+            AddLog("Rapport TXT exporté : " + dialog.FileName);
+            SetStatus("Rapport TXT exporté.");
+        }
+        catch (Exception ex)
+        {
+            ShowError("Export impossible", ex.Message);
+        }
+    }
+
+    private void ExportPdfButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (!EnsureProjectLoaded())
+        {
+            return;
+        }
+
+        SaveFileDialog dialog = new()
+        {
+            Filter = "Rapport PDF (*.pdf)|*.pdf|Tous les fichiers (*.*)|*.*",
+            Title = "Exporter le rapport PDF",
+            FileName = BuildDefaultReportFileName(".pdf"),
+            InitialDirectory = Path.GetDirectoryName(_project!.OriginalFilePath)
+        };
+
+        if (dialog.ShowDialog(this) != true)
+        {
+            return;
+        }
+
+        try
+        {
+            ReportExportService.ExportPdf(dialog.FileName, "Dante Config Editor", _project!.BuildReportText());
+            AddLog("Rapport PDF exporté : " + dialog.FileName);
+            SetStatus("Rapport PDF exporté.");
+        }
+        catch (Exception ex)
+        {
+            ShowError("Export impossible", ex.Message);
+        }
+    }
+
+    private void CompareXmlButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (!EnsureProjectLoaded())
+        {
+            return;
+        }
+
+        OpenFileDialog dialog = new()
+        {
+            Filter = "Fichiers XML (*.xml)|*.xml|Tous les fichiers (*.*)|*.*",
+            Title = "Comparer avec un autre XML"
+        };
+
+        if (dialog.ShowDialog(this) != true)
+        {
+            return;
+        }
+
+        try
+        {
+            DanteProject otherProject = DanteProject.Load(dialog.FileName);
+            SaveSummaryTextBox.Text = _project!.CompareWith(otherProject);
+            MainTabs.SelectedIndex = 2;
+            AddLog("Comparaison XML effectuée : " + dialog.FileName);
+            SetStatus("Comparaison XML affichée.");
+        }
+        catch (Exception ex)
+        {
+            ShowError("Comparaison impossible", ex.Message);
+        }
+    }
+
     private void ThemeToggleButton_Checked(object sender, RoutedEventArgs e)
     {
         SetTheme(useLightTheme: true);
@@ -537,7 +758,9 @@ public partial class MainWindow : Window
                 ReceiverDeviceList.SelectedItem = AllReceiversItem;
                 SourceDeviceComboBox.ItemsSource = null;
                 SaveSummaryTextBox.Text = "Aucun fichier chargé.";
+                _searchResults.Clear();
                 _patchRows.Clear();
+                UpdateCommandState();
                 return;
             }
 
@@ -572,6 +795,8 @@ public partial class MainWindow : Window
             SourceDeviceComboBox.SelectedItem = deviceNames.Contains(selectedSourceDevice) ? selectedSourceDevice : deviceNames.FirstOrDefault();
 
             SaveSummaryTextBox.Text = _project.BuildSaveSummary();
+            RefreshGlobalSearchResults();
+            UpdateCommandState();
         }
         finally
         {
@@ -582,6 +807,7 @@ public partial class MainWindow : Window
         RefreshSourceChannels();
         RefreshChannelSelector();
         RefreshPatchRows();
+        UpdateCommandState();
     }
 
     private void RefreshChannelSelector()
@@ -688,6 +914,82 @@ public partial class MainWindow : Window
         }
     }
 
+    private void RefreshGlobalSearchResults()
+    {
+        string search = GlobalSearchTextBox.Text.Trim();
+        _searchResults.Clear();
+
+        if (_project is null || search.Length < 2)
+        {
+            return;
+        }
+
+        foreach (DanteDevice device in _project.Devices)
+        {
+            if (Contains(device.Name, search) || Contains(device.FriendlyName, search))
+            {
+                _searchResults.Add(new GlobalSearchResult("Machine", device.Name, DeviceName: device.Name));
+            }
+
+            foreach (DanteChannel channel in device.TxChannels)
+            {
+                if (Contains(channel.DisplayName, search))
+                {
+                    _searchResults.Add(new GlobalSearchResult("Canal TX", $"{device.Name} / {channel.Index} - {channel.DisplayName}", device.Name, DanteChannelKind.Tx, channel.Index));
+                }
+            }
+
+            foreach (DanteChannel channel in device.RxChannels)
+            {
+                if (Contains(channel.DisplayName, search))
+                {
+                    _searchResults.Add(new GlobalSearchResult("Canal RX", $"{device.Name} / {channel.Index} - {channel.DisplayName}", device.Name, DanteChannelKind.Rx, channel.Index));
+                }
+            }
+        }
+
+        foreach (DanteSubscription subscription in _project.PatchMatrix.Subscriptions)
+        {
+            if (Contains(subscription.RxDevice, search)
+                || Contains(subscription.RxChannelName, search)
+                || Contains(subscription.TxDevice, search)
+                || Contains(subscription.TxChannelName, search)
+                || Contains(subscription.Status, search))
+            {
+                _searchResults.Add(new GlobalSearchResult(
+                    "Patch",
+                    $"{subscription.RxDevice} / {subscription.RxChannelName} -> {Blank(subscription.TxDevice)} / {Blank(subscription.TxChannelName)}",
+                    RxDevice: subscription.RxDevice,
+                    RxIndex: subscription.RxIndex));
+            }
+        }
+
+        while (_searchResults.Count > 80)
+        {
+            _searchResults.RemoveAt(_searchResults.Count - 1);
+        }
+    }
+
+    private void RefreshRecentFiles()
+    {
+        IReadOnlyList<string> recentFiles = RecentFilesService.Load();
+        RecentFilesComboBox.ItemsSource = recentFiles;
+        RecentFilesComboBox.SelectedItem = recentFiles.FirstOrDefault();
+    }
+
+    private void UpdateCommandState()
+    {
+        UndoLastButton.IsEnabled = _project?.CanUndo == true;
+        UndoLastButton.Content = _project?.CanUndo == true ? "Annuler action" : "Annuler action";
+    }
+
+    private string BuildDefaultReportFileName(string extension)
+    {
+        string source = _project?.OriginalFilePath ?? "rapport";
+        string name = Path.GetFileNameWithoutExtension(source);
+        return $"{name}_rapport_DanteConfigEditor{extension}";
+    }
+
     private void RunProjectAction(string successMessage, Action action, string? confirmationMessage = null)
     {
         if (!EnsureProjectLoaded())
@@ -706,6 +1008,7 @@ public partial class MainWindow : Window
 
         try
         {
+            _project!.PushUndoSnapshot(successMessage);
             action();
             AddLog(successMessage);
             RefreshAll();
@@ -713,6 +1016,8 @@ public partial class MainWindow : Window
         }
         catch (Exception ex)
         {
+            _project?.RestoreLastUndoSnapshot();
+            RefreshAll();
             ShowError("Action impossible", ex.Message);
         }
     }
@@ -798,5 +1103,10 @@ public partial class MainWindow : Window
     private static bool Contains(string value, string search)
     {
         return value.Contains(search, StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static string Blank(string value)
+    {
+        return string.IsNullOrWhiteSpace(value) ? "(vide)" : value;
     }
 }

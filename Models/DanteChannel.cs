@@ -10,7 +10,10 @@ public sealed class DanteChannel
         Kind = kind;
         Index = index;
         Element = element;
-        Name = ReadChannelName(kind, index, element);
+        ChannelNameReadResult nameReadResult = ReadChannelName(kind, index, element);
+        Name = nameReadResult.Value;
+        NameSource = nameReadResult.SourceName;
+        NameSourceIsAttribute = nameReadResult.IsAttribute;
     }
 
     public string DeviceName { get; }
@@ -23,9 +26,13 @@ public sealed class DanteChannel
 
     public string DisplayName => string.IsNullOrWhiteSpace(Name) ? Index.ToString() : Name;
 
+    internal string? NameSource { get; }
+
+    internal bool NameSourceIsAttribute { get; }
+
     internal XElement Element { get; }
 
-    private static string ReadChannelName(DanteChannelKind kind, int index, XElement element)
+    private static ChannelNameReadResult ReadChannelName(DanteChannelKind kind, int index, XElement element)
     {
         string[] preferredNames = kind == DanteChannelKind.Tx
             ? ["label", "name", "channel_name", "id"]
@@ -36,16 +43,18 @@ public sealed class DanteChannel
             string? value = element.Element(name)?.Value;
             if (!string.IsNullOrWhiteSpace(value))
             {
-                return value.Trim();
+                return new ChannelNameReadResult(value.Trim(), name, false);
             }
 
             value = element.Attribute(name)?.Value;
             if (!string.IsNullOrWhiteSpace(value))
             {
-                return value.Trim();
+                return new ChannelNameReadResult(value.Trim(), name, true);
             }
         }
 
-        return index.ToString();
+        return new ChannelNameReadResult(index.ToString(), null, false);
     }
+
+    private sealed record ChannelNameReadResult(string Value, string? SourceName, bool IsAttribute);
 }

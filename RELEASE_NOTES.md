@@ -1,4 +1,4 @@
-# Dante Config Editor V3.01
+# Dante Config Editor V3.02
 
 ## Statut
 
@@ -8,6 +8,15 @@ Travaillez toujours sur une copie de vos fichiers XML Dante et validez le result
 
 ## Nouveautes principales
 
+- Annulation de la derniere action.
+- Resume avant sauvegarde plus lisible.
+- Recherche globale dans machines, canaux et patchs.
+- Export du rapport en TXT ou PDF.
+- Conflits de patch plus visibles dans la table.
+- Renommage de canaux en serie.
+- Liste des fichiers recents.
+- Comparaison avec un autre XML.
+- Sauvegarde securisee par fichier temporaire relu avant remplacement.
 - Ergonomie revue suite au test video du 2026-07-05.
 - Colonne Projet reduite a un resume compact.
 - Onglets gardes uniquement en haut de l'application.

@@ -1,6 +1,7 @@
 using System.Text;
 using System.Xml;
 using System.Xml.Linq;
+using System.IO;
 using DanteConfigEditor.Services;
 
 namespace DanteConfigEditor.Models;
@@ -29,6 +30,7 @@ public sealed class DanteProject
 
     private readonly Dictionary<XElement, bool> _modifiedRxElements = [];
     private readonly List<ChangeRecord> _changes = [];
+    private readonly Stack<UndoSnapshot> _undoSnapshots = [];
 
     private DanteProject(string originalFilePath, XDocument document)
     {
@@ -41,7 +43,7 @@ public sealed class DanteProject
 
     public string? LastSavedPath { get; private set; }
 
-    public XDocument Document { get; }
+    public XDocument Document { get; private set; }
 
     public IReadOnlyList<DanteDevice> Devices { get; private set; } = [];
 
@@ -50,6 +52,10 @@ public sealed class DanteProject
     public IReadOnlyList<ChangeRecord> Changes => _changes;
 
     public bool IsModified { get; private set; }
+
+    public bool CanUndo => _undoSnapshots.Count > 0;
+
+    public string LastUndoLabel => _undoSnapshots.TryPeek(out UndoSnapshot? snapshot) ? snapshot.Label : "Aucune action";
 
     public static DanteProject Load(string path)
     {
@@ -75,6 +81,38 @@ public sealed class DanteProject
         }
 
         return project;
+    }
+
+    public void PushUndoSnapshot(string label)
+    {
+        _undoSnapshots.Push(new UndoSnapshot(
+            label,
+            new XDocument(Document),
+            IsModified,
+            _changes.Count,
+            CaptureModifiedRxReferences()));
+    }
+
+    public void RestoreLastUndoSnapshot()
+    {
+        if (_undoSnapshots.Count == 0)
+        {
+            return;
+        }
+
+        RestoreSnapshot(_undoSnapshots.Pop());
+    }
+
+    public string UndoLastChange()
+    {
+        if (_undoSnapshots.Count == 0)
+        {
+            throw new InvalidOperationException("Aucune action à annuler.");
+        }
+
+        UndoSnapshot snapshot = _undoSnapshots.Pop();
+        RestoreSnapshot(snapshot);
+        return snapshot.Label;
     }
 
     public DanteDevice? FindDevice(string? name)
@@ -203,15 +241,57 @@ public sealed class DanteProject
 
         if (channelKind == DanteChannelKind.Tx)
         {
-            SetElementValue(channel.Element, "label", trimmedNewName);
+            SetChannelDisplayName(channel, "label", trimmedNewName);
             UpdateSubscriptionsForRenamedTxChannel(device.Name, oldName, trimmedNewName);
         }
         else
         {
-            SetElementValue(channel.Element, "name", trimmedNewName);
+            SetChannelDisplayName(channel, "name", trimmedNewName);
         }
 
         RegisterChange("Nom canal", $"{deviceName} {channelKind} {channelIndex}: {oldName} -> {trimmedNewName}");
+    }
+
+    public void BatchRenameChannels(string deviceName, DanteChannelKind channelKind, string prefix, int firstNumber)
+    {
+        if (firstNumber < 0)
+        {
+            throw new InvalidOperationException("Le numéro de départ doit être positif.");
+        }
+
+        DanteDevice device = FindDevice(deviceName) ?? throw new InvalidOperationException("Device introuvable.");
+        IReadOnlyList<DanteChannel> channels = channelKind == DanteChannelKind.Tx ? device.TxChannels : device.RxChannels;
+        if (channels.Count == 0)
+        {
+            throw new InvalidOperationException("Aucun canal à renommer pour ce device.");
+        }
+
+        string cleanPrefix = prefix.Trim();
+        int digits = Math.Max(2, (firstNumber + channels.Count - 1).ToString().Length);
+        int number = firstNumber;
+
+        foreach (DanteChannel channel in channels)
+        {
+            string oldName = channel.DisplayName;
+            string newName = string.IsNullOrWhiteSpace(cleanPrefix)
+                ? number.ToString().PadLeft(digits, '0')
+                : $"{cleanPrefix} {number.ToString().PadLeft(digits, '0')}";
+
+            if (ContainsProblematicCharacters(newName))
+            {
+                throw new InvalidOperationException("Le préfixe contient des caractères non imprimables.");
+            }
+
+            SetChannelDisplayName(channel, channelKind == DanteChannelKind.Tx ? "label" : "name", newName);
+            if (channelKind == DanteChannelKind.Tx)
+            {
+                UpdateSubscriptionsForRenamedTxChannel(device.Name, oldName, newName);
+            }
+
+            number++;
+        }
+
+        RegisterChange("Renommage série", $"{deviceName} {channelKind}: {cleanPrefix} depuis {firstNumber}");
     }
 
     public void ResetAllChannels()
@@ -334,17 +414,154 @@ public sealed class DanteProject
         StringBuilder builder = new();
         DanteValidationResult validation = Validate();
 
+        builder.AppendLine("RÉSUMÉ AVANT SAUVEGARDE");
+        builder.AppendLine("=======================");
         builder.AppendLine($"Fichier original : {OriginalFilePath}");
         builder.AppendLine($"Dernier fichier sauvegardé : {LastSavedPath ?? "aucun"}");
+        builder.AppendLine();
+        builder.AppendLine("Compteurs");
+        builder.AppendLine("--------");
         builder.AppendLine($"Devices : {Devices.Count}");
         builder.AppendLine($"Canaux TX : {Devices.Sum(device => device.TxCount)}");
         builder.AppendLine($"Canaux RX : {Devices.Sum(device => device.RxCount)}");
         builder.AppendLine($"Patchs actifs : {PatchMatrix.ActivePatchCount}");
         builder.AppendLine($"Patchs modifiés : {_modifiedRxElements.Count}");
         builder.AppendLine();
+        builder.AppendLine("Validation");
+        builder.AppendLine("----------");
         builder.AppendLine(validation.ToDisplayText());
         builder.AppendLine();
-        builder.AppendLine("Historique des modifications :");
+        AppendChangeTable(builder);
+
+        return builder.ToString();
+    }
+
+    public string BuildReportText()
+    {
+        StringBuilder builder = new();
+        DanteValidationResult validation = Validate();
+
+        builder.AppendLine("DANTE CONFIG EDITOR - RAPPORT");
+        builder.AppendLine("=============================");
+        builder.AppendLine($"Date : {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
+        builder.AppendLine($"Fichier : {OriginalFilePath}");
+        builder.AppendLine($"Statut : {(IsModified ? "Modifié non sauvegardé" : "Non modifié")}");
+        builder.AppendLine();
+        builder.AppendLine("Synthèse");
+        builder.AppendLine("--------");
+        builder.AppendLine($"Devices : {Devices.Count}");
+        builder.AppendLine($"Canaux TX : {Devices.Sum(device => device.TxCount)}");
+        builder.AppendLine($"Canaux RX : {Devices.Sum(device => device.RxCount)}");
+        builder.AppendLine($"Patchs actifs : {PatchMatrix.ActivePatchCount}");
+        builder.AppendLine($"Conflits : {PatchMatrix.ConflictCount}");
+        builder.AppendLine();
+
+        builder.AppendLine("Validation");
+        builder.AppendLine("----------");
+        builder.AppendLine(validation.ToDisplayText());
+        builder.AppendLine();
+
+        builder.AppendLine("Devices");
+        builder.AppendLine("-------");
+        AppendTableHeader(builder, "Device", "Réseau", "Latence", "TX/RX");
+        foreach (DanteDevice device in Devices)
+        {
+            AppendTableRow(builder, device.Name, device.NetworkMode, string.IsNullOrWhiteSpace(device.Latency) ? "-" : device.Latency, $"{device.TxCount}/{device.RxCount}");
+        }
+
+        builder.AppendLine();
+        builder.AppendLine("Patchs actifs et conflits");
+        builder.AppendLine("-------------------------");
+        AppendTableHeader(builder, "RX", "TX", "Canal TX", "État");
+        foreach (DanteSubscription subscription in PatchMatrix.Subscriptions.Where(subscription => subscription.IsActive || subscription.IsConflict))
+        {
+            AppendTableRow(
+                builder,
+                $"{subscription.RxDevice} / {subscription.RxChannelName}",
+                string.IsNullOrWhiteSpace(subscription.TxDevice) ? "-" : subscription.TxDevice,
+                string.IsNullOrWhiteSpace(subscription.TxChannelName) ? "-" : subscription.TxChannelName,
+                subscription.Status);
+        }
+
+        builder.AppendLine();
+        AppendChangeTable(builder);
+
+        return builder.ToString();
+    }
+
+    public string CompareWith(DanteProject other)
+    {
+        StringBuilder builder = new();
+        builder.AppendLine("COMPARAISON XML");
+        builder.AppendLine("===============");
+        builder.AppendLine($"Fichier ouvert : {OriginalFilePath}");
+        builder.AppendLine($"Fichier comparé : {other.OriginalFilePath}");
+        builder.AppendLine();
+
+        Dictionary<string, DanteDevice> currentDevices = Devices
+            .Where(device => !string.IsNullOrWhiteSpace(device.Name))
+            .ToDictionary(device => device.Name, StringComparer.OrdinalIgnoreCase);
+        Dictionary<string, DanteDevice> otherDevices = other.Devices
+            .Where(device => !string.IsNullOrWhiteSpace(device.Name))
+            .ToDictionary(device => device.Name, StringComparer.OrdinalIgnoreCase);
+
+        List<string> differences = [];
+
+        foreach (string deviceName in currentDevices.Keys.Except(otherDevices.Keys, StringComparer.OrdinalIgnoreCase))
+        {
+            differences.Add($"Device seulement dans le fichier ouvert : {deviceName}");
+        }
+
+        foreach (string deviceName in otherDevices.Keys.Except(currentDevices.Keys, StringComparer.OrdinalIgnoreCase))
+        {
+            differences.Add($"Device seulement dans le fichier comparé : {deviceName}");
+        }
+
+        foreach (string deviceName in currentDevices.Keys.Intersect(otherDevices.Keys, StringComparer.OrdinalIgnoreCase))
+        {
+            DanteDevice current = currentDevices[deviceName];
+            DanteDevice compared = otherDevices[deviceName];
+            CompareValue(differences, $"{deviceName} / mode réseau", current.NetworkMode, compared.NetworkMode);
+            CompareValue(differences, $"{deviceName} / latence", current.Latency, compared.Latency);
+            CompareValue(differences, $"{deviceName} / preferred master", current.PreferredMaster.ToString(), compared.PreferredMaster.ToString());
+            CompareChannels(differences, deviceName, "TX", current.TxChannels, compared.TxChannels);
+            CompareChannels(differences, deviceName, "RX", current.RxChannels, compared.RxChannels);
+        }
+
+        Dictionary<string, DanteSubscription> currentPatches = PatchMatrix.Subscriptions.ToDictionary(BuildPatchKey, StringComparer.OrdinalIgnoreCase);
+        Dictionary<string, DanteSubscription> otherPatches = other.PatchMatrix.Subscriptions.ToDictionary(BuildPatchKey, StringComparer.OrdinalIgnoreCase);
+        foreach (string patchKey in currentPatches.Keys.Intersect(otherPatches.Keys, StringComparer.OrdinalIgnoreCase))
+        {
+            DanteSubscription current = currentPatches[patchKey];
+            DanteSubscription compared = otherPatches[patchKey];
+            CompareValue(differences, $"{patchKey} / TX device", current.TxDevice, compared.TxDevice);
+            CompareValue(differences, $"{patchKey} / TX canal", current.TxChannelName, compared.TxChannelName);
+        }
+
+        if (differences.Count == 0)
+        {
+            builder.AppendLine("Aucune différence détectée dans les champs connus.");
+        }
+        else
+        {
+            foreach (string difference in differences.Take(250))
+            {
+                builder.AppendLine("- " + difference);
+            }
+
+            if (differences.Count > 250)
+            {
+                builder.AppendLine($"- {differences.Count - 250} différence(s) supplémentaire(s) non affichée(s).");
+            }
+        }
+
+        return builder.ToString();
+    }
+
+    private void AppendChangeTable(StringBuilder builder)
+    {
+        builder.AppendLine("Modifications");
+        builder.AppendLine("-------------");
 
         if (_changes.Count == 0)
         {
@@ -352,13 +569,12 @@ public sealed class DanteProject
         }
         else
         {
+            AppendTableHeader(builder, "Heure", "Action", "Détail", "");
             foreach (ChangeRecord change in _changes)
             {
-                builder.AppendLine("- " + change.Display);
+                AppendTableRow(builder, change.Timestamp.ToString("HH:mm:ss"), change.Action, change.Details, "");
             }
         }
-
-        return builder.ToString();
     }
 
     public string SaveAs(string destinationPath)
@@ -370,11 +586,33 @@ public sealed class DanteProject
         }
 
         string backupPath = SafeFileService.CreateOriginalBackup(OriginalFilePath);
-        Document.Save(destinationPath);
+        string temporaryPath = destinationPath + ".tmp";
+
+        try
+        {
+            Document.Save(temporaryPath, SaveOptions.DisableFormatting);
+            _ = Load(temporaryPath);
+
+            if (File.Exists(destinationPath))
+            {
+                File.Delete(destinationPath);
+            }
+
+            File.Move(temporaryPath, destinationPath);
+        }
+        finally
+        {
+            if (File.Exists(temporaryPath))
+            {
+                File.Delete(temporaryPath);
+            }
+        }
+
         LastSavedPath = destinationPath;
         IsModified = false;
         RegisterChange("Sauvegarde", $"Fichier sauvegardé sous {destinationPath}");
         IsModified = false;
+        _undoSnapshots.Clear();
         return backupPath;
     }
 
@@ -401,6 +639,105 @@ public sealed class DanteProject
     public string ListPreferredMasters()
     {
         return BuildDeviceList(Devices.Where(device => device.PreferredMaster), "Aucune machine preferred master trouvée.");
+    }
+
+    private void RestoreSnapshot(UndoSnapshot snapshot)
+    {
+        Document = new XDocument(snapshot.Document);
+        IsModified = snapshot.WasModified;
+
+        while (_changes.Count > snapshot.ChangeCount)
+        {
+            _changes.RemoveAt(_changes.Count - 1);
+        }
+
+        _modifiedRxElements.Clear();
+        ReloadModel();
+        RestoreModifiedRxReferences(snapshot.ModifiedRxReferences);
+        ReloadModel();
+    }
+
+    private IReadOnlyList<ModifiedRxReference> CaptureModifiedRxReferences()
+    {
+        return PatchMatrix.Subscriptions
+            .Where(subscription => subscription.IsModified)
+            .Select(subscription => new ModifiedRxReference(subscription.RxDevice, subscription.RxIndex))
+            .ToArray();
+    }
+
+    private void RestoreModifiedRxReferences(IEnumerable<ModifiedRxReference> references)
+    {
+        foreach (ModifiedRxReference reference in references)
+        {
+            DanteDevice? rxDevice = FindDevice(reference.RxDevice);
+            DanteChannel? channel = rxDevice?.RxChannels.FirstOrDefault(rx => rx.Index == reference.RxIndex);
+            if (channel is not null)
+            {
+                _modifiedRxElements[channel.Element] = true;
+            }
+        }
+    }
+
+    private static void CompareValue(List<string> differences, string label, string current, string compared)
+    {
+        if (!string.Equals(current, compared, StringComparison.OrdinalIgnoreCase))
+        {
+            differences.Add($"{label}: {Blank(current)} -> {Blank(compared)}");
+        }
+    }
+
+    private static void CompareChannels(
+        List<string> differences,
+        string deviceName,
+        string kind,
+        IReadOnlyList<DanteChannel> currentChannels,
+        IReadOnlyList<DanteChannel> comparedChannels)
+    {
+        int max = Math.Max(currentChannels.Count, comparedChannels.Count);
+        for (int index = 0; index < max; index++)
+        {
+            DanteChannel? current = currentChannels.ElementAtOrDefault(index);
+            DanteChannel? compared = comparedChannels.ElementAtOrDefault(index);
+            if (current is null)
+            {
+                differences.Add($"{deviceName} / {kind} {index + 1}: absent dans le fichier ouvert, présent dans le fichier comparé ({compared!.DisplayName})");
+            }
+            else if (compared is null)
+            {
+                differences.Add($"{deviceName} / {kind} {index + 1}: présent dans le fichier ouvert ({current.DisplayName}), absent dans le fichier comparé");
+            }
+            else if (!string.Equals(current.DisplayName, compared.DisplayName, StringComparison.OrdinalIgnoreCase))
+            {
+                differences.Add($"{deviceName} / {kind} {index + 1}: {current.DisplayName} -> {compared.DisplayName}");
+            }
+        }
+    }
+
+    private static string BuildPatchKey(DanteSubscription subscription)
+    {
+        return $"{subscription.RxDevice} / RX {subscription.RxIndex}";
+    }
+
+    private static void AppendTableHeader(StringBuilder builder, string first, string second, string third, string fourth)
+    {
+        builder.AppendLine($"{TrimForColumn(first),-18} | {TrimForColumn(second),-22} | {TrimForColumn(third),-36} | {TrimForColumn(fourth),-18}");
+        builder.AppendLine(new string('-', 103));
+    }
+
+    private static void AppendTableRow(StringBuilder builder, string first, string second, string third, string fourth)
+    {
+        builder.AppendLine($"{TrimForColumn(first),-18} | {TrimForColumn(second),-22} | {TrimForColumn(third),-36} | {TrimForColumn(fourth),-18}");
+    }
+
+    private static string TrimForColumn(string value)
+    {
+        string cleanValue = value.ReplaceLineEndings(" ").Trim();
+        return cleanValue.Length <= 34 ? cleanValue : cleanValue[..31] + "...";
+    }
+
+    private static string Blank(string value)
+    {
+        return string.IsNullOrWhiteSpace(value) ? "(vide)" : value;
     }
 
     private void ReloadModel()
@@ -497,6 +834,25 @@ public sealed class DanteProject
         }
     }
 
+    private static void SetChannelDisplayName(DanteChannel channel, string fallbackElementName, string value)
+    {
+        if (!string.IsNullOrWhiteSpace(channel.NameSource))
+        {
+            if (channel.NameSourceIsAttribute)
+            {
+                channel.Element.SetAttributeValue(channel.NameSource, value);
+            }
+            else
+            {
+                SetElementValue(channel.Element, channel.NameSource, value);
+            }
+
+            return;
+        }
+
+        SetElementValue(channel.Element, fallbackElementName, value);
+    }
+
     private static void SetBooleanElementAttribute(XElement parent, string elementName, string attributeName, bool value, string afterElementName)
     {
         XElement? element = parent.Element(elementName);
@@ -543,14 +899,14 @@ public sealed class DanteProject
         int index = 1;
         foreach (DanteChannel channel in device.TxChannels)
         {
-            SetElementValue(channel.Element, "label", index.ToString());
+            SetChannelDisplayName(channel, "label", index.ToString());
             index++;
         }
 
         index = 1;
         foreach (DanteChannel channel in device.RxChannels)
         {
-            SetElementValue(channel.Element, "name", index.ToString());
+            SetChannelDisplayName(channel, "name", index.ToString());
             index++;
         }
     }
@@ -611,4 +967,13 @@ public sealed class DanteProject
         List<string> names = devices.Select(device => device.Name).Where(name => !string.IsNullOrWhiteSpace(name)).ToList();
         return names.Count > 0 ? string.Join(Environment.NewLine, names) : emptyMessage;
     }
+
+    private sealed record UndoSnapshot(
+        string Label,
+        XDocument Document,
+        bool WasModified,
+        int ChangeCount,
+        IReadOnlyList<ModifiedRxReference> ModifiedRxReferences);
+
+    private sealed record ModifiedRxReference(string RxDevice, int RxIndex);
 }

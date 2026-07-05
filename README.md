@@ -1,4 +1,4 @@
-# Dante Config Editor V3.01
+# Dante Config Editor V3.02
 
 Outil Windows pour éditer hors ligne des fichiers XML de configuration Dante.
 
@@ -16,6 +16,13 @@ Outil Windows pour éditer hors ligne des fichiers XML de configuration Dante.
 - Affiche une page Patch pour visualiser et modifier les abonnements RX vers TX lorsque le format XML le permet.
 - Met à jour les patchs RX quand un canal TX utilisé est renommé.
 - Crée une sauvegarde du fichier original avant sauvegarde.
+- Sauvegarde via un fichier temporaire relu avant remplacement final.
+- Annule la dernière action.
+- Recherche globalement dans les machines, canaux et patchs.
+- Exporte un rapport TXT ou PDF.
+- Compare le fichier ouvert avec un autre XML.
+- Renomme des canaux en série.
+- Affiche les fichiers récents.
 - Propose un thème sombre et un thème clair.
 
 ## Limites importantes
@@ -54,6 +61,18 @@ L'installateur contient uniquement l'application autonome et la documentation ut
 6. Utiliser la page `Patch` pour consulter ou modifier les abonnements reconnus.
 7. Sauvegarder sous un nouveau nom.
 8. Valider le fichier généré dans l'outil Dante officiel approprié avant usage terrain.
+
+## Nouveautés V3.02
+
+- Annulation de la dernière action.
+- Résumé avant sauvegarde plus lisible.
+- Recherche globale.
+- Export du rapport en TXT ou PDF.
+- Détection visuelle plus forte des conflits de patch.
+- Renommage en série des canaux.
+- Liste des fichiers récents.
+- Comparaison avec un autre XML.
+- Sauvegarde sécurisée par fichier temporaire relu avant remplacement.
 
 ## Nouveautés V3.01
 

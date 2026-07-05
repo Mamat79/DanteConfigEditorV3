@@ -38,6 +38,10 @@ public sealed class DanteSubscription
 
     public bool IsModified { get; }
 
+    public bool IsConflict => Status.StartsWith("Conflit", StringComparison.OrdinalIgnoreCase);
+
+    public string RowState => IsConflict ? "Conflict" : IsModified ? "Modified" : IsActive ? "Active" : "Free";
+
     public string Status { get; }
 
     public string Display => $"{RxDevice} / {RxChannelName}";

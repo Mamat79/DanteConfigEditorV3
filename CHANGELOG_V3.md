@@ -1,5 +1,18 @@
 # Changelog V3
 
+## 2026-07-05 - Version 3.02
+
+- Ajout de l'annulation de la dernière action.
+- Ajout d'un résumé avant sauvegarde plus lisible, avec tableau des modifications.
+- Ajout d'une recherche globale machines / canaux / patchs.
+- Ajout de l'export de rapport en TXT et PDF.
+- Mise en évidence visuelle des conflits et lignes modifiées dans la table Patch.
+- Ajout du renommage de canaux en série.
+- Ajout de la liste des fichiers récents.
+- Ajout d'un mode comparaison avec un autre XML.
+- Renforcement de la sécurité XML : sauvegarde via fichier temporaire relu avant remplacement.
+- Renforcement de la compatibilité XML : les renommages écrivent dans le champ de nom d'origine quand il existe.
+
 ## 2026-07-05 - Version 3.01
 
 - Réduction de la colonne `Projet` à un résumé compact.
