@@ -1,4 +1,4 @@
-# Dante Config Editor V3.02
+# Dante Config Editor V3.03
 
 Application Windows WPF pour éditer hors ligne des fichiers XML de configuration Dante compatibles avec la structure utilisée par la V2.
 
@@ -28,7 +28,7 @@ dist\DanteConfigEditorV3_Installer.exe
 
 La personne le lance, choisit le dossier d'installation si besoin, puis l'application est installée par défaut dans Program Files avec un raccourci dans le Menu Démarrer. Un raccourci Bureau est proposé en option.
 
-Cette version est publiée en mode `self-contained win-x64` : le runtime .NET nécessaire est inclus dans l'exécutable de l'application. La machine destinataire n'a pas besoin d'installer le SDK .NET ni le runtime .NET pour utiliser Dante Config Editor V3.02.
+Cette version est publiée en mode `self-contained win-x64` : le runtime .NET nécessaire est inclus dans l'exécutable de l'application. La machine destinataire n'a pas besoin d'installer le SDK .NET ni le runtime .NET pour utiliser Dante Config Editor V3.03.
 
 L'installateur ne déploie pas les sources du projet. Il installe uniquement l'application autonome et la documentation utilisateur.
 
@@ -52,6 +52,11 @@ Pour reconstruire l'installateur autonome :
 ```powershell
 .\installer\build_installer.ps1
 ```
+
+## Nouveautés V3.03
+
+- Correction de la lisibilité des listes et menus en thème sombre.
+- Correction de la propagation des patchs lors de la réinitialisation des canaux TX.
 
 ## Nouveautés V3.02
 

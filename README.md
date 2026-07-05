@@ -1,4 +1,4 @@
-# Dante Config Editor V3.02
+# Dante Config Editor V3.03
 
 Outil Windows pour éditer hors ligne des fichiers XML de configuration Dante.
 
@@ -61,6 +61,11 @@ L'installateur contient uniquement l'application autonome et la documentation ut
 6. Utiliser la page `Patch` pour consulter ou modifier les abonnements reconnus.
 7. Sauvegarder sous un nouveau nom.
 8. Valider le fichier généré dans l'outil Dante officiel approprié avant usage terrain.
+
+## Nouveautés V3.03
+
+- Correction de la lisibilité des listes et menus en thème sombre.
+- Correction de la propagation des patchs lors de la réinitialisation des canaux TX.
 
 ## Nouveautés V3.02
 

@@ -8,14 +8,19 @@
     <AssemblyName>DanteConfigEditorV3</AssemblyName>
     <RootNamespace>DanteConfigEditor</RootNamespace>
     <ApplicationIcon>DanteEdit.ico</ApplicationIcon>
-    <Version>3.2.0</Version>
-    <AssemblyVersion>3.2.0.0</AssemblyVersion>
-    <FileVersion>3.2.0.0</FileVersion>
-    <InformationalVersion>3.02-dev</InformationalVersion>
+    <Version>3.3.0</Version>
+    <AssemblyVersion>3.3.0.0</AssemblyVersion>
+    <FileVersion>3.3.0.0</FileVersion>
+    <InformationalVersion>3.03-dev</InformationalVersion>
   </PropertyGroup>
 
   <ItemGroup>
     <None Remove="DanteEdit.ico" />
     <Resource Include="DanteEdit.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="tmp\**\*.cs" />
+    <None Remove="tmp\**\*" />
   </ItemGroup>
 </Project>

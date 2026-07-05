@@ -894,12 +894,15 @@ public sealed class DanteProject
         }
     }
 
-    private static void ResetDeviceChannels(DanteDevice device)
+    private void ResetDeviceChannels(DanteDevice device)
     {
         int index = 1;
         foreach (DanteChannel channel in device.TxChannels)
         {
-            SetChannelDisplayName(channel, "label", index.ToString());
+            string oldName = channel.DisplayName;
+            string newName = index.ToString();
+            SetChannelDisplayName(channel, "label", newName);
+            UpdateSubscriptionsForRenamedTxChannel(device.Name, oldName, newName);
             index++;
         }
 

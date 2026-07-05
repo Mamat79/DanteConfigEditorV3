@@ -1,4 +1,4 @@
-# Dante Config Editor V3.02
+# Dante Config Editor V3.03
 
 ## Statut
 
@@ -8,6 +8,8 @@ Travaillez toujours sur une copie de vos fichiers XML Dante et validez le result
 
 ## Nouveautes principales
 
+- Correction de la lisibilite des listes et menus en theme sombre.
+- Correction de la propagation des patchs quand les canaux TX sont reinitialises.
 - Annulation de la derniere action.
 - Resume avant sauvegarde plus lisible.
 - Recherche globale dans machines, canaux et patchs.
