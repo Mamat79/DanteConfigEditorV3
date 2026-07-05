@@ -8,7 +8,7 @@ Travaillez toujours sur une copie de vos fichiers XML Dante et validez le result
 
 ## Nouveautes principales
 
-- Correction de la lisibilite des listes et menus en theme sombre.
+- Correction de la lisibilite des listes et menus : fond blanc et texte noir, y compris en theme sombre.
 - Correction de la propagation des patchs quand les canaux TX sont reinitialises.
 - Annulation de la derniere action.
 - Resume avant sauvegarde plus lisible.

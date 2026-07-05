@@ -55,7 +55,7 @@ Pour reconstruire l'installateur autonome :
 
 ## Nouveautés V3.03
 
-- Correction de la lisibilité des listes et menus en thème sombre.
+- Correction de la lisibilité des listes et menus : fond blanc et texte noir, y compris en thème sombre.
 - Correction de la propagation des patchs lors de la réinitialisation des canaux TX.
 
 ## Nouveautés V3.02

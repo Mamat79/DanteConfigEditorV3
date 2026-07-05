@@ -2,7 +2,7 @@
 
 ## 2026-07-05 - Version 3.03
 
-- Correction de la lisibilité des listes et menus déroulants en thème sombre.
+- Correction de la lisibilité des listes et menus déroulants : fond blanc et texte noir, y compris en thème sombre.
 - Correction de la réinitialisation des canaux TX : les patchs RX reconnus sont maintenant mis à jour vers les nouveaux noms `1`, `2`, `3`, etc.
 - Ajout d'une exclusion explicite du dossier `tmp` dans le projet `.NET` pour éviter que les fichiers temporaires de test soient compilés.
 
