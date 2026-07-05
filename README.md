@@ -1,4 +1,4 @@
-# Dante Config Editor V3
+# Dante Config Editor V3.01
 
 Outil Windows pour éditer hors ligne des fichiers XML de configuration Dante.
 
@@ -29,11 +29,9 @@ Outil Windows pour éditer hors ligne des fichiers XML de configuration Dante.
 
 ## Télécharger / installer
 
-Deux options sont fournies dans le dossier `dist` :
+Le fichier recommandé est fourni dans le dossier `dist` local et dans les Releases GitHub :
 
 - `dist/DanteConfigEditorV3_Installer.exe` : installateur Windows recommandé, avec installation par défaut dans Program Files, choix du dossier d'installation, raccourcis Menu Démarrer/Bureau et désinstallation propre.
-- `dist/DanteConfigEditorV3_Setup.exe` : ancien installateur autonome simple.
-- `dist/portable/DanteConfigEditorV3.exe` : version portable, lançable sans installation.
 
 La version autonome inclut le runtime .NET nécessaire. Sur une machine Windows x64, il ne devrait pas être nécessaire d'installer .NET séparément pour utiliser l'application.
 
@@ -56,6 +54,15 @@ L'installateur contient uniquement l'application autonome et la documentation ut
 6. Utiliser la page `Patch` pour consulter ou modifier les abonnements reconnus.
 7. Sauvegarder sous un nouveau nom.
 8. Valider le fichier généré dans l'outil Dante officiel approprié avant usage terrain.
+
+## Nouveautés V3.01
+
+- Colonne `Projet` plus compacte.
+- Navigation par onglets uniquement en haut.
+- Page `Configuration` réorganisée pour limiter le défilement vertical.
+- Page `Patch` avec filtres TX/RX explicites.
+- Ajout des choix `Tous les émetteurs` et `Tous les récepteurs`.
+- Renommage RX et TX séparés dans la page `Patch`.
 
 ## Renommage des canaux et patchs
 

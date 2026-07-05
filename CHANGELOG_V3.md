@@ -1,5 +1,17 @@
 # Changelog V3
 
+## 2026-07-05 - Version 3.01
+
+- Réduction de la colonne `Projet` à un résumé compact.
+- Suppression des boutons d'onglets dupliqués dans la colonne de gauche.
+- Conservation de la navigation uniquement par les onglets du haut.
+- Réorganisation horizontale de la page `Configuration`.
+- Ajout du filtre émetteur TX effectif dans la page `Patch`.
+- Ajout des choix `Tous les émetteurs` et `Tous les récepteurs`.
+- Clarification de la zone d'application de patch : `Source TX à appliquer` et `Canal TX à appliquer`.
+- Séparation des champs de renommage `RX sélectionné` et `TX source`.
+- Passage de la livraison en version `3.01`.
+
 ## 2026-07-04
 
 - Création du dossier `V3` sans modification de `V2`.

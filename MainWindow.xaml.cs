@@ -12,6 +12,7 @@ namespace DanteConfigEditor;
 
 public partial class MainWindow : Window
 {
+    private const string AllSendersItem = "Tous les émetteurs";
     private const string AllReceiversItem = "Tous les récepteurs";
     private readonly ObservableCollection<DanteSubscription> _patchRows = [];
     private readonly ObservableCollection<string> _logs = [];
@@ -332,7 +333,12 @@ public partial class MainWindow : Window
             return;
         }
 
-        SourceDeviceComboBox.SelectedItem = deviceName;
+        if (!string.Equals(deviceName, AllSendersItem, StringComparison.OrdinalIgnoreCase))
+        {
+            SourceDeviceComboBox.SelectedItem = deviceName;
+        }
+
+        RefreshPatchRows();
     }
 
     private void ReceiverDeviceList_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -342,7 +348,7 @@ public partial class MainWindow : Window
             return;
         }
 
-        ReceiverFilterComboBox.SelectedItem = deviceName;
+        RefreshPatchRows();
     }
 
     private void PatchFilter_Changed(object sender, RoutedEventArgs e)
@@ -383,6 +389,16 @@ public partial class MainWindow : Window
         RefreshSourceChannels();
     }
 
+    private void SourceChannelComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (_refreshingUi)
+        {
+            return;
+        }
+
+        PatchTxRenameChannelTextBox.Text = SourceChannelComboBox.SelectedItem as string ?? string.Empty;
+    }
+
     private void PatchGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         if (_refreshingUi || PatchGrid.SelectedItem is not DanteSubscription subscription)
@@ -397,9 +413,8 @@ public partial class MainWindow : Window
             SourceChannelComboBox.SelectedItem = subscription.TxChannelName;
         }
 
-        PatchRenameChannelTextBox.Text = !string.IsNullOrWhiteSpace(subscription.TxChannelName)
-            ? subscription.TxChannelName
-            : subscription.RxChannelName;
+        PatchRxRenameChannelTextBox.Text = subscription.RxChannelName;
+        PatchTxRenameChannelTextBox.Text = subscription.TxChannelName;
     }
 
     private void ApplyPatchButton_Click(object sender, RoutedEventArgs e)
@@ -438,7 +453,7 @@ public partial class MainWindow : Window
     {
         string sourceDeviceName = SourceDeviceComboBox.SelectedItem as string ?? string.Empty;
         string sourceChannelName = SourceChannelComboBox.SelectedItem as string ?? string.Empty;
-        string newName = PatchRenameChannelTextBox.Text;
+        string newName = PatchTxRenameChannelTextBox.Text;
 
         if (string.IsNullOrWhiteSpace(sourceDeviceName) || string.IsNullOrWhiteSpace(sourceChannelName))
         {
@@ -469,7 +484,7 @@ public partial class MainWindow : Window
 
         RunProjectAction("Canal RX renommé.", () =>
         {
-            _project!.RenameChannel(subscription.RxDevice, DanteChannelKind.Rx, subscription.RxIndex, PatchRenameChannelTextBox.Text);
+            _project!.RenameChannel(subscription.RxDevice, DanteChannelKind.Rx, subscription.RxIndex, PatchRxRenameChannelTextBox.Text);
         });
     }
 
@@ -516,10 +531,11 @@ public partial class MainWindow : Window
                 CountsTextBlock.Text = "0 device - 0 TX - 0 RX";
                 DeviceGrid.ItemsSource = null;
                 DeviceComboBox.ItemsSource = null;
-                SenderDeviceList.ItemsSource = null;
-                ReceiverDeviceList.ItemsSource = null;
+                SenderDeviceList.ItemsSource = new[] { AllSendersItem };
+                SenderDeviceList.SelectedItem = AllSendersItem;
+                ReceiverDeviceList.ItemsSource = new[] { AllReceiversItem };
+                ReceiverDeviceList.SelectedItem = AllReceiversItem;
                 SourceDeviceComboBox.ItemsSource = null;
-                ReceiverFilterComboBox.ItemsSource = new[] { AllReceiversItem };
                 SaveSummaryTextBox.Text = "Aucun fichier chargé.";
                 _patchRows.Clear();
                 return;
@@ -528,6 +544,9 @@ public partial class MainWindow : Window
             IReadOnlyList<DanteDevice> devices = _project.Devices;
             string[] deviceNames = devices.Select(device => device.Name).Where(name => !string.IsNullOrWhiteSpace(name)).ToArray();
             string selectedDevice = DeviceComboBox.SelectedItem as string ?? deviceNames.FirstOrDefault() ?? string.Empty;
+            string selectedSenderFilter = SenderDeviceList.SelectedItem as string ?? AllSendersItem;
+            string selectedReceiverFilter = ReceiverDeviceList.SelectedItem as string ?? AllReceiversItem;
+            string selectedSourceDevice = SourceDeviceComboBox.SelectedItem as string ?? deviceNames.FirstOrDefault() ?? string.Empty;
 
             FilePathTextBlock.Text = _project.OriginalFilePath;
             DirtyStateTextBlock.Text = _project.IsModified ? "Modifié - non sauvegardé" : "Non modifié";
@@ -543,13 +562,14 @@ public partial class MainWindow : Window
             DeviceComboBox.ItemsSource = deviceNames;
             DeviceComboBox.SelectedItem = deviceNames.Contains(selectedDevice) ? selectedDevice : deviceNames.FirstOrDefault();
 
-            SenderDeviceList.ItemsSource = deviceNames;
-            ReceiverDeviceList.ItemsSource = deviceNames;
+            string[] senderFilterItems = new[] { AllSendersItem }.Concat(deviceNames).ToArray();
+            string[] receiverFilterItems = new[] { AllReceiversItem }.Concat(deviceNames).ToArray();
+            SenderDeviceList.ItemsSource = senderFilterItems;
+            SenderDeviceList.SelectedItem = deviceNames.Contains(selectedSenderFilter) ? selectedSenderFilter : AllSendersItem;
+            ReceiverDeviceList.ItemsSource = receiverFilterItems;
+            ReceiverDeviceList.SelectedItem = deviceNames.Contains(selectedReceiverFilter) ? selectedReceiverFilter : AllReceiversItem;
             SourceDeviceComboBox.ItemsSource = deviceNames;
-
-            string receiverSelection = ReceiverFilterComboBox.SelectedItem as string ?? AllReceiversItem;
-            ReceiverFilterComboBox.ItemsSource = new[] { AllReceiversItem }.Concat(deviceNames).ToArray();
-            ReceiverFilterComboBox.SelectedItem = deviceNames.Contains(receiverSelection) ? receiverSelection : AllReceiversItem;
+            SourceDeviceComboBox.SelectedItem = deviceNames.Contains(selectedSourceDevice) ? selectedSourceDevice : deviceNames.FirstOrDefault();
 
             SaveSummaryTextBox.Text = _project.BuildSaveSummary();
         }
@@ -610,7 +630,8 @@ public partial class MainWindow : Window
         }
 
         string search = PatchSearchTextBox.Text.Trim();
-        string receiver = ReceiverFilterComboBox.SelectedItem as string ?? AllReceiversItem;
+        string sender = SenderDeviceList.SelectedItem as string ?? AllSendersItem;
+        string receiver = ReceiverDeviceList.SelectedItem as string ?? AllReceiversItem;
         bool conflictsOnly = ConflictsOnlyCheckBox.IsChecked == true;
 
         IEnumerable<DanteSubscription> subscriptions = _project.PatchMatrix.Subscriptions;
@@ -622,6 +643,11 @@ public partial class MainWindow : Window
                 || Contains(subscription.RxChannelName, search)
                 || Contains(subscription.TxDevice, search)
                 || Contains(subscription.TxChannelName, search));
+        }
+
+        if (!string.Equals(sender, AllSendersItem, StringComparison.OrdinalIgnoreCase))
+        {
+            subscriptions = subscriptions.Where(subscription => string.Equals(subscription.TxDevice, sender, StringComparison.OrdinalIgnoreCase));
         }
 
         if (!string.Equals(receiver, AllReceiversItem, StringComparison.OrdinalIgnoreCase))
@@ -658,7 +684,7 @@ public partial class MainWindow : Window
 
         if (!string.IsNullOrWhiteSpace(SourceChannelComboBox.SelectedItem as string))
         {
-            PatchRenameChannelTextBox.Text = SourceChannelComboBox.SelectedItem as string ?? string.Empty;
+            PatchTxRenameChannelTextBox.Text = SourceChannelComboBox.SelectedItem as string ?? string.Empty;
         }
     }
 

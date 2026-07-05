@@ -1,4 +1,4 @@
-# Dante Config Editor V3
+# Dante Config Editor V3.01
 
 Application Windows WPF pour éditer hors ligne des fichiers XML de configuration Dante compatibles avec la structure utilisée par la V2.
 
@@ -16,7 +16,7 @@ Ou lancer directement :
 .\bin\Release\net8.0-windows\DanteConfigEditorV3.exe
 ```
 
-Prérequis runtime : .NET Desktop Runtime 8.
+Ce mode sert surtout au développement local. Pour transmettre l'application à quelqu'un, utiliser l'installateur.
 
 ## Installer sur une autre machine
 
@@ -28,21 +28,9 @@ dist\DanteConfigEditorV3_Installer.exe
 
 La personne le lance, choisit le dossier d'installation si besoin, puis l'application est installée par défaut dans Program Files avec un raccourci dans le Menu Démarrer. Un raccourci Bureau est proposé en option.
 
-Cette version est publiée en mode `self-contained win-x64` : le runtime .NET nécessaire est inclus dans l'exécutable de l'application. La machine destinataire n'a pas besoin d'installer le SDK .NET ni le runtime .NET pour utiliser Dante Config Editor V3.
+Cette version est publiée en mode `self-contained win-x64` : le runtime .NET nécessaire est inclus dans l'exécutable de l'application. La machine destinataire n'a pas besoin d'installer le SDK .NET ni le runtime .NET pour utiliser Dante Config Editor V3.01.
 
 L'installateur ne déploie pas les sources du projet. Il installe uniquement l'application autonome et la documentation utilisateur.
-
-Pour lancer sans installer, utiliser la version portable :
-
-```text
-dist\portable\DanteConfigEditorV3.exe
-```
-
-La version portable peut aussi ouvrir directement un XML en ligne de commande :
-
-```powershell
-.\dist\portable\DanteConfigEditorV3.exe "C:\chemin\configuration.xml"
-```
 
 ## Compiler
 
@@ -64,6 +52,15 @@ Pour reconstruire l'installateur autonome :
 ```powershell
 .\installer\build_installer.ps1
 ```
+
+## Nouveautés V3.01
+
+- Colonne `Projet` plus compacte.
+- Navigation par onglets uniquement en haut.
+- Page `Configuration` réorganisée horizontalement.
+- Page `Patch` avec filtre émetteur TX réellement actif.
+- Choix `Tous les émetteurs` et `Tous les récepteurs` pour revenir à l'affichage complet.
+- Renommage RX et TX séparés dans la page `Patch`.
 
 ## Nouveautés V3
 

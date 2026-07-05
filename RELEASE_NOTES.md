@@ -1,4 +1,4 @@
-# Dante Config Editor V3 - 0.3.1-dev
+# Dante Config Editor V3.01
 
 ## Statut
 
@@ -8,6 +8,12 @@ Travaillez toujours sur une copie de vos fichiers XML Dante et validez le result
 
 ## Nouveautes principales
 
+- Ergonomie revue suite au test video du 2026-07-05.
+- Colonne Projet reduite a un resume compact.
+- Onglets gardes uniquement en haut de l'application.
+- Page Configuration reorganisee horizontalement pour limiter le defilement vertical.
+- Page Patch avec filtres TX/RX explicites et choix `Tous les emetteurs` / `Tous les recepteurs`.
+- Renommage RX et TX separes dans la page Patch.
 - Interface WPF modernisee avec theme sombre et theme clair.
 - Edition hors ligne des fichiers XML Dante compatibles.
 - Vue Patch pour consulter et modifier les abonnements RX vers TX reconnus.
