@@ -29,6 +29,12 @@
             <Setter Property="Padding" Value="0,8,0,4" />
         </Style>
 
+        <DataTemplate x:Key="WhiteListTextTemplate">
+            <TextBlock Text="{Binding}"
+                       Foreground="#111827"
+                       TextWrapping="NoWrap" />
+        </DataTemplate>
+
         <Style TargetType="{x:Type Button}">
             <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
             <Setter Property="Foreground" Value="White" />
@@ -102,6 +108,7 @@
             <Setter Property="BorderBrush" Value="#CBD5E1" />
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="Padding" Value="6,4" />
+            <Setter Property="ItemTemplate" Value="{StaticResource WhiteListTextTemplate}" />
         </Style>
 
         <Style TargetType="{x:Type ComboBoxItem}">
@@ -125,6 +132,7 @@
             <Setter Property="Foreground" Value="#111827" />
             <Setter Property="BorderBrush" Value="#CBD5E1" />
             <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="ItemTemplate" Value="{StaticResource WhiteListTextTemplate}" />
         </Style>
 
         <Style TargetType="{x:Type ListBoxItem}">
@@ -396,6 +404,20 @@
                                         <Grid>
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="*" />
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel Margin="0,0,8,0">
+                                                <Label Content="Canal début" />
+                                                <ComboBox x:Name="BatchRenameStartChannelComboBox" />
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="1">
+                                                <Label Content="Canal fin" />
+                                                <ComboBox x:Name="BatchRenameEndChannelComboBox" />
+                                            </StackPanel>
+                                        </Grid>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
                                                 <ColumnDefinition Width="90" />
                                             </Grid.ColumnDefinitions>
                                             <StackPanel Margin="0,0,8,0">
@@ -403,7 +425,7 @@
                                                 <TextBox x:Name="BatchRenamePrefixTextBox" />
                                             </StackPanel>
                                             <StackPanel Grid.Column="1">
-                                                <Label Content="Début" />
+                                                <Label Content="Numéro" />
                                                 <TextBox x:Name="BatchRenameStartTextBox" Text="1" />
                                             </StackPanel>
                                         </Grid>

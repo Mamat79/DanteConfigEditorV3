@@ -252,11 +252,16 @@ public sealed class DanteProject
         RegisterChange("Nom canal", $"{deviceName} {channelKind} {channelIndex}: {oldName} -> {trimmedNewName}");
     }
 
-    public void BatchRenameChannels(string deviceName, DanteChannelKind channelKind, string prefix, int firstNumber)
+    public void BatchRenameChannels(string deviceName, DanteChannelKind channelKind, string prefix, int firstNumber, int startChannelIndex, int endChannelIndex)
     {
         if (firstNumber < 0)
         {
             throw new InvalidOperationException("Le numéro de départ doit être positif.");
+        }
+
+        if (startChannelIndex > endChannelIndex)
+        {
+            throw new InvalidOperationException("La plage de canaux est invalide.");
         }
 
         DanteDevice device = FindDevice(deviceName) ?? throw new InvalidOperationException("Device introuvable.");
@@ -266,11 +271,21 @@ public sealed class DanteProject
             throw new InvalidOperationException("Aucun canal à renommer pour ce device.");
         }
 
-        string cleanPrefix = prefix.Trim();
-        int digits = Math.Max(2, (firstNumber + channels.Count - 1).ToString().Length);
-        int number = firstNumber;
+        DanteChannel[] selectedChannels = channels
+            .Where(channel => channel.Index >= startChannelIndex && channel.Index <= endChannelIndex)
+            .ToArray();
 
-        foreach (DanteChannel channel in channels)
+        if (selectedChannels.Length == 0)
+        {
+            throw new InvalidOperationException("Aucun canal trouvé dans cette plage.");
+        }
+
+        string cleanPrefix = prefix.Trim();
+        int digits = Math.Max(2, (firstNumber + selectedChannels.Length - 1).ToString().Length);
+        int number = firstNumber;
+        List<(string OldName, string NewName)> txRenames = [];
+
+        foreach (DanteChannel channel in selectedChannels)
         {
             string oldName = channel.DisplayName;
             string newName = string.IsNullOrWhiteSpace(cleanPrefix)
@@ -285,13 +300,18 @@ public sealed class DanteProject
             SetChannelDisplayName(channel, channelKind == DanteChannelKind.Tx ? "label" : "name", newName);
             if (channelKind == DanteChannelKind.Tx)
             {
-                UpdateSubscriptionsForRenamedTxChannel(device.Name, oldName, newName);
+                txRenames.Add((oldName, newName));
             }
 
             number++;
         }
 
-        RegisterChange("Renommage série", $"{deviceName} {channelKind}: {cleanPrefix} depuis {firstNumber}");
+        if (channelKind == DanteChannelKind.Tx)
+        {
+            UpdateSubscriptionsForRenamedTxChannels(device.Name, txRenames);
+        }
+
+        RegisterChange("Renommage série", $"{deviceName} {channelKind}: canaux {startChannelIndex}-{endChannelIndex}, {cleanPrefix} depuis {firstNumber}");
     }
 
     public void ResetAllChannels()
@@ -897,14 +917,17 @@ public sealed class DanteProject
     private void ResetDeviceChannels(DanteDevice device)
     {
         int index = 1;
+        List<(string OldName, string NewName)> txRenames = [];
         foreach (DanteChannel channel in device.TxChannels)
         {
             string oldName = channel.DisplayName;
             string newName = index.ToString();
             SetChannelDisplayName(channel, "label", newName);
-            UpdateSubscriptionsForRenamedTxChannel(device.Name, oldName, newName);
+            txRenames.Add((oldName, newName));
             index++;
         }
+
+        UpdateSubscriptionsForRenamedTxChannels(device.Name, txRenames);
 
         index = 1;
         foreach (DanteChannel channel in device.RxChannels)
@@ -916,7 +939,26 @@ public sealed class DanteProject
 
     private void UpdateSubscriptionsForRenamedTxChannel(string txDeviceName, string oldChannelName, string newChannelName)
     {
-        if (string.IsNullOrWhiteSpace(oldChannelName))
+        UpdateSubscriptionsForRenamedTxChannels(txDeviceName, new[] { (OldName: oldChannelName, NewName: newChannelName) });
+    }
+
+    private void UpdateSubscriptionsForRenamedTxChannels(string txDeviceName, IEnumerable<(string OldName, string NewName)> renamedChannels)
+    {
+        Dictionary<string, string> renamedByOldName = new(StringComparer.OrdinalIgnoreCase);
+        foreach ((string oldName, string newName) in renamedChannels)
+        {
+            string cleanOldName = oldName.Trim();
+            string cleanNewName = newName.Trim();
+            if (string.IsNullOrWhiteSpace(cleanOldName)
+                || string.Equals(cleanOldName, cleanNewName, StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
+            renamedByOldName.TryAdd(cleanOldName, cleanNewName);
+        }
+
+        if (renamedByOldName.Count == 0)
         {
             return;
         }
@@ -934,8 +976,7 @@ public sealed class DanteProject
 
             foreach (XElement subscribedChannel in rxChannel.Elements().Where(element => SubscriptionChannelElementNames.Contains(element.Name.LocalName)))
             {
-                bool sameChannel = string.Equals(subscribedChannel.Value.Trim(), oldChannelName, StringComparison.OrdinalIgnoreCase);
-                if (sameChannel)
+                if (renamedByOldName.TryGetValue(subscribedChannel.Value.Trim(), out string? newChannelName))
                 {
                     subscribedChannel.Value = newChannelName;
                     _modifiedRxElements[rxChannel] = true;

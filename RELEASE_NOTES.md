@@ -10,12 +10,13 @@ Travaillez toujours sur une copie de vos fichiers XML Dante et validez le result
 
 - Correction de la lisibilite des listes et menus : fond blanc et texte noir, y compris en theme sombre.
 - Correction de la propagation des patchs quand les canaux TX sont reinitialises.
+- Choix canal debut / canal fin pour limiter le renommage en serie a une plage.
 - Annulation de la derniere action.
 - Resume avant sauvegarde plus lisible.
 - Recherche globale dans machines, canaux et patchs.
 - Export du rapport en TXT ou PDF.
 - Conflits de patch plus visibles dans la table.
-- Renommage de canaux en serie.
+- Renommage de canaux en serie, avec plage configurable.
 - Liste des fichiers recents.
 - Comparaison avec un autre XML.
 - Sauvegarde securisee par fichier temporaire relu avant remplacement.

@@ -4,6 +4,8 @@
 
 - Correction de la lisibilité des listes et menus déroulants : fond blanc et texte noir, y compris en thème sombre.
 - Correction de la réinitialisation des canaux TX : les patchs RX reconnus sont maintenant mis à jour vers les nouveaux noms `1`, `2`, `3`, etc.
+- Ajout du choix canal début / canal fin dans le renommage en série, pour ne renommer qu'une plage de canaux.
+- Renforcement de la mise à jour des patchs TX pendant les renommages en série : les abonnements reconnus sont mis à jour en une seule passe depuis les anciens noms.
 - Ajout d'une exclusion explicite du dossier `tmp` dans le projet `.NET` pour éviter que les fichiers temporaires de test soient compilés.
 
 ## 2026-07-05 - Version 3.02

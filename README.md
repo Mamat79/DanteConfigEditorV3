@@ -11,6 +11,7 @@ Outil Windows pour éditer hors ligne des fichiers XML de configuration Dante.
 - Affiche les devices, canaux TX/RX, latences, mode réseau et preferred master.
 - Renomme les devices.
 - Renomme les canaux TX/RX.
+- Renomme des plages de canaux en série.
 - Réinitialise les noms de canaux.
 - Modifie les paramètres déjà couverts par la V2.
 - Affiche une page Patch pour visualiser et modifier les abonnements RX vers TX lorsque le format XML le permet.
@@ -66,6 +67,7 @@ L'installateur contient uniquement l'application autonome et la documentation ut
 
 - Correction de la lisibilité des listes et menus : fond blanc et texte noir, y compris en thème sombre.
 - Correction de la propagation des patchs lors de la réinitialisation des canaux TX.
+- Ajout du choix canal début / canal fin pour limiter le renommage en série à une plage.
 
 ## Nouveautés V3.02
 
@@ -90,7 +92,7 @@ L'installateur contient uniquement l'application autonome et la documentation ut
 
 ## Renommage des canaux et patchs
 
-Quand un canal TX est renommé, l'application parcourt les abonnements RX reconnus et remplace l'ancien nom du canal par le nouveau partout où il est utilisé avec le même device TX.
+Quand un canal TX est renommé, y compris lors d'un renommage en série sur une plage, l'application parcourt les abonnements RX reconnus et remplace l'ancien nom du canal par le nouveau partout où il est utilisé avec le même device TX.
 
 Les champs de patch actuellement reconnus incluent notamment :
 

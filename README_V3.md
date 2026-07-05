@@ -57,6 +57,7 @@ Pour reconstruire l'installateur autonome :
 
 - Correction de la lisibilité des listes et menus : fond blanc et texte noir, y compris en thème sombre.
 - Correction de la propagation des patchs lors de la réinitialisation des canaux TX.
+- Ajout du choix canal début / canal fin pour limiter le renommage en série à une plage.
 
 ## Nouveautés V3.02
 
@@ -65,7 +66,7 @@ Pour reconstruire l'installateur autonome :
 - Recherche globale dans machines, canaux et patchs.
 - Export du rapport en TXT ou PDF.
 - Conflits de patch plus visibles.
-- Renommage de canaux en série.
+- Renommage de canaux en série, avec plage de canaux configurable.
 - Liste des fichiers récents.
 - Comparaison avec un autre XML.
 - Sauvegarde sécurisée par fichier temporaire relu avant remplacement.
@@ -98,6 +99,7 @@ Pour reconstruire l'installateur autonome :
 - Renommage individuel des canaux TX et RX.
 - Reset des noms de canaux par device ou globalement.
 - Si un canal TX renommé est référencé par des RX, les références de patch reconnues sont mises à jour partout dans le fichier.
+- Le renommage en série peut être limité à une plage avec un canal de début et un canal de fin.
 - Première vue Patch hors ligne :
   - liste des devices émetteurs ;
   - liste des devices récepteurs ;

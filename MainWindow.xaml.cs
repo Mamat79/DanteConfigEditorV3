@@ -334,6 +334,19 @@ public partial class MainWindow : Window
             ? DanteChannelKind.Rx
             : DanteChannelKind.Tx;
 
+        if (BatchRenameStartChannelComboBox.SelectedItem is not ChannelChoice startChannel
+            || BatchRenameEndChannelComboBox.SelectedItem is not ChannelChoice endChannel)
+        {
+            ShowError("Plage invalide", "Sélectionnez un canal de début et un canal de fin.");
+            return;
+        }
+
+        if (startChannel.Kind != kind || endChannel.Kind != kind || startChannel.Index > endChannel.Index)
+        {
+            ShowError("Plage invalide", "Le canal de fin doit être placé après le canal de début.");
+            return;
+        }
+
         if (!int.TryParse(BatchRenameStartTextBox.Text.Trim(), out int firstNumber))
         {
             ShowError("Numéro invalide", "Indiquez un numéro de départ valide.");
@@ -342,8 +355,8 @@ public partial class MainWindow : Window
 
         RunProjectAction(
             "Renommage en série appliqué.",
-            () => _project!.BatchRenameChannels(SelectedDeviceName(), kind, BatchRenamePrefixTextBox.Text, firstNumber),
-            "Les noms des canaux sélectionnés seront remplacés en série. Continuer ?");
+            () => _project!.BatchRenameChannels(SelectedDeviceName(), kind, BatchRenamePrefixTextBox.Text, firstNumber, startChannel.Index, endChannel.Index),
+            $"Les noms des canaux {kind} {startChannel.Index} à {endChannel.Index} seront remplacés en série. Continuer ?");
     }
 
     private void ApplyAllNetworkButton_Click(object sender, RoutedEventArgs e)
@@ -815,6 +828,8 @@ public partial class MainWindow : Window
         if (_project is null)
         {
             ChannelComboBox.ItemsSource = null;
+            BatchRenameStartChannelComboBox.ItemsSource = null;
+            BatchRenameEndChannelComboBox.ItemsSource = null;
             NewChannelNameTextBox.Text = string.Empty;
             return;
         }
@@ -823,6 +838,8 @@ public partial class MainWindow : Window
         if (device is null)
         {
             ChannelComboBox.ItemsSource = null;
+            BatchRenameStartChannelComboBox.ItemsSource = null;
+            BatchRenameEndChannelComboBox.ItemsSource = null;
             NewChannelNameTextBox.Text = string.Empty;
             return;
         }
@@ -834,6 +851,12 @@ public partial class MainWindow : Window
         string previousKey = ChannelComboBox.SelectedItem is ChannelChoice previous
             ? $"{previous.Kind}:{previous.Index}"
             : string.Empty;
+        string previousStartKey = BatchRenameStartChannelComboBox.SelectedItem is ChannelChoice previousStart
+            ? $"{previousStart.Kind}:{previousStart.Index}"
+            : string.Empty;
+        string previousEndKey = BatchRenameEndChannelComboBox.SelectedItem is ChannelChoice previousEnd
+            ? $"{previousEnd.Kind}:{previousEnd.Index}"
+            : string.Empty;
 
         ChannelChoice[] choices = (kind == DanteChannelKind.Tx ? device.TxChannels : device.RxChannels)
             .Select(channel => new ChannelChoice(kind, channel.Index, channel.DisplayName))
@@ -842,6 +865,10 @@ public partial class MainWindow : Window
         ChannelComboBox.ItemsSource = choices;
         ChannelChoice? selected = choices.FirstOrDefault(choice => $"{choice.Kind}:{choice.Index}" == previousKey) ?? choices.FirstOrDefault();
         ChannelComboBox.SelectedItem = selected;
+        BatchRenameStartChannelComboBox.ItemsSource = choices;
+        BatchRenameEndChannelComboBox.ItemsSource = choices;
+        BatchRenameStartChannelComboBox.SelectedItem = choices.FirstOrDefault(choice => $"{choice.Kind}:{choice.Index}" == previousStartKey) ?? choices.FirstOrDefault();
+        BatchRenameEndChannelComboBox.SelectedItem = choices.FirstOrDefault(choice => $"{choice.Kind}:{choice.Index}" == previousEndKey) ?? choices.LastOrDefault();
         NewChannelNameTextBox.Text = selected?.Name ?? string.Empty;
     }
 
