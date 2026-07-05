@@ -15,6 +15,8 @@ public static class ReportExportService
 
     public static void ExportPdf(string path, string title, string report)
     {
+        // Générateur PDF minimal sans dépendance externe. Suffisant pour un
+        // rapport texte simple et facile à embarquer dans l'application.
         List<string> lines = WrapLines(report.Replace("\r\n", "\n").Split('\n')).ToList();
         if (lines.Count == 0)
         {
@@ -76,6 +78,7 @@ public static class ReportExportService
 
     private static IEnumerable<string> WrapLines(IEnumerable<string> inputLines)
     {
+        // Les lignes trop longues sont coupées pour rester dans la largeur A4.
         foreach (string inputLine in inputLines)
         {
             string line = inputLine.Replace("\t", "    ").TrimEnd();
@@ -123,6 +126,8 @@ public static class ReportExportService
 
     private static string EscapePdfText(string value)
     {
+        // Le PDF texte n'accepte pas directement tous les caractères Unicode.
+        // Les caractères non compatibles sont remplacés pour garder un PDF lisible.
         StringBuilder builder = new();
         foreach (char character in value)
         {

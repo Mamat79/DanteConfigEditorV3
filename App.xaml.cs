@@ -8,6 +8,8 @@ public partial class App : Application
 {
     protected override void OnStartup(StartupEventArgs e)
     {
+        // Ces gestionnaires évitent qu'une erreur UI ferme brutalement l'application.
+        // Le détail est écrit dans %LOCALAPPDATA%\DanteConfigEditorV3\Logs.
         DispatcherUnhandledException += HandleDispatcherUnhandledException;
         AppDomain.CurrentDomain.UnhandledException += HandleUnhandledException;
         TaskScheduler.UnobservedTaskException += HandleUnobservedTaskException;
@@ -17,6 +19,8 @@ public partial class App : Application
         MainWindow = window;
         window.Show();
 
+        // Permet d'ouvrir directement un XML depuis un raccourci ou un glisser-déposer
+        // sur l'exécutable.
         if (e.Args.Length > 0 && File.Exists(e.Args[0]))
         {
             window.LoadProjectFromPath(e.Args[0]);
@@ -67,7 +71,7 @@ public partial class App : Application
         }
         catch
         {
-            // Last-resort logging must never crash the application.
+            // Le journal de secours ne doit jamais faire planter l'application.
         }
     }
 }

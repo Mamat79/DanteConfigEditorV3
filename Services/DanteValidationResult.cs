@@ -2,6 +2,8 @@ namespace DanteConfigEditor.Services;
 
 public sealed class DanteValidationResult
 {
+    // Les erreurs bloquent la sauvegarde. Les avertissements signalent des points à vérifier
+    // sans empêcher l'utilisateur de continuer.
     public List<string> Errors { get; } = [];
 
     public List<string> Warnings { get; } = [];

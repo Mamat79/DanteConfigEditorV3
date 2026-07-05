@@ -8,6 +8,8 @@ namespace DanteConfigEditor.Models;
 
 public sealed class DanteProject
 {
+    // Noms de balises reconnus pour identifier le device TX auquel un RX est abonné.
+    // Plusieurs variantes sont acceptées pour rester tolérant avec les exports XML.
     private static readonly string[] SubscriptionDeviceElementNames =
     [
         "subscribed_device",
@@ -16,6 +18,7 @@ public sealed class DanteProject
         "source_device"
     ];
 
+    // Noms de balises reconnus pour le canal TX de destination d'un patch.
     private static readonly string[] SubscriptionChannelElementNames =
     [
         "subscribed_channel",
@@ -28,6 +31,8 @@ public sealed class DanteProject
         "source_channel_name"
     ];
 
+    // Les éléments RX modifiés sont gardés pour l'affichage et pour le résumé
+    // avant sauvegarde. La clé reste l'élément XML exact.
     private readonly Dictionary<XElement, bool> _modifiedRxElements = [];
     private readonly List<ChangeRecord> _changes = [];
     private readonly Stack<UndoSnapshot> _undoSnapshots = [];
@@ -62,6 +67,8 @@ public sealed class DanteProject
         XDocument document;
         try
         {
+            // PreserveWhitespace évite de réécrire inutilement tout le fichier
+            // lors du chargement.
             document = XDocument.Load(path, LoadOptions.PreserveWhitespace | LoadOptions.SetLineInfo);
         }
         catch (XmlException ex)
@@ -85,6 +92,8 @@ public sealed class DanteProject
 
     public void PushUndoSnapshot(string label)
     {
+        // Copie complète du XML : plus lourd qu'une annulation ciblée, mais plus sûr
+        // car les modifications peuvent toucher plusieurs balises de patch.
         _undoSnapshots.Push(new UndoSnapshot(
             label,
             new XDocument(Document),
@@ -146,6 +155,8 @@ public sealed class DanteProject
         SetElementValue(device.Element, "name", newName.Trim());
         SetElementValue(device.Element, "friendly_name", newName.Trim());
 
+        // Si le device TX est renommé, les patchs qui pointaient vers son ancien
+        // nom doivent suivre pour ne pas casser les abonnements reconnus.
         foreach (XElement rxChannel in Document.Root!.Elements("device").Elements("rxchannel"))
         {
             XElement? subscribedDevice = FindFirstElement(rxChannel, SubscriptionDeviceElementNames);
@@ -242,6 +253,8 @@ public sealed class DanteProject
         if (channelKind == DanteChannelKind.Tx)
         {
             SetChannelDisplayName(channel, "label", trimmedNewName);
+            // Un canal TX peut être utilisé par plusieurs RX : on met à jour
+            // toutes les références reconnues dans le fichier.
             UpdateSubscriptionsForRenamedTxChannel(device.Name, oldName, trimmedNewName);
         }
         else
@@ -285,6 +298,8 @@ public sealed class DanteProject
         int number = firstNumber;
         List<(string OldName, string NewName)> txRenames = [];
 
+        // On renomme seulement la plage demandée. Les autres canaux restent
+        // intacts, même s'ils sont du même type TX/RX.
         foreach (DanteChannel channel in selectedChannels)
         {
             string oldName = channel.DisplayName;
@@ -308,6 +323,8 @@ public sealed class DanteProject
 
         if (channelKind == DanteChannelKind.Tx)
         {
+            // Mise à jour groupée après le renommage : cela évite les effets
+            // de cascade si un nouveau nom ressemble à un ancien nom.
             UpdateSubscriptionsForRenamedTxChannels(device.Name, txRenames);
         }
 
@@ -343,6 +360,8 @@ public sealed class DanteProject
         }
 
         XElement rxElement = FindRxElement(rxDeviceName, rxIndex);
+        // Si les balises de patch n'existent pas encore, elles sont créées avec
+        // le premier nom reconnu par l'application.
         SetElementValue(rxElement, SubscriptionDeviceElementNames[0], txDeviceName.Trim());
         SetSubscriptionChannel(rxElement, txChannelName.Trim());
         _modifiedRxElements[rxElement] = true;
@@ -364,6 +383,8 @@ public sealed class DanteProject
 
     public DanteValidationResult Validate()
     {
+        // Validation volontairement prudente : erreurs bloquantes pour les cas
+        // structurels, avertissements pour les patchs non résolus.
         DanteValidationResult result = new();
         if (Document.Root is null)
         {
@@ -610,6 +631,8 @@ public sealed class DanteProject
 
         try
         {
+            // On sauvegarde d'abord dans un fichier temporaire, puis on le relit.
+            // Cela évite de remplacer le fichier final par un XML illisible.
             Document.Save(temporaryPath, SaveOptions.DisableFormatting);
             _ = Load(temporaryPath);
 
@@ -663,6 +686,8 @@ public sealed class DanteProject
 
     private void RestoreSnapshot(UndoSnapshot snapshot)
     {
+        // Restauration utilisée par Annuler action et par les erreurs pendant
+        // une action utilisateur.
         Document = new XDocument(snapshot.Document);
         IsModified = snapshot.WasModified;
 
@@ -762,6 +787,8 @@ public sealed class DanteProject
 
     private void ReloadModel()
     {
+        // Après chaque modification XML, les objets de lecture sont reconstruits
+        // pour refléter les nouvelles valeurs.
         Devices = Document.Root?.Elements("device").Select(device => new DanteDevice(device)).ToList() ?? [];
         PatchMatrix = new DantePatchMatrix(BuildSubscriptions());
     }
@@ -782,6 +809,8 @@ public sealed class DanteProject
                 string txChannelName = FindFirstElement(rxChannel.Element, SubscriptionChannelElementNames)?.Value.Trim() ?? string.Empty;
                 string status = "Libre";
 
+                // La table Patch indique aussi les conflits simples :
+                // device TX absent ou canal TX introuvable.
                 if (!string.IsNullOrWhiteSpace(txDeviceName))
                 {
                     if (!devicesByName.TryGetValue(txDeviceName, out DanteDevice? txDevice))
@@ -856,6 +885,8 @@ public sealed class DanteProject
 
     private static void SetChannelDisplayName(DanteChannel channel, string fallbackElementName, string value)
     {
+        // Point important pour la compatibilité : si le nom venait d'un attribut
+        // ou d'une balise précise, on écrit au même endroit.
         if (!string.IsNullOrWhiteSpace(channel.NameSource))
         {
             if (channel.NameSourceIsAttribute)
@@ -918,6 +949,9 @@ public sealed class DanteProject
     {
         int index = 1;
         List<(string OldName, string NewName)> txRenames = [];
+
+        // Les TX sont traités à part pour pouvoir mettre à jour les patchs qui
+        // utilisaient leurs anciens noms.
         foreach (DanteChannel channel in device.TxChannels)
         {
             string oldName = channel.DisplayName;
@@ -944,6 +978,8 @@ public sealed class DanteProject
 
     private void UpdateSubscriptionsForRenamedTxChannels(string txDeviceName, IEnumerable<(string OldName, string NewName)> renamedChannels)
     {
+        // Dictionnaire ancien nom -> nouveau nom. Il est insensible à la casse
+        // pour mieux tolérer les variations d'écriture dans les XML.
         Dictionary<string, string> renamedByOldName = new(StringComparer.OrdinalIgnoreCase);
         foreach ((string oldName, string newName) in renamedChannels)
         {

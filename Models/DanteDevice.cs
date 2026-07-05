@@ -13,6 +13,8 @@ public sealed class DanteDevice
         PreferredMaster = string.Equals(element.Element("preferred_master")?.Attribute("value")?.Value, "true", StringComparison.OrdinalIgnoreCase);
         Latency = ReadElementValue(element, "unicast_latency");
 
+        // L'index est basé sur l'ordre des balises dans le XML, ce qui
+        // correspond à la numérotation affichée dans l'application.
         TxChannels = element.Elements("txchannel")
             .Select((channel, index) => new DanteChannel(Name, DanteChannelKind.Tx, index + 1, channel))
             .ToList();

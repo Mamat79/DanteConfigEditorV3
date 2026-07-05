@@ -19,6 +19,7 @@
         <SolidColorBrush x:Key="DangerBrush" Color="#D64545" />
         <SolidColorBrush x:Key="SuccessBrush" Color="#2E9D62" />
 
+        <!-- Styles globaux de l'application. Les couleurs changent via SetTheme dans MainWindow.xaml.cs. -->
         <Style TargetType="{x:Type TextBlock}">
             <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
             <Setter Property="TextWrapping" Value="Wrap" />
@@ -102,6 +103,7 @@
             <Setter Property="CaretBrush" Value="{DynamicResource TextBrush}" />
         </Style>
 
+        <!-- Les listes restent volontairement en noir sur fond blanc, même en thème sombre. -->
         <Style TargetType="{x:Type ComboBox}">
             <Setter Property="Background" Value="White" />
             <Setter Property="Foreground" Value="#111827" />
@@ -201,6 +203,7 @@
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
+        <!-- Barre haute : actions de fichier, état du document et changement de thème. -->
         <Border Grid.Row="0"
                 Background="{DynamicResource SurfaceBrush}"
                 BorderBrush="{DynamicResource BorderLineBrush}"
@@ -246,6 +249,7 @@
             </Grid>
         </Border>
 
+        <!-- Corps principal : navigation à gauche, onglets de travail à droite. -->
         <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="190" />

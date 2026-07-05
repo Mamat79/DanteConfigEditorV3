@@ -34,12 +34,16 @@ public sealed class DanteSubscription
 
     public string TxChannelName { get; }
 
+    // Un patch est considéré actif dès qu'un device TX est renseigné.
+    // Le canal peut rester vide selon certains formats XML.
     public bool IsActive => !string.IsNullOrWhiteSpace(TxDevice);
 
     public bool IsModified { get; }
 
     public bool IsConflict => Status.StartsWith("Conflit", StringComparison.OrdinalIgnoreCase);
 
+    // Utilisé par le XAML pour colorer les lignes : conflit, modifié,
+    // actif ou libre.
     public string RowState => IsConflict ? "Conflict" : IsModified ? "Modified" : IsActive ? "Active" : "Free";
 
     public string Status { get; }

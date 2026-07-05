@@ -14,11 +14,17 @@ public partial class MainWindow : Window
 {
     private const string AllSendersItem = "Tous les émetteurs";
     private const string AllReceiversItem = "Tous les récepteurs";
+
+    // Collections liées directement aux listes WPF. Quand on les modifie,
+    // l'interface se met à jour sans recréer toute la fenêtre.
     private readonly ObservableCollection<DanteSubscription> _patchRows = [];
     private readonly ObservableCollection<string> _logs = [];
     private readonly ObservableCollection<GlobalSearchResult> _searchResults = [];
     private readonly string[] _latencies = ["250", "1000", "2000", "5000"];
     private DanteProject? _project;
+
+    // Évite que les changements de sélection déclenchés par RefreshAll relancent
+    // eux-mêmes des actions utilisateur.
     private bool _refreshingUi;
 
     private sealed record ChannelChoice(DanteChannelKind Kind, int Index, string Name)
@@ -51,6 +57,7 @@ public partial class MainWindow : Window
 
     private void Window_Loaded(object sender, RoutedEventArgs e)
     {
+        // Initialisation des sources de données utilisées par les contrôles.
         LatencyComboBox.ItemsSource = _latencies;
         GlobalLatencyComboBox.ItemsSource = _latencies;
         ChannelKindComboBox.ItemsSource = new[] { "TX", "RX" };
@@ -103,6 +110,8 @@ public partial class MainWindow : Window
     {
         try
         {
+            // DanteProject contient toute la logique XML. La fenêtre ne garde que
+            // l'état d'affichage et les actions utilisateur.
             _project = DanteProject.Load(path);
             _logs.Clear();
             RecentFilesService.Add(path);
@@ -124,6 +133,8 @@ public partial class MainWindow : Window
             return;
         }
 
+        // La validation est relancée juste avant la sauvegarde pour éviter de
+        // créer un fichier final manifestement invalide.
         DanteValidationResult validation = _project!.Validate();
         if (validation.HasErrors)
         {
@@ -330,6 +341,7 @@ public partial class MainWindow : Window
 
     private void BatchRenameButton_Click(object sender, RoutedEventArgs e)
     {
+        // Le type TX/RX choisi dans l'écran sert aussi aux listes de plage.
         DanteChannelKind kind = string.Equals(ChannelKindComboBox.SelectedItem as string, "RX", StringComparison.OrdinalIgnoreCase)
             ? DanteChannelKind.Rx
             : DanteChannelKind.Tx;
@@ -589,6 +601,8 @@ public partial class MainWindow : Window
 
     private void RenamePatchTxChannelButton_Click(object sender, RoutedEventArgs e)
     {
+        // Renommer un TX depuis la page Patch passe par la même logique que la
+        // page Configuration, pour garder la mise à jour des abonnements.
         string sourceDeviceName = SourceDeviceComboBox.SelectedItem as string ?? string.Empty;
         string sourceChannelName = SourceChannelComboBox.SelectedItem as string ?? string.Empty;
         string newName = PatchTxRenameChannelTextBox.Text;
@@ -753,6 +767,8 @@ public partial class MainWindow : Window
 
     private void RefreshAll()
     {
+        // Point central de rafraîchissement : après une modification XML, on
+        // reconstruit les listes et on conserve autant que possible la sélection.
         _refreshingUi = true;
         try
         {
@@ -825,6 +841,8 @@ public partial class MainWindow : Window
 
     private void RefreshChannelSelector()
     {
+        // Les trois listes de canaux partagent les mêmes choix : le canal à
+        // renommer, le début de plage et la fin de plage.
         if (_project is null)
         {
             ChannelComboBox.ItemsSource = null;
@@ -874,6 +892,7 @@ public partial class MainWindow : Window
 
     private void RefreshPatchRows()
     {
+        // La table Patch est filtrée côté interface, sans modifier le projet.
         _patchRows.Clear();
 
         if (_project is null)
@@ -943,6 +962,7 @@ public partial class MainWindow : Window
 
     private void RefreshGlobalSearchResults()
     {
+        // Recherche simple dans les champs déjà interprétés par l'application.
         string search = GlobalSearchTextBox.Text.Trim();
         _searchResults.Clear();
 
@@ -1019,6 +1039,8 @@ public partial class MainWindow : Window
 
     private void RunProjectAction(string successMessage, Action action, string? confirmationMessage = null)
     {
+        // Toutes les actions qui modifient le XML passent ici : confirmation,
+        // copie d'annulation, exécution, rafraîchissement et retour arrière si erreur.
         if (!EnsureProjectLoaded())
         {
             return;
