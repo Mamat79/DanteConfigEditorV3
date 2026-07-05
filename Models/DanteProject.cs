@@ -398,6 +398,8 @@ public sealed class DanteProject
             return result;
         }
 
+        result.Warnings.AddRange(BuildImportantWarnings());
+
         foreach (DanteDevice device in Devices)
         {
             if (string.IsNullOrWhiteSpace(device.Name))
@@ -450,6 +452,32 @@ public sealed class DanteProject
         return result;
     }
 
+    public IReadOnlyList<string> BuildImportantWarnings()
+    {
+        List<string> warnings = [];
+
+        int redundantCount = Devices.Count(device => device.IsRedundant);
+        int daisychainCount = Devices.Count(device => !device.IsRedundant);
+        if (redundantCount > 0 && daisychainCount > 0)
+        {
+            warnings.Add($"ATTENTION : le fichier mélange {redundantCount} machine(s) en redondant et {daisychainCount} machine(s) en daisychain. Vérifiez que c'est volontaire pour ce réseau.");
+        }
+
+        DanteDevice[] staticIpDevices = Devices.Where(device => device.UsesStaticIp).ToArray();
+        if (staticIpDevices.Length > 0)
+        {
+            string devices = string.Join(", ", staticIpDevices.Take(12).Select(FormatStaticIpDevice));
+            if (staticIpDevices.Length > 12)
+            {
+                devices += $", +{staticIpDevices.Length - 12} autre(s)";
+            }
+
+            warnings.Add($"IP fixe détectée sur {staticIpDevices.Length} machine(s) : {devices}.");
+        }
+
+        return warnings;
+    }
+
     public string BuildSaveSummary()
     {
         StringBuilder builder = new();
@@ -467,6 +495,8 @@ public sealed class DanteProject
         builder.AppendLine($"Canaux RX : {Devices.Sum(device => device.RxCount)}");
         builder.AppendLine($"Patchs actifs : {PatchMatrix.ActivePatchCount}");
         builder.AppendLine($"Patchs modifiés : {_modifiedRxElements.Count}");
+        builder.AppendLine();
+        AppendImportantWarnings(builder, BuildImportantWarnings());
         builder.AppendLine();
         builder.AppendLine("Validation");
         builder.AppendLine("----------");
@@ -495,6 +525,8 @@ public sealed class DanteProject
         builder.AppendLine($"Canaux RX : {Devices.Sum(device => device.RxCount)}");
         builder.AppendLine($"Patchs actifs : {PatchMatrix.ActivePatchCount}");
         builder.AppendLine($"Conflits : {PatchMatrix.ConflictCount}");
+        builder.AppendLine();
+        AppendImportantWarnings(builder, BuildImportantWarnings());
         builder.AppendLine();
 
         builder.AppendLine("Validation");
@@ -615,6 +647,21 @@ public sealed class DanteProject
             {
                 AppendTableRow(builder, change.Timestamp.ToString("HH:mm:ss"), change.Action, change.Details, "");
             }
+        }
+    }
+
+    private static void AppendImportantWarnings(StringBuilder builder, IReadOnlyList<string> warnings)
+    {
+        if (warnings.Count == 0)
+        {
+            return;
+        }
+
+        builder.AppendLine("!!! POINTS À VÉRIFIER IMPORTANTS !!!");
+        builder.AppendLine("------------------------------------");
+        foreach (string warning in warnings)
+        {
+            builder.AppendLine("- " + warning);
         }
     }
 
@@ -783,6 +830,13 @@ public sealed class DanteProject
     private static string Blank(string value)
     {
         return string.IsNullOrWhiteSpace(value) ? "(vide)" : value;
+    }
+
+    private static string FormatStaticIpDevice(DanteDevice device)
+    {
+        return string.IsNullOrWhiteSpace(device.StaticIpAddress)
+            ? device.Name
+            : $"{device.Name} ({device.StaticIpAddress})";
     }
 
     private void ReloadModel()

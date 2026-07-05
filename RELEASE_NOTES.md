@@ -11,6 +11,7 @@ Travaillez toujours sur une copie de vos fichiers XML Dante et validez le result
 - Correction de la lisibilite des listes et menus : fond blanc et texte noir, y compris en theme sombre.
 - Correction de la propagation des patchs quand les canaux TX sont reinitialises.
 - Choix canal debut / canal fin pour limiter le renommage en serie a une plage.
+- Alerte visible si le fichier melange redondant/daisychain ou contient des machines detectees en IP fixe.
 - Annulation de la derniere action.
 - Resume avant sauvegarde plus lisible.
 - Recherche globale dans machines, canaux et patchs.

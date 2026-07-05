@@ -23,6 +23,7 @@ Outil Windows pour éditer hors ligne des fichiers XML de configuration Dante.
 - Exporte un rapport TXT ou PDF.
 - Compare le fichier ouvert avec un autre XML.
 - Renomme des canaux en série.
+- Signale en gros les mélanges redondant/daisychain et les machines détectées en IP fixe.
 - Affiche les fichiers récents.
 - Propose un thème sombre et un thème clair.
 

@@ -67,6 +67,7 @@ Pour reconstruire l'installateur autonome :
 - Export du rapport en TXT ou PDF.
 - Conflits de patch plus visibles.
 - Renommage de canaux en série, avec plage de canaux configurable.
+- Alerte visible pour les fichiers qui mélangent redondant/daisychain ou contiennent des machines détectées en IP fixe.
 - Liste des fichiers récents.
 - Comparaison avec un autre XML.
 - Sauvegarde sécurisée par fichier temporaire relu avant remplacement.

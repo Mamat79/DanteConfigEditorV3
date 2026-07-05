@@ -777,6 +777,8 @@ public partial class MainWindow : Window
                 FilePathTextBlock.Text = "Aucun fichier ouvert";
                 ProjectSummaryTextBlock.Text = "Chargez un fichier XML pour commencer.";
                 ConfigSummaryTextBlock.Text = "Aucun fichier chargé.";
+                ImportantWarningsBorder.Visibility = Visibility.Collapsed;
+                ImportantWarningsTextBlock.Text = string.Empty;
                 DirtyStateTextBlock.Text = "Non modifié";
                 CountsTextBlock.Text = "0 device - 0 TX - 0 RX";
                 DeviceGrid.ItemsSource = null;
@@ -809,6 +811,10 @@ public partial class MainWindow : Window
             ProjectSummaryTextBlock.Text = $"{devices.Count} devices\n{txCount} canaux TX\n{rxCount} canaux RX\n{_project.PatchMatrix.ActivePatchCount} patchs actifs";
             ConfigSummaryTextBlock.Text = $"{Path.GetFileName(_project.OriginalFilePath)} - {devices.Count} devices, {txCount} TX, {rxCount} RX.";
             CountsTextBlock.Text = $"{devices.Count} devices - {txCount} TX - {rxCount} RX";
+
+            string importantWarnings = string.Join(Environment.NewLine, _project.BuildImportantWarnings());
+            ImportantWarningsTextBlock.Text = importantWarnings;
+            ImportantWarningsBorder.Visibility = string.IsNullOrWhiteSpace(importantWarnings) ? Visibility.Collapsed : Visibility.Visible;
 
             DeviceGrid.ItemsSource = devices;
             DeviceComboBox.ItemsSource = deviceNames;
