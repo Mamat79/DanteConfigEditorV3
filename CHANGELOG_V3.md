@@ -1,5 +1,15 @@
 # Changelog V3
 
+## 2026-07-07 - Version 3.03 - mise à jour
+
+- Ajout de la page `Santé du fichier` avec synthèse du preset, statistiques TX/RX, patchs actifs/libres/locaux, preferred masters, modes réseau, IP fixes et tableau filtrable des points à vérifier.
+- Ajout d'un service de compatibilité XML Dante Controller avant sauvegarde : contrôle de la racine `<preset>`, de la version, des devices, des canaux `txchannel` / `rxchannel`, des attributs `danteId` / `mediaType` et des balises techniques importantes.
+- Gestion correcte de `subscribed_device="."` comme source locale : affichage distinct, pas de faux conflit, conservation du `.` à la sauvegarde quand le fichier source l'utilise.
+- Utilisation de `danteId` comme identifiant métier principal des canaux, avec conservation des attributs existants.
+- Amélioration de la page `Patch` : colonnes TX brut/résolu/affiché, type de patch, warnings et filtres par état.
+- Ajout d'un export `Patchbook TXT` organisé par device RX.
+- Amélioration de la comparaison XML pour les canaux et patchs en s'appuyant sur les `danteId`.
+
 ## 2026-07-05 - Version 3.03
 
 - Correction de la lisibilité des listes et menus déroulants : fond blanc et texte noir, y compris en thème sombre.

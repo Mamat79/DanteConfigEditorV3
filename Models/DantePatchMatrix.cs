@@ -11,5 +11,17 @@ public sealed class DantePatchMatrix
 
     public int ActivePatchCount => Subscriptions.Count(subscription => subscription.IsActive);
 
-    public int ConflictCount => Subscriptions.Count(subscription => subscription.Status.StartsWith("Conflit", StringComparison.OrdinalIgnoreCase));
+    public int FreeRxCount => Subscriptions.Count(subscription => !subscription.IsActive);
+
+    public int LocalPatchCount => Subscriptions.Count(subscription => subscription.IsLocalSubscription);
+
+    public int ExternalMissingDeviceCount => Subscriptions.Count(subscription => subscription.IsExternalMissingDevice);
+
+    public int MissingTxChannelCount => Subscriptions.Count(subscription => subscription.IsTxChannelMissing);
+
+    public int WarningCount => Subscriptions.Count(subscription => subscription.IsWarning);
+
+    public int ModifiedCount => Subscriptions.Count(subscription => subscription.IsModified);
+
+    public int ConflictCount => Subscriptions.Count(subscription => subscription.IsConflict);
 }

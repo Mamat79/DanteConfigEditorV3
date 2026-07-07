@@ -20,7 +20,33 @@ public partial class MainWindow : Window
     private readonly ObservableCollection<DanteSubscription> _patchRows = [];
     private readonly ObservableCollection<string> _logs = [];
     private readonly ObservableCollection<GlobalSearchResult> _searchResults = [];
+    private readonly ObservableCollection<DanteValidationIssue> _healthIssues = [];
     private readonly string[] _latencies = ["250", "1000", "2000", "5000"];
+    private readonly string[] _patchStateFilters =
+    [
+        "Tous les RX",
+        "Patchs actifs",
+        "RX libres",
+        "Patchs locaux",
+        "Devices TX absents",
+        "Canaux TX introuvables",
+        "Warnings",
+        "Conflits",
+        "Modifiés"
+    ];
+    private readonly string[] _healthFilters =
+    [
+        "Tous",
+        "Infos",
+        "Avertissements",
+        "Erreurs",
+        "Patchs",
+        "Devices",
+        "Clock",
+        "Réseau",
+        "Compatibilité XML"
+    ];
+    private readonly string[] _patchbookScopes = ["Tous les RX", "Patchs actifs", "Warnings / conflits"];
     private DanteProject? _project;
 
     // Évite que les changements de sélection déclenchés par RefreshAll relancent
@@ -62,9 +88,16 @@ public partial class MainWindow : Window
         GlobalLatencyComboBox.ItemsSource = _latencies;
         ChannelKindComboBox.ItemsSource = new[] { "TX", "RX" };
         ChannelKindComboBox.SelectedItem = "TX";
+        PatchStateFilterComboBox.ItemsSource = _patchStateFilters;
+        PatchStateFilterComboBox.SelectedItem = _patchStateFilters[0];
+        HealthFilterComboBox.ItemsSource = _healthFilters;
+        HealthFilterComboBox.SelectedItem = _healthFilters[0];
+        PatchbookScopeComboBox.ItemsSource = _patchbookScopes;
+        PatchbookScopeComboBox.SelectedItem = _patchbookScopes[0];
         PatchGrid.ItemsSource = _patchRows;
         LogListBox.ItemsSource = _logs;
         GlobalSearchListBox.ItemsSource = _searchResults;
+        HealthIssuesGrid.ItemsSource = _healthIssues;
         GlobalDaisychainRadioButton.IsChecked = true;
         DaisychainRadioButton.IsChecked = true;
         SetTheme(useLightTheme: false);
@@ -462,6 +495,26 @@ public partial class MainWindow : Window
         RefreshPatchRows();
     }
 
+    private void PatchFilter_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (_refreshingUi)
+        {
+            return;
+        }
+
+        RefreshPatchRows();
+    }
+
+    private void HealthFilter_Changed(object sender, SelectionChangedEventArgs e)
+    {
+        if (_refreshingUi)
+        {
+            return;
+        }
+
+        RefreshHealthPage();
+    }
+
     private void GlobalSearchTextBox_TextChanged(object sender, TextChangedEventArgs e)
     {
         RefreshGlobalSearchResults();
@@ -556,9 +609,9 @@ public partial class MainWindow : Window
             return;
         }
 
-        if (!string.IsNullOrWhiteSpace(subscription.TxDevice))
+        if (!string.IsNullOrWhiteSpace(subscription.ResolvedTxDeviceName))
         {
-            SourceDeviceComboBox.SelectedItem = subscription.TxDevice;
+            SourceDeviceComboBox.SelectedItem = subscription.ResolvedTxDeviceName;
             RefreshSourceChannels();
             SourceChannelComboBox.SelectedItem = subscription.TxChannelName;
         }
@@ -721,6 +774,39 @@ public partial class MainWindow : Window
         }
     }
 
+    private void ExportPatchbookTxtButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (!EnsureProjectLoaded())
+        {
+            return;
+        }
+
+        SaveFileDialog dialog = new()
+        {
+            Filter = "Patchbook texte (*.txt)|*.txt|Tous les fichiers (*.*)|*.*",
+            Title = "Exporter le patchbook TXT",
+            FileName = BuildDefaultReportFileName("_patchbook.txt"),
+            InitialDirectory = Path.GetDirectoryName(_project!.OriginalFilePath)
+        };
+
+        if (dialog.ShowDialog(this) != true)
+        {
+            return;
+        }
+
+        try
+        {
+            string scope = PatchbookScopeComboBox.SelectedItem as string ?? _patchbookScopes[0];
+            ReportExportService.ExportText(dialog.FileName, _project!.BuildPatchbookText(scope));
+            AddLog("Patchbook TXT exporté : " + dialog.FileName);
+            SetStatus("Patchbook TXT exporté.");
+        }
+        catch (Exception ex)
+        {
+            ShowError("Export Patchbook impossible", ex.Message);
+        }
+    }
+
     private void CompareXmlButton_Click(object sender, RoutedEventArgs e)
     {
         if (!EnsureProjectLoaded())
@@ -743,7 +829,7 @@ public partial class MainWindow : Window
         {
             DanteProject otherProject = DanteProject.Load(dialog.FileName);
             SaveSummaryTextBox.Text = _project!.CompareWith(otherProject);
-            MainTabs.SelectedIndex = 2;
+            MainTabs.SelectedIndex = 3;
             AddLog("Comparaison XML effectuée : " + dialog.FileName);
             SetStatus("Comparaison XML affichée.");
         }
@@ -789,8 +875,10 @@ public partial class MainWindow : Window
                 ReceiverDeviceList.SelectedItem = AllReceiversItem;
                 SourceDeviceComboBox.ItemsSource = null;
                 SaveSummaryTextBox.Text = "Aucun fichier chargé.";
+                HealthSummaryTextBlock.Text = "Aucun fichier chargé.";
                 _searchResults.Clear();
                 _patchRows.Clear();
+                _healthIssues.Clear();
                 UpdateCommandState();
                 return;
             }
@@ -831,6 +919,7 @@ public partial class MainWindow : Window
 
             SaveSummaryTextBox.Text = _project.BuildSaveSummary();
             RefreshGlobalSearchResults();
+            RefreshHealthPage();
             UpdateCommandState();
         }
         finally
@@ -910,6 +999,7 @@ public partial class MainWindow : Window
         string search = PatchSearchTextBox.Text.Trim();
         string sender = SenderDeviceList.SelectedItem as string ?? AllSendersItem;
         string receiver = ReceiverDeviceList.SelectedItem as string ?? AllReceiversItem;
+        string stateFilter = PatchStateFilterComboBox.SelectedItem as string ?? _patchStateFilters[0];
         bool conflictsOnly = ConflictsOnlyCheckBox.IsChecked == true;
 
         IEnumerable<DanteSubscription> subscriptions = _project.PatchMatrix.Subscriptions;
@@ -919,13 +1009,15 @@ public partial class MainWindow : Window
             subscriptions = subscriptions.Where(subscription =>
                 Contains(subscription.RxDevice, search)
                 || Contains(subscription.RxChannelName, search)
-                || Contains(subscription.TxDevice, search)
+                || Contains(subscription.DisplayTxDeviceName, search)
+                || Contains(subscription.RawTxDeviceName, search)
+                || Contains(subscription.ResolvedTxDeviceName, search)
                 || Contains(subscription.TxChannelName, search));
         }
 
         if (!string.Equals(sender, AllSendersItem, StringComparison.OrdinalIgnoreCase))
         {
-            subscriptions = subscriptions.Where(subscription => string.Equals(subscription.TxDevice, sender, StringComparison.OrdinalIgnoreCase));
+            subscriptions = subscriptions.Where(subscription => string.Equals(subscription.ResolvedTxDeviceName, sender, StringComparison.OrdinalIgnoreCase));
         }
 
         if (!string.Equals(receiver, AllReceiversItem, StringComparison.OrdinalIgnoreCase))
@@ -935,15 +1027,66 @@ public partial class MainWindow : Window
 
         if (conflictsOnly)
         {
-            subscriptions = subscriptions.Where(subscription => subscription.Status.StartsWith("Conflit", StringComparison.OrdinalIgnoreCase));
+            subscriptions = subscriptions.Where(subscription => subscription.IsConflict);
         }
+
+        subscriptions = stateFilter switch
+        {
+            "Patchs actifs" => subscriptions.Where(subscription => subscription.IsActive),
+            "RX libres" => subscriptions.Where(subscription => !subscription.IsActive),
+            "Patchs locaux" => subscriptions.Where(subscription => subscription.IsLocalSubscription),
+            "Devices TX absents" => subscriptions.Where(subscription => subscription.IsExternalMissingDevice),
+            "Canaux TX introuvables" => subscriptions.Where(subscription => subscription.IsTxChannelMissing),
+            "Warnings" => subscriptions.Where(subscription => subscription.IsWarning),
+            "Conflits" => subscriptions.Where(subscription => subscription.IsConflict),
+            "Modifiés" => subscriptions.Where(subscription => subscription.IsModified),
+            _ => subscriptions
+        };
 
         foreach (DanteSubscription subscription in subscriptions)
         {
             _patchRows.Add(subscription);
         }
 
-        PatchSummaryTextBlock.Text = $"{_patchRows.Count} lignes affichées - {_project.PatchMatrix.ActivePatchCount} patchs actifs - {_project.PatchMatrix.ConflictCount} conflit(s)";
+        PatchSummaryTextBlock.Text = $"{_patchRows.Count} lignes - {_project.PatchMatrix.ActivePatchCount} actifs - {_project.PatchMatrix.LocalPatchCount} locaux - {_project.PatchMatrix.WarningCount} warning(s) - {_project.PatchMatrix.ConflictCount} conflit(s)";
+    }
+
+    private void RefreshHealthPage()
+    {
+        _healthIssues.Clear();
+
+        if (_project is null)
+        {
+            HealthSummaryTextBlock.Text = "Aucun fichier chargé.";
+            return;
+        }
+
+        DanteValidationResult validation = _project.Validate();
+        string filter = HealthFilterComboBox.SelectedItem as string ?? _healthFilters[0];
+        IEnumerable<DanteValidationIssue> issues = validation.Issues;
+        issues = filter switch
+        {
+            "Infos" => issues.Where(issue => issue.Severity == DanteIssueSeverity.Info),
+            "Avertissements" => issues.Where(issue => issue.Severity == DanteIssueSeverity.Warning),
+            "Erreurs" => issues.Where(issue => issue.Severity == DanteIssueSeverity.Error),
+            "Patchs" => issues.Where(issue => issue.Category == DanteIssueCategory.Patch),
+            "Devices" => issues.Where(issue => issue.Category == DanteIssueCategory.Device),
+            "Clock" => issues.Where(issue => issue.Category == DanteIssueCategory.Clock),
+            "Réseau" => issues.Where(issue => issue.Category == DanteIssueCategory.Network),
+            "Compatibilité XML" => issues.Where(issue => issue.Category == DanteIssueCategory.XmlCompatibility),
+            _ => issues
+        };
+
+        foreach (DanteValidationIssue issue in issues.OrderByDescending(issue => issue.Severity).ThenBy(issue => issue.CategoryLabel).Take(500))
+        {
+            _healthIssues.Add(issue);
+        }
+
+        HealthSummaryTextBlock.Text =
+            $"Preset : {_project.PresetName}  |  Version : {Blank(_project.PresetVersion)}  |  Fichier : {_project.OriginalFilePath}\n"
+            + $"Devices : {_project.Devices.Count}  |  TX : {_project.Devices.Sum(device => device.TxCount)}  |  RX : {_project.Devices.Sum(device => device.RxCount)}  |  Patchs actifs : {_project.PatchMatrix.ActivePatchCount}  |  RX libres : {_project.PatchMatrix.FreeRxCount}\n"
+            + $"Patchs locaux : {_project.PatchMatrix.LocalPatchCount}  |  Devices TX absents : {_project.PatchMatrix.ExternalMissingDeviceCount}  |  Canaux TX introuvables : {_project.PatchMatrix.MissingTxChannelCount}  |  Preferred masters : {_project.Devices.Count(device => device.PreferredMaster)}\n"
+            + $"Redondants : {_project.Devices.Count(device => device.IsRedundant)}  |  Daisychain : {_project.Devices.Count(device => !device.IsRedundant)}  |  IP fixes détectées : {_project.Devices.Count(device => device.UsesStaticIp)}  |  Erreurs : {validation.Errors.Count}  |  Warnings : {validation.Warnings.Count}";
     }
 
     private void RefreshSourceChannels()
@@ -1005,13 +1148,15 @@ public partial class MainWindow : Window
         {
             if (Contains(subscription.RxDevice, search)
                 || Contains(subscription.RxChannelName, search)
-                || Contains(subscription.TxDevice, search)
+                || Contains(subscription.DisplayTxDeviceName, search)
+                || Contains(subscription.RawTxDeviceName, search)
+                || Contains(subscription.ResolvedTxDeviceName, search)
                 || Contains(subscription.TxChannelName, search)
                 || Contains(subscription.Status, search))
             {
                 _searchResults.Add(new GlobalSearchResult(
                     "Patch",
-                    $"{subscription.RxDevice} / {subscription.RxChannelName} -> {Blank(subscription.TxDevice)} / {Blank(subscription.TxChannelName)}",
+                    $"{subscription.RxDevice} / {subscription.RxChannelName} -> {Blank(subscription.DisplayTxDeviceName)} / {Blank(subscription.TxChannelName)}",
                     RxDevice: subscription.RxDevice,
                     RxIndex: subscription.RxIndex));
             }

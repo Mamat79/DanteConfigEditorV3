@@ -8,6 +8,13 @@ Travaillez toujours sur une copie de vos fichiers XML Dante et validez le result
 
 ## Nouveautes principales
 
+- Page Sante du fichier avec synthese du preset, statistiques TX/RX, patchs actifs/libres/locaux, preferred masters, modes reseau, IP fixes et tableau filtrable des points a verifier.
+- Controle de compatibilite XML Dante Controller avant sauvegarde : racine `preset`, version, devices, canaux TX/RX, attributs `danteId` / `mediaType` et balises techniques importantes.
+- Gestion correcte des patchs locaux `subscribed_device="."` : affichage comme source locale, pas comme conflit, et conservation du `.` a la sauvegarde quand le fichier source l'utilise.
+- Utilisation de `danteId` comme identifiant principal des canaux, sans renumerotation.
+- Page Patch plus lisible : TX brut, TX resolu, TX affiche, type de patch, warnings et filtres par etat.
+- Export Patchbook TXT organise par device RX.
+- Comparaison XML plus lisible des canaux et patchs.
 - Correction de la lisibilite des listes et menus : fond blanc et texte noir, y compris en theme sombre.
 - Correction de la propagation des patchs quand les canaux TX sont reinitialises.
 - Choix canal debut / canal fin pour limiter le renommage en serie a une plage.
@@ -56,6 +63,9 @@ En fin d'installation, l'assistant peut ouvrir :
 - L'application ne pilote pas un reseau Dante en direct.
 - Elle n'utilise pas de SDK ou API Audinate.
 - Elle travaille uniquement sur des fichiers XML hors ligne.
+- `subscribed_device="."` est interprete comme une source locale.
+- Les devices TX absents du preset sont des avertissements, car certains presets peuvent etre partiels.
+- L'application verifie la coherence du XML genere, mais la validation definitive doit etre faite par un import dans Dante Controller avant toute utilisation en production.
 - Certains formats XML Dante peuvent ne pas etre totalement reconnus.
 - La page Patch depend des champs d'abonnement presents dans le fichier.
 

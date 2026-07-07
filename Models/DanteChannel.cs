@@ -4,13 +4,16 @@ namespace DanteConfigEditor.Models;
 
 public sealed class DanteChannel
 {
-    internal DanteChannel(string deviceName, DanteChannelKind kind, int index, XElement element)
+    internal DanteChannel(string deviceName, DanteChannelKind kind, int positionIndex, XElement element)
     {
         DeviceName = deviceName;
         Kind = kind;
-        Index = index;
+        PositionIndex = positionIndex;
+        DanteId = ReadDanteId(element, positionIndex);
+        HasDanteId = element.Attribute("danteId") is not null;
+        Index = DanteId;
         Element = element;
-        ChannelNameReadResult nameReadResult = ReadChannelName(kind, index, element);
+        ChannelNameReadResult nameReadResult = ReadChannelName(kind, DanteId, element);
         Name = nameReadResult.Value;
         NameSource = nameReadResult.SourceName;
         NameSourceIsAttribute = nameReadResult.IsAttribute;
@@ -20,7 +23,15 @@ public sealed class DanteChannel
 
     public DanteChannelKind Kind { get; }
 
+    // Index reste présent pour compatibilité avec le reste du code.
+    // Il correspond au danteId quand l'attribut existe.
     public int Index { get; }
+
+    public int DanteId { get; }
+
+    public int PositionIndex { get; }
+
+    public bool HasDanteId { get; }
 
     public string Name { get; }
 
@@ -35,6 +46,16 @@ public sealed class DanteChannel
     internal bool NameSourceIsAttribute { get; }
 
     internal XElement Element { get; }
+
+    public string DisplayLabel => $"{DanteId} - {DisplayName}";
+
+    private static int ReadDanteId(XElement element, int fallbackIndex)
+    {
+        string? value = element.Attribute("danteId")?.Value;
+        return int.TryParse(value, out int danteId) && danteId > 0
+            ? danteId
+            : fallbackIndex;
+    }
 
     private static ChannelNameReadResult ReadChannelName(DanteChannelKind kind, int index, XElement element)
     {

@@ -2,49 +2,102 @@ using System.Xml.Linq;
 
 namespace DanteConfigEditor.Models;
 
+public enum DanteSubscriptionKind
+{
+    Free,
+    Normal,
+    Local,
+    ExternalMissingDevice,
+    MissingChannel,
+    Conflict
+}
+
 public sealed class DanteSubscription
 {
     internal DanteSubscription(
         string rxDevice,
-        int rxIndex,
+        int rxDanteId,
+        int rxPositionIndex,
         string rxChannelName,
         XElement rxElement,
-        string txDevice,
+        string rawTxDeviceName,
+        string resolvedTxDeviceName,
+        string displayTxDeviceName,
         string txChannelName,
         bool isModified,
-        string status)
+        string status,
+        DanteSubscriptionKind kind)
     {
         RxDevice = rxDevice;
-        RxIndex = rxIndex;
+        RxIndex = rxDanteId;
+        RxDanteId = rxDanteId;
+        RxPositionIndex = rxPositionIndex;
         RxChannelName = rxChannelName;
         RxElement = rxElement;
-        TxDevice = txDevice;
+        RawTxDeviceName = rawTxDeviceName;
+        ResolvedTxDeviceName = resolvedTxDeviceName;
+        DisplayTxDeviceName = displayTxDeviceName;
+        TxDevice = displayTxDeviceName;
         TxChannelName = txChannelName;
         IsModified = isModified;
         Status = status;
+        Kind = kind;
     }
 
     public string RxDevice { get; }
 
+    // Ancien nom conservé pour les appels existants. Il correspond maintenant au danteId RX.
     public int RxIndex { get; }
+
+    public int RxDanteId { get; }
+
+    public int RxPositionIndex { get; }
 
     public string RxChannelName { get; }
 
+    public string RawTxDeviceName { get; }
+
+    public string ResolvedTxDeviceName { get; }
+
+    public string DisplayTxDeviceName { get; }
+
+    // Ancien nom conservé pour les bindings existants.
     public string TxDevice { get; }
 
     public string TxChannelName { get; }
 
     // Un patch est considéré actif dès qu'un device TX est renseigné.
     // Le canal peut rester vide selon certains formats XML.
-    public bool IsActive => !string.IsNullOrWhiteSpace(TxDevice);
+    public bool IsActive => !string.IsNullOrWhiteSpace(RawTxDeviceName) || !string.IsNullOrWhiteSpace(TxChannelName);
 
     public bool IsModified { get; }
 
-    public bool IsConflict => Status.StartsWith("Conflit", StringComparison.OrdinalIgnoreCase);
+    public DanteSubscriptionKind Kind { get; }
+
+    public bool IsLocalSubscription => Kind == DanteSubscriptionKind.Local;
+
+    public bool IsExternalMissingDevice => Kind == DanteSubscriptionKind.ExternalMissingDevice;
+
+    public bool IsTxChannelMissing => Kind == DanteSubscriptionKind.MissingChannel;
+
+    public bool IsConflict => Kind == DanteSubscriptionKind.Conflict;
+
+    public bool IsWarning => Kind is DanteSubscriptionKind.ExternalMissingDevice or DanteSubscriptionKind.MissingChannel;
+
+    public string TypeLabel => Kind switch
+    {
+        DanteSubscriptionKind.Free => "Libre",
+        DanteSubscriptionKind.Normal => "Normal",
+        DanteSubscriptionKind.Local => "Local",
+        DanteSubscriptionKind.ExternalMissingDevice => "Device TX absent",
+        DanteSubscriptionKind.MissingChannel => "Canal TX absent",
+        DanteSubscriptionKind.Conflict => "Conflit",
+        _ => Kind.ToString()
+    };
 
     // Utilisé par le XAML pour colorer les lignes : conflit, modifié,
     // actif ou libre.
-    public string RowState => IsConflict ? "Conflict" : IsModified ? "Modified" : IsActive ? "Active" : "Free";
+    public string RowState => IsConflict ? "Conflict" : IsWarning ? "Warning" : IsModified ? "Modified" : IsLocalSubscription ? "Local" : IsActive ? "Active" : "Free";
 
     public string Status { get; }
 

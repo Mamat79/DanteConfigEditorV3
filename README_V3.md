@@ -55,6 +55,13 @@ Pour reconstruire l'installateur autonome :
 
 ## Nouveautés V3.03
 
+- Ajout d'une page `Santé du fichier` avec synthèse du preset, statistiques TX/RX, patchs actifs/libres/locaux, preferred masters, modes réseau, IP fixes et tableau filtrable des points à vérifier.
+- Renforcement de la compatibilité XML Dante Controller avant sauvegarde : contrôle de la racine `<preset>`, de la version, des devices, des canaux `txchannel` / `rxchannel`, des attributs `danteId` / `mediaType` et des balises techniques importantes.
+- Meilleure gestion des patchs locaux `subscribed_device="."` : affichage comme source locale, pas comme conflit, et conservation du `.` à la sauvegarde quand le fichier source l'utilise.
+- Utilisation de `danteId` comme identifiant métier principal des canaux, sans renumérotation ni réécriture des attributs existants.
+- Page `Patch` enrichie : colonnes TX brut/résolu/affiché, type de patch, warnings, filtres par état, patchs locaux, devices TX absents et canaux TX introuvables.
+- Ajout d'un export `Patchbook TXT` organisé par device RX, avec options tous les RX, patchs actifs ou warnings/conflits.
+- Comparaison XML plus lisible pour les canaux et patchs, en s'appuyant sur les `danteId` quand ils sont présents.
 - Correction de la lisibilité des listes et menus : fond blanc et texte noir, y compris en thème sombre.
 - Correction de la propagation des patchs lors de la réinitialisation des canaux TX.
 - Ajout du choix canal début / canal fin pour limiter le renommage en série à une plage.
@@ -124,12 +131,15 @@ Pour reconstruire l'installateur autonome :
 - Relire le résumé avant sauvegarde.
 - Tester le fichier généré dans l'outil Dante officiel approprié avant utilisation en production.
 - Ne pas utiliser un fichier modifié directement sur une installation critique sans validation.
+- L'application vérifie la cohérence du XML généré, mais la validation définitive doit être faite par un import dans Dante Controller avant toute utilisation en production.
 
 ## Limites connues
 
 - La V3 ne se connecte pas au réseau Dante.
 - La V3 n'utilise pas d'API ou SDK Audinate.
 - La vue Patch travaille uniquement sur le XML hors ligne.
+- `subscribed_device="."` est interprété comme une source locale, c'est-à-dire le device RX lui-même.
+- Un device TX absent du preset est signalé en avertissement, pas forcément en erreur bloquante, car certains presets peuvent être partiels.
 - Les champs de patch reconnus sont notamment :
   - `subscribed_device`
   - `subscribed_channel`
