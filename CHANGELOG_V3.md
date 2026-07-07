@@ -1,14 +1,31 @@
 # Changelog V3
 
+## 2026-07-07 - Version 3.04
+
+- Passage des textes visibles et métadonnées en V3.04 dev.
+- Ajout du garde-fou de modifications XML avant sauvegarde.
+- Ajout du rapport compatibilité Dante Controller.
+- Correction des libellés utilisateur `Dante Id` avec espace, sans renommer l'attribut XML `danteId`.
+- Amélioration de l'affichage des latences Dante en ms, avec conservation des valeurs XML brutes.
+- Ajout du mode Lecture seule / Édition.
+- Prévisualisation des actions globales existantes.
+- Sécurisation du preferred master global.
+- Amélioration de la page Patch : mode simple/expert, colonne Source complète et choix TX avec Dante Id.
+- Amélioration du Patchbook TXT et ajout d'un export CSV lecture seule.
+- Amélioration de la page Santé du fichier.
+- Ajout d'une vue Topologie simple.
+- Amélioration du script installateur pour détecter Inno Setup dans plusieurs emplacements.
+- Ajout d'un script d'archive source propre.
+
 ## 2026-07-07 - Version 3.03 - mise à jour
 
 - Ajout de la page `Santé du fichier` avec synthèse du preset, statistiques TX/RX, patchs actifs/libres/locaux, preferred masters, modes réseau, IP fixes et tableau filtrable des points à vérifier.
-- Ajout d'un service de compatibilité XML Dante Controller avant sauvegarde : contrôle de la racine `<preset>`, de la version, des devices, des canaux `txchannel` / `rxchannel`, des attributs `danteId` / `mediaType` et des balises techniques importantes.
+- Ajout d'un service de compatibilité XML Dante Controller avant sauvegarde : contrôle de la racine `<preset>`, de la version, des devices, des canaux `txchannel` / `rxchannel`, des attributs XML `danteId` / `mediaType` et des balises techniques importantes.
 - Gestion correcte de `subscribed_device="."` comme source locale : affichage distinct, pas de faux conflit, conservation du `.` à la sauvegarde quand le fichier source l'utilise.
-- Utilisation de `danteId` comme identifiant métier principal des canaux, avec conservation des attributs existants.
+- Utilisation du Dante Id comme identifiant métier principal des canaux, avec conservation des attributs XML existants.
 - Amélioration de la page `Patch` : colonnes TX brut/résolu/affiché, type de patch, warnings et filtres par état.
 - Ajout d'un export `Patchbook TXT` organisé par device RX.
-- Amélioration de la comparaison XML pour les canaux et patchs en s'appuyant sur les `danteId`.
+- Amélioration de la comparaison XML pour les canaux et patchs en s'appuyant sur les Dante Id.
 
 ## 2026-07-05 - Version 3.03
 

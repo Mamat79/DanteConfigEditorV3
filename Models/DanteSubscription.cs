@@ -89,11 +89,30 @@ public sealed class DanteSubscription
         DanteSubscriptionKind.Free => "Libre",
         DanteSubscriptionKind.Normal => "Normal",
         DanteSubscriptionKind.Local => "Local",
-        DanteSubscriptionKind.ExternalMissingDevice => "Device TX absent",
+        DanteSubscriptionKind.ExternalMissingDevice => "Device externe absent",
         DanteSubscriptionKind.MissingChannel => "Canal TX absent",
         DanteSubscriptionKind.Conflict => "Conflit",
         _ => Kind.ToString()
     };
+
+    public string SourceFull
+    {
+        get
+        {
+            if (!IsActive)
+            {
+                return "Aucune source";
+            }
+
+            string device = IsLocalSubscription ? "LOCAL" : DisplayTxDeviceName;
+            if (string.IsNullOrWhiteSpace(TxChannelName))
+            {
+                return string.IsNullOrWhiteSpace(device) ? "Aucune source" : device;
+            }
+
+            return $"{device} / {TxChannelName}";
+        }
+    }
 
     // Utilisé par le XAML pour colorer les lignes : conflit, modifié,
     // actif ou libre.

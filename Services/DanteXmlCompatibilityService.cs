@@ -217,7 +217,7 @@ public static class DanteXmlCompatibilityService
             string? danteId = channel.Attribute("danteId")?.Value;
             if (!string.IsNullOrWhiteSpace(danteId) && !seenDanteIds.Add(danteId))
             {
-                result.AddError(DanteIssueCategory.Channel, $"{deviceName} : danteId {danteId} en doublon sur les canaux {channelKind}.", deviceName, danteId: ParseDanteId(danteId));
+                result.AddError(DanteIssueCategory.Channel, $"{deviceName} : Dante Id {danteId} en doublon sur les canaux {channelKind}.", deviceName, danteId: ParseDanteId(danteId));
             }
         }
 
@@ -232,7 +232,7 @@ public static class DanteXmlCompatibilityService
             if (!string.IsNullOrWhiteSpace(originalChannel.DanteId)
                 && !string.Equals(currentDanteId, originalChannel.DanteId, StringComparison.OrdinalIgnoreCase))
             {
-                result.AddError(DanteIssueCategory.XmlCompatibility, $"{deviceName} : danteId supprimé ou modifié sur {channelKind} position {originalChannel.Position}.", deviceName, danteId: ParseDanteId(originalChannel.DanteId));
+                result.AddError(DanteIssueCategory.XmlCompatibility, $"{deviceName} : Dante Id supprimé ou modifié sur {channelKind} position {originalChannel.Position}.", deviceName, danteId: ParseDanteId(originalChannel.DanteId));
             }
 
             if (!string.IsNullOrWhiteSpace(originalChannel.MediaType)
@@ -255,12 +255,12 @@ public static class DanteXmlCompatibilityService
 
             if (hasChannel && !hasDevice)
             {
-                result.AddError(DanteIssueCategory.Patch, $"{deviceName} RX {danteId?.ToString() ?? "?"} : subscribed_channel renseigné sans subscribed_device.", deviceName, danteId: danteId);
+                result.AddError(DanteIssueCategory.Patch, $"{deviceName} RX Dante Id {danteId?.ToString() ?? "?"} : subscribed_channel renseigné sans subscribed_device.", deviceName, danteId: danteId);
             }
 
             if (hasDevice && !hasChannel)
             {
-                result.AddError(DanteIssueCategory.Patch, $"{deviceName} RX {danteId?.ToString() ?? "?"} : subscribed_device renseigné sans subscribed_channel.", deviceName, danteId: danteId);
+                result.AddError(DanteIssueCategory.Patch, $"{deviceName} RX Dante Id {danteId?.ToString() ?? "?"} : subscribed_device renseigné sans subscribed_channel.", deviceName, danteId: danteId);
             }
         }
     }
@@ -272,6 +272,6 @@ public static class DanteXmlCompatibilityService
 
     private static string Blank(string? value)
     {
-        return string.IsNullOrWhiteSpace(value) ? "sans danteId" : value;
+        return string.IsNullOrWhiteSpace(value) ? "sans Dante Id" : value;
     }
 }

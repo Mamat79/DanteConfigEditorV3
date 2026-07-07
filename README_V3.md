@@ -1,4 +1,4 @@
-# Dante Config Editor V3.03
+# Dante Config Editor V3.04
 
 Application Windows WPF pour éditer hors ligne des fichiers XML de configuration Dante compatibles avec la structure utilisée par la V2.
 
@@ -28,7 +28,7 @@ dist\DanteConfigEditorV3_Installer.exe
 
 La personne le lance, choisit le dossier d'installation si besoin, puis l'application est installée par défaut dans Program Files avec un raccourci dans le Menu Démarrer. Un raccourci Bureau est proposé en option.
 
-Cette version est publiée en mode `self-contained win-x64` : le runtime .NET nécessaire est inclus dans l'exécutable de l'application. La machine destinataire n'a pas besoin d'installer le SDK .NET ni le runtime .NET pour utiliser Dante Config Editor V3.03.
+Cette version est publiée en mode `self-contained win-x64` : le runtime .NET nécessaire est inclus dans l'exécutable de l'application. La machine destinataire n'a pas besoin d'installer le SDK .NET ni le runtime .NET pour utiliser Dante Config Editor V3.04.
 
 L'installateur ne déploie pas les sources du projet. Il installe uniquement l'application autonome et la documentation utilisateur.
 
@@ -53,15 +53,30 @@ Pour reconstruire l'installateur autonome :
 .\installer\build_installer.ps1
 ```
 
+## Nouveautés V3.04
+
+- Garde-fou de changements XML avant sauvegarde : les zones techniques Dante sensibles sont bloquées si elles changent par accident.
+- Rapport `Compatibilité Dante Controller` avec état de la racine, version, devices, TX/RX, Dante Id, mediaType, balises techniques et warnings non bloquants.
+- Mode `Lecture seule` par défaut après ouverture du XML. Les exports, rapports et comparaisons restent disponibles ; les modifications demandent `Activer l'édition`.
+- Libellés utilisateur harmonisés : `Dante Id` dans l'interface, les exports et les rapports. L'attribut XML reste exactement `danteId`.
+- Latences affichées en ms : `250` -> `0,25 ms`, `1000` -> `1 ms`, `2000` -> `2 ms`, `5000` -> `5 ms`, sans changer les valeurs XML.
+- Prévisualisation des actions globales avant application.
+- Preferred master global sécurisé : définir le device sélectionné comme seul preferred master ou retirer tous les preferred masters.
+- Page Patch avec mode simple/expert, colonne `Source complète`, choix TX avec Dante Id et avertissement pour les devices absents du preset.
+- Patchbook TXT enrichi et export CSV lecture seule.
+- Page Santé enrichie : mode lecture/édition, samplerates, encodages, latences en ms et compteurs de contrôle.
+- Vue Topologie simple : sources les plus utilisées, receivers les plus patchés et relations TX vers RX.
+- Script installateur plus portable pour trouver Inno Setup et option d'archive source propre.
+
 ## Nouveautés V3.03
 
 - Ajout d'une page `Santé du fichier` avec synthèse du preset, statistiques TX/RX, patchs actifs/libres/locaux, preferred masters, modes réseau, IP fixes et tableau filtrable des points à vérifier.
-- Renforcement de la compatibilité XML Dante Controller avant sauvegarde : contrôle de la racine `<preset>`, de la version, des devices, des canaux `txchannel` / `rxchannel`, des attributs `danteId` / `mediaType` et des balises techniques importantes.
+- Renforcement de la compatibilité XML Dante Controller avant sauvegarde : contrôle de la racine `<preset>`, de la version, des devices, des canaux `txchannel` / `rxchannel`, des attributs XML `danteId` / `mediaType` et des balises techniques importantes.
 - Meilleure gestion des patchs locaux `subscribed_device="."` : affichage comme source locale, pas comme conflit, et conservation du `.` à la sauvegarde quand le fichier source l'utilise.
-- Utilisation de `danteId` comme identifiant métier principal des canaux, sans renumérotation ni réécriture des attributs existants.
+- Utilisation du Dante Id comme identifiant métier principal des canaux, sans renumérotation ni réécriture des attributs existants.
 - Page `Patch` enrichie : colonnes TX brut/résolu/affiché, type de patch, warnings, filtres par état, patchs locaux, devices TX absents et canaux TX introuvables.
 - Ajout d'un export `Patchbook TXT` organisé par device RX, avec options tous les RX, patchs actifs ou warnings/conflits.
-- Comparaison XML plus lisible pour les canaux et patchs, en s'appuyant sur les `danteId` quand ils sont présents.
+- Comparaison XML plus lisible pour les canaux et patchs, en s'appuyant sur les Dante Id quand ils sont présents.
 - Correction de la lisibilité des listes et menus : fond blanc et texte noir, y compris en thème sombre.
 - Correction de la propagation des patchs lors de la réinitialisation des canaux TX.
 - Ajout du choix canal début / canal fin pour limiter le renommage en série à une plage.

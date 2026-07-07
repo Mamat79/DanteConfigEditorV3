@@ -1,4 +1,4 @@
-# Dante Config Editor V3.03
+# Dante Config Editor V3.04
 
 Outil Windows pour éditer hors ligne des fichiers XML de configuration Dante.
 
@@ -19,11 +19,16 @@ Outil Windows pour éditer hors ligne des fichiers XML de configuration Dante.
 - Crée une sauvegarde du fichier original avant sauvegarde.
 - Sauvegarde via un fichier temporaire relu avant remplacement final.
 - Vérifie la compatibilité XML de base avant sauvegarde.
+- Bloque les modifications interdites des zones sensibles du XML Dante grâce au garde-fou de changements XML.
+- Démarre en mode Lecture seule après ouverture d'un XML.
+- Affiche les latences Dante en ms tout en conservant les valeurs XML brutes.
 - Affiche une page `Santé du fichier` avec les points à vérifier.
 - Annule la dernière action.
 - Recherche globalement dans les machines, canaux et patchs.
 - Exporte un rapport TXT ou PDF.
 - Exporte un patchbook TXT organisé par device RX.
+- Exporte un patchbook CSV en lecture seule.
+- Affiche un rapport compatibilité Dante Controller et une topologie simple TX vers RX.
 - Compare le fichier ouvert avec un autre XML.
 - Renomme des canaux en série.
 - Signale en gros les mélanges redondant/daisychain et les machines détectées en IP fixe.
@@ -40,6 +45,7 @@ Outil Windows pour éditer hors ligne des fichiers XML de configuration Dante.
 - Certains champs de patch peuvent ne pas être détectés si le fichier utilise une structure différente de celles actuellement reconnues.
 - `subscribed_device="."` est interprété comme une source locale, c'est-à-dire le device RX lui-même.
 - Un device TX absent du preset est un avertissement, pas forcément une erreur bloquante, car un preset peut être partiel.
+- Les Dante Id sont préservés. L'interface écrit `Dante Id`, mais l'attribut XML reste exactement `danteId`.
 
 ## Télécharger / installer
 
@@ -69,12 +75,29 @@ L'installateur contient uniquement l'application autonome et la documentation ut
 7. Sauvegarder sous un nouveau nom.
 8. Valider le fichier généré dans l'outil Dante officiel approprié avant usage terrain.
 
+## Nouveautés V3.04
+
+- Passage en V3.04 dev.
+- Ajout d'un garde-fou de changements XML : seules les zones métier autorisées peuvent changer, les zones techniques Dante sensibles bloquent la sauvegarde.
+- Ajout d'un rapport `Compatibilité Dante Controller` exportable/copier depuis l'écran Sécurité.
+- Mode `Lecture seule` par défaut après ouverture d'un XML, avec bouton `Activer l'édition`.
+- Correction des libellés utilisateur : `Dante Id` avec espace dans l'interface, les rapports et la documentation.
+- Affichage des latences en ms : `250` devient `0,25 ms`, `1000` devient `1 ms`, tout en gardant la valeur XML brute.
+- Prévisualisation des actions globales existantes avant application.
+- Preferred master global rendu plus sûr : définir un seul device comme preferred master, ou retirer tous les preferred masters.
+- Page Patch : mode simple/expert, colonne `Source complète`, choix TX avec Dante Id, protection des patchs vers devices absents.
+- Patchbook enrichi et export CSV lecture seule.
+- Page Santé enrichie avec mode Lecture seule/Édition, latences en ms, samplerates et encodages.
+- Ajout d'une topologie simple des sources les plus utilisées, receivers les plus patchés et relations TX vers RX.
+- Script installateur plus portable pour trouver Inno Setup.
+- Option `installer/build_source_zip.ps1` pour créer une archive source propre.
+
 ## Nouveautés V3.03
 
 - Page `Santé du fichier` : synthèse du preset, statistiques TX/RX, patchs actifs/libres/locaux, preferred masters, modes réseau, IP fixes et tableau filtrable des points à vérifier.
-- Contrôles de compatibilité XML Dante Controller avant sauvegarde : racine `<preset>`, version, devices, canaux `txchannel` / `rxchannel`, attributs `danteId` / `mediaType` et balises techniques importantes.
+- Contrôles de compatibilité XML Dante Controller avant sauvegarde : racine `<preset>`, version, devices, canaux `txchannel` / `rxchannel`, attributs XML `danteId` / `mediaType` et balises techniques importantes.
 - Gestion correcte des patchs locaux `subscribed_device="."` : affichage comme source locale, pas comme conflit, et conservation du `.` à la sauvegarde quand le fichier source l'utilise.
-- Utilisation de `danteId` comme identifiant métier principal des canaux, sans renumérotation.
+- Utilisation du Dante Id comme identifiant métier principal des canaux, sans renumérotation.
 - Page `Patch` plus lisible : TX brut/résolu/affiché, type de patch, warnings et filtres par état.
 - Export `Patchbook TXT` organisé par device RX.
 - Comparaison XML plus lisible des canaux et patchs.

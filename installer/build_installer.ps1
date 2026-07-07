@@ -6,7 +6,13 @@ $dist = Join-Path $root "dist"
 $payload = Join-Path $dist "installer_payload"
 $installer = Join-Path $dist "DanteConfigEditorV3_Installer.exe"
 $script = Join-Path $PSScriptRoot "DanteConfigEditorV3.iss"
-$iscc = "C:\Users\mamat\AppData\Local\Programs\Inno Setup 6\ISCC.exe"
+$isccCandidates = @(
+    $env:ISCC_PATH,
+    (Join-Path $env:LOCALAPPDATA "Programs\Inno Setup 6\ISCC.exe"),
+    (Join-Path ${env:ProgramFiles(x86)} "Inno Setup 6\ISCC.exe"),
+    (Join-Path $env:ProgramFiles "Inno Setup 6\ISCC.exe")
+) | Where-Object { -not [string]::IsNullOrWhiteSpace($_) } | Select-Object -Unique
+$iscc = $isccCandidates | Where-Object { Test-Path $_ } | Select-Object -First 1
 
 $dotnetCommand = Get-Command dotnet -ErrorAction SilentlyContinue
 $dotnetCandidates = @((Join-Path $env:USERPROFILE ".dotnet\dotnet.exe"))
@@ -28,8 +34,8 @@ if (-not $dotnet) {
     throw "SDK .NET 8 introuvable. Installez le SDK .NET 8 avant de construire l'installateur."
 }
 
-if (-not (Test-Path $iscc)) {
-    throw "Inno Setup est introuvable. Installez Inno Setup 6 avant de construire l'installateur."
+if (-not $iscc) {
+    throw "Inno Setup est introuvable. Installez Inno Setup 6 ou définissez ISCC_PATH vers ISCC.exe avant de construire l'installateur."
 }
 
 New-Item -ItemType Directory -Force -Path $dist | Out-Null

@@ -1,5 +1,5 @@
-#define MyAppName "Dante Config Editor V3.03"
-#define MyAppVersion "3.03-dev"
+#define MyAppName "Dante Config Editor V3.04"
+#define MyAppVersion "3.04-dev"
 #define MyAppPublisher "Mamat"
 #define MyAppExeName "DanteConfigEditorV3.exe"
 #define SourceRoot ".."
@@ -23,7 +23,7 @@ ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
 PrivilegesRequired=admin
 UninstallDisplayIcon={app}\{#MyAppExeName}
-VersionInfoVersion=3.3.0
+VersionInfoVersion=3.4.0
 VersionInfoCompany={#MyAppPublisher}
 VersionInfoDescription=Dante Config Editor V3 installer
 VersionInfoProductName={#MyAppName}

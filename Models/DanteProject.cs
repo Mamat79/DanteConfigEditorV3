@@ -36,12 +36,14 @@ public sealed class DanteProject
     private readonly Dictionary<XElement, bool> _modifiedRxElements = [];
     private readonly List<ChangeRecord> _changes = [];
     private readonly Stack<UndoSnapshot> _undoSnapshots = [];
+    private readonly XDocument _originalDocument;
     private readonly DanteXmlCompatibilityProfile _originalCompatibilityProfile;
 
     private DanteProject(string originalFilePath, XDocument document)
     {
         OriginalFilePath = originalFilePath;
         Document = document;
+        _originalDocument = new XDocument(document);
         _originalCompatibilityProfile = DanteXmlCompatibilityService.CaptureProfile(document);
         ReloadModel();
     }
@@ -198,7 +200,7 @@ public sealed class DanteProject
         ValidateLatency(latency);
         DanteDevice device = FindDevice(deviceName) ?? throw new InvalidOperationException("Device introuvable.");
         SetElementValue(device.Element, "unicast_latency", latency);
-        RegisterChange("Latence", $"{deviceName} -> {latency} ms");
+        RegisterChange("Latence", $"{deviceName} -> {DanteLatencyFormatter.FormatLatencyWithXmlValue(latency)}");
     }
 
     public void SetAllLatencies(string latency)
@@ -209,7 +211,7 @@ public sealed class DanteProject
             SetElementValue(device.Element, "unicast_latency", latency);
         }
 
-        RegisterChange("Latence globale", $"Tous -> {latency} ms");
+        RegisterChange("Latence globale", $"Tous -> {DanteLatencyFormatter.FormatLatencyWithXmlValue(latency)}");
     }
 
     public void SetPreferredMaster(string deviceName, bool preferredMaster)
@@ -227,6 +229,21 @@ public sealed class DanteProject
         }
 
         RegisterChange("Preferred master global", $"Tous -> {preferredMaster}");
+    }
+
+    public void SetSolePreferredMaster(string deviceName)
+    {
+        if (FindDevice(deviceName) is null)
+        {
+            throw new InvalidOperationException("Device introuvable.");
+        }
+
+        foreach (DanteDevice device in Devices)
+        {
+            SetBooleanElementAttribute(device.Element, "preferred_master", "value", string.Equals(device.Name, deviceName, StringComparison.OrdinalIgnoreCase), afterElementName: "redundancy");
+        }
+
+        RegisterChange("Preferred master unique", $"{deviceName} défini comme seul preferred master");
     }
 
     public void ResetChannels(string deviceName)
@@ -405,6 +422,7 @@ public sealed class DanteProject
         }
 
         result.Merge(DanteXmlCompatibilityService.ValidateCompatibility(Document, _originalCompatibilityProfile));
+        result.Merge(ValidateXmlChangeGuard());
 
         foreach (string warning in BuildImportantWarnings())
         {
@@ -530,9 +548,14 @@ public sealed class DanteProject
         {
             if (group.Count() > 1)
             {
-                result.AddError(DanteIssueCategory.Channel, $"{device.Name} contient un doublon de danteId {group.Key} dans les canaux {kind}.", device.Name, danteId: group.Key);
+                result.AddError(DanteIssueCategory.Channel, $"{device.Name} contient un doublon de Dante Id {group.Key} dans les canaux {kind}.", device.Name, danteId: group.Key);
             }
         }
+    }
+
+    public DanteValidationResult ValidateXmlChangeGuard()
+    {
+        return DanteXmlChangeGuardService.ValidateChanges(_originalDocument, Document);
     }
 
     private void AddAudioFormatIssues(DanteValidationResult result)
@@ -569,6 +592,94 @@ public sealed class DanteProject
         }
     }
 
+    public string BuildAllLatencyPreview(string latency)
+    {
+        ValidateLatency(latency);
+        return BuildDevicePreview(
+            $"appliquer la latence {DanteLatencyFormatter.FormatLatencyDisplay(latency)}",
+            Devices.Select(device => (
+                Device: device.Name,
+                Before: DanteLatencyFormatter.FormatLatencyDisplay(device.Latency),
+                After: DanteLatencyFormatter.FormatLatencyDisplay(latency),
+                Changed: !string.Equals(device.Latency, latency, StringComparison.OrdinalIgnoreCase))));
+    }
+
+    public string BuildAllNetworkModePreview(bool redundant)
+    {
+        string target = redundant ? "Redondant" : "Daisychain";
+        return BuildDevicePreview(
+            $"appliquer le mode réseau {target}",
+            Devices.Select(device => (
+                Device: device.Name,
+                Before: device.NetworkMode,
+                After: target,
+                Changed: device.IsRedundant != redundant)));
+    }
+
+    public string BuildClearPreferredMastersPreview()
+    {
+        return BuildDevicePreview(
+            "retirer tous les preferred masters",
+            Devices.Select(device => (
+                Device: device.Name,
+                Before: device.PreferredMaster ? "Preferred master" : "Non preferred",
+                After: "Non preferred",
+                Changed: device.PreferredMaster)));
+    }
+
+    public string BuildSolePreferredMasterPreview(string deviceName)
+    {
+        return BuildDevicePreview(
+            $"définir {deviceName} comme seul preferred master",
+            Devices.Select(device => (
+                Device: device.Name,
+                Before: device.PreferredMaster ? "Preferred master" : "Non preferred",
+                After: string.Equals(device.Name, deviceName, StringComparison.OrdinalIgnoreCase) ? "Preferred master" : "Non preferred",
+                Changed: device.PreferredMaster != string.Equals(device.Name, deviceName, StringComparison.OrdinalIgnoreCase))));
+    }
+
+    public string BuildResetAllChannelsPreview()
+    {
+        StringBuilder builder = new();
+        builder.AppendLine("Prévisualisation");
+        builder.AppendLine("----------------");
+        builder.AppendLine("Action : réinitialiser tous les noms de canaux TX/RX");
+        builder.AppendLine();
+        builder.AppendLine("Résumé :");
+        builder.AppendLine($"- {Devices.Count} devices concernés");
+        builder.AppendLine($"- {Devices.Sum(device => device.TxCount)} canaux TX potentiellement renommés");
+        builder.AppendLine($"- {Devices.Sum(device => device.RxCount)} canaux RX potentiellement renommés");
+        builder.AppendLine();
+        builder.AppendLine("Cette action peut modifier beaucoup de noms et mettre à jour les patchs qui utilisent les TX reconnus.");
+        return builder.ToString();
+    }
+
+    private static string BuildDevicePreview(string action, IEnumerable<(string Device, string Before, string After, bool Changed)> rows)
+    {
+        (string Device, string Before, string After, bool Changed)[] materializedRows = rows.ToArray();
+        StringBuilder builder = new();
+        builder.AppendLine("Prévisualisation");
+        builder.AppendLine("----------------");
+        builder.AppendLine("Action : " + action);
+        builder.AppendLine();
+        builder.AppendLine("Devices concernés :");
+        foreach ((string device, string before, string after, bool changed) in materializedRows.Take(80))
+        {
+            builder.AppendLine($"- {device} : {Blank(before)} -> {(changed ? Blank(after) : "inchangé")}");
+        }
+
+        if (materializedRows.Length > 80)
+        {
+            builder.AppendLine($"- {materializedRows.Length - 80} device(s) supplémentaire(s) non affiché(s).");
+        }
+
+        builder.AppendLine();
+        builder.AppendLine("Résumé :");
+        builder.AppendLine($"- {materializedRows.Count(row => row.Changed)} devices modifiés");
+        builder.AppendLine($"- {materializedRows.Count(row => !row.Changed)} devices inchangés");
+        return builder.ToString();
+    }
+
     public string BuildSaveSummary()
     {
         StringBuilder builder = new();
@@ -592,6 +703,8 @@ public sealed class DanteProject
         builder.AppendLine("Validation");
         builder.AppendLine("----------");
         builder.AppendLine(validation.ToDisplayText());
+        builder.AppendLine();
+        builder.AppendLine(DanteXmlChangeGuardService.BuildGuardReport(ValidateXmlChangeGuard()));
         builder.AppendLine();
         AppendChangeTable(builder);
 
@@ -624,13 +737,15 @@ public sealed class DanteProject
         builder.AppendLine("----------");
         builder.AppendLine(validation.ToDisplayText());
         builder.AppendLine();
+        builder.AppendLine(BuildCompatibilityReport());
+        builder.AppendLine();
 
         builder.AppendLine("Devices");
         builder.AppendLine("-------");
         AppendTableHeader(builder, "Device", "Réseau", "Latence", "TX/RX");
         foreach (DanteDevice device in Devices)
         {
-            AppendTableRow(builder, device.Name, device.NetworkMode, string.IsNullOrWhiteSpace(device.Latency) ? "-" : device.Latency, $"{device.TxCount}/{device.RxCount}");
+            AppendTableRow(builder, device.Name, device.NetworkMode, DanteLatencyFormatter.FormatLatencyWithXmlValue(device.Latency), $"{device.TxCount}/{device.RxCount}");
         }
 
         builder.AppendLine();
@@ -673,12 +788,19 @@ public sealed class DanteProject
         builder.AppendLine("DANTE CONFIG EDITOR - PATCHBOOK");
         builder.AppendLine("===============================");
         builder.AppendLine($"Date : {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
-        builder.AppendLine($"Fichier : {OriginalFilePath}");
+        builder.AppendLine($"Nom du fichier source : {Path.GetFileName(OriginalFilePath)}");
+        builder.AppendLine($"Chemin du fichier source : {OriginalFilePath}");
         builder.AppendLine($"Preset : {PresetName}");
+        builder.AppendLine($"Version preset : {Blank(PresetVersion)}");
         builder.AppendLine($"Scope : {scope}");
         builder.AppendLine($"Devices : {Devices.Count}");
+        builder.AppendLine($"TX total : {Devices.Sum(device => device.TxCount)}");
+        builder.AppendLine($"RX total : {Devices.Sum(device => device.RxCount)}");
         builder.AppendLine($"Patchs actifs : {PatchMatrix.ActivePatchCount}");
+        builder.AppendLine($"RX libres : {PatchMatrix.FreeRxCount}");
+        builder.AppendLine($"Patchs locaux : {PatchMatrix.LocalPatchCount}");
         builder.AppendLine($"Warnings : {validation.Warnings.Count}");
+        builder.AppendLine($"Erreurs bloquantes : {validation.Errors.Count}");
         builder.AppendLine();
 
         foreach (IGrouping<string, DanteSubscription> group in rows.GroupBy(subscription => subscription.RxDevice))
@@ -689,7 +811,7 @@ public sealed class DanteProject
             foreach (DanteSubscription subscription in group)
             {
                 string source = subscription.IsActive
-                    ? $"{FormatPatchbookSourceDevice(subscription)} / {Blank(subscription.TxChannelName)}"
+                    ? subscription.SourceFull
                     : "(libre)";
 
                 builder.AppendLine($"RX {subscription.RxDanteId.ToString().PadLeft(3, '0')} | {TrimForPatchbook(subscription.RxChannelName),-28} <- {TrimForPatchbook(source),-48} | {subscription.TypeLabel}");
@@ -701,6 +823,118 @@ public sealed class DanteProject
         if (rows.Length == 0)
         {
             builder.AppendLine("Aucune ligne à exporter avec ce filtre.");
+        }
+
+        return builder.ToString();
+    }
+
+    public string BuildPatchbookCsv(string scope)
+    {
+        IEnumerable<DanteSubscription> subscriptions = PatchMatrix.Subscriptions;
+        subscriptions = scope switch
+        {
+            "Patchs actifs" => subscriptions.Where(subscription => subscription.IsActive),
+            "Warnings / conflits" => subscriptions.Where(subscription => subscription.IsWarning || subscription.IsConflict),
+            _ => subscriptions
+        };
+
+        StringBuilder builder = new();
+        builder.AppendLine("\"RxDevice\",\"Rx Dante Id\",\"RxChannel\",\"TxDevice\",\"TxChannel\",\"Type\",\"Status\"");
+        foreach (DanteSubscription subscription in subscriptions.OrderBy(subscription => subscription.RxDevice, StringComparer.OrdinalIgnoreCase).ThenBy(subscription => subscription.RxDanteId))
+        {
+            string txDevice = subscription.IsLocalSubscription ? "LOCAL" : subscription.DisplayTxDeviceName;
+            builder.AppendLine(string.Join(",",
+                Csv(subscription.RxDevice),
+                subscription.RxDanteId.ToString(),
+                Csv(subscription.RxChannelName),
+                Csv(txDevice),
+                Csv(subscription.TxChannelName),
+                Csv(subscription.TypeLabel),
+                Csv(subscription.Status)));
+        }
+
+        return builder.ToString();
+    }
+
+    public string BuildCompatibilityReport()
+    {
+        DanteValidationResult validation = Validate();
+        DanteValidationResult compatibility = DanteXmlCompatibilityService.ValidateCompatibility(Document, _originalCompatibilityProfile);
+        DanteValidationResult guard = ValidateXmlChangeGuard();
+
+        StringBuilder builder = new();
+        builder.AppendLine("Compatibilité XML");
+        builder.AppendLine("-----------------");
+        builder.AppendLine(Document.Root?.Name.LocalName == "preset" ? "OK Racine <preset>" : "ERROR Racine <preset> absente ou modifiée");
+        builder.AppendLine(!string.IsNullOrWhiteSpace(PresetVersion) ? "OK Version du preset conservée" : "WARNING Version du preset absente");
+        builder.AppendLine(compatibility.Errors.Any(error => error.Contains("nombre de devices", StringComparison.OrdinalIgnoreCase)) ? "ERROR Devices modifiés" : "OK Devices conservés");
+        builder.AppendLine(compatibility.Errors.Any(error => error.Contains("canaux TX", StringComparison.OrdinalIgnoreCase)) ? "ERROR TX modifiés" : "OK TX conservés");
+        builder.AppendLine(compatibility.Errors.Any(error => error.Contains("canaux RX", StringComparison.OrdinalIgnoreCase)) ? "ERROR RX modifiés" : "OK RX conservés");
+        builder.AppendLine(HasCompatibilityError(compatibility, "dante", "TX")
+            ? "ERROR Dante Id TX manquant ou modifié"
+            : "OK Tous les Dante Id TX sont présents");
+        builder.AppendLine(HasCompatibilityError(compatibility, "dante", "RX")
+            ? "ERROR Dante Id RX manquant ou modifié"
+            : "OK Tous les Dante Id RX sont présents");
+        builder.AppendLine(compatibility.Errors.Any(error => error.Contains("mediaType", StringComparison.OrdinalIgnoreCase) && error.Contains("TX", StringComparison.OrdinalIgnoreCase))
+            ? "ERROR mediaType TX manquant ou modifié"
+            : "OK Tous les mediaType TX sont présents");
+        builder.AppendLine(compatibility.Errors.Any(error => error.Contains("mediaType", StringComparison.OrdinalIgnoreCase) && error.Contains("RX", StringComparison.OrdinalIgnoreCase))
+            ? "ERROR mediaType RX manquant ou modifié"
+            : "OK Tous les mediaType RX sont présents");
+        builder.AppendLine(compatibility.Errors.Any(error => error.Contains("Balise technique", StringComparison.OrdinalIgnoreCase)) ? "ERROR Balises techniques principales modifiées" : "OK Balises techniques principales conservées");
+        builder.AppendLine(guard.HasErrors ? "ERROR Changement interdit détecté" : "OK Aucun changement interdit détecté");
+        builder.AppendLine($"WARNING Devices TX référencés mais absents du preset : {PatchMatrix.ExternalMissingDeviceCount}");
+        builder.AppendLine($"WARNING Canaux TX référencés mais absents : {PatchMatrix.MissingTxChannelCount}");
+        builder.AppendLine($"Warnings non bloquants : {validation.Warnings.Count}");
+        builder.AppendLine($"Erreurs bloquantes : {validation.Errors.Count}");
+        builder.AppendLine();
+        builder.AppendLine(DanteXmlChangeGuardService.BuildGuardReport(guard));
+        return builder.ToString();
+    }
+
+    private static bool HasCompatibilityError(DanteValidationResult compatibility, string firstNeedle, string secondNeedle)
+    {
+        return compatibility.Errors.Any(error =>
+            error.Contains(firstNeedle, StringComparison.OrdinalIgnoreCase)
+            && error.Contains(secondNeedle, StringComparison.OrdinalIgnoreCase));
+    }
+
+    public string BuildTopologyText()
+    {
+        DanteSubscription[] activeSubscriptions = PatchMatrix.Subscriptions
+            .Where(subscription => subscription.IsActive)
+            .ToArray();
+
+        StringBuilder builder = new();
+        builder.AppendLine("TOPOLOGIE SIMPLE");
+        builder.AppendLine("================");
+        builder.AppendLine();
+        builder.AppendLine("Sources les plus utilisées");
+        builder.AppendLine("--------------------------");
+        foreach (IGrouping<string, DanteSubscription> group in activeSubscriptions.GroupBy(subscription => subscription.IsLocalSubscription ? "LOCAL" : subscription.DisplayTxDeviceName).OrderByDescending(group => group.Count()).Take(20))
+        {
+            builder.AppendLine($"{Blank(group.Key),-30} -> {group.Count()} RX");
+        }
+
+        builder.AppendLine();
+        builder.AppendLine("Receivers les plus patchés");
+        builder.AppendLine("--------------------------");
+        foreach (IGrouping<string, DanteSubscription> group in activeSubscriptions.GroupBy(subscription => subscription.RxDevice).OrderByDescending(group => group.Count()).Take(20))
+        {
+            builder.AppendLine($"{group.Key,-30} -> {group.Count()} RX actifs");
+        }
+
+        builder.AppendLine();
+        builder.AppendLine("Relations TX -> RX");
+        builder.AppendLine("------------------");
+        foreach (IGrouping<string, DanteSubscription> sourceGroup in activeSubscriptions.GroupBy(subscription => subscription.IsLocalSubscription ? "LOCAL" : subscription.DisplayTxDeviceName).OrderBy(group => group.Key, StringComparer.OrdinalIgnoreCase).Take(80))
+        {
+            builder.AppendLine(Blank(sourceGroup.Key));
+            foreach (IGrouping<string, DanteSubscription> rxGroup in sourceGroup.GroupBy(subscription => subscription.RxDevice).OrderByDescending(group => group.Count()).Take(20))
+            {
+                builder.AppendLine($"  -> {rxGroup.Key} : {rxGroup.Count()} patchs");
+            }
         }
 
         return builder.ToString();
@@ -739,7 +973,7 @@ public sealed class DanteProject
             DanteDevice current = currentDevices[deviceName];
             DanteDevice compared = otherDevices[deviceName];
             CompareValue(differences, $"{deviceName} / mode réseau", current.NetworkMode, compared.NetworkMode);
-            CompareValue(differences, $"{deviceName} / latence", current.Latency, compared.Latency);
+            CompareValue(differences, $"{deviceName} / latence", DanteLatencyFormatter.FormatLatencyDisplay(current.Latency), DanteLatencyFormatter.FormatLatencyDisplay(compared.Latency));
             CompareValue(differences, $"{deviceName} / preferred master", current.PreferredMaster.ToString(), compared.PreferredMaster.ToString());
             CompareValue(differences, $"{deviceName} / samplerate", current.Element.Element("samplerate")?.Value.Trim() ?? string.Empty, compared.Element.Element("samplerate")?.Value.Trim() ?? string.Empty);
             CompareValue(differences, $"{deviceName} / encoding", current.Element.Element("encoding")?.Value.Trim() ?? string.Empty, compared.Element.Element("encoding")?.Value.Trim() ?? string.Empty);
@@ -838,8 +1072,14 @@ public sealed class DanteProject
             throw new InvalidOperationException("Sauvegarde impossible tant que des erreurs bloquantes existent." + Environment.NewLine + validation.ToDisplayText());
         }
 
-        string backupPath = SafeFileService.CreateOriginalBackup(OriginalFilePath);
+        DanteValidationResult guard = ValidateXmlChangeGuard();
+        if (guard.HasErrors)
+        {
+            throw new InvalidOperationException("Sauvegarde refusée : une modification interdite du XML Dante a été détectée." + Environment.NewLine + guard.ToDisplayText());
+        }
+
         string temporaryPath = destinationPath + ".tmp";
+        string backupPath = string.Empty;
 
         try
         {
@@ -858,6 +1098,14 @@ public sealed class DanteProject
             {
                 throw new InvalidOperationException("Sauvegarde refusée : le XML temporaire contient des erreurs bloquantes." + Environment.NewLine + temporaryValidation.ToDisplayText());
             }
+
+            DanteValidationResult temporaryGuard = DanteXmlChangeGuardService.ValidateChanges(_originalDocument, temporaryDocument);
+            if (temporaryGuard.HasErrors)
+            {
+                throw new InvalidOperationException("Sauvegarde refusée : une modification interdite du XML Dante a été détectée dans le fichier temporaire." + Environment.NewLine + temporaryGuard.ToDisplayText());
+            }
+
+            backupPath = SafeFileService.CreateOriginalBackup(OriginalFilePath);
 
             if (File.Exists(destinationPath))
             {
@@ -896,7 +1144,7 @@ public sealed class DanteProject
     {
         List<string> lines = Devices
             .Where(device => !string.IsNullOrWhiteSpace(device.Latency))
-            .Select(device => $"{device.Name}: {device.Latency} ms")
+            .Select(device => $"{device.Name}: {DanteLatencyFormatter.FormatLatencyWithXmlValue(device.Latency)}")
             .ToList();
 
         return lines.Count > 0 ? string.Join(Environment.NewLine, lines) : "Aucune latence définie.";
@@ -970,12 +1218,12 @@ public sealed class DanteProject
 
         foreach (int danteId in currentById.Keys.Except(comparedById.Keys).OrderBy(id => id))
         {
-            differences.Add($"{deviceName} / {kind} danteId {danteId}: seulement dans le fichier ouvert ({currentById[danteId].DisplayName})");
+            differences.Add($"{deviceName} / {kind} Dante Id {danteId}: seulement dans le fichier ouvert ({currentById[danteId].DisplayName})");
         }
 
         foreach (int danteId in comparedById.Keys.Except(currentById.Keys).OrderBy(id => id))
         {
-            differences.Add($"{deviceName} / {kind} danteId {danteId}: seulement dans le fichier comparé ({comparedById[danteId].DisplayName})");
+            differences.Add($"{deviceName} / {kind} Dante Id {danteId}: seulement dans le fichier comparé ({comparedById[danteId].DisplayName})");
         }
 
         foreach (int danteId in currentById.Keys.Intersect(comparedById.Keys).OrderBy(id => id))
@@ -984,14 +1232,14 @@ public sealed class DanteProject
             DanteChannel compared = comparedById[danteId];
             if (!string.Equals(current.DisplayName, compared.DisplayName, StringComparison.OrdinalIgnoreCase))
             {
-                differences.Add($"{deviceName} / {kind} danteId {danteId}: {current.DisplayName} -> {compared.DisplayName}");
+                differences.Add($"{deviceName} / {kind} Dante Id {danteId}: {current.DisplayName} -> {compared.DisplayName}");
             }
         }
     }
 
     private static string BuildPatchKey(DanteSubscription subscription)
     {
-        return $"{subscription.RxDevice} / RX {subscription.RxDanteId}";
+        return $"{subscription.RxDevice} / RX Dante Id {subscription.RxDanteId}";
     }
 
     private static string FormatPatchForComparison(DanteSubscription subscription)
@@ -1029,6 +1277,12 @@ public sealed class DanteProject
     {
         string cleanValue = value.ReplaceLineEndings(" ").Trim();
         return cleanValue.Length <= 46 ? cleanValue : cleanValue[..43] + "...";
+    }
+
+    private static string Csv(string value)
+    {
+        string cleanValue = value.Replace("\"", "\"\"", StringComparison.Ordinal);
+        return $"\"{cleanValue}\"";
     }
 
     private static string Blank(string value)

@@ -1,5 +1,6 @@
 using System.Net;
 using System.Xml.Linq;
+using DanteConfigEditor.Services;
 
 namespace DanteConfigEditor.Models;
 
@@ -36,6 +37,8 @@ public sealed class DanteDevice
     public string NetworkMode => IsRedundant ? "Redondant" : "Daisychain";
 
     public string Latency { get; }
+
+    public string LatencyDisplay => DanteLatencyFormatter.FormatLatencyDisplay(Latency);
 
     public bool PreferredMaster { get; }
 

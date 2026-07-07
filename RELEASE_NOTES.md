@@ -1,4 +1,4 @@
-# Dante Config Editor V3.03
+# Dante Config Editor V3.04
 
 ## Statut
 
@@ -8,10 +8,21 @@ Travaillez toujours sur une copie de vos fichiers XML Dante et validez le result
 
 ## Nouveautes principales
 
+- Garde-fou de modifications XML : la sauvegarde est bloquee si une zone technique Dante sensible change par accident.
+- Rapport compatibilite Dante Controller.
+- Mode Lecture seule par defaut apres ouverture du XML, avec bouton Activer l'edition.
+- Libelles utilisateur corriges : Dante Id avec espace. L'attribut XML reste danteId.
+- Latences affichees en ms, valeurs XML brutes conservees.
+- Previsualisation des actions globales.
+- Preferred master global securise.
+- Page Patch avec mode simple/expert et colonne Source complete.
+- Patchbook TXT enrichi et export CSV lecture seule.
+- Page Sante enrichie et vue Topologie simple.
+- Script installateur plus portable.
 - Page Sante du fichier avec synthese du preset, statistiques TX/RX, patchs actifs/libres/locaux, preferred masters, modes reseau, IP fixes et tableau filtrable des points a verifier.
-- Controle de compatibilite XML Dante Controller avant sauvegarde : racine `preset`, version, devices, canaux TX/RX, attributs `danteId` / `mediaType` et balises techniques importantes.
+- Controle de compatibilite XML Dante Controller avant sauvegarde : racine `preset`, version, devices, canaux TX/RX, attributs XML `danteId` / `mediaType` et balises techniques importantes.
 - Gestion correcte des patchs locaux `subscribed_device="."` : affichage comme source locale, pas comme conflit, et conservation du `.` a la sauvegarde quand le fichier source l'utilise.
-- Utilisation de `danteId` comme identifiant principal des canaux, sans renumerotation.
+- Utilisation du Dante Id comme identifiant principal des canaux, sans renumerotation.
 - Page Patch plus lisible : TX brut, TX resolu, TX affiche, type de patch, warnings et filtres par etat.
 - Export Patchbook TXT organise par device RX.
 - Comparaison XML plus lisible des canaux et patchs.
@@ -66,6 +77,8 @@ En fin d'installation, l'assistant peut ouvrir :
 - `subscribed_device="."` est interprete comme une source locale.
 - Les devices TX absents du preset sont des avertissements, car certains presets peuvent etre partiels.
 - L'application verifie la coherence du XML genere, mais la validation definitive doit etre faite par un import dans Dante Controller avant toute utilisation en production.
+- Les Dante Id sont preserves. L'interface affiche Dante Id, l'attribut XML reste danteId.
+- L'application demarre en lecture seule pour eviter les modifications accidentelles.
 - Certains formats XML Dante peuvent ne pas etre totalement reconnus.
 - La page Patch depend des champs d'abonnement presents dans le fichier.
 
