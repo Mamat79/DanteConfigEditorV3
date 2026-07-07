@@ -19,6 +19,8 @@ Travaillez toujours sur une copie de vos fichiers XML Dante et validez le result
 - Patchbook TXT enrichi et export CSV lecture seule.
 - Page Sante enrichie et vue Topologie simple.
 - Script installateur plus portable.
+- Correction des accents dans l'export PDF.
+- Ajout de la mention `Fait avec le soft Dante Config Editor V3.04 - version 3.04-dev - By Mamat` dans les exports TXT/PDF.
 - Page Sante du fichier avec synthese du preset, statistiques TX/RX, patchs actifs/libres/locaux, preferred masters, modes reseau, IP fixes et tableau filtrable des points a verifier.
 - Controle de compatibilite XML Dante Controller avant sauvegarde : racine `preset`, version, devices, canaux TX/RX, attributs XML `danteId` / `mediaType` et balises techniques importantes.
 - Gestion correcte des patchs locaux `subscribed_device="."` : affichage comme source locale, pas comme conflit, et conservation du `.` a la sauvegarde quand le fichier source l'utilise.

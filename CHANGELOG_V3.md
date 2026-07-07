@@ -16,6 +16,7 @@
 - Ajout d'une vue Topologie simple.
 - Amélioration du script installateur pour détecter Inno Setup dans plusieurs emplacements.
 - Ajout d'un script d'archive source propre.
+- Correction des accents dans l'export PDF et ajout de la signature/version dans les exports TXT/PDF.
 
 ## 2026-07-07 - Version 3.03 - mise à jour
 

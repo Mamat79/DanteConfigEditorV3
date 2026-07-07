@@ -1,4 +1,5 @@
 using System.IO;
+using System.Reflection;
 using System.Text;
 
 namespace DanteConfigEditor.Services;
@@ -8,15 +9,16 @@ public static class ReportExportService
     private const int LinesPerPage = 54;
     private const int MaxLineLength = 92;
 
-    public static void ExportText(string path, string report)
+    public static void ExportText(string path, string report, bool includeSignature = true)
     {
-        File.WriteAllText(path, report, Encoding.UTF8);
+        File.WriteAllText(path, includeSignature ? AddSignature(report) : report, new UTF8Encoding(encoderShouldEmitUTF8Identifier: true));
     }
 
     public static void ExportPdf(string path, string title, string report)
     {
         // Générateur PDF minimal sans dépendance externe. Suffisant pour un
         // rapport texte simple et facile à embarquer dans l'application.
+        report = AddSignature(report);
         List<string> lines = WrapLines(report.Replace("\r\n", "\n").Split('\n')).ToList();
         if (lines.Count == 0)
         {
@@ -34,7 +36,7 @@ public static class ReportExportService
 
         objects.Add(Ascii("<< /Type /Catalog /Pages 2 0 R >>"));
         objects.Add([]);
-        objects.Add(Ascii("<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>"));
+        objects.Add(Ascii("<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>"));
 
         foreach (List<string> page in pages)
         {
@@ -151,6 +153,30 @@ public static class ReportExportService
         }
 
         return builder.ToString();
+    }
+
+    private static string AddSignature(string report)
+    {
+        string cleanReport = report.TrimEnd();
+        return cleanReport
+            + Environment.NewLine
+            + Environment.NewLine
+            + BuildSignatureLine()
+            + Environment.NewLine;
+    }
+
+    private static string BuildSignatureLine()
+    {
+        string version = Assembly.GetExecutingAssembly()
+            .GetCustomAttribute<AssemblyInformationalVersionAttribute>()
+            ?.InformationalVersion ?? Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "version inconnue";
+        int metadataIndex = version.IndexOf('+', StringComparison.Ordinal);
+        if (metadataIndex > 0)
+        {
+            version = version[..metadataIndex];
+        }
+
+        return $"Fait avec le soft Dante Config Editor V3.04 - version {version} - By Mamat";
     }
 
     private static byte[] Ascii(string value)

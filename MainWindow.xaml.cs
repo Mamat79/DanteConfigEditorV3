@@ -932,7 +932,7 @@ public partial class MainWindow : Window
         try
         {
             string scope = PatchbookScopeComboBox.SelectedItem as string ?? _patchbookScopes[0];
-            ReportExportService.ExportText(dialog.FileName, _project!.BuildPatchbookCsv(scope));
+            ReportExportService.ExportText(dialog.FileName, _project!.BuildPatchbookCsv(scope), includeSignature: false);
             AddLog("Patchbook CSV exporté : " + dialog.FileName);
             SetStatus("Patchbook CSV exporté.");
         }
