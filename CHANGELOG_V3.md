@@ -18,6 +18,8 @@
 - Preferred master cochable directement depuis la table des machines.
 - Ajout de l'IP fixe manuelle par machine et d'une action globale pour fixer une plage IP en série.
 - Ajout d'un reset patch RX/TX par machine : déconnexion des entrées RX et suppression des patchs qui utilisent ses TX.
+- Retouche de la page Configuration : bloc machine plus compact, bouton détail machine visible, actions globales séparées en onglets.
+- Retouche de la fenêtre détail machine : les champs IP fixes sont alignés avec le mode `Fixe` et désactivés en mode automatique.
 
 ## 2026-07-07 - Version 3.04
 

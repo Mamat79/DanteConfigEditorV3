@@ -60,6 +60,7 @@ public partial class DeviceDetailsWindow : Window
         IpAddressTextBox.Text = device.StaticIpAddress;
         IpNetmaskTextBox.Text = string.IsNullOrWhiteSpace(device.StaticIpNetmask) ? "255.255.255.0" : device.StaticIpNetmask;
         IpGatewayTextBox.Text = string.IsNullOrWhiteSpace(device.StaticIpGateway) ? "0.0.0.0" : device.StaticIpGateway;
+        UpdateIpStaticFieldsState();
 
         _txChannels = new ObservableCollection<DeviceChannelEditItem>(
             device.TxChannels.Select(channel => new DeviceChannelEditItem(channel.Index, channel.DisplayName)));
@@ -97,6 +98,19 @@ public partial class DeviceDetailsWindow : Window
     private void CancelButton_Click(object sender, RoutedEventArgs e)
     {
         DialogResult = false;
+    }
+
+    private void IpModeRadioButton_Checked(object sender, RoutedEventArgs e)
+    {
+        UpdateIpStaticFieldsState();
+    }
+
+    private void UpdateIpStaticFieldsState()
+    {
+        bool useStaticIp = IpStaticRadioButton.IsChecked == true;
+        IpAddressTextBox.IsEnabled = useStaticIp;
+        IpNetmaskTextBox.IsEnabled = useStaticIp;
+        IpGatewayTextBox.IsEnabled = useStaticIp;
     }
 
     private static void SelectOption(ComboBox comboBox, IEnumerable<DeviceOption> options, string value)

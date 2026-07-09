@@ -152,9 +152,7 @@ public partial class MainWindow : Window
         SetupLanguageComboBox();
         LatencyComboBox.ItemsSource = _latencies;
         GlobalLatencyComboBox.ItemsSource = _latencies;
-        SampleRateComboBox.ItemsSource = _sampleRates;
         GlobalSampleRateComboBox.ItemsSource = _sampleRates;
-        EncodingComboBox.ItemsSource = _encodings;
         GlobalEncodingComboBox.ItemsSource = _encodings;
         ChannelKindComboBox.ItemsSource = new[] { "TX", "RX" };
         ChannelKindComboBox.SelectedItem = "TX";
@@ -484,12 +482,7 @@ public partial class MainWindow : Window
         RedundantRadioButton.IsChecked = device.IsRedundant;
         DaisychainRadioButton.IsChecked = !device.IsRedundant;
         SelectLatency(LatencyComboBox, device.Latency);
-        SelectSampleRate(SampleRateComboBox, device.Samplerate);
-        SelectEncoding(EncodingComboBox, device.Encoding);
         PreferredMasterCheckBox.IsChecked = device.PreferredMaster;
-        StaticIpAddressTextBox.Text = device.StaticIpAddress;
-        StaticIpNetmaskTextBox.Text = string.IsNullOrWhiteSpace(device.StaticIpNetmask) ? "255.255.255.0" : device.StaticIpNetmask;
-        StaticIpGatewayTextBox.Text = string.IsNullOrWhiteSpace(device.StaticIpGateway) ? "0.0.0.0" : device.StaticIpGateway;
         RefreshChannelSelector();
     }
 
@@ -521,47 +514,11 @@ public partial class MainWindow : Window
         T("Dialog.LatencyWarning"));
     }
 
-    private void ApplySampleRateButton_Click(object sender, RoutedEventArgs e)
-    {
-        RunProjectAction(
-            T("Action.SampleRateUpdated"),
-            () =>
-            {
-                string samplerate = SelectedSampleRateXmlValue(SampleRateComboBox);
-                _project!.SetSamplerate(SelectedDeviceName(), samplerate);
-            },
-            T("Dialog.AudioFormatWarning"));
-    }
-
-    private void ApplyEncodingButton_Click(object sender, RoutedEventArgs e)
-    {
-        RunProjectAction(
-            T("Action.EncodingUpdated"),
-            () =>
-            {
-                string encoding = SelectedEncodingXmlValue(EncodingComboBox);
-                _project!.SetEncoding(SelectedDeviceName(), encoding);
-            },
-            T("Dialog.AudioFormatWarning"));
-    }
-
     private void ApplyIpAutoButton_Click(object sender, RoutedEventArgs e)
     {
         RunProjectAction(
             T("Action.IpAutoApplied"),
             () => _project!.SetIpAddressDynamic(SelectedDeviceName()));
-    }
-
-    private void ApplyIpStaticButton_Click(object sender, RoutedEventArgs e)
-    {
-        RunProjectAction(
-            T("Action.IpStaticApplied"),
-            () => _project!.SetIpAddressStatic(
-                SelectedDeviceName(),
-                StaticIpAddressTextBox.Text,
-                StaticIpNetmaskTextBox.Text,
-                StaticIpGatewayTextBox.Text),
-            T("Dialog.IpStaticWarning"));
     }
 
     private void ResetDevicePatchesButton_Click(object sender, RoutedEventArgs e)
@@ -925,6 +882,11 @@ public partial class MainWindow : Window
         RunProjectAction(
             T("Action.PreferredMasterUpdated"),
             () => _project!.SetPreferredMaster(device.Name, checkBox.IsChecked == true));
+    }
+
+    private void OpenDeviceDetailsButton_Click(object sender, RoutedEventArgs e)
+    {
+        OpenDeviceDetailsWindow(SelectedDeviceName());
     }
 
     private void OpenDeviceDetailsWindow(string deviceName)
@@ -1905,11 +1867,9 @@ public partial class MainWindow : Window
         yield return DeleteDeviceButton;
         yield return ApplyNetworkButton;
         yield return ApplyLatencyButton;
-        yield return ApplySampleRateButton;
-        yield return ApplyEncodingButton;
         yield return ApplyIpAutoButton;
-        yield return ApplyIpStaticButton;
         yield return ResetDevicePatchesButton;
+        yield return OpenDeviceDetailsButton;
         yield return ApplyPreferredMasterButton;
         yield return RenameChannelButton;
         yield return ResetDeviceChannelsButton;

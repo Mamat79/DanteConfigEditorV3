@@ -89,33 +89,49 @@
 
                 <GroupBox Header="Adresse IP">
                     <Grid Margin="8">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
 
-                        <StackPanel Margin="0,0,18,0">
-                            <Label Content="Mode IP" />
-                            <RadioButton x:Name="IpAutoRadioButton" Content="Automatique" GroupName="IpMode" Margin="0,6,0,0" />
-                            <RadioButton x:Name="IpStaticRadioButton" Content="Fixe" GroupName="IpMode" Margin="0,6,0,0" />
+                        <StackPanel Orientation="Horizontal">
+                            <Label Content="Mode IP" Margin="0,0,18,0" />
+                            <RadioButton x:Name="IpAutoRadioButton"
+                                         Content="Automatique"
+                                         GroupName="IpMode"
+                                         Checked="IpModeRadioButton_Checked"
+                                         Margin="0,8,0,0" />
                         </StackPanel>
 
-                        <StackPanel Grid.Column="1" Margin="0,0,8,0">
-                            <Label Content="Adresse IP" />
-                            <TextBox x:Name="IpAddressTextBox" />
-                        </StackPanel>
+                        <Grid Grid.Row="1" Margin="0,8,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="105" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
 
-                        <StackPanel Grid.Column="2" Margin="0,0,8,0">
-                            <Label Content="Masque" />
-                            <TextBox x:Name="IpNetmaskTextBox" />
-                        </StackPanel>
+                            <RadioButton x:Name="IpStaticRadioButton"
+                                         Content="Fixe"
+                                         GroupName="IpMode"
+                                         Checked="IpModeRadioButton_Checked"
+                                         Margin="0,34,12,0" />
 
-                        <StackPanel Grid.Column="3">
-                            <Label Content="Passerelle" />
-                            <TextBox x:Name="IpGatewayTextBox" />
-                        </StackPanel>
+                            <StackPanel Grid.Column="1" Margin="0,0,8,0">
+                                <Label Content="Adresse IP" />
+                                <TextBox x:Name="IpAddressTextBox" />
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="2" Margin="0,0,8,0">
+                                <Label Content="Masque" />
+                                <TextBox x:Name="IpNetmaskTextBox" />
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="3">
+                                <Label Content="Passerelle" />
+                                <TextBox x:Name="IpGatewayTextBox" />
+                            </StackPanel>
+                        </Grid>
                     </Grid>
                 </GroupBox>
 

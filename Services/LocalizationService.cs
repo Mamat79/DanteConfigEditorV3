@@ -452,6 +452,7 @@ public static class LocalizationService
         Add(map, "Numéro", "Number");
         Add(map, "Renommer la série", "Rename range");
         Add(map, "Actions globales", "Global actions");
+        Add(map, "Réseau / audio", "Network / audio");
         Add(map, "Appliquer le mode à tous", "Apply mode to all");
         Add(map, "Latence globale", "Global latency");
         Add(map, "Appliquer la latence à tous", "Apply latency to all");
@@ -464,6 +465,7 @@ public static class LocalizationService
         Add(map, "Fixer les IP en série", "Set static IP range");
         Add(map, "Mettre toutes les IP en automatique", "Set all IPs to automatic");
         Add(map, "Définir le device sélectionné comme seul preferred master", "Set selected device as sole Preferred Master");
+        Add(map, "Preferred master sécurisé", "Safe Preferred Master");
         Add(map, "Appliquer preferred master sécurisé", "Apply safe Preferred Master");
         Add(map, "Réinitialiser tous les canaux", "Reset all channels");
         Add(map, "Listes rapides", "Quick lists");

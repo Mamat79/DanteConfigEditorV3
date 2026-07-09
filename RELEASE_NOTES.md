@@ -17,11 +17,13 @@ Travaillez toujours sur une copie de vos fichiers XML Dante et validez le result
 - Remise des adresses IPv4 en automatique par machine ou globalement quand le XML expose ces champs.
 - IP fixe manuelle par machine et IP fixes en serie pour toutes les machines ayant une interface IPv4 modifiable.
 - Fenetre detail machine au double-clic : nom, formats audio, IP et canaux TX/RX.
+- Fenetre detail machine : champs d'adresse IP fixe alignes avec le choix `Fixe`, et champs grises en mode automatique.
 - Preferred master cochable directement dans la table des machines.
 - Reset patch RX/TX d'une machine : deconnecte ses entrees RX et retire les patchs qui utilisent ses TX.
 - Listes rapides Sample rates, Bits et IP fixes.
 - Avertissements visibles si plusieurs sample rates ou plusieurs encodages coexistent dans le preset.
 - Page Configuration plus lisible : reglages defilables, table des machines gardee visible et recherche globale avec message d'aide.
+- Page Configuration compactee : actions rapides machine, bouton detail machine et actions globales rangees par onglet pour eviter les blocs coupes.
 - Ouverture de l'application en plein ecran pour une lecture plus confortable.
 - Garde-fou de modifications XML : la sauvegarde est bloquee si une zone technique Dante sensible change par accident.
 - Rapport compatibilite Dante Controller.
