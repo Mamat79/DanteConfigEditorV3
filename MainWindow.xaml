@@ -230,6 +230,7 @@
 
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                     <Button Content="Ouvrir XML" Click="OpenButton_Click" />
+                    <Button x:Name="MergeXmlButton" Content="Ajouter XML au projet" Style="{StaticResource SecondaryButtonStyle}" Click="MergeXmlButton_Click" />
                     <Button x:Name="SaveAsButton" Content="Enregistrer sous" Click="SaveAsButton_Click" />
                     <Button x:Name="ActivateEditButton" Content="Activer l'édition" Style="{StaticResource SecondaryButtonStyle}" Click="ActivateEditButton_Click" />
                     <Button x:Name="UndoLastButton" Content="Annuler action" Style="{StaticResource SecondaryButtonStyle}" Click="UndoLastButton_Click" IsEnabled="False" />
@@ -254,6 +255,15 @@
                                Margin="0,0,14,8"
                                VerticalAlignment="Center"
                                Foreground="{DynamicResource MutedTextBrush}" />
+                    <TextBlock x:Name="LanguageLabelTextBlock"
+                               Text="Langue"
+                               Margin="0,0,8,8"
+                               VerticalAlignment="Center"
+                               Foreground="{DynamicResource MutedTextBrush}" />
+                    <ComboBox x:Name="LanguageComboBox"
+                              Width="105"
+                              Margin="0,0,8,8"
+                              SelectionChanged="LanguageComboBox_SelectionChanged" />
                     <ToggleButton x:Name="ThemeToggleButton"
                                   Content="Thème clair"
                                   Checked="ThemeToggleButton_Checked"
@@ -390,7 +400,10 @@
                                         <StackPanel Grid.Row="1" Margin="0,8,8,0">
                                             <Label Content="Nouveau nom" />
                                             <TextBox x:Name="NewNameTextBox" />
-                                            <Button x:Name="ApplyRenameButton" Content="Changer le nom" Click="ApplyRenameButton_Click" />
+                                            <WrapPanel>
+                                                <Button x:Name="ApplyRenameButton" Content="Changer le nom" Click="ApplyRenameButton_Click" />
+                                                <Button x:Name="DeleteDeviceButton" Content="Supprimer la machine" Style="{StaticResource SecondaryButtonStyle}" Click="DeleteDeviceButton_Click" />
+                                            </WrapPanel>
                                         </StackPanel>
 
                                         <StackPanel Grid.Row="1" Grid.Column="1" Margin="8,8,0,0">

@@ -246,6 +246,43 @@ public sealed class DanteProject
         RegisterChange("Preferred master unique", $"{deviceName} défini comme seul preferred master");
     }
 
+    public int DeleteDevice(string deviceName)
+    {
+        DanteDevice device = FindDevice(deviceName) ?? throw new InvalidOperationException("Device introuvable.");
+        if (Devices.Count <= 1)
+        {
+            throw new InvalidOperationException("Impossible de supprimer la dernière machine du preset.");
+        }
+
+        int removedSubscriptions = RemoveSubscriptionsReferencingDevice(device.Name);
+        device.Element.Remove();
+        RegisterChange("Machine supprimée", $"{deviceName} supprimé, {removedSubscriptions} patch(s) nettoyé(s)");
+        return removedSubscriptions;
+    }
+
+    public int MergeDevicesFromXml(string path)
+    {
+        DanteProject importedProject = Load(path);
+        string[] duplicateNames = importedProject.Devices
+            .Select(device => device.Name)
+            .Where(name => Devices.Any(existing => string.Equals(existing.Name, name, StringComparison.OrdinalIgnoreCase)))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToArray();
+
+        if (duplicateNames.Length > 0)
+        {
+            throw new InvalidOperationException("Import refusé : ces machines existent déjà dans le projet ouvert : " + string.Join(", ", duplicateNames));
+        }
+
+        foreach (DanteDevice device in importedProject.Devices)
+        {
+            Document.Root!.Add(new XElement(device.Element));
+        }
+
+        RegisterChange("Import XML", $"{importedProject.Devices.Count} machine(s) ajoutée(s) depuis {Path.GetFileName(path)}");
+        return importedProject.Devices.Count;
+    }
+
     public void ResetChannels(string deviceName)
     {
         DanteDevice device = FindDevice(deviceName) ?? throw new InvalidOperationException("Device introuvable.");
@@ -402,6 +439,29 @@ public sealed class DanteProject
 
         _modifiedRxElements[rxElement] = true;
         RegisterChange("Patch supprimé", $"{rxDeviceName} RX {rxIndex}");
+    }
+
+    private int RemoveSubscriptionsReferencingDevice(string txDeviceName)
+    {
+        int count = 0;
+        foreach (XElement rxChannel in Document.Root!.Elements("device").Elements("rxchannel").ToArray())
+        {
+            XElement? subscribedDevice = FindFirstElement(rxChannel, SubscriptionDeviceElementNames);
+            if (subscribedDevice is null || !string.Equals(subscribedDevice.Value.Trim(), txDeviceName, StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
+            foreach (string elementName in SubscriptionDeviceElementNames.Concat(SubscriptionChannelElementNames))
+            {
+                rxChannel.Element(elementName)?.Remove();
+            }
+
+            _modifiedRxElements[rxChannel] = true;
+            count++;
+        }
+
+        return count;
     }
 
     public DanteValidationResult Validate()
@@ -768,12 +828,14 @@ public sealed class DanteProject
         return builder.ToString();
     }
 
-    public string BuildPatchbookText(string scope)
+    public string BuildPatchbookText(string scope, string? scopeDisplay = null)
     {
         DanteValidationResult validation = Validate();
         IEnumerable<DanteSubscription> subscriptions = PatchMatrix.Subscriptions;
         subscriptions = scope switch
         {
+            "Filter.ActivePatches" => subscriptions.Where(subscription => subscription.IsActive),
+            "Filter.WarningsConflicts" => subscriptions.Where(subscription => subscription.IsWarning || subscription.IsConflict),
             "Patchs actifs" => subscriptions.Where(subscription => subscription.IsActive),
             "Warnings / conflits" => subscriptions.Where(subscription => subscription.IsWarning || subscription.IsConflict),
             _ => subscriptions
@@ -792,7 +854,7 @@ public sealed class DanteProject
         builder.AppendLine($"Chemin du fichier source : {OriginalFilePath}");
         builder.AppendLine($"Preset : {PresetName}");
         builder.AppendLine($"Version preset : {Blank(PresetVersion)}");
-        builder.AppendLine($"Scope : {scope}");
+        builder.AppendLine($"Scope : {scopeDisplay ?? scope}");
         builder.AppendLine($"Devices : {Devices.Count}");
         builder.AppendLine($"TX total : {Devices.Sum(device => device.TxCount)}");
         builder.AppendLine($"RX total : {Devices.Sum(device => device.RxCount)}");
@@ -833,6 +895,8 @@ public sealed class DanteProject
         IEnumerable<DanteSubscription> subscriptions = PatchMatrix.Subscriptions;
         subscriptions = scope switch
         {
+            "Filter.ActivePatches" => subscriptions.Where(subscription => subscription.IsActive),
+            "Filter.WarningsConflicts" => subscriptions.Where(subscription => subscription.IsWarning || subscription.IsConflict),
             "Patchs actifs" => subscriptions.Where(subscription => subscription.IsActive),
             "Warnings / conflits" => subscriptions.Where(subscription => subscription.IsWarning || subscription.IsConflict),
             _ => subscriptions

@@ -18,6 +18,9 @@
 - Ajout d'un script d'archive source propre.
 - Correction des accents dans l'export PDF et ajout de la signature/version dans les exports TXT/PDF.
 - Correction du mode lecture seule : les boutons d'action restent utilisables après ouverture du XML, avec sauvegarde obligatoire sous un autre nom.
+- Ajout d'un sélecteur Français / Anglais dans l'interface, mémorisé entre deux lancements.
+- Ajout de la suppression d'une machine, avec nettoyage des subscriptions qui pointent vers cette machine.
+- Ajout de l'import d'un second XML dans le projet ouvert, avec refus des noms de machines déjà présents.
 
 ## 2026-07-07 - Version 3.03 - mise à jour
 

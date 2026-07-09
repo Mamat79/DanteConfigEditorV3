@@ -12,8 +12,8 @@ namespace DanteConfigEditor;
 
 public partial class MainWindow : Window
 {
-    private const string AllSendersItem = "Tous les émetteurs";
-    private const string AllReceiversItem = "Tous les récepteurs";
+    private string AllSendersItem => T("Filter.AllSenders");
+    private string AllReceiversItem => T("Filter.AllReceivers");
 
     // Collections liées directement aux listes WPF. Quand on les modifie,
     // l'interface se met à jour sans recréer toute la fenêtre.
@@ -28,33 +28,34 @@ public partial class MainWindow : Window
         new("2000", "2 ms"),
         new("5000", "5 ms")
     ];
-    private readonly string[] _patchViewModes = ["Simple", "Expert"];
-    private readonly string[] _patchStateFilters =
+    private readonly string[] _patchViewModeKeys = ["PatchView.Simple", "PatchView.Expert"];
+    private readonly string[] _patchStateFilterKeys =
     [
-        "Tous les RX",
-        "Patchs actifs",
-        "RX libres",
-        "Patchs locaux",
-        "Devices TX absents",
-        "Canaux TX introuvables",
-        "Warnings",
-        "Conflits",
-        "Modifiés"
+        "Filter.AllRx",
+        "Filter.ActivePatches",
+        "Filter.FreeRx",
+        "Filter.LocalPatches",
+        "Filter.MissingTxDevices",
+        "Filter.MissingTxChannels",
+        "Filter.Warnings",
+        "Filter.Conflicts",
+        "Filter.Modified"
     ];
-    private readonly string[] _healthFilters =
+    private readonly string[] _healthFilterKeys =
     [
-        "Tous",
-        "Infos",
-        "Avertissements",
-        "Erreurs",
-        "Patchs",
-        "Devices",
-        "Clock",
-        "Réseau",
-        "Compatibilité XML"
+        "Filter.All",
+        "Filter.Info",
+        "Filter.HealthWarnings",
+        "Filter.Errors",
+        "Filter.Patches",
+        "Filter.Devices",
+        "Filter.Clock",
+        "Filter.Network",
+        "Filter.XmlCompatibility"
     ];
-    private readonly string[] _patchbookScopes = ["Tous les RX", "Patchs actifs", "Warnings / conflits"];
+    private readonly string[] _patchbookScopeKeys = ["Filter.AllRx", "Filter.ActivePatches", "Filter.WarningsConflicts"];
     private DanteProject? _project;
+    private UiLanguage _language = UiLanguage.French;
     private bool _editModeEnabled;
 
     // Évite que les changements de sélection déclenchés par RefreshAll relancent
@@ -85,6 +86,14 @@ public partial class MainWindow : Window
         }
     }
 
+    private sealed record LocalizedOption(string Key, string Display)
+    {
+        public override string ToString()
+        {
+            return Display;
+        }
+    }
+
     private sealed record GlobalSearchResult(
         string Kind,
         string Label,
@@ -108,18 +117,13 @@ public partial class MainWindow : Window
     private void Window_Loaded(object sender, RoutedEventArgs e)
     {
         // Initialisation des sources de données utilisées par les contrôles.
+        _language = LanguageSettingsService.Load();
+        SetupLanguageComboBox();
         LatencyComboBox.ItemsSource = _latencies;
         GlobalLatencyComboBox.ItemsSource = _latencies;
         ChannelKindComboBox.ItemsSource = new[] { "TX", "RX" };
         ChannelKindComboBox.SelectedItem = "TX";
-        PatchStateFilterComboBox.ItemsSource = _patchStateFilters;
-        PatchStateFilterComboBox.SelectedItem = _patchStateFilters[0];
-        PatchViewModeComboBox.ItemsSource = _patchViewModes;
-        PatchViewModeComboBox.SelectedItem = _patchViewModes[0];
-        HealthFilterComboBox.ItemsSource = _healthFilters;
-        HealthFilterComboBox.SelectedItem = _healthFilters[0];
-        PatchbookScopeComboBox.ItemsSource = _patchbookScopes;
-        PatchbookScopeComboBox.SelectedItem = _patchbookScopes[0];
+        RefreshLocalizedOptionSources();
         PatchGrid.ItemsSource = _patchRows;
         LogListBox.ItemsSource = _logs;
         GlobalSearchListBox.ItemsSource = _searchResults;
@@ -127,6 +131,7 @@ public partial class MainWindow : Window
         GlobalDaisychainRadioButton.IsChecked = true;
         DaisychainRadioButton.IsChecked = true;
         SetTheme(useLightTheme: false);
+        ApplyLanguageToInterface();
         RefreshRecentFiles();
         RefreshAll();
     }
@@ -135,8 +140,8 @@ public partial class MainWindow : Window
     {
         OpenFileDialog dialog = new()
         {
-            Filter = "Fichiers XML (*.xml)|*.xml|Tous les fichiers (*.*)|*.*",
-            Title = "Ouvrir une configuration Dante"
+            Filter = T("Dialog.XmlFilter"),
+            Title = T("Dialog.OpenXmlTitle")
         };
 
         if (dialog.ShowDialog(this) != true)
@@ -147,17 +152,41 @@ public partial class MainWindow : Window
         LoadProjectFromPath(dialog.FileName);
     }
 
+    private void MergeXmlButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (!EnsureProjectLoaded())
+        {
+            return;
+        }
+
+        OpenFileDialog dialog = new()
+        {
+            Filter = T("Dialog.XmlFilter"),
+            Title = T("Dialog.MergeXmlTitle")
+        };
+
+        if (dialog.ShowDialog(this) != true)
+        {
+            return;
+        }
+
+        RunProjectAction(
+            T("Action.XmlMerged"),
+            () => _project!.MergeDevicesFromXml(dialog.FileName),
+            T("Dialog.MergeXmlWarning"));
+    }
+
     private void OpenRecentButton_Click(object sender, RoutedEventArgs e)
     {
         if (RecentFilesComboBox.SelectedItem is not string path || string.IsNullOrWhiteSpace(path))
         {
-            ShowError("Aucun fichier récent", "Sélectionnez un fichier récent à ouvrir.");
+            ShowError(T("Dialog.NoRecentFileTitle"), T("Dialog.NoRecentFileMessage"));
             return;
         }
 
         if (!File.Exists(path))
         {
-            ShowError("Fichier introuvable", "Ce fichier récent n'existe plus.");
+            ShowError(T("Dialog.FileMissingTitle"), T("Dialog.FileMissingMessage"));
             RefreshRecentFiles();
             return;
         }
@@ -176,13 +205,13 @@ public partial class MainWindow : Window
             _logs.Clear();
             RecentFilesService.Add(path);
             RefreshRecentFiles();
-            AddLog("Fichier chargé : " + path);
+            AddLog(Tf("Log.FileLoaded", path));
             RefreshAll();
-            SetStatus("Fichier chargé. Les modifications seront enregistrées sous un nouveau nom.");
+            SetStatus(T("Status.FileLoaded"));
         }
         catch (Exception ex)
         {
-            ShowError("Le fichier ne peut pas être ouvert.", ex.Message);
+            ShowError(T("Dialog.OpenFailedTitle"), ex.Message);
         }
     }
 
@@ -196,7 +225,7 @@ public partial class MainWindow : Window
         MessageBoxResult confirm = MessageBox.Show(
             this,
             "Vous allez activer l'édition du fichier XML hors ligne. Travaillez toujours sur une copie et vérifiez le fichier final dans Dante Controller avant production.",
-            "Activer l'édition",
+            T("Status.ActivateEditButton"),
             MessageBoxButton.YesNo,
             MessageBoxImage.Warning);
 
@@ -206,9 +235,9 @@ public partial class MainWindow : Window
         }
 
         _editModeEnabled = true;
-        AddLog("Mode édition activé.");
+        AddLog(T("Log.EditEnabled"));
         RefreshAll();
-        SetStatus("Mode édition activé.");
+        SetStatus(T("Status.EditEnabled"));
     }
 
     private void SaveAsButton_Click(object sender, RoutedEventArgs e)
@@ -228,14 +257,14 @@ public partial class MainWindow : Window
         DanteValidationResult validation = _project!.Validate();
         if (validation.HasErrors)
         {
-            ShowError("Sauvegarde impossible", validation.ToDisplayText());
+            ShowError(T("Dialog.SaveImpossibleTitle"), validation.ToDisplayText());
             return;
         }
 
         SaveFileDialog dialog = new()
         {
-            Filter = "Fichiers XML (*.xml)|*.xml|Tous les fichiers (*.*)|*.*",
-            Title = "Enregistrer une nouvelle configuration",
+            Filter = T("Dialog.XmlFilter"),
+            Title = T("Dialog.SaveXmlTitle"),
             FileName = Path.GetFileName(SafeFileService.BuildDefaultSavePath(_project.OriginalFilePath)),
             InitialDirectory = Path.GetDirectoryName(_project.OriginalFilePath)
         };
@@ -248,8 +277,8 @@ public partial class MainWindow : Window
         if (IsOriginalProjectPath(dialog.FileName))
         {
             ShowError(
-                "Choisissez un autre nom",
-                "Pour protéger le XML d'origine, l'application n'enregistre pas par-dessus le fichier ouvert. Choisissez un nouveau nom de fichier.");
+                T("Dialog.ChooseAnotherNameTitle"),
+                T("Dialog.ChooseAnotherNameMessage"));
             return;
         }
 
@@ -257,8 +286,8 @@ public partial class MainWindow : Window
         {
             MessageBoxResult overwrite = MessageBox.Show(
                 this,
-                "Ce fichier existe déjà. Voulez-vous vraiment l'écraser ?",
-                "Confirmation requise",
+                T("Dialog.OverwriteMessage"),
+                T("Dialog.ConfirmTitle"),
                 MessageBoxButton.YesNo,
                 MessageBoxImage.Warning);
 
@@ -271,8 +300,8 @@ public partial class MainWindow : Window
         string summary = _project.BuildSaveSummary();
         MessageBoxResult confirm = MessageBox.Show(
             this,
-            summary + Environment.NewLine + Environment.NewLine + "Une sauvegarde du fichier original sera créée avant l'écriture. Continuer ?",
-            "Résumé avant sauvegarde",
+            summary + Environment.NewLine + Environment.NewLine + T("Dialog.OriginalBackupMessage"),
+            T("Dialog.SaveSummaryTitle"),
             MessageBoxButton.YesNo,
             validation.HasWarnings ? MessageBoxImage.Warning : MessageBoxImage.Information);
 
@@ -284,14 +313,14 @@ public partial class MainWindow : Window
         try
         {
             string backupPath = _project.SaveAs(dialog.FileName);
-            AddLog("Sauvegarde originale créée : " + backupPath);
-            AddLog("Fichier enregistré : " + dialog.FileName);
+            AddLog(Tf("Log.OriginalBackupCreated", backupPath));
+            AddLog(Tf("Log.FileSaved", dialog.FileName));
             RefreshAll();
-            SetStatus("Fichier sauvegardé.");
+            SetStatus(T("Status.FileSaved"));
         }
         catch (Exception ex)
         {
-            ShowError("Erreur pendant la sauvegarde", ex.Message);
+            ShowError(T("Dialog.SaveErrorTitle"), ex.Message);
         }
     }
 
@@ -306,8 +335,8 @@ public partial class MainWindow : Window
         {
             MessageBoxResult confirm = MessageBox.Show(
                 this,
-                "Les changements non sauvegardés seront perdus. Continuer ?",
-                "Annuler les changements",
+                T("Dialog.RevertMessage"),
+                T("Dialog.RevertTitle"),
                 MessageBoxButton.YesNo,
                 MessageBoxImage.Warning);
 
@@ -321,13 +350,13 @@ public partial class MainWindow : Window
         {
             string path = _project.OriginalFilePath;
             _project = DanteProject.Load(path);
-            AddLog("Changements annulés. Rechargement du fichier original.");
+            AddLog(T("Log.ReloadOriginal"));
             RefreshAll();
-            SetStatus("Fichier original rechargé.");
+            SetStatus(T("Log.ReloadOriginal"));
         }
         catch (Exception ex)
         {
-            ShowError("Impossible de recharger le fichier original", ex.Message);
+            ShowError(T("Dialog.ReloadErrorTitle"), ex.Message);
         }
     }
 
@@ -341,13 +370,13 @@ public partial class MainWindow : Window
         try
         {
             string label = _project!.UndoLastChange();
-            AddLog("Action annulée : " + label);
+            AddLog(Tf("Log.ActionUndone", label));
             RefreshAll();
-            SetStatus("Dernière action annulée.");
+            SetStatus(T("Status.LastActionUndone"));
         }
         catch (Exception ex)
         {
-            ShowError("Annulation impossible", ex.Message);
+            ShowError(T("Dialog.UndoErrorTitle"), ex.Message);
         }
     }
 
@@ -382,7 +411,7 @@ public partial class MainWindow : Window
 
     private void ApplyRenameButton_Click(object sender, RoutedEventArgs e)
     {
-        RunProjectAction("Nom mis à jour.", () =>
+        RunProjectAction(T("Action.DeviceRenamed"), () =>
         {
             string oldName = SelectedDeviceName();
             string newName = NewNameTextBox.Text;
@@ -392,7 +421,7 @@ public partial class MainWindow : Window
 
     private void ApplyNetworkButton_Click(object sender, RoutedEventArgs e)
     {
-        RunProjectAction("Mode réseau mis à jour.", () =>
+        RunProjectAction(T("Action.NetworkModeUpdated"), () =>
         {
             _project!.SetNetworkMode(SelectedDeviceName(), RedundantRadioButton.IsChecked == true);
         });
@@ -400,39 +429,48 @@ public partial class MainWindow : Window
 
     private void ApplyLatencyButton_Click(object sender, RoutedEventArgs e)
     {
-        RunProjectAction("Latence mise à jour.", () =>
+        RunProjectAction(T("Action.LatencyUpdated"), () =>
         {
             string latency = SelectedLatencyXmlValue(LatencyComboBox);
             _project!.SetLatency(SelectedDeviceName(), latency);
         },
-        "Modifier la latence Dante peut provoquer une reconfiguration des flux lors de l'import/application dans les outils Dante. Vérifiez toujours le preset dans Dante Controller.");
+        T("Dialog.LatencyWarning"));
     }
 
     private void ApplyPreferredMasterButton_Click(object sender, RoutedEventArgs e)
     {
-        RunProjectAction("Preferred master mis à jour.", () =>
+        RunProjectAction(T("Action.PreferredMasterUpdated"), () =>
         {
             _project!.SetPreferredMaster(SelectedDeviceName(), PreferredMasterCheckBox.IsChecked == true);
         });
     }
 
+    private void DeleteDeviceButton_Click(object sender, RoutedEventArgs e)
+    {
+        string deviceName = SelectedDeviceName();
+        RunProjectAction(
+            T("Action.DeviceDeleted"),
+            () => _project!.DeleteDevice(deviceName),
+            Tf("Dialog.DeleteDeviceWarning", deviceName));
+    }
+
     private void ResetDeviceChannelsButton_Click(object sender, RoutedEventArgs e)
     {
         RunProjectAction(
-            "Canaux réinitialisés.",
+            T("Action.ChannelsReset"),
             () => _project!.ResetChannels(SelectedDeviceName()),
-            "Les noms des canaux du device sélectionné seront remplacés par 1, 2, 3...");
+            T("Dialog.ResetDeviceChannelsWarning"));
     }
 
     private void RenameChannelButton_Click(object sender, RoutedEventArgs e)
     {
         if (ChannelComboBox.SelectedItem is not ChannelChoice channel)
         {
-            ShowError("Aucun canal sélectionné", "Sélectionnez un canal TX ou RX à renommer.");
+            ShowError(T("Dialog.NoChannelTitle"), T("Dialog.NoChannelMessage"));
             return;
         }
 
-        RunProjectAction("Canal renommé.", () =>
+        RunProjectAction(T("Action.ChannelRenamed"), () =>
         {
             _project!.RenameChannel(SelectedDeviceName(), channel.Kind, channel.Index, NewChannelNameTextBox.Text);
         });
@@ -448,49 +486,49 @@ public partial class MainWindow : Window
         if (BatchRenameStartChannelComboBox.SelectedItem is not ChannelChoice startChannel
             || BatchRenameEndChannelComboBox.SelectedItem is not ChannelChoice endChannel)
         {
-            ShowError("Plage invalide", "Sélectionnez un canal de début et un canal de fin.");
+            ShowError(T("Dialog.InvalidRangeTitle"), T("Dialog.InvalidRangeMessage"));
             return;
         }
 
         if (startChannel.Kind != kind || endChannel.Kind != kind || startChannel.Index > endChannel.Index)
         {
-            ShowError("Plage invalide", "Le canal de fin doit être placé après le canal de début.");
+            ShowError(T("Dialog.InvalidRangeTitle"), T("Dialog.InvalidRangeOrderMessage"));
             return;
         }
 
         if (!int.TryParse(BatchRenameStartTextBox.Text.Trim(), out int firstNumber))
         {
-            ShowError("Numéro invalide", "Indiquez un numéro de départ valide.");
+            ShowError(T("Dialog.InvalidNumberTitle"), T("Dialog.InvalidNumberMessage"));
             return;
         }
 
         RunProjectAction(
-            "Renommage en série appliqué.",
+            T("Action.BatchRenameApplied"),
             () => _project!.BatchRenameChannels(SelectedDeviceName(), kind, BatchRenamePrefixTextBox.Text, firstNumber, startChannel.Index, endChannel.Index),
-            $"Les noms des canaux {kind} {startChannel.Index} à {endChannel.Index} seront remplacés en série. Continuer ?");
+            Tf("Dialog.BatchRenameWarning", kind, startChannel.Index, endChannel.Index));
     }
 
     private void ApplyAllNetworkButton_Click(object sender, RoutedEventArgs e)
     {
         bool redundant = GlobalRedundantRadioButton.IsChecked == true;
         RunProjectAction(
-            "Mode réseau appliqué à tous les devices.",
+            T("Action.AllNetworkModesApplied"),
             () => _project!.SetAllNetworkModes(redundant),
-            _project?.BuildAllNetworkModePreview(redundant) + Environment.NewLine + "Continuer ?");
+            _project?.BuildAllNetworkModePreview(redundant) + Environment.NewLine + T("Dialog.Continue"));
     }
 
     private void ApplyAllLatencyButton_Click(object sender, RoutedEventArgs e)
     {
         string latency = SelectedLatencyXmlValue(GlobalLatencyComboBox);
         RunProjectAction(
-            "Latence appliquée à tous les devices.",
+            T("Action.AllLatenciesApplied"),
             () =>
             {
                 _project!.SetAllLatencies(latency);
             },
             _project?.BuildAllLatencyPreview(latency)
                 + Environment.NewLine
-                + "Modifier la latence Dante peut provoquer une reconfiguration des flux lors de l'import/application dans les outils Dante. Continuer ?");
+                + T("Dialog.LatencyWarningContinue"));
     }
 
     private void ApplyAllPreferredMasterButton_Click(object sender, RoutedEventArgs e)
@@ -504,24 +542,24 @@ public partial class MainWindow : Window
         {
             string deviceName = SelectedDeviceName();
             RunProjectAction(
-                "Preferred master unique appliqué.",
+                T("Action.SolePreferredMasterApplied"),
                 () => _project!.SetSolePreferredMaster(deviceName),
-                _project?.BuildSolePreferredMasterPreview(deviceName) + Environment.NewLine + "Continuer ?");
+                _project?.BuildSolePreferredMasterPreview(deviceName) + Environment.NewLine + T("Dialog.Continue"));
             return;
         }
 
         RunProjectAction(
-            "Tous les preferred masters ont été retirés.",
+            T("Action.AllPreferredMastersCleared"),
             () => _project!.SetAllPreferredMasters(false),
-            _project?.BuildClearPreferredMastersPreview() + Environment.NewLine + "Continuer ?");
+            _project?.BuildClearPreferredMastersPreview() + Environment.NewLine + T("Dialog.Continue"));
     }
 
     private void ResetAllChannelsButton_Click(object sender, RoutedEventArgs e)
     {
         RunProjectAction(
-            "Tous les canaux ont été réinitialisés.",
+            T("Action.AllChannelsReset"),
             () => _project!.ResetAllChannels(),
-            _project?.BuildResetAllChannelsPreview() + Environment.NewLine + "Continuer ?");
+            _project?.BuildResetAllChannelsPreview() + Environment.NewLine + T("Dialog.Continue"));
     }
 
     private void ListRedundantButton_Click(object sender, RoutedEventArgs e)
@@ -710,7 +748,7 @@ public partial class MainWindow : Window
 
         if (subscription.IsExternalMissingDevice)
         {
-            SetStatus("Ce patch pointe vers un device absent du preset. Cela peut être normal si le preset Dante est partiel.");
+            SetStatus(T("Dialog.ExternalPatchStatus"));
         }
     }
 
@@ -718,12 +756,12 @@ public partial class MainWindow : Window
     {
         if (PatchGrid.SelectedItem is not DanteSubscription subscription)
         {
-            ShowError("Aucun canal RX sélectionné", "Sélectionnez une ligne dans la table de patch.");
+            ShowError(T("Dialog.NoRxTitle"), T("Dialog.NoRxMessage"));
             return;
         }
 
         RunProjectAction(
-            "Patch appliqué.",
+            T("Action.PatchApplied"),
             () =>
             {
                 string txDevice = SourceDeviceComboBox.SelectedItem as string ?? string.Empty;
@@ -731,7 +769,7 @@ public partial class MainWindow : Window
                 _project!.ApplyPatch(subscription.RxDevice, subscription.RxIndex, txDevice, txChannel);
             },
             subscription.IsExternalMissingDevice
-                ? "Ce patch pointe vers un device qui n'est pas présent dans le preset. Cela peut être normal si le preset Dante est partiel. Ne le modifiez que si vous êtes certain de vouloir remplacer cette source. Continuer ?"
+                ? T("Dialog.ExternalPatchWarning")
                 : null);
     }
 
@@ -739,14 +777,14 @@ public partial class MainWindow : Window
     {
         if (PatchGrid.SelectedItem is not DanteSubscription subscription)
         {
-            ShowError("Aucun canal RX sélectionné", "Sélectionnez une ligne dans la table de patch.");
+            ShowError(T("Dialog.NoRxTitle"), T("Dialog.NoRxMessage"));
             return;
         }
 
         RunProjectAction(
-            "Patch supprimé.",
+            T("Action.PatchRemoved"),
             () => _project!.RemovePatch(subscription.RxDevice, subscription.RxIndex),
-            "Le patch du canal RX sélectionné sera supprimé.");
+            T("Dialog.RemovePatchWarning"));
     }
 
     private void RenamePatchTxChannelButton_Click(object sender, RoutedEventArgs e)
@@ -759,11 +797,11 @@ public partial class MainWindow : Window
 
         if (string.IsNullOrWhiteSpace(sourceDeviceName) || string.IsNullOrWhiteSpace(sourceChannelName))
         {
-            ShowError("Canal TX manquant", "Sélectionnez un device TX et un canal TX dans la zone de patch.");
+            ShowError(T("Dialog.MissingTxTitle"), T("Dialog.MissingTxMessage"));
             return;
         }
 
-        RunProjectAction("Canal TX renommé et patchs mis à jour.", () =>
+        RunProjectAction(T("Action.TxChannelRenamed"), () =>
         {
             DanteDevice txDevice = _project!.FindDevice(sourceDeviceName)
                 ?? throw new InvalidOperationException("Device TX introuvable.");
@@ -781,11 +819,11 @@ public partial class MainWindow : Window
     {
         if (PatchGrid.SelectedItem is not DanteSubscription subscription)
         {
-            ShowError("Aucun canal RX sélectionné", "Sélectionnez une ligne RX dans la table de patch.");
+            ShowError(T("Dialog.NoRxTitle"), T("Dialog.NoRxLineMessage"));
             return;
         }
 
-        RunProjectAction("Canal RX renommé.", () =>
+        RunProjectAction(T("Action.RxChannelRenamed"), () =>
         {
             _project!.RenameChannel(subscription.RxDevice, DanteChannelKind.Rx, subscription.RxIndex, PatchRxRenameChannelTextBox.Text);
         });
@@ -800,7 +838,7 @@ public partial class MainWindow : Window
 
         DanteValidationResult validation = _project!.Validate();
         SaveSummaryTextBox.Text = _project.BuildCompatibilityReport();
-        MessageBox.Show(this, validation.ToDisplayText(), "Vérification", MessageBoxButton.OK, validation.HasErrors ? MessageBoxImage.Error : MessageBoxImage.Information);
+        MessageBox.Show(this, validation.ToDisplayText(), LocalizeLiteral("Vérification"), MessageBoxButton.OK, validation.HasErrors ? MessageBoxImage.Error : MessageBoxImage.Information);
     }
 
     private void CompatibilityReportButton_Click(object sender, RoutedEventArgs e)
@@ -812,12 +850,12 @@ public partial class MainWindow : Window
 
         SaveSummaryTextBox.Text = _project!.BuildCompatibilityReport();
         MainTabs.SelectedIndex = 3;
-        SetStatus("Rapport compatibilité Dante Controller affiché.");
+        SetStatus(LocalizeLiteral("Rapport compatibilité Dante Controller affiché."));
     }
 
     private void RefreshSummaryButton_Click(object sender, RoutedEventArgs e)
     {
-        SaveSummaryTextBox.Text = _project?.BuildSaveSummary() ?? "Aucun fichier chargé.";
+        SaveSummaryTextBox.Text = _project?.BuildSaveSummary() ?? T("Status.NoFileLoaded");
     }
 
     private void ExportTxtButton_Click(object sender, RoutedEventArgs e)
@@ -829,8 +867,8 @@ public partial class MainWindow : Window
 
         SaveFileDialog dialog = new()
         {
-            Filter = "Rapport texte (*.txt)|*.txt|Tous les fichiers (*.*)|*.*",
-            Title = "Exporter le rapport TXT",
+            Filter = T("Dialog.TxtFilter"),
+            Title = T("Dialog.ExportTxtTitle"),
             FileName = BuildDefaultReportFileName(".txt"),
             InitialDirectory = Path.GetDirectoryName(_project!.OriginalFilePath)
         };
@@ -843,12 +881,12 @@ public partial class MainWindow : Window
         try
         {
             ReportExportService.ExportText(dialog.FileName, _project!.BuildReportText());
-            AddLog("Rapport TXT exporté : " + dialog.FileName);
-            SetStatus("Rapport TXT exporté.");
+            AddLog(Tf("Log.TxtExported", dialog.FileName));
+            SetStatus(T("Status.TxtExported"));
         }
         catch (Exception ex)
         {
-            ShowError("Export impossible", ex.Message);
+            ShowError(T("Dialog.ExportImpossibleTitle"), ex.Message);
         }
     }
 
@@ -861,8 +899,8 @@ public partial class MainWindow : Window
 
         SaveFileDialog dialog = new()
         {
-            Filter = "Rapport PDF (*.pdf)|*.pdf|Tous les fichiers (*.*)|*.*",
-            Title = "Exporter le rapport PDF",
+            Filter = T("Dialog.PdfFilter"),
+            Title = T("Dialog.ExportPdfTitle"),
             FileName = BuildDefaultReportFileName(".pdf"),
             InitialDirectory = Path.GetDirectoryName(_project!.OriginalFilePath)
         };
@@ -875,12 +913,12 @@ public partial class MainWindow : Window
         try
         {
             ReportExportService.ExportPdf(dialog.FileName, "Dante Config Editor", _project!.BuildReportText());
-            AddLog("Rapport PDF exporté : " + dialog.FileName);
-            SetStatus("Rapport PDF exporté.");
+            AddLog(Tf("Log.PdfExported", dialog.FileName));
+            SetStatus(T("Status.PdfExported"));
         }
         catch (Exception ex)
         {
-            ShowError("Export impossible", ex.Message);
+            ShowError(T("Dialog.ExportImpossibleTitle"), ex.Message);
         }
     }
 
@@ -893,8 +931,8 @@ public partial class MainWindow : Window
 
         SaveFileDialog dialog = new()
         {
-            Filter = "Patchbook texte (*.txt)|*.txt|Tous les fichiers (*.*)|*.*",
-            Title = "Exporter le patchbook TXT",
+            Filter = T("Dialog.PatchbookTxtFilter"),
+            Title = T("Dialog.ExportPatchbookTxtTitle"),
             FileName = BuildDefaultReportFileName("_patchbook.txt"),
             InitialDirectory = Path.GetDirectoryName(_project!.OriginalFilePath)
         };
@@ -906,14 +944,15 @@ public partial class MainWindow : Window
 
         try
         {
-            string scope = PatchbookScopeComboBox.SelectedItem as string ?? _patchbookScopes[0];
-            ReportExportService.ExportText(dialog.FileName, _project!.BuildPatchbookText(scope));
-            AddLog("Patchbook TXT exporté : " + dialog.FileName);
-            SetStatus("Patchbook TXT exporté.");
+            string scope = SelectedOptionKey(PatchbookScopeComboBox, _patchbookScopeKeys[0]);
+            string scopeDisplay = SelectedOptionDisplay(PatchbookScopeComboBox, T(_patchbookScopeKeys[0]));
+            ReportExportService.ExportText(dialog.FileName, _project!.BuildPatchbookText(scope, scopeDisplay));
+            AddLog(Tf("Log.PatchbookTxtExported", dialog.FileName));
+            SetStatus(T("Status.PatchbookTxtExported"));
         }
         catch (Exception ex)
         {
-            ShowError("Export Patchbook impossible", ex.Message);
+            ShowError(T("Dialog.ExportPatchbookImpossibleTitle"), ex.Message);
         }
     }
 
@@ -926,8 +965,8 @@ public partial class MainWindow : Window
 
         SaveFileDialog dialog = new()
         {
-            Filter = "Patchbook CSV (*.csv)|*.csv|Tous les fichiers (*.*)|*.*",
-            Title = "Exporter le patchbook CSV",
+            Filter = T("Dialog.PatchbookCsvFilter"),
+            Title = T("Dialog.ExportPatchbookCsvTitle"),
             FileName = BuildDefaultReportFileName("_patchbook.csv"),
             InitialDirectory = Path.GetDirectoryName(_project!.OriginalFilePath)
         };
@@ -939,14 +978,14 @@ public partial class MainWindow : Window
 
         try
         {
-            string scope = PatchbookScopeComboBox.SelectedItem as string ?? _patchbookScopes[0];
+            string scope = SelectedOptionKey(PatchbookScopeComboBox, _patchbookScopeKeys[0]);
             ReportExportService.ExportText(dialog.FileName, _project!.BuildPatchbookCsv(scope), includeSignature: false);
-            AddLog("Patchbook CSV exporté : " + dialog.FileName);
-            SetStatus("Patchbook CSV exporté.");
+            AddLog(Tf("Log.PatchbookCsvExported", dialog.FileName));
+            SetStatus(T("Status.PatchbookCsvExported"));
         }
         catch (Exception ex)
         {
-            ShowError("Export Patchbook CSV impossible", ex.Message);
+            ShowError(T("Dialog.ExportPatchbookCsvImpossibleTitle"), ex.Message);
         }
     }
 
@@ -959,7 +998,7 @@ public partial class MainWindow : Window
 
         SaveSummaryTextBox.Text = _project!.BuildTopologyText();
         MainTabs.SelectedIndex = 3;
-        SetStatus("Topologie simple affichée.");
+        SetStatus(T("Status.TopologyDisplayed"));
     }
 
     private void CompareXmlButton_Click(object sender, RoutedEventArgs e)
@@ -997,13 +1036,13 @@ public partial class MainWindow : Window
     private void ThemeToggleButton_Checked(object sender, RoutedEventArgs e)
     {
         SetTheme(useLightTheme: true);
-        ThemeToggleButton.Content = "Thème sombre";
+        ThemeToggleButton.Content = LocalizeLiteral("Thème sombre");
     }
 
     private void ThemeToggleButton_Unchecked(object sender, RoutedEventArgs e)
     {
         SetTheme(useLightTheme: false);
-        ThemeToggleButton.Content = "Thème clair";
+        ThemeToggleButton.Content = LocalizeLiteral("Thème clair");
     }
 
     private void RefreshAll()
@@ -1015,13 +1054,13 @@ public partial class MainWindow : Window
         {
             if (_project is null)
             {
-                FilePathTextBlock.Text = "Aucun fichier ouvert";
-                ProjectSummaryTextBlock.Text = "Chargez un fichier XML pour commencer.";
-                ConfigSummaryTextBlock.Text = "Aucun fichier chargé.";
+                FilePathTextBlock.Text = T("Status.NoFileOpen");
+                ProjectSummaryTextBlock.Text = T("Status.LoadXmlToStart");
+                ConfigSummaryTextBlock.Text = T("Status.NoFileLoaded");
                 ImportantWarningsBorder.Visibility = Visibility.Collapsed;
                 ImportantWarningsTextBlock.Text = string.Empty;
-                DirtyStateTextBlock.Text = "Non modifié";
-                ModeTextBlock.Text = "Mode : Lecture seule";
+                DirtyStateTextBlock.Text = T("Status.Unmodified");
+                ModeTextBlock.Text = T("Status.ReadOnlyMode");
                 CountsTextBlock.Text = "0 device - 0 TX - 0 RX";
                 DeviceGrid.ItemsSource = null;
                 DeviceComboBox.ItemsSource = null;
@@ -1030,8 +1069,8 @@ public partial class MainWindow : Window
                 ReceiverDeviceList.ItemsSource = new[] { AllReceiversItem };
                 ReceiverDeviceList.SelectedItem = AllReceiversItem;
                 SourceDeviceComboBox.ItemsSource = null;
-                SaveSummaryTextBox.Text = "Aucun fichier chargé.";
-                HealthSummaryTextBlock.Text = "Aucun fichier chargé.";
+                SaveSummaryTextBox.Text = T("Status.NoFileLoaded");
+                HealthSummaryTextBlock.Text = T("Status.NoFileLoaded");
                 _searchResults.Clear();
                 _patchRows.Clear();
                 _healthIssues.Clear();
@@ -1042,18 +1081,20 @@ public partial class MainWindow : Window
             IReadOnlyList<DanteDevice> devices = _project.Devices;
             string[] deviceNames = devices.Select(device => device.Name).Where(name => !string.IsNullOrWhiteSpace(name)).ToArray();
             string selectedDevice = DeviceComboBox.SelectedItem as string ?? deviceNames.FirstOrDefault() ?? string.Empty;
-            string selectedSenderFilter = SenderDeviceList.SelectedItem as string ?? AllSendersItem;
-            string selectedReceiverFilter = ReceiverDeviceList.SelectedItem as string ?? AllReceiversItem;
+            string selectedSenderFilter = SenderDeviceList.SelectedItem as string ?? string.Empty;
+            string selectedReceiverFilter = ReceiverDeviceList.SelectedItem as string ?? string.Empty;
             string selectedSourceDevice = SourceDeviceComboBox.SelectedItem as string ?? deviceNames.FirstOrDefault() ?? string.Empty;
 
             FilePathTextBlock.Text = _project.OriginalFilePath;
-            DirtyStateTextBlock.Text = _project.IsModified ? "Modifié - non sauvegardé" : "Non modifié";
+            DirtyStateTextBlock.Text = _project.IsModified ? T("Status.ModifiedUnsaved") : T("Status.Unmodified");
             DirtyStateTextBlock.Foreground = _project.IsModified ? Resources["DangerBrush"] as Brush : Resources["MutedTextBrush"] as Brush;
-            ModeTextBlock.Text = _editModeEnabled ? "Mode : Édition" : "Mode : Lecture seule";
+            ModeTextBlock.Text = _editModeEnabled ? T("Status.EditMode") : T("Status.ReadOnlyMode");
 
             int txCount = devices.Sum(device => device.TxCount);
             int rxCount = devices.Sum(device => device.RxCount);
-            ProjectSummaryTextBlock.Text = $"{devices.Count} devices\n{txCount} canaux TX\n{rxCount} canaux RX\n{_project.PatchMatrix.ActivePatchCount} patchs actifs";
+            ProjectSummaryTextBlock.Text = _language == UiLanguage.English
+                ? $"{devices.Count} devices\n{txCount} TX channels\n{rxCount} RX channels\n{_project.PatchMatrix.ActivePatchCount} active subscriptions"
+                : $"{devices.Count} devices\n{txCount} canaux TX\n{rxCount} canaux RX\n{_project.PatchMatrix.ActivePatchCount} patchs actifs";
             ConfigSummaryTextBlock.Text = $"{Path.GetFileName(_project.OriginalFilePath)} - {devices.Count} devices, {txCount} TX, {rxCount} RX.";
             CountsTextBlock.Text = $"{devices.Count} devices - {txCount} TX - {rxCount} RX";
 
@@ -1151,14 +1192,14 @@ public partial class MainWindow : Window
 
         if (_project is null)
         {
-            PatchSummaryTextBlock.Text = "Aucun fichier chargé.";
+            PatchSummaryTextBlock.Text = T("Status.NoFileLoaded");
             return;
         }
 
         string search = PatchSearchTextBox.Text.Trim();
         string sender = SenderDeviceList.SelectedItem as string ?? AllSendersItem;
         string receiver = ReceiverDeviceList.SelectedItem as string ?? AllReceiversItem;
-        string stateFilter = PatchStateFilterComboBox.SelectedItem as string ?? _patchStateFilters[0];
+        string stateFilter = SelectedOptionKey(PatchStateFilterComboBox, _patchStateFilterKeys[0]);
         bool conflictsOnly = ConflictsOnlyCheckBox.IsChecked == true;
 
         IEnumerable<DanteSubscription> subscriptions = _project.PatchMatrix.Subscriptions;
@@ -1191,14 +1232,14 @@ public partial class MainWindow : Window
 
         subscriptions = stateFilter switch
         {
-            "Patchs actifs" => subscriptions.Where(subscription => subscription.IsActive),
-            "RX libres" => subscriptions.Where(subscription => !subscription.IsActive),
-            "Patchs locaux" => subscriptions.Where(subscription => subscription.IsLocalSubscription),
-            "Devices TX absents" => subscriptions.Where(subscription => subscription.IsExternalMissingDevice),
-            "Canaux TX introuvables" => subscriptions.Where(subscription => subscription.IsTxChannelMissing),
-            "Warnings" => subscriptions.Where(subscription => subscription.IsWarning),
-            "Conflits" => subscriptions.Where(subscription => subscription.IsConflict),
-            "Modifiés" => subscriptions.Where(subscription => subscription.IsModified),
+            "Filter.ActivePatches" => subscriptions.Where(subscription => subscription.IsActive),
+            "Filter.FreeRx" => subscriptions.Where(subscription => !subscription.IsActive),
+            "Filter.LocalPatches" => subscriptions.Where(subscription => subscription.IsLocalSubscription),
+            "Filter.MissingTxDevices" => subscriptions.Where(subscription => subscription.IsExternalMissingDevice),
+            "Filter.MissingTxChannels" => subscriptions.Where(subscription => subscription.IsTxChannelMissing),
+            "Filter.Warnings" => subscriptions.Where(subscription => subscription.IsWarning),
+            "Filter.Conflicts" => subscriptions.Where(subscription => subscription.IsConflict),
+            "Filter.Modified" => subscriptions.Where(subscription => subscription.IsModified),
             _ => subscriptions
         };
 
@@ -1207,7 +1248,13 @@ public partial class MainWindow : Window
             _patchRows.Add(subscription);
         }
 
-        PatchSummaryTextBlock.Text = $"{_patchRows.Count} lignes - {_project.PatchMatrix.ActivePatchCount} actifs - {_project.PatchMatrix.LocalPatchCount} locaux - {_project.PatchMatrix.WarningCount} warning(s) - {_project.PatchMatrix.ConflictCount} conflit(s)";
+        PatchSummaryTextBlock.Text = Tf(
+            "Summary.PatchRows",
+            _patchRows.Count,
+            _project.PatchMatrix.ActivePatchCount,
+            _project.PatchMatrix.LocalPatchCount,
+            _project.PatchMatrix.WarningCount,
+            _project.PatchMatrix.ConflictCount);
     }
 
     private void RefreshHealthPage()
@@ -1216,23 +1263,23 @@ public partial class MainWindow : Window
 
         if (_project is null)
         {
-            HealthSummaryTextBlock.Text = "Aucun fichier chargé.";
+            HealthSummaryTextBlock.Text = T("Status.NoFileLoaded");
             return;
         }
 
         DanteValidationResult validation = _project.Validate();
-        string filter = HealthFilterComboBox.SelectedItem as string ?? _healthFilters[0];
+        string filter = SelectedOptionKey(HealthFilterComboBox, _healthFilterKeys[0]);
         IEnumerable<DanteValidationIssue> issues = validation.Issues;
         issues = filter switch
         {
-            "Infos" => issues.Where(issue => issue.Severity == DanteIssueSeverity.Info),
-            "Avertissements" => issues.Where(issue => issue.Severity == DanteIssueSeverity.Warning),
-            "Erreurs" => issues.Where(issue => issue.Severity == DanteIssueSeverity.Error),
-            "Patchs" => issues.Where(issue => issue.Category == DanteIssueCategory.Patch),
-            "Devices" => issues.Where(issue => issue.Category == DanteIssueCategory.Device),
-            "Clock" => issues.Where(issue => issue.Category == DanteIssueCategory.Clock),
-            "Réseau" => issues.Where(issue => issue.Category == DanteIssueCategory.Network),
-            "Compatibilité XML" => issues.Where(issue => issue.Category == DanteIssueCategory.XmlCompatibility),
+            "Filter.Info" => issues.Where(issue => issue.Severity == DanteIssueSeverity.Info),
+            "Filter.HealthWarnings" => issues.Where(issue => issue.Severity == DanteIssueSeverity.Warning),
+            "Filter.Errors" => issues.Where(issue => issue.Severity == DanteIssueSeverity.Error),
+            "Filter.Patches" => issues.Where(issue => issue.Category == DanteIssueCategory.Patch),
+            "Filter.Devices" => issues.Where(issue => issue.Category == DanteIssueCategory.Device),
+            "Filter.Clock" => issues.Where(issue => issue.Category == DanteIssueCategory.Clock),
+            "Filter.Network" => issues.Where(issue => issue.Category == DanteIssueCategory.Network),
+            "Filter.XmlCompatibility" => issues.Where(issue => issue.Category == DanteIssueCategory.XmlCompatibility),
             _ => issues
         };
 
@@ -1241,12 +1288,29 @@ public partial class MainWindow : Window
             _healthIssues.Add(issue);
         }
 
-        HealthSummaryTextBlock.Text =
-            $"Preset : {_project.PresetName}  |  Version : {Blank(_project.PresetVersion)}  |  Mode : {(_editModeEnabled ? "Édition" : "Lecture seule")}  |  Fichier : {_project.OriginalFilePath}\n"
-            + $"Devices : {_project.Devices.Count}  |  TX : {_project.Devices.Sum(device => device.TxCount)}  |  RX : {_project.Devices.Sum(device => device.RxCount)}  |  Patchs actifs : {_project.PatchMatrix.ActivePatchCount}  |  RX libres : {_project.PatchMatrix.FreeRxCount}\n"
-            + $"Patchs locaux : {_project.PatchMatrix.LocalPatchCount}  |  Devices TX absents : {_project.PatchMatrix.ExternalMissingDeviceCount}  |  Canaux TX introuvables : {_project.PatchMatrix.MissingTxChannelCount}  |  Preferred masters : {_project.Devices.Count(device => device.PreferredMaster)}\n"
-            + $"Samplerates : {DistinctDeviceValues("samplerate")}  |  Encodages : {DistinctDeviceValues("encoding")}  |  Latences : {DistinctLatencies()}\n"
-            + $"Redondants : {_project.Devices.Count(device => device.IsRedundant)}  |  Daisychain : {_project.Devices.Count(device => !device.IsRedundant)}  |  IP fixes détectées : {_project.Devices.Count(device => device.UsesStaticIp)}  |  Erreurs : {validation.Errors.Count}  |  Warnings : {validation.Warnings.Count}";
+        HealthSummaryTextBlock.Text = Tf(
+            "Summary.Health",
+            _project.PresetName,
+            Blank(_project.PresetVersion),
+            _editModeEnabled ? T("Status.EditMode").Replace("Mode : ", string.Empty).Replace("Mode: ", string.Empty) : T("Status.ReadOnlyMode").Replace("Mode : ", string.Empty).Replace("Mode: ", string.Empty),
+            _project.OriginalFilePath,
+            _project.Devices.Count,
+            _project.Devices.Sum(device => device.TxCount),
+            _project.Devices.Sum(device => device.RxCount),
+            _project.PatchMatrix.ActivePatchCount,
+            _project.PatchMatrix.FreeRxCount,
+            _project.PatchMatrix.LocalPatchCount,
+            _project.PatchMatrix.ExternalMissingDeviceCount,
+            _project.PatchMatrix.MissingTxChannelCount,
+            _project.Devices.Count(device => device.PreferredMaster),
+            DistinctDeviceValues("samplerate"),
+            DistinctDeviceValues("encoding"),
+            DistinctLatencies(),
+            _project.Devices.Count(device => device.IsRedundant),
+            _project.Devices.Count(device => !device.IsRedundant),
+            _project.Devices.Count(device => device.UsesStaticIp),
+            validation.Errors.Count,
+            validation.Warnings.Count);
     }
 
     private void RefreshSourceChannels()
@@ -1339,17 +1403,143 @@ public partial class MainWindow : Window
         RecentFilesComboBox.SelectedItem = recentFiles.FirstOrDefault();
     }
 
+    private void SetupLanguageComboBox()
+    {
+        bool previousRefreshing = _refreshingUi;
+        _refreshingUi = true;
+        try
+        {
+            LocalizedOption[] languages =
+            [
+                new("Language.French", T("Language.French")),
+                new("Language.English", T("Language.English"))
+            ];
+
+            string selectedKey = _language == UiLanguage.English ? "Language.English" : "Language.French";
+            LanguageComboBox.ItemsSource = languages;
+            LanguageComboBox.SelectedItem = languages.First(option => option.Key == selectedKey);
+        }
+        finally
+        {
+            _refreshingUi = previousRefreshing;
+        }
+    }
+
+    private void LanguageComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (_refreshingUi || LanguageComboBox.SelectedItem is not LocalizedOption option)
+        {
+            return;
+        }
+
+        _language = option.Key == "Language.English" ? UiLanguage.English : UiLanguage.French;
+        LanguageSettingsService.Save(_language);
+        SetupLanguageComboBox();
+        RefreshLocalizedOptionSources();
+        ApplyLanguageToInterface();
+        RefreshAll();
+        SetStatus(T("Status.Ready"));
+    }
+
+    private void RefreshLocalizedOptionSources()
+    {
+        bool previousRefreshing = _refreshingUi;
+        _refreshingUi = true;
+        try
+        {
+            SetOptions(PatchStateFilterComboBox, _patchStateFilterKeys, SelectedOptionKey(PatchStateFilterComboBox, _patchStateFilterKeys[0]));
+            SetOptions(PatchViewModeComboBox, _patchViewModeKeys, SelectedOptionKey(PatchViewModeComboBox, _patchViewModeKeys[0]));
+            SetOptions(HealthFilterComboBox, _healthFilterKeys, SelectedOptionKey(HealthFilterComboBox, _healthFilterKeys[0]));
+            SetOptions(PatchbookScopeComboBox, _patchbookScopeKeys, SelectedOptionKey(PatchbookScopeComboBox, _patchbookScopeKeys[0]));
+        }
+        finally
+        {
+            _refreshingUi = previousRefreshing;
+        }
+    }
+
+    private void SetOptions(ComboBox comboBox, IEnumerable<string> keys, string selectedKey)
+    {
+        LocalizedOption[] options = keys.Select(key => new LocalizedOption(key, T(key))).ToArray();
+        comboBox.ItemsSource = options;
+        comboBox.SelectedItem = options.FirstOrDefault(option => option.Key == selectedKey) ?? options.FirstOrDefault();
+    }
+
+    private string SelectedOptionKey(ComboBox comboBox, string fallback)
+    {
+        return comboBox.SelectedItem is LocalizedOption option ? option.Key : fallback;
+    }
+
+    private string SelectedOptionDisplay(ComboBox comboBox, string fallback)
+    {
+        return comboBox.SelectedItem is LocalizedOption option ? option.Display : fallback;
+    }
+
+    private void ApplyLanguageToInterface()
+    {
+        LanguageLabelTextBlock.Text = T("Language.Label");
+        TranslateDependencyObject(this, []);
+        ApplyDataGridColumnHeaders();
+        UpdateCommandState();
+    }
+
+    private void TranslateDependencyObject(DependencyObject dependencyObject, HashSet<DependencyObject> visited)
+    {
+        if (!visited.Add(dependencyObject))
+        {
+            return;
+        }
+
+        switch (dependencyObject)
+        {
+            case HeaderedContentControl headeredContentControl when headeredContentControl.Header is string header:
+                headeredContentControl.Header = LocalizeLiteral(header);
+                break;
+            case ContentControl contentControl when contentControl.Content is string content:
+                contentControl.Content = LocalizeLiteral(content);
+                break;
+            case TextBlock textBlock:
+                textBlock.Text = LocalizeLiteral(textBlock.Text);
+                break;
+            case FrameworkElement frameworkElement when frameworkElement.ToolTip is string tooltip:
+                frameworkElement.ToolTip = LocalizeLiteral(tooltip);
+                break;
+        }
+
+        foreach (object child in LogicalTreeHelper.GetChildren(dependencyObject))
+        {
+            if (child is DependencyObject childObject)
+            {
+                TranslateDependencyObject(childObject, visited);
+            }
+        }
+    }
+
+    private void ApplyDataGridColumnHeaders()
+    {
+        foreach (DataGrid dataGrid in new[] { DeviceGrid, PatchGrid, HealthIssuesGrid })
+        {
+            foreach (DataGridColumn column in dataGrid.Columns)
+            {
+                if (column.Header is string header)
+                {
+                    column.Header = LocalizeLiteral(header);
+                }
+            }
+        }
+    }
+
     private void UpdateCommandState()
     {
         bool hasProject = _project is not null;
         bool canUseProjectActions = hasProject;
 
         ActivateEditButton.IsEnabled = hasProject && !_editModeEnabled;
-        ActivateEditButton.Content = hasProject && _editModeEnabled ? "Édition active" : "Activer l'édition";
+        ActivateEditButton.Content = hasProject && _editModeEnabled ? T("Status.EditActiveButton") : T("Status.ActivateEditButton");
         SaveAsButton.IsEnabled = hasProject;
         RevertButton.IsEnabled = hasProject;
         UndoLastButton.IsEnabled = hasProject && _project?.CanUndo == true;
-        UndoLastButton.Content = _project?.CanUndo == true ? "Annuler action" : "Annuler action";
+        UndoLastButton.Content = LocalizeLiteral("Annuler action");
 
         foreach (Control control in EditableControls())
         {
@@ -1359,7 +1549,9 @@ public partial class MainWindow : Window
 
     private IEnumerable<Control> EditableControls()
     {
+        yield return MergeXmlButton;
         yield return ApplyRenameButton;
+        yield return DeleteDeviceButton;
         yield return ApplyNetworkButton;
         yield return ApplyLatencyButton;
         yield return ApplyPreferredMasterButton;
@@ -1600,8 +1792,23 @@ public partial class MainWindow : Window
         return value.Contains(search, StringComparison.OrdinalIgnoreCase);
     }
 
-    private static string Blank(string value)
+    private string T(string key)
     {
-        return string.IsNullOrWhiteSpace(value) ? "(vide)" : value;
+        return LocalizationService.Text(_language, key);
+    }
+
+    private string Tf(string key, params object[] args)
+    {
+        return LocalizationService.Format(_language, key, args);
+    }
+
+    private string LocalizeLiteral(string value)
+    {
+        return LocalizationService.TranslateLiteral(_language, value);
+    }
+
+    private string Blank(string value)
+    {
+        return string.IsNullOrWhiteSpace(value) ? T("Blank") : value;
     }
 }

@@ -7,6 +7,7 @@ public static class DanteXmlChangeGuardService
     private static readonly HashSet<string> AllowedPaths = new(StringComparer.OrdinalIgnoreCase)
     {
         "/preset/name",
+        "/preset/device",
         "/preset/device/name",
         "/preset/device/friendly_name",
         "/preset/device/preferred_master/@value",
@@ -127,6 +128,12 @@ public static class DanteXmlChangeGuardService
 
         CompareAttributes(original, current, path, result);
 
+        if (string.Equals(path, "/preset", StringComparison.OrdinalIgnoreCase))
+        {
+            ComparePresetChildren(original, current, result);
+            return;
+        }
+
         XElement[] originalChildren = original.Elements().ToArray();
         XElement[] currentChildren = current.Elements().ToArray();
         if (originalChildren.Length == 0 && currentChildren.Length == 0)
@@ -157,6 +164,70 @@ public static class DanteXmlChangeGuardService
         {
             AddChangeIssue(result, NormalizePath(path + "/" + currentChildren[index].Name.LocalName), $"Balise ajoutée : <{currentChildren[index].Name.LocalName}>.");
         }
+    }
+
+    private static void ComparePresetChildren(XElement original, XElement current, DanteValidationResult result)
+    {
+        XElement[] originalNonDevices = original.Elements().Where(element => element.Name.LocalName != "device").ToArray();
+        XElement[] currentNonDevices = current.Elements().Where(element => element.Name.LocalName != "device").ToArray();
+        CompareChildSequences(originalNonDevices, currentNonDevices, "/preset", result);
+
+        Dictionary<string, XElement> originalDevices = BuildDeviceDictionary(original);
+        Dictionary<string, XElement> currentDevices = BuildDeviceDictionary(current);
+
+        foreach (string deviceName in originalDevices.Keys.Except(currentDevices.Keys, StringComparer.OrdinalIgnoreCase))
+        {
+            AddChangeIssue(result, "/preset/device", $"Device supprimé : {deviceName}.");
+        }
+
+        foreach (string deviceName in currentDevices.Keys.Except(originalDevices.Keys, StringComparer.OrdinalIgnoreCase))
+        {
+            AddChangeIssue(result, "/preset/device", $"Device ajouté : {deviceName}.");
+        }
+
+        foreach (string deviceName in originalDevices.Keys.Intersect(currentDevices.Keys, StringComparer.OrdinalIgnoreCase))
+        {
+            CompareElements(originalDevices[deviceName], currentDevices[deviceName], "/preset/device", result);
+        }
+    }
+
+    private static void CompareChildSequences(XElement[] originalChildren, XElement[] currentChildren, string parentPath, DanteValidationResult result)
+    {
+        int max = Math.Min(originalChildren.Length, currentChildren.Length);
+        for (int index = 0; index < max; index++)
+        {
+            string childPath = NormalizePath(parentPath + "/" + originalChildren[index].Name.LocalName);
+            CompareElements(originalChildren[index], currentChildren[index], childPath, result);
+        }
+
+        for (int index = max; index < originalChildren.Length; index++)
+        {
+            AddChangeIssue(result, NormalizePath(parentPath + "/" + originalChildren[index].Name.LocalName), $"Balise supprimée : <{originalChildren[index].Name.LocalName}>.");
+        }
+
+        for (int index = max; index < currentChildren.Length; index++)
+        {
+            AddChangeIssue(result, NormalizePath(parentPath + "/" + currentChildren[index].Name.LocalName), $"Balise ajoutée : <{currentChildren[index].Name.LocalName}>.");
+        }
+    }
+
+    private static Dictionary<string, XElement> BuildDeviceDictionary(XElement preset)
+    {
+        Dictionary<string, XElement> devices = new(StringComparer.OrdinalIgnoreCase);
+        int unnamedIndex = 1;
+        foreach (XElement device in preset.Elements("device"))
+        {
+            string name = device.Element("name")?.Value.Trim() ?? string.Empty;
+            if (string.IsNullOrWhiteSpace(name))
+            {
+                name = "__unnamed_device_" + unnamedIndex;
+                unnamedIndex++;
+            }
+
+            devices.TryAdd(name, device);
+        }
+
+        return devices;
     }
 
     private static void CompareAttributes(XElement original, XElement current, string path, DanteValidationResult result)

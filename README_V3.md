@@ -57,7 +57,10 @@ Pour reconstruire l'installateur autonome :
 
 - Garde-fou de changements XML avant sauvegarde : les zones techniques Dante sensibles sont bloquées si elles changent par accident.
 - Rapport `Compatibilité Dante Controller` avec état de la racine, version, devices, TX/RX, Dante Id, mediaType, balises techniques et warnings non bloquants.
-- Mode `Lecture seule` par défaut après ouverture du XML. Les exports, rapports et comparaisons restent disponibles ; les modifications demandent `Activer l'édition`.
+- Interface modifiable après ouverture du XML, avec sauvegarde obligatoire sous un autre nom pour protéger le fichier source.
+- Sélecteur Français / Anglais directement dans l'application, modifiable à tout moment.
+- Suppression d'un device avec nettoyage des subscriptions/patchs qui pointent vers lui.
+- Import d'un second XML dans le projet ouvert, avec refus des noms de devices en doublon.
 - Libellés utilisateur harmonisés : `Dante Id` dans l'interface, les exports et les rapports. L'attribut XML reste exactement `danteId`.
 - Latences affichées en ms : `250` -> `0,25 ms`, `1000` -> `1 ms`, `2000` -> `2 ms`, `5000` -> `5 ms`, sans changer les valeurs XML.
 - Prévisualisation des actions globales avant application.

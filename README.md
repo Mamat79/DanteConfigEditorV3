@@ -10,6 +10,8 @@ Outil Windows pour éditer hors ligne des fichiers XML de configuration Dante.
 - Ouvre des fichiers XML de configuration Dante hors ligne.
 - Affiche les devices, canaux TX/RX, latences, mode réseau et preferred master.
 - Renomme les devices.
+- Supprime un device et nettoie les subscriptions/patchs qui pointent vers lui.
+- Ajoute les devices d'un second XML dans le projet ouvert, avec refus des noms de devices en doublon.
 - Renomme les canaux TX/RX.
 - Renomme des plages de canaux en série.
 - Réinitialise les noms de canaux.
@@ -20,7 +22,8 @@ Outil Windows pour éditer hors ligne des fichiers XML de configuration Dante.
 - Sauvegarde via un fichier temporaire relu avant remplacement final.
 - Vérifie la compatibilité XML de base avant sauvegarde.
 - Bloque les modifications interdites des zones sensibles du XML Dante grâce au garde-fou de changements XML.
-- Démarre en mode Lecture seule après ouverture d'un XML.
+- Permet de modifier l'interface après ouverture d'un XML, mais impose une sauvegarde sous un autre nom pour protéger le fichier original.
+- Propose un choix de langue Français / Anglais dans l'application.
 - Affiche les latences Dante en ms tout en conservant les valeurs XML brutes.
 - Affiche une page `Santé du fichier` avec les points à vérifier.
 - Annule la dernière action.
@@ -71,13 +74,17 @@ L'installateur contient uniquement l'application autonome et la documentation ut
 3. Sélectionner une copie du fichier de configuration Dante.
 4. Vérifier les devices et paramètres détectés.
 5. Modifier les champs souhaités.
-6. Utiliser la page `Patch` pour consulter ou modifier les abonnements reconnus.
-7. Sauvegarder sous un nouveau nom.
-8. Valider le fichier généré dans l'outil Dante officiel approprié avant usage terrain.
+6. Utiliser la page `Patch` pour consulter ou modifier les subscriptions reconnues.
+7. Si besoin, utiliser `Ajouter XML au projet` pour importer les devices d'un autre export XML.
+8. Sauvegarder sous un nouveau nom.
+9. Valider le fichier généré dans l'outil Dante officiel approprié avant usage terrain.
 
 ## Nouveautés V3.04
 
 - Passage en V3.04 dev.
+- Interface Français / Anglais, modifiable à tout moment.
+- Suppression d'un device avec nettoyage des subscriptions associées.
+- Import d'un second XML dans le projet ouvert.
 - Ajout d'un garde-fou de changements XML : seules les zones métier autorisées peuvent changer, les zones techniques Dante sensibles bloquent la sauvegarde.
 - Ajout d'un rapport `Compatibilité Dante Controller` exportable/copier depuis l'écran Sécurité.
 - Mode `Lecture seule` par défaut après ouverture d'un XML, avec bouton `Activer l'édition`.
