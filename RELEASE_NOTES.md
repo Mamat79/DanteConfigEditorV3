@@ -24,6 +24,7 @@ Travaillez toujours sur une copie de vos fichiers XML Dante et validez le result
 - Avertissements visibles si plusieurs sample rates ou plusieurs encodages coexistent dans le preset.
 - Page Configuration plus lisible : reglages defilables, table des machines gardee visible et recherche globale avec message d'aide.
 - Page Configuration compactee : actions rapides machine, bouton detail machine et actions globales rangees par onglet pour eviter les blocs coupes.
+- Correction du fond blanc des onglets internes en theme sombre, notamment dans Actions globales.
 - Ouverture de l'application en plein ecran pour une lecture plus confortable.
 - Garde-fou de modifications XML : la sauvegarde est bloquee si une zone technique Dante sensible change par accident.
 - Rapport compatibilite Dante Controller.
