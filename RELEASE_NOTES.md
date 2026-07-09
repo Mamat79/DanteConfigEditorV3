@@ -27,6 +27,17 @@ Travaillez toujours sur une copie de vos fichiers XML Dante et validez le result
 - Correction du fond blanc des onglets internes en theme sombre, notamment dans Actions globales.
 - Retrait de l'action globale Preferred master securise, jugee confuse et peu utile.
 - Ouverture de l'application en plein ecran pour une lecture plus confortable.
+- Tableau machines avec selection multiple, filtre rapide et colonne Lock.
+- Actions globales ciblables sur toutes les machines non verrouillees, la selection ou le filtre affiche.
+- Machines verrouillees ignorees par les actions globales.
+- Boutons pour selectionner les machines visibles, verrouiller/deverrouiller la selection et effacer la selection.
+- Renommage en serie avance avec modeles `{00}`, `{000}`, `{n}` et `{device}`.
+- Reset patch RX et reset patch TX separes, en plus du reset RX/TX complet de la machine.
+- Rapport final avant import Dante et historique d'actions accessibles dans l'application.
+- Comparaison XML en tableau, en plus du resume texte.
+- Notice rapide PDF et notice complete PDF integrees a l'application et a l'installateur.
+- Info-bulles ajoutees sur les principales commandes.
+- L'installateur detecte une version deja installee et propose de remplacer l'installation existante ou d'installer une copie supplementaire dans un autre dossier.
 - Garde-fou de modifications XML : la sauvegarde est bloquee si une zone technique Dante sensible change par accident.
 - Rapport compatibilite Dante Controller.
 - Mode Lecture seule par defaut apres ouverture du XML, avec bouton Activer l'edition.
@@ -88,9 +99,15 @@ DanteConfigEditorV3_Installer.exe
 
 L'installateur inclut le runtime .NET necessaire. Il n'est normalement pas necessaire d'installer .NET separement sur une machine Windows x64.
 
+Si une version de Dante Config Editor est deja installee, l'assistant le signale au demarrage et propose :
+
+- de remplacer / mettre a jour l'installation existante ;
+- ou d'installer une copie supplementaire dans un autre dossier.
+
 En fin d'installation, l'assistant peut ouvrir :
 
 - les release notes ;
+- la notice rapide PDF ;
 - la notice d'utilisation PDF du logiciel.
 
 ## Limites connues

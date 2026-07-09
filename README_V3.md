@@ -28,6 +28,8 @@ dist\DanteConfigEditorV3_Installer.exe
 
 La personne le lance, choisit le dossier d'installation si besoin, puis l'application est installée par défaut dans Program Files avec un raccourci dans le Menu Démarrer. Un raccourci Bureau est proposé en option.
 
+Si une version est déjà installée, l'assistant le signale et propose de remplacer / mettre à jour l'installation existante ou d'installer une copie supplémentaire dans un autre dossier.
+
 Cette version est publiée en mode `self-contained win-x64` : le runtime .NET nécessaire est inclus dans l'exécutable de l'application. La machine destinataire n'a pas besoin d'installer le SDK .NET ni le runtime .NET pour utiliser Dante Config Editor V3.05.
 
 L'installateur ne déploie pas les sources du projet. Il installe uniquement l'application autonome et la documentation utilisateur.
@@ -61,6 +63,11 @@ Pour reconstruire l'installateur autonome :
 - Modification de la sample rate et des bits par échantillon machine par machine.
 - Actions globales pour appliquer sample rate et bits par échantillon à toutes les machines.
 - Remise des adresses IPv4 en automatique par machine ou globalement quand le XML expose ces champs.
+- Filtre machines, sélection multiple et verrouillage `Lock` pour protéger certaines machines des actions globales.
+- Cible d'actions globales : toutes non verrouillées, sélection non verrouillée ou filtre affiché non verrouillé.
+- Reset patch RX et reset patch TX séparés.
+- Notice rapide PDF, notice complète PDF et info-bulles dans l'interface.
+- Installateur avec détection d'une version déjà installée et choix remplacement ou installation en plus.
 - Listes rapides Sample rates, Bits et IP fixes.
 - Avertissement visible si plusieurs sample rates ou plusieurs encodages sont présents dans le preset.
 - Validation de sauvegarde adaptée aux imports et suppressions de machines.

@@ -22,6 +22,16 @@
 - Retouche de la fenêtre détail machine : les champs IP fixes sont alignés avec le mode `Fixe` et désactivés en mode automatique.
 - Correction du style des onglets internes en thème sombre, pour éviter le fond blanc dans `Actions globales`.
 - Retrait de l'action globale `Preferred master sécurisé`, trop ambiguë dans l'interface ; le réglage reste disponible machine par machine.
+- Ajout d'un filtre machines, d'une sélection multiple et d'une colonne `Lock` dans la table des machines.
+- Ajout d'une cible pour les actions globales : toutes les machines non verrouillées, sélection non verrouillée ou filtre affiché non verrouillé.
+- Ajout des boutons `Sélectionner visibles`, `Effacer sélection`, `Verrouiller sélection` et `Déverrouiller sélection`.
+- Ajout des resets séparés `Reset patch RX` et `Reset patch TX`, en plus du reset RX/TX complet.
+- Ajout de modèles de renommage en série : `{00}`, `{000}`, `{n}` et `{device}`.
+- Ajout d'un rapport final avant import Dante et d'un affichage de l'historique des actions.
+- Ajout d'une fenêtre de comparaison XML en tableau.
+- Ajout d'une notice rapide PDF, de raccourcis d'ouverture des notices dans l'application et de propositions d'ouverture en fin d'installation.
+- Ajout d'info-bulles sur les commandes principales.
+- Ajout d'une détection de version déjà installée dans l'installateur, avec choix entre remplacement/mise à jour et installation supplémentaire dans un autre dossier.
 
 ## 2026-07-07 - Version 3.04
 

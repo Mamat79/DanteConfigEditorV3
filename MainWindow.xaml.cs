@@ -1,5 +1,8 @@
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.IO;
+using System.Net;
+using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
@@ -17,10 +20,12 @@ public partial class MainWindow : Window
 
     // Collections liées directement aux listes WPF. Quand on les modifie,
     // l'interface se met à jour sans recréer toute la fenêtre.
+    private readonly ObservableCollection<DeviceRow> _deviceRows = [];
     private readonly ObservableCollection<DanteSubscription> _patchRows = [];
     private readonly ObservableCollection<string> _logs = [];
     private readonly ObservableCollection<GlobalSearchResult> _searchResults = [];
     private readonly ObservableCollection<DanteValidationIssue> _healthIssues = [];
+    private readonly HashSet<string> _lockedDeviceNames = new(StringComparer.OrdinalIgnoreCase);
     private readonly LatencyChoice[] _latencies =
     [
         new("250", "0,25 ms"),
@@ -69,6 +74,25 @@ public partial class MainWindow : Window
         "Filter.XmlCompatibility"
     ];
     private readonly string[] _patchbookScopeKeys = ["Filter.AllRx", "Filter.ActivePatches", "Filter.WarningsConflicts"];
+    private readonly string[] _deviceFilterKeys =
+    [
+        "DeviceFilter.All",
+        "DeviceFilter.Locked",
+        "DeviceFilter.StaticIp",
+        "DeviceFilter.PreferredMaster",
+        "DeviceFilter.Redundant",
+        "DeviceFilter.Daisychain",
+        "DeviceFilter.NoTx",
+        "DeviceFilter.NoRx",
+        "DeviceFilter.SampleRateDifferent",
+        "DeviceFilter.EncodingDifferent"
+    ];
+    private readonly string[] _targetScopeKeys =
+    [
+        "Target.AllUnlocked",
+        "Target.SelectedUnlocked",
+        "Target.FilteredUnlocked"
+    ];
     private DanteProject? _project;
     private UiLanguage _language = UiLanguage.French;
     private bool _editModeEnabled;
@@ -140,6 +164,41 @@ public partial class MainWindow : Window
         }
     }
 
+    private sealed class DeviceRow
+    {
+        public DeviceRow(DanteDevice device, bool isLocked)
+        {
+            Device = device;
+            IsLocked = isLocked;
+        }
+
+        public DanteDevice Device { get; }
+
+        public bool IsLocked { get; set; }
+
+        public string Name => Device.Name;
+
+        public string FriendlyName => Device.FriendlyName;
+
+        public string NetworkMode => Device.NetworkMode;
+
+        public string LatencyDisplay => Device.LatencyDisplay;
+
+        public string SampleRateDisplay => Device.SampleRateDisplay;
+
+        public string EncodingDisplay => Device.EncodingDisplay;
+
+        public string IpModeDisplay => Device.IpModeDisplay;
+
+        public bool PreferredMaster => Device.PreferredMaster;
+
+        public int TxCount => Device.TxCount;
+
+        public int RxCount => Device.RxCount;
+    }
+
+    private sealed record TargetDeviceSet(DanteDevice[] Devices, int LockedSkippedCount, string ScopeLabel);
+
     public MainWindow()
     {
         InitializeComponent();
@@ -158,6 +217,7 @@ public partial class MainWindow : Window
         ChannelKindComboBox.SelectedItem = "TX";
         RefreshLocalizedOptionSources();
         PatchGrid.ItemsSource = _patchRows;
+        DeviceGrid.ItemsSource = _deviceRows;
         LogListBox.ItemsSource = _logs;
         GlobalSearchListBox.ItemsSource = _searchResults;
         HealthIssuesGrid.ItemsSource = _healthIssues;
@@ -530,6 +590,24 @@ public partial class MainWindow : Window
             Tf("Dialog.ResetDevicePatchesWarning", deviceName));
     }
 
+    private void ResetDeviceRxPatchesButton_Click(object sender, RoutedEventArgs e)
+    {
+        string deviceName = SelectedDeviceName();
+        RunProjectAction(
+            T("Action.DeviceRxPatchesReset"),
+            () => _project!.ResetDeviceRxPatches(deviceName),
+            $"Les entrées RX de la machine '{deviceName}' seront déconnectées. Continuer ?");
+    }
+
+    private void ResetDeviceTxPatchesButton_Click(object sender, RoutedEventArgs e)
+    {
+        string deviceName = SelectedDeviceName();
+        RunProjectAction(
+            T("Action.DeviceTxPatchesReset"),
+            () => _project!.ResetDeviceTxPatches(deviceName),
+            $"Tous les patchs qui utilisent les TX de la machine '{deviceName}' seront supprimés. Continuer ?");
+    }
+
     private void ApplyPreferredMasterButton_Click(object sender, RoutedEventArgs e)
     {
         RunProjectAction(T("Action.PreferredMasterUpdated"), () =>
@@ -603,96 +681,252 @@ public partial class MainWindow : Window
 
     private void ApplyAllNetworkButton_Click(object sender, RoutedEventArgs e)
     {
+        TargetDeviceSet? target = GetTargetDeviceSet();
+        if (target is null)
+        {
+            return;
+        }
+
         bool redundant = GlobalRedundantRadioButton.IsChecked == true;
+        string targetLabel = redundant ? "Redondant" : "Daisychain";
         RunProjectAction(
             T("Action.AllNetworkModesApplied"),
-            () => _project!.SetAllNetworkModes(redundant),
-            _project?.BuildAllNetworkModePreview(redundant) + Environment.NewLine + T("Dialog.Continue"));
+            () =>
+            {
+                foreach (DanteDevice device in target.Devices)
+                {
+                    _project!.SetNetworkMode(device.Name, redundant);
+                }
+            },
+            BuildTargetPreview(
+                $"appliquer le mode réseau {targetLabel}",
+                target,
+                target.Devices.Select(device => (
+                    Device: device,
+                    Before: device.NetworkMode,
+                    After: targetLabel,
+                    Changed: device.IsRedundant != redundant))) + Environment.NewLine + T("Dialog.Continue"));
     }
 
     private void ApplyAllLatencyButton_Click(object sender, RoutedEventArgs e)
     {
+        TargetDeviceSet? target = GetTargetDeviceSet();
+        if (target is null)
+        {
+            return;
+        }
+
         string latency = SelectedLatencyXmlValue(GlobalLatencyComboBox);
+        string latencyDisplay = DanteLatencyFormatter.FormatLatencyDisplay(latency);
         RunProjectAction(
             T("Action.AllLatenciesApplied"),
             () =>
             {
-                _project!.SetAllLatencies(latency);
+                foreach (DanteDevice device in target.Devices)
+                {
+                    _project!.SetLatency(device.Name, latency);
+                }
             },
-            _project?.BuildAllLatencyPreview(latency)
+            BuildTargetPreview(
+                $"appliquer la latence {latencyDisplay}",
+                target,
+                target.Devices.Select(device => (
+                    Device: device,
+                    Before: device.LatencyDisplay,
+                    After: latencyDisplay,
+                    Changed: !string.Equals(device.Latency, latency, StringComparison.OrdinalIgnoreCase))))
                 + Environment.NewLine
                 + T("Dialog.LatencyWarningContinue"));
     }
 
     private void ApplyAllSampleRateButton_Click(object sender, RoutedEventArgs e)
     {
+        TargetDeviceSet? target = GetTargetDeviceSet();
+        if (target is null)
+        {
+            return;
+        }
+
         string samplerate = SelectedSampleRateXmlValue(GlobalSampleRateComboBox);
+        string samplerateDisplay = GlobalSampleRateComboBox.Text;
         RunProjectAction(
             T("Action.AllSampleRatesApplied"),
-            () => _project!.SetAllSamplerates(samplerate),
-            _project?.BuildAllSampleratePreview(samplerate)
+            () =>
+            {
+                foreach (DanteDevice device in target.Devices)
+                {
+                    _project!.SetSamplerate(device.Name, samplerate);
+                }
+            },
+            BuildTargetPreview(
+                $"appliquer la sample rate {samplerateDisplay}",
+                target,
+                target.Devices.Select(device => (
+                    Device: device,
+                    Before: device.SampleRateDisplay,
+                    After: samplerateDisplay,
+                    Changed: !string.Equals(device.Samplerate, samplerate, StringComparison.OrdinalIgnoreCase))))
                 + Environment.NewLine
                 + T("Dialog.AudioFormatWarningContinue"));
     }
 
     private void ApplyAllEncodingButton_Click(object sender, RoutedEventArgs e)
     {
+        TargetDeviceSet? target = GetTargetDeviceSet();
+        if (target is null)
+        {
+            return;
+        }
+
         string encoding = SelectedEncodingXmlValue(GlobalEncodingComboBox);
+        string encodingDisplay = GlobalEncodingComboBox.Text;
         RunProjectAction(
             T("Action.AllEncodingsApplied"),
-            () => _project!.SetAllEncodings(encoding),
-            _project?.BuildAllEncodingPreview(encoding)
+            () =>
+            {
+                foreach (DanteDevice device in target.Devices)
+                {
+                    _project!.SetEncoding(device.Name, encoding);
+                }
+            },
+            BuildTargetPreview(
+                $"appliquer les bits par échantillon {encodingDisplay}",
+                target,
+                target.Devices.Select(device => (
+                    Device: device,
+                    Before: device.EncodingDisplay,
+                    After: encodingDisplay,
+                    Changed: !string.Equals(device.Encoding, encoding, StringComparison.OrdinalIgnoreCase))))
                 + Environment.NewLine
                 + T("Dialog.AudioFormatWarningContinue"));
     }
 
     private void ApplyAllIpAutoButton_Click(object sender, RoutedEventArgs e)
     {
+        TargetDeviceSet? target = GetTargetDeviceSet();
+        if (target is null)
+        {
+            return;
+        }
+
         RunProjectAction(
             T("Action.AllIpAutoApplied"),
-            () => _project!.SetAllIpAddressesDynamic(),
-            _project?.BuildAllIpAutoPreview() + Environment.NewLine + T("Dialog.Continue"));
+            () =>
+            {
+                foreach (DanteDevice device in target.Devices)
+                {
+                    _project!.SetIpAddressDynamic(device.Name);
+                }
+            },
+            BuildTargetPreview(
+                "mettre les adresses IPv4 en automatique",
+                target,
+                target.Devices.Select(device => (
+                    Device: device,
+                    Before: device.IpModeDisplay,
+                    After: "Auto",
+                    Changed: device.UsesStaticIp))) + Environment.NewLine + T("Dialog.Continue"));
     }
 
     private void ApplyAllIpStaticButton_Click(object sender, RoutedEventArgs e)
     {
+        TargetDeviceSet? target = GetTargetDeviceSet();
+        if (target is null)
+        {
+            return;
+        }
+
         if (!int.TryParse(GlobalIpStartTextBox.Text.Trim(), out int startHost))
         {
             ShowError(T("Dialog.InvalidNumberTitle"), T("Dialog.InvalidNumberMessage"));
             return;
         }
 
-        string preview;
-        try
+        string prefix = GlobalIpPrefixTextBox.Text.Trim();
+        string netmask = string.IsNullOrWhiteSpace(GlobalIpNetmaskTextBox.Text) ? "255.255.255.0" : GlobalIpNetmaskTextBox.Text.Trim();
+        string gateway = string.IsNullOrWhiteSpace(GlobalIpGatewayTextBox.Text) ? "0.0.0.0" : GlobalIpGatewayTextBox.Text.Trim();
+        if (!IsValidIpv4(netmask) || !IsValidIpv4(gateway))
         {
-            preview = _project?.BuildAllStaticIpPreview(
-                GlobalIpPrefixTextBox.Text,
-                startHost,
-                GlobalIpNetmaskTextBox.Text,
-                GlobalIpGatewayTextBox.Text) ?? string.Empty;
-        }
-        catch (Exception ex)
-        {
-            ShowError(T("Dialog.ActionImpossibleTitle"), ex.Message);
+            ShowError(T("Dialog.ActionImpossibleTitle"), "Le masque ou la passerelle n'est pas une adresse IPv4 valide.");
             return;
         }
 
+        DanteDevice[] configurableDevices = target.Devices
+            .Where(device => _project!.SupportsIpConfiguration(device.Name))
+            .ToArray();
+        if (configurableDevices.Length == 0)
+        {
+            ShowError(T("Dialog.ActionImpossibleTitle"), "Aucune machine de la cible ne contient d'interface IPv4 modifiable.");
+            return;
+        }
+
+        if (!TryBuildIpAddress(prefix, startHost + configurableDevices.Length - 1, out _, out string rangeError))
+        {
+            ShowError(T("Dialog.ActionImpossibleTitle"), rangeError);
+            return;
+        }
+
+        Dictionary<string, string> targetAddressByDevice = configurableDevices
+            .Select((device, index) => new { device.Name, Host = startHost + index })
+            .ToDictionary(
+                item => item.Name,
+                item =>
+                {
+                    TryBuildIpAddress(prefix, item.Host, out string address, out _);
+                    return address;
+                },
+                StringComparer.OrdinalIgnoreCase);
+
         RunProjectAction(
             T("Action.AllIpStaticApplied"),
-            () => _project!.SetAllIpAddressesStaticSequential(
-                GlobalIpPrefixTextBox.Text,
-                startHost,
-                GlobalIpNetmaskTextBox.Text,
-                GlobalIpGatewayTextBox.Text),
-            preview + Environment.NewLine + T("Dialog.IpStaticWarningContinue"));
+            () =>
+            {
+                foreach (DanteDevice device in configurableDevices)
+                {
+                    _project!.SetIpAddressStatic(device.Name, targetAddressByDevice[device.Name], netmask, gateway);
+                }
+            },
+            BuildTargetPreview(
+                $"fixer les IP depuis {prefix}.{startHost} / {netmask} / gateway {gateway}",
+                target,
+                target.Devices.Select(device =>
+                {
+                    bool configurable = targetAddressByDevice.TryGetValue(device.Name, out string? address);
+                    return (
+                        Device: device,
+                        Before: device.IpModeDisplay,
+                        After: configurable ? $"Fixe ({address})" : "non modifiable",
+                        Changed: configurable && (!string.Equals(device.StaticIpAddress, address, StringComparison.OrdinalIgnoreCase)
+                            || !string.Equals(device.StaticIpNetmask, netmask, StringComparison.OrdinalIgnoreCase)
+                            || !string.Equals(device.StaticIpGateway, gateway, StringComparison.OrdinalIgnoreCase)));
+                })) + Environment.NewLine + T("Dialog.IpStaticWarningContinue"));
     }
 
     private void ResetAllChannelsButton_Click(object sender, RoutedEventArgs e)
     {
+        TargetDeviceSet? target = GetTargetDeviceSet();
+        if (target is null)
+        {
+            return;
+        }
+
         RunProjectAction(
             T("Action.AllChannelsReset"),
-            () => _project!.ResetAllChannels(),
-            _project?.BuildResetAllChannelsPreview() + Environment.NewLine + T("Dialog.Continue"));
+            () =>
+            {
+                foreach (DanteDevice device in target.Devices)
+                {
+                    _project!.ResetChannels(device.Name);
+                }
+            },
+            BuildTargetPreview(
+                "réinitialiser les noms de canaux TX/RX",
+                target,
+                target.Devices.Select(device => (
+                    Device: device,
+                    Before: $"{device.TxCount} TX / {device.RxCount} RX",
+                    After: "noms de canaux par défaut",
+                    Changed: device.TxCount > 0 || device.RxCount > 0))) + Environment.NewLine + T("Dialog.Continue"));
     }
 
     private void ListRedundantButton_Click(object sender, RoutedEventArgs e)
@@ -790,6 +1024,64 @@ public partial class MainWindow : Window
         RefreshHealthPage();
     }
 
+    private void DeviceFilter_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (_refreshingUi)
+        {
+            return;
+        }
+
+        RefreshAll();
+    }
+
+    private void SelectVisibleDevicesButton_Click(object sender, RoutedEventArgs e)
+    {
+        DeviceGrid.SelectedItems.Clear();
+        foreach (DeviceRow row in _deviceRows)
+        {
+            DeviceGrid.SelectedItems.Add(row);
+        }
+
+        SetStatus($"{_deviceRows.Count} machine(s) visible(s) sélectionnée(s).");
+    }
+
+    private void ClearDeviceSelectionButton_Click(object sender, RoutedEventArgs e)
+    {
+        DeviceGrid.SelectedItems.Clear();
+        SetStatus("Sélection machines vidée.");
+    }
+
+    private void LockSelectedDevicesButton_Click(object sender, RoutedEventArgs e)
+    {
+        int count = SetSelectedDeviceLockState(true);
+        SetStatus($"{count} machine(s) verrouillée(s).");
+    }
+
+    private void UnlockSelectedDevicesButton_Click(object sender, RoutedEventArgs e)
+    {
+        int count = SetSelectedDeviceLockState(false);
+        SetStatus($"{count} machine(s) déverrouillée(s).");
+    }
+
+    private int SetSelectedDeviceLockState(bool locked)
+    {
+        DeviceRow[] rows = DeviceGrid.SelectedItems.OfType<DeviceRow>().ToArray();
+        foreach (DeviceRow row in rows)
+        {
+            if (locked)
+            {
+                _lockedDeviceNames.Add(row.Name);
+            }
+            else
+            {
+                _lockedDeviceNames.Remove(row.Name);
+            }
+        }
+
+        RefreshAll();
+        return rows.Length;
+    }
+
     private void GlobalSearchTextBox_TextChanged(object sender, TextChangedEventArgs e)
     {
         RefreshGlobalSearchResults();
@@ -841,24 +1133,44 @@ public partial class MainWindow : Window
 
     private void DeviceGrid_MouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
     {
-        if (DeviceGrid.SelectedItem is not DanteDevice device)
+        if (DeviceGrid.SelectedItem is not DeviceRow row)
         {
             return;
         }
 
-        OpenDeviceDetailsWindow(device.Name);
+        OpenDeviceDetailsWindow(row.Name);
+    }
+
+    private void DeviceLockCheckBox_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is not CheckBox checkBox || checkBox.DataContext is not DeviceRow row)
+        {
+            return;
+        }
+
+        if (checkBox.IsChecked == true)
+        {
+            _lockedDeviceNames.Add(row.Name);
+        }
+        else
+        {
+            _lockedDeviceNames.Remove(row.Name);
+        }
+
+        row.IsLocked = _lockedDeviceNames.Contains(row.Name);
+        RefreshAll();
     }
 
     private void DevicePreferredMasterCheckBox_Click(object sender, RoutedEventArgs e)
     {
-        if (sender is not CheckBox checkBox || checkBox.DataContext is not DanteDevice device)
+        if (sender is not CheckBox checkBox || checkBox.DataContext is not DeviceRow row)
         {
             return;
         }
 
         RunProjectAction(
             T("Action.PreferredMasterUpdated"),
-            () => _project!.SetPreferredMaster(device.Name, checkBox.IsChecked == true));
+            () => _project!.SetPreferredMaster(row.Name, checkBox.IsChecked == true));
     }
 
     private void OpenDeviceDetailsButton_Click(object sender, RoutedEventArgs e)
@@ -1124,9 +1436,81 @@ public partial class MainWindow : Window
         SetStatus(LocalizeLiteral("Rapport compatibilité Dante Controller affiché."));
     }
 
+    private void FinalDanteCheckButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (!EnsureProjectLoaded())
+        {
+            return;
+        }
+
+        DanteValidationResult validation = _project!.Validate();
+        string[] importantWarnings = _project.BuildImportantWarnings().ToArray();
+        StringBuilder builder = new();
+        builder.AppendLine("RAPPORT FINAL AVANT IMPORT DANTE");
+        builder.AppendLine("================================");
+        builder.AppendLine();
+        builder.AppendLine(validation.HasErrors ? "STATUT : ERREURS A CORRIGER" : importantWarnings.Length > 0 || validation.Warnings.Count > 0 ? "STATUT : POINTS A VERIFIER" : "STATUT : OK");
+        builder.AppendLine($"Fichier : {_project.OriginalFilePath}");
+        builder.AppendLine($"Machines : {_project.Devices.Count}");
+        builder.AppendLine($"Patchs actifs : {_project.PatchMatrix.ActivePatchCount}");
+        builder.AppendLine();
+
+        if (importantWarnings.Length > 0)
+        {
+            builder.AppendLine("Points importants :");
+            foreach (string warning in importantWarnings)
+            {
+                builder.AppendLine("- " + warning);
+            }
+
+            builder.AppendLine();
+        }
+
+        builder.AppendLine(validation.ToDisplayText());
+        builder.AppendLine();
+        builder.AppendLine(_project.BuildCompatibilityReport());
+        SaveSummaryTextBox.Text = builder.ToString();
+        MainTabs.SelectedIndex = 3;
+        SetStatus("Rapport final avant Dante affiché.");
+    }
+
     private void RefreshSummaryButton_Click(object sender, RoutedEventArgs e)
     {
         SaveSummaryTextBox.Text = _project?.BuildSaveSummary() ?? T("Status.NoFileLoaded");
+    }
+
+    private void ActionHistoryButton_Click(object sender, RoutedEventArgs e)
+    {
+        StringBuilder builder = new();
+        builder.AppendLine("HISTORIQUE DES ACTIONS");
+        builder.AppendLine("======================");
+        builder.AppendLine();
+
+        if (_logs.Count == 0)
+        {
+            builder.AppendLine("Aucune action enregistrée dans cette session.");
+        }
+        else
+        {
+            foreach (string log in _logs)
+            {
+                builder.AppendLine("- " + log);
+            }
+        }
+
+        SaveSummaryTextBox.Text = builder.ToString();
+        MainTabs.SelectedIndex = 3;
+        SetStatus("Historique des actions affiché.");
+    }
+
+    private void OpenQuickStartButton_Click(object sender, RoutedEventArgs e)
+    {
+        OpenBundledDocument("QuickStart_DanteConfigEditorV3.pdf");
+    }
+
+    private void OpenFullNoticeButton_Click(object sender, RoutedEventArgs e)
+    {
+        OpenBundledDocument("Notice_DanteConfigEditorV3.pdf");
     }
 
     private void ExportTxtButton_Click(object sender, RoutedEventArgs e)
@@ -1293,8 +1677,14 @@ public partial class MainWindow : Window
         try
         {
             DanteProject otherProject = DanteProject.Load(dialog.FileName);
+            ComparisonDisplayRow[] comparisonRows = BuildComparisonRows(otherProject);
             SaveSummaryTextBox.Text = _project!.CompareWith(otherProject);
             MainTabs.SelectedIndex = 3;
+            ComparisonResultWindow window = new(comparisonRows)
+            {
+                Owner = this
+            };
+            window.Show();
             AddLog("Comparaison XML effectuée : " + dialog.FileName);
             SetStatus("Comparaison XML affichée.");
         }
@@ -1302,6 +1692,126 @@ public partial class MainWindow : Window
         {
             ShowError("Comparaison impossible", ex.Message);
         }
+    }
+
+    private ComparisonDisplayRow[] BuildComparisonRows(DanteProject otherProject)
+    {
+        if (_project is null)
+        {
+            return [];
+        }
+
+        List<ComparisonDisplayRow> rows = [];
+        Dictionary<string, DanteDevice> currentDevices = _project.Devices
+            .Where(device => !string.IsNullOrWhiteSpace(device.Name))
+            .GroupBy(device => device.Name, StringComparer.OrdinalIgnoreCase)
+            .ToDictionary(group => group.Key, group => group.First(), StringComparer.OrdinalIgnoreCase);
+        Dictionary<string, DanteDevice> otherDevices = otherProject.Devices
+            .Where(device => !string.IsNullOrWhiteSpace(device.Name))
+            .GroupBy(device => device.Name, StringComparer.OrdinalIgnoreCase)
+            .ToDictionary(group => group.Key, group => group.First(), StringComparer.OrdinalIgnoreCase);
+
+        foreach (string deviceName in currentDevices.Keys.Except(otherDevices.Keys, StringComparer.OrdinalIgnoreCase).OrderBy(name => name, StringComparer.OrdinalIgnoreCase))
+        {
+            rows.Add(new ComparisonDisplayRow("Machine / " + deviceName, "présente", "absente", "Seulement fichier ouvert"));
+        }
+
+        foreach (string deviceName in otherDevices.Keys.Except(currentDevices.Keys, StringComparer.OrdinalIgnoreCase).OrderBy(name => name, StringComparer.OrdinalIgnoreCase))
+        {
+            rows.Add(new ComparisonDisplayRow("Machine / " + deviceName, "absente", "présente", "Seulement fichier comparé"));
+        }
+
+        foreach (string deviceName in currentDevices.Keys.Intersect(otherDevices.Keys, StringComparer.OrdinalIgnoreCase).OrderBy(name => name, StringComparer.OrdinalIgnoreCase))
+        {
+            DanteDevice current = currentDevices[deviceName];
+            DanteDevice compared = otherDevices[deviceName];
+            AddComparisonRow(rows, $"{deviceName} / Friendly name", current.FriendlyName, compared.FriendlyName);
+            AddComparisonRow(rows, $"{deviceName} / Mode réseau", current.NetworkMode, compared.NetworkMode);
+            AddComparisonRow(rows, $"{deviceName} / Latence", current.LatencyDisplay, compared.LatencyDisplay);
+            AddComparisonRow(rows, $"{deviceName} / Sample rate", current.SampleRateDisplay, compared.SampleRateDisplay);
+            AddComparisonRow(rows, $"{deviceName} / Bits", current.EncodingDisplay, compared.EncodingDisplay);
+            AddComparisonRow(rows, $"{deviceName} / IP", current.IpModeDisplay, compared.IpModeDisplay);
+            AddComparisonRow(rows, $"{deviceName} / Preferred master", current.PreferredMaster ? "oui" : "non", compared.PreferredMaster ? "oui" : "non");
+            AddChannelComparisonRows(rows, deviceName, "TX", current.TxChannels, compared.TxChannels);
+            AddChannelComparisonRows(rows, deviceName, "RX", current.RxChannels, compared.RxChannels);
+        }
+
+        Dictionary<string, DanteSubscription> currentPatches = _project.PatchMatrix.Subscriptions
+            .GroupBy(SubscriptionComparisonKey, StringComparer.OrdinalIgnoreCase)
+            .ToDictionary(group => group.Key, group => group.First(), StringComparer.OrdinalIgnoreCase);
+        Dictionary<string, DanteSubscription> otherPatches = otherProject.PatchMatrix.Subscriptions
+            .GroupBy(SubscriptionComparisonKey, StringComparer.OrdinalIgnoreCase)
+            .ToDictionary(group => group.Key, group => group.First(), StringComparer.OrdinalIgnoreCase);
+
+        foreach (string patchKey in currentPatches.Keys.Except(otherPatches.Keys, StringComparer.OrdinalIgnoreCase).OrderBy(key => key, StringComparer.OrdinalIgnoreCase))
+        {
+            rows.Add(new ComparisonDisplayRow("Patch / " + patchKey, FormatSubscriptionForComparison(currentPatches[patchKey]), "absent", "Seulement fichier ouvert"));
+        }
+
+        foreach (string patchKey in otherPatches.Keys.Except(currentPatches.Keys, StringComparer.OrdinalIgnoreCase).OrderBy(key => key, StringComparer.OrdinalIgnoreCase))
+        {
+            rows.Add(new ComparisonDisplayRow("Patch / " + patchKey, "absent", FormatSubscriptionForComparison(otherPatches[patchKey]), "Seulement fichier comparé"));
+        }
+
+        foreach (string patchKey in currentPatches.Keys.Intersect(otherPatches.Keys, StringComparer.OrdinalIgnoreCase).OrderBy(key => key, StringComparer.OrdinalIgnoreCase))
+        {
+            AddComparisonRow(rows, "Patch / " + patchKey, FormatSubscriptionForComparison(currentPatches[patchKey]), FormatSubscriptionForComparison(otherPatches[patchKey]));
+        }
+
+        if (rows.Count == 0)
+        {
+            rows.Add(new ComparisonDisplayRow("Champs connus", "identiques", "identiques", "Aucune différence détectée"));
+        }
+
+        return rows.Take(1000).ToArray();
+    }
+
+    private void AddChannelComparisonRows(
+        List<ComparisonDisplayRow> rows,
+        string deviceName,
+        string channelKind,
+        IReadOnlyList<DanteChannel> currentChannels,
+        IReadOnlyList<DanteChannel> comparedChannels)
+    {
+        Dictionary<int, DanteChannel> currentByIndex = currentChannels
+            .GroupBy(channel => channel.Index)
+            .ToDictionary(group => group.Key, group => group.First());
+        Dictionary<int, DanteChannel> comparedByIndex = comparedChannels
+            .GroupBy(channel => channel.Index)
+            .ToDictionary(group => group.Key, group => group.First());
+
+        foreach (int index in currentByIndex.Keys.Except(comparedByIndex.Keys).Order())
+        {
+            rows.Add(new ComparisonDisplayRow($"{deviceName} / {channelKind} {index}", currentByIndex[index].DisplayName, "absent", "Seulement fichier ouvert"));
+        }
+
+        foreach (int index in comparedByIndex.Keys.Except(currentByIndex.Keys).Order())
+        {
+            rows.Add(new ComparisonDisplayRow($"{deviceName} / {channelKind} {index}", "absent", comparedByIndex[index].DisplayName, "Seulement fichier comparé"));
+        }
+
+        foreach (int index in currentByIndex.Keys.Intersect(comparedByIndex.Keys).Order())
+        {
+            AddComparisonRow(rows, $"{deviceName} / {channelKind} {index}", currentByIndex[index].DisplayName, comparedByIndex[index].DisplayName);
+        }
+    }
+
+    private void AddComparisonRow(List<ComparisonDisplayRow> rows, string item, string currentValue, string comparedValue)
+    {
+        if (!string.Equals(currentValue, comparedValue, StringComparison.OrdinalIgnoreCase))
+        {
+            rows.Add(new ComparisonDisplayRow(item, Blank(currentValue), Blank(comparedValue), "Différent"));
+        }
+    }
+
+    private static string SubscriptionComparisonKey(DanteSubscription subscription)
+    {
+        return $"{subscription.RxDevice} / RX {subscription.RxDanteId}";
+    }
+
+    private static string FormatSubscriptionForComparison(DanteSubscription subscription)
+    {
+        return subscription.IsActive ? subscription.SourceFull : "Libre";
     }
 
     private void ThemeToggleButton_Checked(object sender, RoutedEventArgs e)
@@ -1333,7 +1843,7 @@ public partial class MainWindow : Window
                 DirtyStateTextBlock.Text = T("Status.Unmodified");
                 ModeTextBlock.Text = T("Status.ReadOnlyMode");
                 CountsTextBlock.Text = "0 device - 0 TX - 0 RX";
-                DeviceGrid.ItemsSource = null;
+                _deviceRows.Clear();
                 DeviceComboBox.ItemsSource = null;
                 SenderDeviceList.ItemsSource = new[] { AllSendersItem };
                 SenderDeviceList.SelectedItem = AllSendersItem;
@@ -1353,6 +1863,10 @@ public partial class MainWindow : Window
             IReadOnlyList<DanteDevice> devices = _project.Devices;
             string[] deviceNames = devices.Select(device => device.Name).Where(name => !string.IsNullOrWhiteSpace(name)).ToArray();
             string selectedDevice = DeviceComboBox.SelectedItem as string ?? deviceNames.FirstOrDefault() ?? string.Empty;
+            HashSet<string> selectedDeviceGridNames = DeviceGrid.SelectedItems
+                .OfType<DeviceRow>()
+                .Select(row => row.Name)
+                .ToHashSet(StringComparer.OrdinalIgnoreCase);
             string selectedSenderFilter = SenderDeviceList.SelectedItem as string ?? string.Empty;
             string selectedReceiverFilter = ReceiverDeviceList.SelectedItem as string ?? string.Empty;
             string selectedSourceDevice = SourceDeviceComboBox.SelectedItem as string ?? deviceNames.FirstOrDefault() ?? string.Empty;
@@ -1374,7 +1888,19 @@ public partial class MainWindow : Window
             ImportantWarningsTextBlock.Text = importantWarnings;
             ImportantWarningsBorder.Visibility = string.IsNullOrWhiteSpace(importantWarnings) ? Visibility.Collapsed : Visibility.Visible;
 
-            DeviceGrid.ItemsSource = devices;
+            _lockedDeviceNames.RemoveWhere(name => !deviceNames.Contains(name, StringComparer.OrdinalIgnoreCase));
+            _deviceRows.Clear();
+            foreach (DanteDevice device in ApplyDeviceFilter(devices))
+            {
+                _deviceRows.Add(new DeviceRow(device, _lockedDeviceNames.Contains(device.Name)));
+            }
+
+            DeviceGrid.SelectedItems.Clear();
+            foreach (DeviceRow row in _deviceRows.Where(row => selectedDeviceGridNames.Contains(row.Name)))
+            {
+                DeviceGrid.SelectedItems.Add(row);
+            }
+
             DeviceComboBox.ItemsSource = deviceNames;
             DeviceComboBox.SelectedItem = deviceNames.Contains(selectedDevice) ? selectedDevice : deviceNames.FirstOrDefault();
             SelectLatency(GlobalLatencyComboBox, _latencies.First().XmlValue);
@@ -1406,6 +1932,170 @@ public partial class MainWindow : Window
         RefreshPatchRows();
         ApplyPatchViewMode();
         UpdateCommandState();
+    }
+
+    private IEnumerable<DanteDevice> ApplyDeviceFilter(IEnumerable<DanteDevice> devices)
+    {
+        DanteDevice[] materializedDevices = devices.ToArray();
+        string filter = SelectedOptionKey(DeviceFilterComboBox, _deviceFilterKeys[0]);
+        string majoritySamplerate = MostCommonValue(materializedDevices.Select(device => device.Samplerate));
+        string majorityEncoding = MostCommonValue(materializedDevices.Select(device => device.Encoding));
+        bool hasMultipleSamplerates = materializedDevices.Select(device => device.Samplerate).Where(value => !string.IsNullOrWhiteSpace(value)).Distinct(StringComparer.OrdinalIgnoreCase).Skip(1).Any();
+        bool hasMultipleEncodings = materializedDevices.Select(device => device.Encoding).Where(value => !string.IsNullOrWhiteSpace(value)).Distinct(StringComparer.OrdinalIgnoreCase).Skip(1).Any();
+
+        return filter switch
+        {
+            "DeviceFilter.Locked" => materializedDevices.Where(device => _lockedDeviceNames.Contains(device.Name)),
+            "DeviceFilter.StaticIp" => materializedDevices.Where(device => device.UsesStaticIp),
+            "DeviceFilter.PreferredMaster" => materializedDevices.Where(device => device.PreferredMaster),
+            "DeviceFilter.Redundant" => materializedDevices.Where(device => device.IsRedundant),
+            "DeviceFilter.Daisychain" => materializedDevices.Where(device => !device.IsRedundant),
+            "DeviceFilter.NoTx" => materializedDevices.Where(device => device.TxCount == 0),
+            "DeviceFilter.NoRx" => materializedDevices.Where(device => device.RxCount == 0),
+            "DeviceFilter.SampleRateDifferent" => hasMultipleSamplerates
+                ? materializedDevices.Where(device => !string.Equals(device.Samplerate, majoritySamplerate, StringComparison.OrdinalIgnoreCase))
+                : [],
+            "DeviceFilter.EncodingDifferent" => hasMultipleEncodings
+                ? materializedDevices.Where(device => !string.Equals(device.Encoding, majorityEncoding, StringComparison.OrdinalIgnoreCase))
+                : [],
+            _ => materializedDevices
+        };
+    }
+
+    private static string MostCommonValue(IEnumerable<string> values)
+    {
+        return values
+            .Where(value => !string.IsNullOrWhiteSpace(value))
+            .GroupBy(value => value, StringComparer.OrdinalIgnoreCase)
+            .OrderByDescending(group => group.Count())
+            .ThenBy(group => group.Key, StringComparer.OrdinalIgnoreCase)
+            .Select(group => group.Key)
+            .FirstOrDefault() ?? string.Empty;
+    }
+
+    private TargetDeviceSet? GetTargetDeviceSet()
+    {
+        if (!EnsureProjectLoaded())
+        {
+            return null;
+        }
+
+        string scopeKey = SelectedOptionKey(TargetScopeComboBox, _targetScopeKeys[0]);
+        string scopeLabel = SelectedOptionDisplay(TargetScopeComboBox, T(_targetScopeKeys[0]));
+        IEnumerable<DeviceRow> sourceRows;
+        int lockedSkipped;
+
+        if (scopeKey == "Target.SelectedUnlocked")
+        {
+            DeviceRow[] selectedRows = DeviceGrid.SelectedItems.OfType<DeviceRow>().ToArray();
+            if (selectedRows.Length == 0)
+            {
+                ShowError("Aucune machine sélectionnée", "Sélectionnez une ou plusieurs machines dans le tableau, ou choisissez une autre cible.");
+                return null;
+            }
+
+            sourceRows = selectedRows;
+            lockedSkipped = selectedRows.Count(row => _lockedDeviceNames.Contains(row.Name));
+        }
+        else if (scopeKey == "Target.FilteredUnlocked")
+        {
+            sourceRows = _deviceRows;
+            lockedSkipped = _deviceRows.Count(row => _lockedDeviceNames.Contains(row.Name));
+        }
+        else
+        {
+            DanteDevice[] allDevices = _project!.Devices.ToArray();
+            lockedSkipped = allDevices.Count(device => _lockedDeviceNames.Contains(device.Name));
+            DanteDevice[] unlockedDevices = allDevices
+                .Where(device => !_lockedDeviceNames.Contains(device.Name))
+                .ToArray();
+            if (unlockedDevices.Length == 0)
+            {
+                ShowError("Aucune machine modifiable", "Toutes les machines de cette cible sont verrouillées.");
+                return null;
+            }
+
+            return new TargetDeviceSet(unlockedDevices, lockedSkipped, scopeLabel);
+        }
+
+        DanteDevice[] devices = sourceRows
+            .Where(row => !_lockedDeviceNames.Contains(row.Name))
+            .Select(row => row.Device)
+            .GroupBy(device => device.Name, StringComparer.OrdinalIgnoreCase)
+            .Select(group => group.First())
+            .ToArray();
+
+        if (devices.Length == 0)
+        {
+            ShowError("Aucune machine modifiable", "La cible ne contient aucune machine non verrouillée.");
+            return null;
+        }
+
+        return new TargetDeviceSet(devices, lockedSkipped, scopeLabel);
+    }
+
+    private string BuildTargetPreview(
+        string action,
+        TargetDeviceSet target,
+        IEnumerable<(DanteDevice Device, string Before, string After, bool Changed)> rows)
+    {
+        (DanteDevice Device, string Before, string After, bool Changed)[] materializedRows = rows.ToArray();
+        StringBuilder builder = new();
+        builder.AppendLine("Prévisualisation");
+        builder.AppendLine("----------------");
+        builder.AppendLine("Action : " + action);
+        builder.AppendLine("Cible : " + target.ScopeLabel);
+        builder.AppendLine($"Machines modifiables : {target.Devices.Length}");
+        if (target.LockedSkippedCount > 0)
+        {
+            builder.AppendLine($"Machines verrouillées ignorées : {target.LockedSkippedCount}");
+        }
+
+        builder.AppendLine();
+        builder.AppendLine("Avant / après :");
+        foreach ((DanteDevice device, string before, string after, bool changed) in materializedRows.Take(80))
+        {
+            builder.AppendLine($"- {device.Name} : {Blank(before)} -> {(changed ? Blank(after) : "inchangé")}");
+        }
+
+        if (materializedRows.Length > 80)
+        {
+            builder.AppendLine($"- {materializedRows.Length - 80} machine(s) supplémentaire(s) non affichée(s).");
+        }
+
+        builder.AppendLine();
+        builder.AppendLine("Résumé :");
+        builder.AppendLine($"- {materializedRows.Count(row => row.Changed)} machine(s) modifiée(s)");
+        builder.AppendLine($"- {materializedRows.Count(row => !row.Changed)} machine(s) inchangée(s) ou ignorée(s)");
+        return builder.ToString();
+    }
+
+    private static bool TryBuildIpAddress(string prefix, int host, out string address, out string error)
+    {
+        address = string.Empty;
+        error = string.Empty;
+
+        string[] parts = prefix.Trim().Split('.');
+        if (parts.Length != 3 || parts.Any(part => !int.TryParse(part, out int value) || value < 0 || value > 255))
+        {
+            error = "Le préfixe IP doit être au format 192.168.1";
+            return false;
+        }
+
+        if (host < 1 || host > 254)
+        {
+            error = "Le numéro IP doit être compris entre 1 et 254.";
+            return false;
+        }
+
+        address = $"{parts[0]}.{parts[1]}.{parts[2]}.{host}";
+        return true;
+    }
+
+    private static bool IsValidIpv4(string value)
+    {
+        return IPAddress.TryParse(value.Trim(), out IPAddress? address)
+            && address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork;
     }
 
     private void RefreshChannelSelector()
@@ -1740,6 +2430,8 @@ public partial class MainWindow : Window
             SetOptions(PatchViewModeComboBox, _patchViewModeKeys, SelectedOptionKey(PatchViewModeComboBox, _patchViewModeKeys[0]));
             SetOptions(HealthFilterComboBox, _healthFilterKeys, SelectedOptionKey(HealthFilterComboBox, _healthFilterKeys[0]));
             SetOptions(PatchbookScopeComboBox, _patchbookScopeKeys, SelectedOptionKey(PatchbookScopeComboBox, _patchbookScopeKeys[0]));
+            SetOptions(DeviceFilterComboBox, _deviceFilterKeys, SelectedOptionKey(DeviceFilterComboBox, _deviceFilterKeys[0]));
+            SetOptions(TargetScopeComboBox, _targetScopeKeys, SelectedOptionKey(TargetScopeComboBox, _targetScopeKeys[0]));
         }
         finally
         {
@@ -1846,6 +2538,8 @@ public partial class MainWindow : Window
         yield return ApplyLatencyButton;
         yield return ApplyIpAutoButton;
         yield return ResetDevicePatchesButton;
+        yield return ResetDeviceRxPatchesButton;
+        yield return ResetDeviceTxPatchesButton;
         yield return OpenDeviceDetailsButton;
         yield return ApplyPreferredMasterButton;
         yield return RenameChannelButton;
@@ -2099,6 +2793,29 @@ public partial class MainWindow : Window
         AddLog(title + " - " + message);
         SetStatus(title);
         MessageBox.Show(this, message, title, MessageBoxButton.OK, MessageBoxImage.Error);
+    }
+
+    private void OpenBundledDocument(string fileName)
+    {
+        string[] candidates =
+        [
+            Path.Combine(AppContext.BaseDirectory, fileName),
+            Path.Combine(AppContext.BaseDirectory, "docs", fileName),
+            Path.Combine(Environment.CurrentDirectory, fileName),
+            Path.Combine(Environment.CurrentDirectory, "docs", fileName)
+        ];
+
+        string? path = candidates.FirstOrDefault(File.Exists);
+        if (path is null)
+        {
+            ShowError("Notice introuvable", $"Le fichier {fileName} est introuvable.");
+            return;
+        }
+
+        Process.Start(new ProcessStartInfo(path)
+        {
+            UseShellExecute = true
+        });
     }
 
     private void SetTheme(bool useLightTheme)

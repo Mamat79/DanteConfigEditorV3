@@ -31,7 +31,10 @@ Outil Windows pour éditer hors ligne des fichiers XML de configuration Dante.
 - Peut remettre les adresses IPv4 des machines en automatique quand le XML contient ces informations.
 - Peut fixer une IP manuelle sur une machine ou générer une plage d'IP fixes en série.
 - Ouvre une fiche machine au double-clic pour modifier les formats, l'IP et les canaux TX/RX.
-- Réinitialise les patchs RX/TX d'une machine.
+- Filtre, sélectionne et verrouille des machines pour contrôler précisément les actions globales.
+- Réinitialise les patchs RX/TX d'une machine, ou seulement ses RX / seulement ses TX.
+- Ouvre une notice rapide PDF et une notice complète PDF depuis l'application.
+- Affiche des info-bulles sur les principales fonctions.
 - Affiche une page `Santé du fichier` avec les points à vérifier.
 - Annule la dernière action.
 - Recherche globalement dans les machines, canaux et patchs.
@@ -67,6 +70,10 @@ La version autonome inclut le runtime .NET nécessaire. Sur une machine Windows 
 
 L'installateur contient uniquement l'application autonome et la documentation utilisateur. Les sources du projet ne sont pas installees sur la machine de l'utilisateur.
 
+En fin d'installation, il peut proposer d'ouvrir les release notes, le quick start PDF et la notice complète PDF.
+
+Si une version est déjà installée, l'assistant le détecte et propose soit de remplacer / mettre à jour l'installation existante, soit d'installer une copie supplémentaire dans un autre dossier.
+
 ## Versions incluses
 
 - La V3 est la version active du projet, avec les sources dans ce dépôt.
@@ -94,6 +101,12 @@ L'installateur contient uniquement l'application autonome et la documentation ut
 - Réglages sample rate et bits par échantillon par machine.
 - Actions globales pour appliquer une sample rate ou des bits par échantillon à toutes les machines.
 - Fonction pour remettre les adresses IPv4 en automatique, par machine ou globalement, quand le XML expose ces champs.
+- Cible d'actions globales : toutes non verrouillées, sélection non verrouillée ou filtre affiché non verrouillé.
+- Verrouillage de machines pour éviter qu'une action globale ne les modifie.
+- Reset patch RX et reset patch TX séparés.
+- Notice rapide, notice complète et info-bulles intégrées.
+- Comparaison XML en tableau.
+- Installateur avec détection d'une version déjà installée et choix remplacement ou installation en plus.
 - Listes rapides Sample rates, Bits et IP fixes.
 - Avertissements renforcés si plusieurs sample rates ou plusieurs encodages coexistent dans le projet.
 - Compatibilité de sauvegarde adaptée aux fonctions d'ajout/suppression de machines.

@@ -34,6 +34,20 @@ public static class LocalizationService
         ["Filter.XmlCompatibility"] = "Compatibilité XML",
         ["Filter.WarningsConflicts"] = "Warnings / conflits",
 
+        ["DeviceFilter.All"] = "Toutes",
+        ["DeviceFilter.Locked"] = "Verrouillées",
+        ["DeviceFilter.StaticIp"] = "IP fixes",
+        ["DeviceFilter.PreferredMaster"] = "Preferred masters",
+        ["DeviceFilter.Redundant"] = "Redondantes",
+        ["DeviceFilter.Daisychain"] = "Daisychain",
+        ["DeviceFilter.NoTx"] = "Sans TX",
+        ["DeviceFilter.NoRx"] = "Sans RX",
+        ["DeviceFilter.SampleRateDifferent"] = "Sample rate différente",
+        ["DeviceFilter.EncodingDifferent"] = "Bits différents",
+        ["Target.AllUnlocked"] = "Toutes non verrouillées",
+        ["Target.SelectedUnlocked"] = "Sélection non verrouillée",
+        ["Target.FilteredUnlocked"] = "Filtre affiché non verrouillé",
+
         ["PatchView.Simple"] = "Simple",
         ["PatchView.Expert"] = "Expert",
 
@@ -65,6 +79,8 @@ public static class LocalizationService
         ["Action.IpAutoApplied"] = "IP automatique appliquée.",
         ["Action.IpStaticApplied"] = "IP fixe appliquée.",
         ["Action.DevicePatchesReset"] = "Patchs RX/TX de la machine réinitialisés.",
+        ["Action.DeviceRxPatchesReset"] = "Patchs RX de la machine réinitialisés.",
+        ["Action.DeviceTxPatchesReset"] = "Patchs TX de la machine réinitialisés.",
         ["Action.DeviceDetailsUpdated"] = "Détail machine mis à jour.",
         ["Action.PreferredMasterUpdated"] = "Preferred master mis à jour.",
         ["Action.ChannelsReset"] = "Canaux réinitialisés.",
@@ -210,6 +226,20 @@ public static class LocalizationService
         ["Filter.XmlCompatibility"] = "XML compatibility",
         ["Filter.WarningsConflicts"] = "Warnings / conflicts",
 
+        ["DeviceFilter.All"] = "All",
+        ["DeviceFilter.Locked"] = "Locked",
+        ["DeviceFilter.StaticIp"] = "Static IPs",
+        ["DeviceFilter.PreferredMaster"] = "Preferred Masters",
+        ["DeviceFilter.Redundant"] = "Redundant",
+        ["DeviceFilter.Daisychain"] = "Daisychain",
+        ["DeviceFilter.NoTx"] = "No Tx",
+        ["DeviceFilter.NoRx"] = "No Rx",
+        ["DeviceFilter.SampleRateDifferent"] = "Different sample rate",
+        ["DeviceFilter.EncodingDifferent"] = "Different bits",
+        ["Target.AllUnlocked"] = "All unlocked",
+        ["Target.SelectedUnlocked"] = "Selected unlocked",
+        ["Target.FilteredUnlocked"] = "Visible filter unlocked",
+
         ["PatchView.Simple"] = "Simple",
         ["PatchView.Expert"] = "Expert",
 
@@ -241,6 +271,8 @@ public static class LocalizationService
         ["Action.IpAutoApplied"] = "Automatic IP applied.",
         ["Action.IpStaticApplied"] = "Static IP applied.",
         ["Action.DevicePatchesReset"] = "Device Rx/Tx subscriptions reset.",
+        ["Action.DeviceRxPatchesReset"] = "Device Rx subscriptions reset.",
+        ["Action.DeviceTxPatchesReset"] = "Device Tx subscriptions reset.",
         ["Action.DeviceDetailsUpdated"] = "Device details updated.",
         ["Action.PreferredMasterUpdated"] = "Preferred Master updated.",
         ["Action.ChannelsReset"] = "Channels reset.",
@@ -413,6 +445,13 @@ public static class LocalizationService
         Add(map, "Mode hors ligne : l'application modifie uniquement les fichiers XML chargés. Elle ne se connecte pas au réseau Dante.", "Offline mode: the application only modifies loaded XML files. It does not connect to the Dante network.");
         Add(map, "Configuration", "Configuration");
         Add(map, "POINTS À VÉRIFIER", "ITEMS TO CHECK");
+        Add(map, "Filtre machines", "Device filter");
+        Add(map, "Cible actions", "Action target");
+        Add(map, "Sélectionner visibles", "Select visible");
+        Add(map, "Effacer sélection", "Clear selection");
+        Add(map, "Verrouiller sélection", "Lock selection");
+        Add(map, "Déverrouiller sélection", "Unlock selection");
+        Add(map, "Lock", "Lock");
         Add(map, "Machine sélectionnée", "Selected device");
         Add(map, "Machine", "Device");
         Add(map, "Nouveau nom", "New name");
@@ -434,6 +473,8 @@ public static class LocalizationService
         Add(map, "Fixer l'IP", "Set static IP");
         Add(map, "Mettre l'IP en automatique", "Set IP to automatic");
         Add(map, "Reset patch RX/TX machine", "Reset device Rx/Tx subscriptions");
+        Add(map, "Reset patch RX", "Reset Rx subscriptions");
+        Add(map, "Reset patch TX", "Reset Tx subscriptions");
         Add(map, "Horloge", "Clock");
         Add(map, "Changer preferred master", "Change Preferred Master");
         Add(map, "Canaux de la machine", "Device channels");
@@ -516,15 +557,51 @@ public static class LocalizationService
         Add(map, "Message", "Message");
         Add(map, "Sécurité et journal", "Safety and log");
         Add(map, "Vérifier le fichier", "Validate file");
+        Add(map, "Rapport final avant Dante", "Final Dante check");
         Add(map, "Rapport compatibilité Dante Controller", "Dante Controller compatibility report");
         Add(map, "Actualiser le résumé", "Refresh summary");
+        Add(map, "Historique actions", "Action history");
         Add(map, "Exporter TXT", "Export TXT");
         Add(map, "Exporter PDF", "Export PDF");
         Add(map, "Patchbook TXT", "Patchbook TXT");
         Add(map, "Patchbook CSV", "Patchbook CSV");
         Add(map, "Topologie simple", "Simple topology");
         Add(map, "Comparer XML", "Compare XML");
+        Add(map, "Quick start", "Quick start");
+        Add(map, "Notice complète", "Full guide");
         Add(map, "Journal", "Log");
+        Add(map, "Charge un export XML Dante Controller.", "Loads a Dante Controller XML export.");
+        Add(map, "Ajoute les machines d'un autre XML au projet ouvert. Les doublons peuvent être renommés.", "Adds devices from another XML to the open project. Duplicates can be renamed.");
+        Add(map, "Enregistre un nouveau XML et crée un backup de sécurité.", "Saves a new XML file and creates a safety backup.");
+        Add(map, "Autorise les modifications dans l'interface. La sauvegarde reste faite sous un nouveau nom.", "Allows changes in the interface. Saving still uses a new file name.");
+        Add(map, "Annule la dernière action réalisée dans cette session.", "Undoes the last action made in this session.");
+        Add(map, "Recharge le fichier XML d'origine et abandonne les modifications non sauvegardées.", "Reloads the original XML file and discards unsaved changes.");
+        Add(map, "Liste les derniers XML ouverts.", "Lists the most recently opened XML files.");
+        Add(map, "Ouvre le fichier sélectionné dans la liste récente.", "Opens the selected file from the recent list.");
+        Add(map, "Déconnecte les RX de la machine et supprime les patchs qui utilisent ses TX.", "Disconnects the device Rx channels and removes subscriptions using its Tx channels.");
+        Add(map, "Déconnecte seulement les entrées RX de la machine sélectionnée.", "Disconnects only the selected device Rx inputs.");
+        Add(map, "Supprime seulement les patchs qui utilisent les TX de la machine sélectionnée.", "Removes only subscriptions using the selected device Tx channels.");
+        Add(map, "Préfixe simple : HF donnera HF 01, HF 02. Modèle avancé : HF {00}, IN-{device}-{000}, ou {n} sans zéro.", "Simple prefix: HF gives HF 01, HF 02. Advanced pattern: HF {00}, IN-{device}-{000}, or {n} without leading zeros.");
+        Add(map, "Applique le mode réseau à la cible choisie, en ignorant les machines verrouillées.", "Applies the network mode to the chosen target, ignoring locked devices.");
+        Add(map, "Applique la latence à la cible choisie après prévisualisation.", "Applies latency to the chosen target after preview.");
+        Add(map, "Applique la sample rate à la cible choisie. À vérifier avant import Dante.", "Applies the sample rate to the chosen target. Verify before Dante import.");
+        Add(map, "Applique les bits par échantillon à la cible choisie.", "Applies bits per sample to the chosen target.");
+        Add(map, "Réinitialise les noms de canaux TX/RX de la cible choisie, en respectant les verrous.", "Resets Tx/Rx channel names for the chosen target, respecting locks.");
+        Add(map, "Attribue des IP fixes en série aux machines de la cible qui ont une interface IPv4 modifiable.", "Assigns static IPs in sequence to target devices with an editable IPv4 interface.");
+        Add(map, "Repasse les IP reconnues en automatique pour la cible choisie.", "Sets recognized IP fields back to automatic for the chosen target.");
+        Add(map, "Filtre seulement le tableau des machines, sans modifier le XML.", "Filters only the device table without modifying the XML.");
+        Add(map, "Affiche rapidement les machines en IP fixe, preferred master, redondantes, daisychain, sans TX/RX ou avec formats différents.", "Quickly shows static IP, Preferred Master, redundant, daisychain, no Tx/Rx, or different-format devices.");
+        Add(map, "Détermine quelles machines seront touchées par les actions globales.", "Defines which devices global actions will affect.");
+        Add(map, "Choisissez si les actions globales s'appliquent à toutes les machines non verrouillées, à la sélection ou au filtre affiché.", "Choose whether global actions apply to all unlocked devices, the selection, or the visible filter.");
+        Add(map, "Sélectionne toutes les machines actuellement visibles dans le tableau.", "Selects all devices currently visible in the table.");
+        Add(map, "Vide la sélection multiple du tableau.", "Clears the table multi-selection.");
+        Add(map, "Les machines verrouillées sont ignorées par les actions globales.", "Locked devices are ignored by global actions.");
+        Add(map, "Retire le verrou des machines sélectionnées.", "Unlocks the selected devices.");
+        Add(map, "Verrouille cette machine pour que les actions globales ne la modifient pas.", "Locks this device so global actions do not modify it.");
+        Add(map, "Affiche un résumé OK / points à vérifier avant d'importer le XML dans Dante Controller.", "Shows an OK / items-to-check summary before importing the XML into Dante Controller.");
+        Add(map, "Affiche les dernières actions réalisées dans l'application.", "Shows the latest actions made in the application.");
+        Add(map, "Ouvre la notice rapide PDF.", "Opens the quick start PDF.");
+        Add(map, "Ouvre la notice complète PDF.", "Opens the full guide PDF.");
         Add(map, "Le XML conserve la valeur brute Dante.", "The XML keeps the raw Dante value.");
         Add(map, "La valeur affichée est en ms. Le XML conserve la valeur brute Dante.", "Displayed value is in ms. The XML keeps the raw Dante value.");
 

@@ -247,6 +247,7 @@
                                 BorderThickness="1,1,1,0"
                                 Padding="{TemplateBinding Padding}">
                             <ContentPresenter ContentSource="Header"
+                                              TextElement.Foreground="{TemplateBinding Foreground}"
                                               HorizontalAlignment="Center"
                                               VerticalAlignment="Center"
                                               RecognizesAccessKey="True" />
@@ -255,10 +256,12 @@
                             <Trigger Property="IsSelected" Value="True">
                                 <Setter Property="Panel.ZIndex" Value="10" />
                                 <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
+                                <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
                                 <Setter Property="FontWeight" Value="SemiBold" />
                             </Trigger>
                             <Trigger Property="IsMouseOver" Value="True">
                                 <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
+                                <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
                             </Trigger>
                             <Trigger Property="IsEnabled" Value="False">
                                 <Setter Property="Opacity" Value="0.45" />
@@ -323,16 +326,17 @@
                 </Grid.ColumnDefinitions>
 
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                    <Button Content="Ouvrir XML" Click="OpenButton_Click" />
-                    <Button x:Name="MergeXmlButton" Content="Ajouter XML au projet" Style="{StaticResource SecondaryButtonStyle}" Click="MergeXmlButton_Click" />
-                    <Button x:Name="SaveAsButton" Content="Enregistrer sous" Click="SaveAsButton_Click" />
-                    <Button x:Name="ActivateEditButton" Content="Activer l'édition" Style="{StaticResource SecondaryButtonStyle}" Click="ActivateEditButton_Click" />
-                    <Button x:Name="UndoLastButton" Content="Annuler action" Style="{StaticResource SecondaryButtonStyle}" Click="UndoLastButton_Click" IsEnabled="False" />
-                    <Button x:Name="RevertButton" Content="Annuler les changements" Style="{StaticResource SecondaryButtonStyle}" Click="RevertButton_Click" />
+                    <Button Content="Ouvrir XML" Click="OpenButton_Click" ToolTip="Charge un export XML Dante Controller." />
+                    <Button x:Name="MergeXmlButton" Content="Ajouter XML au projet" Style="{StaticResource SecondaryButtonStyle}" Click="MergeXmlButton_Click" ToolTip="Ajoute les machines d'un autre XML au projet ouvert. Les doublons peuvent être renommés." />
+                    <Button x:Name="SaveAsButton" Content="Enregistrer sous" Click="SaveAsButton_Click" ToolTip="Enregistre un nouveau XML et crée un backup de sécurité." />
+                    <Button x:Name="ActivateEditButton" Content="Activer l'édition" Style="{StaticResource SecondaryButtonStyle}" Click="ActivateEditButton_Click" ToolTip="Autorise les modifications dans l'interface. La sauvegarde reste faite sous un nouveau nom." />
+                    <Button x:Name="UndoLastButton" Content="Annuler action" Style="{StaticResource SecondaryButtonStyle}" Click="UndoLastButton_Click" IsEnabled="False" ToolTip="Annule la dernière action réalisée dans cette session." />
+                    <Button x:Name="RevertButton" Content="Annuler les changements" Style="{StaticResource SecondaryButtonStyle}" Click="RevertButton_Click" ToolTip="Recharge le fichier XML d'origine et abandonne les modifications non sauvegardées." />
                     <ComboBox x:Name="RecentFilesComboBox"
                               Width="230"
-                              Margin="0,0,8,8" />
-                    <Button Content="Ouvrir récent" Style="{StaticResource SecondaryButtonStyle}" Click="OpenRecentButton_Click" />
+                              Margin="0,0,8,8"
+                              ToolTip="Liste les derniers XML ouverts." />
+                    <Button Content="Ouvrir récent" Style="{StaticResource SecondaryButtonStyle}" Click="OpenRecentButton_Click" ToolTip="Ouvre le fichier sélectionné dans la liste récente." />
                 </StackPanel>
 
                 <StackPanel Grid.Column="1" Margin="18,0,18,0" VerticalAlignment="Center">
@@ -472,6 +476,7 @@
                         <Grid Grid.Row="1">
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
                                 <RowDefinition Height="*" />
                             </Grid.RowDefinitions>
 
@@ -539,7 +544,18 @@
                                             <Button x:Name="ResetDevicePatchesButton"
                                                     Content="Reset patch RX/TX machine"
                                                     Style="{StaticResource SecondaryButtonStyle}"
+                                                    ToolTip="Déconnecte les RX de la machine et supprime les patchs qui utilisent ses TX."
                                                     Click="ResetDevicePatchesButton_Click" />
+                                            <Button x:Name="ResetDeviceRxPatchesButton"
+                                                    Content="Reset patch RX"
+                                                    Style="{StaticResource SecondaryButtonStyle}"
+                                                    ToolTip="Déconnecte seulement les entrées RX de la machine sélectionnée."
+                                                    Click="ResetDeviceRxPatchesButton_Click" />
+                                            <Button x:Name="ResetDeviceTxPatchesButton"
+                                                    Content="Reset patch TX"
+                                                    Style="{StaticResource SecondaryButtonStyle}"
+                                                    ToolTip="Supprime seulement les patchs qui utilisent les TX de la machine sélectionnée."
+                                                    Click="ResetDeviceTxPatchesButton_Click" />
                                             <Button x:Name="DeleteDeviceButton" Content="Supprimer la machine" Style="{StaticResource SecondaryButtonStyle}" Click="DeleteDeviceButton_Click" />
                                         </WrapPanel>
                                     </Grid>
@@ -590,7 +606,8 @@
                                             </Grid.ColumnDefinitions>
                                             <StackPanel Margin="0,0,8,0">
                                                 <Label Content="Préfixe" />
-                                                <TextBox x:Name="BatchRenamePrefixTextBox" />
+                                                <TextBox x:Name="BatchRenamePrefixTextBox"
+                                                         ToolTip="Préfixe simple : HF donnera HF 01, HF 02. Modèle avancé : HF {00}, IN-{device}-{000}, ou {n} sans zéro." />
                                             </StackPanel>
                                             <StackPanel Grid.Column="1">
                                                 <Label Content="Numéro" />
@@ -615,7 +632,9 @@
                                     </GroupBox>
 
                                     <GroupBox Header="Actions globales">
-                                        <TabControl>
+                                        <TabControl Background="{DynamicResource SurfaceBrush}"
+                                                    BorderBrush="{DynamicResource BorderLineBrush}"
+                                                    Foreground="{DynamicResource TextBrush}">
                                             <TabItem Header="Réseau / audio">
                                                 <Grid Margin="0,8,0,0">
                                                     <Grid.ColumnDefinitions>
@@ -628,23 +647,23 @@
                                                             <RadioButton x:Name="GlobalRedundantRadioButton" Content="Redondant" GroupName="GlobalNetworkMode" />
                                                             <RadioButton x:Name="GlobalDaisychainRadioButton" Content="Daisychain" GroupName="GlobalNetworkMode" />
                                                         </StackPanel>
-                                                        <Button x:Name="ApplyAllNetworkButton" Content="Appliquer le mode à tous" Click="ApplyAllNetworkButton_Click" />
+                                                        <Button x:Name="ApplyAllNetworkButton" Content="Appliquer le mode à tous" Click="ApplyAllNetworkButton_Click" ToolTip="Applique le mode réseau à la cible choisie, en ignorant les machines verrouillées." />
 
                                                         <Label Content="Latence globale" />
                                                         <ComboBox x:Name="GlobalLatencyComboBox" ToolTip="La valeur affichée est en ms. Le XML conserve la valeur brute Dante." />
-                                                        <Button x:Name="ApplyAllLatencyButton" Content="Appliquer la latence à tous" Click="ApplyAllLatencyButton_Click" />
+                                                        <Button x:Name="ApplyAllLatencyButton" Content="Appliquer la latence à tous" Click="ApplyAllLatencyButton_Click" ToolTip="Applique la latence à la cible choisie après prévisualisation." />
                                                     </StackPanel>
 
                                                     <StackPanel Grid.Column="1">
                                                         <Label Content="Sample rate globale" />
                                                         <ComboBox x:Name="GlobalSampleRateComboBox" IsEditable="True" />
-                                                        <Button x:Name="ApplyAllSampleRateButton" Content="Appliquer la fréquence à tous" Click="ApplyAllSampleRateButton_Click" />
+                                                        <Button x:Name="ApplyAllSampleRateButton" Content="Appliquer la fréquence à tous" Click="ApplyAllSampleRateButton_Click" ToolTip="Applique la sample rate à la cible choisie. À vérifier avant import Dante." />
 
                                                         <Label Content="Bits par échantillon globaux" />
                                                         <ComboBox x:Name="GlobalEncodingComboBox" IsEditable="True" />
-                                                        <Button x:Name="ApplyAllEncodingButton" Content="Appliquer les bits à tous" Click="ApplyAllEncodingButton_Click" />
+                                                        <Button x:Name="ApplyAllEncodingButton" Content="Appliquer les bits à tous" Click="ApplyAllEncodingButton_Click" ToolTip="Applique les bits par échantillon à la cible choisie." />
 
-                                                        <Button x:Name="ResetAllChannelsButton" Content="Réinitialiser tous les canaux" Style="{StaticResource SecondaryButtonStyle}" Click="ResetAllChannelsButton_Click" />
+                                                        <Button x:Name="ResetAllChannelsButton" Content="Réinitialiser tous les canaux" Style="{StaticResource SecondaryButtonStyle}" Click="ResetAllChannelsButton_Click" ToolTip="Réinitialise les noms de canaux TX/RX de la cible choisie, en respectant les verrous." />
                                                     </StackPanel>
                                                 </Grid>
                                             </TabItem>
@@ -682,8 +701,8 @@
                                                     </StackPanel>
 
                                                     <WrapPanel Grid.Row="2" Grid.ColumnSpan="2" Margin="0,10,0,0">
-                                                        <Button x:Name="ApplyAllIpStaticButton" Content="Fixer les IP en série" Click="ApplyAllIpStaticButton_Click" />
-                                                        <Button x:Name="ApplyAllIpAutoButton" Content="Mettre toutes les IP en automatique" Style="{StaticResource SecondaryButtonStyle}" Click="ApplyAllIpAutoButton_Click" />
+                                                        <Button x:Name="ApplyAllIpStaticButton" Content="Fixer les IP en série" Click="ApplyAllIpStaticButton_Click" ToolTip="Attribue des IP fixes en série aux machines de la cible qui ont une interface IPv4 modifiable." />
+                                                        <Button x:Name="ApplyAllIpAutoButton" Content="Mettre toutes les IP en automatique" Style="{StaticResource SecondaryButtonStyle}" Click="ApplyAllIpAutoButton_Click" ToolTip="Repasse les IP reconnues en automatique pour la cible choisie." />
                                                     </WrapPanel>
                                                 </Grid>
                                             </TabItem>
@@ -692,11 +711,63 @@
                                 </StackPanel>
                             </Grid>
 
+                            <Border Grid.Row="1"
+                                    Background="{DynamicResource SurfaceBrush}"
+                                    BorderBrush="{DynamicResource BorderLineBrush}"
+                                    BorderThickness="1"
+                                    CornerRadius="6"
+                                    Padding="10"
+                                    Margin="0,0,0,10">
+                                <WrapPanel VerticalAlignment="Center">
+                                    <Label Content="Filtre machines"
+                                           ToolTip="Filtre seulement le tableau des machines, sans modifier le XML." />
+                                    <ComboBox x:Name="DeviceFilterComboBox"
+                                              Width="190"
+                                              Margin="0,0,12,8"
+                                              SelectionChanged="DeviceFilter_SelectionChanged"
+                                              ToolTip="Affiche rapidement les machines en IP fixe, preferred master, redondantes, daisychain, sans TX/RX ou avec formats différents." />
+                                    <Label Content="Cible actions"
+                                           ToolTip="Détermine quelles machines seront touchées par les actions globales." />
+                                    <ComboBox x:Name="TargetScopeComboBox"
+                                              Width="230"
+                                              Margin="0,0,12,8"
+                                              ToolTip="Choisissez si les actions globales s'appliquent à toutes les machines non verrouillées, à la sélection ou au filtre affiché." />
+                                    <Button Content="Sélectionner visibles"
+                                            Style="{StaticResource SecondaryButtonStyle}"
+                                            Click="SelectVisibleDevicesButton_Click"
+                                            ToolTip="Sélectionne toutes les machines actuellement visibles dans le tableau." />
+                                    <Button Content="Effacer sélection"
+                                            Style="{StaticResource SecondaryButtonStyle}"
+                                            Click="ClearDeviceSelectionButton_Click"
+                                            ToolTip="Vide la sélection multiple du tableau." />
+                                    <Button Content="Verrouiller sélection"
+                                            Style="{StaticResource SecondaryButtonStyle}"
+                                            Click="LockSelectedDevicesButton_Click"
+                                            ToolTip="Les machines verrouillées sont ignorées par les actions globales." />
+                                    <Button Content="Déverrouiller sélection"
+                                            Style="{StaticResource SecondaryButtonStyle}"
+                                            Click="UnlockSelectedDevicesButton_Click"
+                                            ToolTip="Retire le verrou des machines sélectionnées." />
+                                </WrapPanel>
+                            </Border>
+
                             <DataGrid x:Name="DeviceGrid"
-                                      Grid.Row="1"
+                                      Grid.Row="2"
                                       MinHeight="160"
+                                      SelectionMode="Extended"
+                                      SelectionUnit="FullRow"
                                       MouseDoubleClick="DeviceGrid_MouseDoubleClick">
                                 <DataGrid.Columns>
+                                    <DataGridTemplateColumn Header="Lock" Width="0.55*">
+                                        <DataGridTemplateColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <CheckBox IsChecked="{Binding IsLocked, Mode=OneWay}"
+                                                          HorizontalAlignment="Center"
+                                                          Click="DeviceLockCheckBox_Click"
+                                                          ToolTip="Verrouille cette machine pour que les actions globales ne la modifient pas." />
+                                            </DataTemplate>
+                                        </DataGridTemplateColumn.CellTemplate>
+                                    </DataGridTemplateColumn>
                                     <DataGridTextColumn Header="Device" Binding="{Binding Name}" Width="2*" />
                                     <DataGridTextColumn Header="Friendly name" Binding="{Binding FriendlyName}" Width="2*" />
                                     <DataGridTextColumn Header="Réseau" Binding="{Binding NetworkMode}" Width="*" />
@@ -960,8 +1031,16 @@
                         </Grid.RowDefinitions>
                         <WrapPanel>
                             <Button Content="Vérifier le fichier" Click="ValidateButton_Click" />
+                            <Button Content="Rapport final avant Dante"
+                                    Style="{StaticResource SecondaryButtonStyle}"
+                                    Click="FinalDanteCheckButton_Click"
+                                    ToolTip="Affiche un résumé OK / points à vérifier avant d'importer le XML dans Dante Controller." />
                             <Button Content="Rapport compatibilité Dante Controller" Style="{StaticResource SecondaryButtonStyle}" Click="CompatibilityReportButton_Click" />
                             <Button Content="Actualiser le résumé" Style="{StaticResource SecondaryButtonStyle}" Click="RefreshSummaryButton_Click" />
+                            <Button Content="Historique actions"
+                                    Style="{StaticResource SecondaryButtonStyle}"
+                                    Click="ActionHistoryButton_Click"
+                                    ToolTip="Affiche les dernières actions réalisées dans l'application." />
                             <Button Content="Exporter TXT" Style="{StaticResource SecondaryButtonStyle}" Click="ExportTxtButton_Click" />
                             <Button Content="Exporter PDF" Style="{StaticResource SecondaryButtonStyle}" Click="ExportPdfButton_Click" />
                             <ComboBox x:Name="PatchbookScopeComboBox"
@@ -971,6 +1050,14 @@
                             <Button Content="Patchbook CSV" Style="{StaticResource SecondaryButtonStyle}" Click="ExportPatchbookCsvButton_Click" />
                             <Button Content="Topologie simple" Style="{StaticResource SecondaryButtonStyle}" Click="TopologyButton_Click" />
                             <Button Content="Comparer XML" Style="{StaticResource SecondaryButtonStyle}" Click="CompareXmlButton_Click" />
+                            <Button Content="Quick start"
+                                    Style="{StaticResource SecondaryButtonStyle}"
+                                    Click="OpenQuickStartButton_Click"
+                                    ToolTip="Ouvre la notice rapide PDF." />
+                            <Button Content="Notice complète"
+                                    Style="{StaticResource SecondaryButtonStyle}"
+                                    Click="OpenFullNoticeButton_Click"
+                                    ToolTip="Ouvre la notice complète PDF." />
                         </WrapPanel>
 
                         <Grid Grid.Row="1">

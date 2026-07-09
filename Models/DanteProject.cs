@@ -318,6 +318,12 @@ public sealed class DanteProject
         RegisterChange("IP fixe", $"{deviceName} -> {cleanAddress} / {cleanNetmask} / gateway {cleanGateway}");
     }
 
+    public bool SupportsIpConfiguration(string deviceName)
+    {
+        DanteDevice device = FindDevice(deviceName) ?? throw new InvalidOperationException("Device introuvable.");
+        return DeviceSupportsIpConfiguration(device);
+    }
+
     public int SetAllIpAddressesDynamic()
     {
         int changedDevices = 0;
@@ -420,6 +426,22 @@ public sealed class DanteProject
         int total = removedRxSubscriptions + removedTxSubscriptions;
         RegisterChange("Patch machine reset", $"{deviceName}: {removedRxSubscriptions} entrée(s) RX et {removedTxSubscriptions} départ(s) TX supprimé(s)");
         return total;
+    }
+
+    public int ResetDeviceRxPatches(string deviceName)
+    {
+        DanteDevice device = FindDevice(deviceName) ?? throw new InvalidOperationException("Device introuvable.");
+        int removedRxSubscriptions = RemoveSubscriptionsFromDeviceRxChannels(device.Name);
+        RegisterChange("Patch RX machine reset", $"{deviceName}: {removedRxSubscriptions} entrée(s) RX supprimée(s)");
+        return removedRxSubscriptions;
+    }
+
+    public int ResetDeviceTxPatches(string deviceName)
+    {
+        DanteDevice device = FindDevice(deviceName) ?? throw new InvalidOperationException("Device introuvable.");
+        int removedTxSubscriptions = RemoveSubscriptionsReferencingDevice(device.Name);
+        RegisterChange("Patch TX machine reset", $"{deviceName}: {removedTxSubscriptions} départ(s) TX supprimé(s)");
+        return removedTxSubscriptions;
     }
 
     public IReadOnlyList<string> FindDuplicateDeviceNamesInXml(string path)
@@ -591,9 +613,7 @@ public sealed class DanteProject
         foreach (DanteChannel channel in selectedChannels)
         {
             string oldName = channel.DisplayName;
-            string newName = string.IsNullOrWhiteSpace(cleanPrefix)
-                ? number.ToString().PadLeft(digits, '0')
-                : $"{cleanPrefix} {number.ToString().PadLeft(digits, '0')}";
+            string newName = BuildBatchChannelName(cleanPrefix, number, digits, device.Name);
 
             if (ContainsProblematicCharacters(newName))
             {
@@ -617,6 +637,28 @@ public sealed class DanteProject
         }
 
         RegisterChange("Renommage série", $"{deviceName} {channelKind}: canaux {startChannelIndex}-{endChannelIndex}, {cleanPrefix} depuis {firstNumber}");
+    }
+
+    private static string BuildBatchChannelName(string pattern, int number, int defaultDigits, string deviceName)
+    {
+        if (pattern.Contains('{', StringComparison.Ordinal))
+        {
+            string value = pattern
+                .Replace("{device}", deviceName, StringComparison.OrdinalIgnoreCase)
+                .Replace("{n}", number.ToString(), StringComparison.OrdinalIgnoreCase)
+                .Replace("{number}", number.ToString(), StringComparison.OrdinalIgnoreCase);
+
+            for (int digits = 1; digits <= 6; digits++)
+            {
+                value = value.Replace("{" + new string('0', digits) + "}", number.ToString().PadLeft(digits, '0'), StringComparison.OrdinalIgnoreCase);
+            }
+
+            return value.Trim();
+        }
+
+        return string.IsNullOrWhiteSpace(pattern)
+            ? number.ToString().PadLeft(defaultDigits, '0')
+            : $"{pattern} {number.ToString().PadLeft(defaultDigits, '0')}";
     }
 
     public void ResetAllChannels()
