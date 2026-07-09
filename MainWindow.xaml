@@ -644,8 +644,6 @@
                                                         <ComboBox x:Name="GlobalEncodingComboBox" IsEditable="True" />
                                                         <Button x:Name="ApplyAllEncodingButton" Content="Appliquer les bits à tous" Click="ApplyAllEncodingButton_Click" />
 
-                                                        <CheckBox x:Name="GlobalPreferredMasterCheckBox" Content="Définir le device sélectionné comme seul preferred master" />
-                                                        <Button x:Name="ApplyAllPreferredMasterButton" Content="Preferred master sécurisé" Click="ApplyAllPreferredMasterButton_Click" />
                                                         <Button x:Name="ResetAllChannelsButton" Content="Réinitialiser tous les canaux" Style="{StaticResource SecondaryButtonStyle}" Click="ResetAllChannelsButton_Click" />
                                                     </StackPanel>
                                                 </Grid>

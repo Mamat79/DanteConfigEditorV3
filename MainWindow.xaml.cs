@@ -687,29 +687,6 @@ public partial class MainWindow : Window
             preview + Environment.NewLine + T("Dialog.IpStaticWarningContinue"));
     }
 
-    private void ApplyAllPreferredMasterButton_Click(object sender, RoutedEventArgs e)
-    {
-        if (!EnsureProjectLoaded())
-        {
-            return;
-        }
-
-        if (GlobalPreferredMasterCheckBox.IsChecked == true)
-        {
-            string deviceName = SelectedDeviceName();
-            RunProjectAction(
-                T("Action.SolePreferredMasterApplied"),
-                () => _project!.SetSolePreferredMaster(deviceName),
-                _project?.BuildSolePreferredMasterPreview(deviceName) + Environment.NewLine + T("Dialog.Continue"));
-            return;
-        }
-
-        RunProjectAction(
-            T("Action.AllPreferredMastersCleared"),
-            () => _project!.SetAllPreferredMasters(false),
-            _project?.BuildClearPreferredMastersPreview() + Environment.NewLine + T("Dialog.Continue"));
-    }
-
     private void ResetAllChannelsButton_Click(object sender, RoutedEventArgs e)
     {
         RunProjectAction(
@@ -1880,7 +1857,6 @@ public partial class MainWindow : Window
         yield return ApplyAllEncodingButton;
         yield return ApplyAllIpAutoButton;
         yield return ApplyAllIpStaticButton;
-        yield return ApplyAllPreferredMasterButton;
         yield return ResetAllChannelsButton;
         yield return ApplyPatchButton;
         yield return RemovePatchButton;

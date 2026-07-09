@@ -25,6 +25,7 @@ Travaillez toujours sur une copie de vos fichiers XML Dante et validez le result
 - Page Configuration plus lisible : reglages defilables, table des machines gardee visible et recherche globale avec message d'aide.
 - Page Configuration compactee : actions rapides machine, bouton detail machine et actions globales rangees par onglet pour eviter les blocs coupes.
 - Correction du fond blanc des onglets internes en theme sombre, notamment dans Actions globales.
+- Retrait de l'action globale Preferred master securise, jugee confuse et peu utile.
 - Ouverture de l'application en plein ecran pour une lecture plus confortable.
 - Garde-fou de modifications XML : la sauvegarde est bloquee si une zone technique Dante sensible change par accident.
 - Rapport compatibilite Dante Controller.
@@ -32,7 +33,6 @@ Travaillez toujours sur une copie de vos fichiers XML Dante et validez le result
 - Libelles utilisateur corriges : Dante Id avec espace. L'attribut XML reste danteId.
 - Latences affichees en ms, valeurs XML brutes conservees.
 - Previsualisation des actions globales.
-- Preferred master global securise.
 - Page Patch avec mode simple/expert et colonne Source complete.
 - Patchbook TXT enrichi et export CSV lecture seule.
 - Page Sante enrichie et vue Topologie simple.

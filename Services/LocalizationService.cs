@@ -76,8 +76,6 @@ public static class LocalizationService
         ["Action.AllEncodingsApplied"] = "Bits par échantillon appliqués à tous les devices.",
         ["Action.AllIpAutoApplied"] = "IP automatique appliquée à tous les devices.",
         ["Action.AllIpStaticApplied"] = "IP fixes appliquées en série.",
-        ["Action.SolePreferredMasterApplied"] = "Preferred master unique appliqué.",
-        ["Action.AllPreferredMastersCleared"] = "Tous les preferred masters ont été retirés.",
         ["Action.AllChannelsReset"] = "Tous les canaux ont été réinitialisés.",
         ["Action.PatchApplied"] = "Patch appliqué.",
         ["Action.PatchRemoved"] = "Patch supprimé.",
@@ -254,8 +252,6 @@ public static class LocalizationService
         ["Action.AllEncodingsApplied"] = "Bits per sample applied to all devices.",
         ["Action.AllIpAutoApplied"] = "Automatic IP applied to all devices.",
         ["Action.AllIpStaticApplied"] = "Static IP range applied.",
-        ["Action.SolePreferredMasterApplied"] = "Single Preferred Master applied.",
-        ["Action.AllPreferredMastersCleared"] = "All Preferred Masters have been cleared.",
         ["Action.AllChannelsReset"] = "All channels have been reset.",
         ["Action.PatchApplied"] = "Subscription applied.",
         ["Action.PatchRemoved"] = "Subscription removed.",
@@ -464,9 +460,6 @@ public static class LocalizationService
         Add(map, "Premier numéro", "First number");
         Add(map, "Fixer les IP en série", "Set static IP range");
         Add(map, "Mettre toutes les IP en automatique", "Set all IPs to automatic");
-        Add(map, "Définir le device sélectionné comme seul preferred master", "Set selected device as sole Preferred Master");
-        Add(map, "Preferred master sécurisé", "Safe Preferred Master");
-        Add(map, "Appliquer preferred master sécurisé", "Apply safe Preferred Master");
         Add(map, "Réinitialiser tous les canaux", "Reset all channels");
         Add(map, "Listes rapides", "Quick lists");
         Add(map, "Redondants", "Redundant");

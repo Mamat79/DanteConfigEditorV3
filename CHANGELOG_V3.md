@@ -21,6 +21,7 @@
 - Retouche de la page Configuration : bloc machine plus compact, bouton détail machine visible, actions globales séparées en onglets.
 - Retouche de la fenêtre détail machine : les champs IP fixes sont alignés avec le mode `Fixe` et désactivés en mode automatique.
 - Correction du style des onglets internes en thème sombre, pour éviter le fond blanc dans `Actions globales`.
+- Retrait de l'action globale `Preferred master sécurisé`, trop ambiguë dans l'interface ; le réglage reste disponible machine par machine.
 
 ## 2026-07-07 - Version 3.04
 
