@@ -172,13 +172,13 @@ public partial class MainWindow : Window
             // DanteProject contient toute la logique XML. La fenêtre ne garde que
             // l'état d'affichage et les actions utilisateur.
             _project = DanteProject.Load(path);
-            _editModeEnabled = false;
+            _editModeEnabled = true;
             _logs.Clear();
             RecentFilesService.Add(path);
             RefreshRecentFiles();
             AddLog("Fichier chargé : " + path);
             RefreshAll();
-            SetStatus("Fichier chargé.");
+            SetStatus("Fichier chargé. Les modifications seront enregistrées sous un nouveau nom.");
         }
         catch (Exception ex)
         {
@@ -242,6 +242,14 @@ public partial class MainWindow : Window
 
         if (dialog.ShowDialog(this) != true)
         {
+            return;
+        }
+
+        if (IsOriginalProjectPath(dialog.FileName))
+        {
+            ShowError(
+                "Choisissez un autre nom",
+                "Pour protéger le XML d'origine, l'application n'enregistre pas par-dessus le fichier ouvert. Choisissez un nouveau nom de fichier.");
             return;
         }
 
@@ -1334,17 +1342,18 @@ public partial class MainWindow : Window
     private void UpdateCommandState()
     {
         bool hasProject = _project is not null;
-        bool canEdit = hasProject && _editModeEnabled;
+        bool canUseProjectActions = hasProject;
 
         ActivateEditButton.IsEnabled = hasProject && !_editModeEnabled;
-        SaveAsButton.IsEnabled = canEdit;
-        RevertButton.IsEnabled = canEdit;
-        UndoLastButton.IsEnabled = canEdit && _project?.CanUndo == true;
+        ActivateEditButton.Content = hasProject && _editModeEnabled ? "Édition active" : "Activer l'édition";
+        SaveAsButton.IsEnabled = hasProject;
+        RevertButton.IsEnabled = hasProject;
+        UndoLastButton.IsEnabled = hasProject && _project?.CanUndo == true;
         UndoLastButton.Content = _project?.CanUndo == true ? "Annuler action" : "Annuler action";
 
         foreach (Control control in EditableControls())
         {
-            control.IsEnabled = canEdit;
+            control.IsEnabled = canUseProjectActions;
         }
     }
 
@@ -1436,8 +1445,23 @@ public partial class MainWindow : Window
             return true;
         }
 
-        ShowError("Mode lecture seule", "Activez l'édition avant de modifier ou sauvegarder le XML.");
-        return false;
+        _editModeEnabled = true;
+        AddLog("Mode édition activé automatiquement.");
+        UpdateCommandState();
+        SetStatus("Mode édition activé.");
+        return true;
+    }
+
+    private bool IsOriginalProjectPath(string candidatePath)
+    {
+        if (_project is null || string.IsNullOrWhiteSpace(candidatePath))
+        {
+            return false;
+        }
+
+        string originalPath = Path.GetFullPath(_project.OriginalFilePath);
+        string selectedPath = Path.GetFullPath(candidatePath);
+        return string.Equals(originalPath, selectedPath, StringComparison.OrdinalIgnoreCase);
     }
 
     private string SelectedLatencyXmlValue(ComboBox comboBox)
