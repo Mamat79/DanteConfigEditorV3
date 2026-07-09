@@ -2,6 +2,7 @@ using System.Text;
 using System.Xml;
 using System.Xml.Linq;
 using System.IO;
+using System.Net;
 using DanteConfigEditor.Services;
 
 namespace DanteConfigEditor.Models;
@@ -51,6 +52,7 @@ public sealed class DanteProject
     private static readonly string[] StaticIpAttributeNames =
     [
         "address",
+        "dnsserver",
         "gateway",
         "ip",
         "ipv4",
@@ -61,6 +63,14 @@ public sealed class DanteProject
         "subnet",
         "subnet_mask",
         "value"
+    ];
+
+    private static readonly string[] StaticIpElementNames =
+    [
+        "address",
+        "netmask",
+        "gateway",
+        "dnsserver"
     ];
 
     // Les éléments RX modifiés sont gardés pour l'affichage et pour le résumé
@@ -298,6 +308,16 @@ public sealed class DanteProject
         return true;
     }
 
+    public void SetIpAddressStatic(string deviceName, string address, string netmask, string gateway)
+    {
+        DanteDevice device = FindDevice(deviceName) ?? throw new InvalidOperationException("Device introuvable.");
+        string cleanAddress = ValidateIpv4Address(address, "adresse IP");
+        string cleanNetmask = ValidateIpv4Address(string.IsNullOrWhiteSpace(netmask) ? "255.255.255.0" : netmask, "masque");
+        string cleanGateway = ValidateIpv4Address(string.IsNullOrWhiteSpace(gateway) ? "0.0.0.0" : gateway, "passerelle");
+        SetDeviceIpAddressStatic(device, cleanAddress, cleanNetmask, cleanGateway);
+        RegisterChange("IP fixe", $"{deviceName} -> {cleanAddress} / {cleanNetmask} / gateway {cleanGateway}");
+    }
+
     public int SetAllIpAddressesDynamic()
     {
         int changedDevices = 0;
@@ -311,6 +331,39 @@ public sealed class DanteProject
 
         RegisterChange("IP automatique globale", $"{changedDevices} machine(s) passée(s) en dynamique");
         return changedDevices;
+    }
+
+    public void SetAllIpAddressesStaticSequential(string prefix, int startHost, string netmask, string gateway)
+    {
+        string cleanPrefix = ValidateIpv4Prefix(prefix);
+        string cleanNetmask = ValidateIpv4Address(string.IsNullOrWhiteSpace(netmask) ? "255.255.255.0" : netmask, "masque");
+        string cleanGateway = ValidateIpv4Address(string.IsNullOrWhiteSpace(gateway) ? "0.0.0.0" : gateway, "passerelle");
+
+        if (startHost < 1 || startHost > 254)
+        {
+            throw new InvalidOperationException("Le premier numéro IP doit être compris entre 1 et 254.");
+        }
+
+        DanteDevice[] configurableDevices = Devices.Where(DeviceSupportsIpConfiguration).ToArray();
+        if (configurableDevices.Length == 0)
+        {
+            throw new InvalidOperationException("Aucune machine du XML ne contient d'interface IPv4 modifiable.");
+        }
+
+        if (startHost + configurableDevices.Length - 1 > 254)
+        {
+            throw new InvalidOperationException("La plage IP dépasse 254. Choisissez un numéro de départ plus bas.");
+        }
+
+        int host = startHost;
+        foreach (DanteDevice device in configurableDevices)
+        {
+            SetDeviceIpAddressStatic(device, $"{cleanPrefix}.{host}", cleanNetmask, cleanGateway);
+            host++;
+        }
+
+        int skipped = Devices.Count - configurableDevices.Length;
+        RegisterChange("IP fixes globales", $"{configurableDevices.Length} machine(s) depuis {cleanPrefix}.{startHost}, {skipped} ignorée(s) sans interface IPv4");
     }
 
     public void SetPreferredMaster(string deviceName, bool preferredMaster)
@@ -357,6 +410,16 @@ public sealed class DanteProject
         device.Element.Remove();
         RegisterChange("Machine supprimée", $"{deviceName} supprimé, {removedSubscriptions} patch(s) nettoyé(s)");
         return removedSubscriptions;
+    }
+
+    public int ResetDevicePatches(string deviceName)
+    {
+        DanteDevice device = FindDevice(deviceName) ?? throw new InvalidOperationException("Device introuvable.");
+        int removedRxSubscriptions = RemoveSubscriptionsFromDeviceRxChannels(device.Name);
+        int removedTxSubscriptions = RemoveSubscriptionsReferencingDevice(device.Name);
+        int total = removedRxSubscriptions + removedTxSubscriptions;
+        RegisterChange("Patch machine reset", $"{deviceName}: {removedRxSubscriptions} entrée(s) RX et {removedTxSubscriptions} départ(s) TX supprimé(s)");
+        return total;
     }
 
     public IReadOnlyList<string> FindDuplicateDeviceNamesInXml(string path)
@@ -629,6 +692,33 @@ public sealed class DanteProject
         return count;
     }
 
+    private int RemoveSubscriptionsFromDeviceRxChannels(string rxDeviceName)
+    {
+        DanteDevice device = FindDevice(rxDeviceName) ?? throw new InvalidOperationException("Device introuvable.");
+        int count = 0;
+        foreach (XElement rxChannel in device.Element.Elements("rxchannel").ToArray())
+        {
+            bool hadSubscription = SubscriptionDeviceElementNames
+                .Concat(SubscriptionChannelElementNames)
+                .Any(elementName => rxChannel.Element(elementName) is not null);
+
+            if (!hadSubscription)
+            {
+                continue;
+            }
+
+            foreach (string elementName in SubscriptionDeviceElementNames.Concat(SubscriptionChannelElementNames))
+            {
+                rxChannel.Element(elementName)?.Remove();
+            }
+
+            _modifiedRxElements[rxChannel] = true;
+            count++;
+        }
+
+        return count;
+    }
+
     public DanteValidationResult Validate()
     {
         // Validation volontairement prudente : erreurs bloquantes pour les cas
@@ -874,6 +964,42 @@ public sealed class DanteProject
                 Before: device.IpModeDisplay,
                 After: "Auto",
                 Changed: DeviceHasStaticIpConfiguration(device))));
+    }
+
+    public string BuildAllStaticIpPreview(string prefix, int startHost, string netmask, string gateway)
+    {
+        string cleanPrefix = ValidateIpv4Prefix(prefix);
+        string cleanNetmask = ValidateIpv4Address(string.IsNullOrWhiteSpace(netmask) ? "255.255.255.0" : netmask, "masque");
+        string cleanGateway = ValidateIpv4Address(string.IsNullOrWhiteSpace(gateway) ? "0.0.0.0" : gateway, "passerelle");
+        DanteDevice[] configurableDevices = Devices.Where(DeviceSupportsIpConfiguration).ToArray();
+        if (configurableDevices.Length == 0)
+        {
+            throw new InvalidOperationException("Aucune machine du XML ne contient d'interface IPv4 modifiable.");
+        }
+
+        if (startHost < 1 || startHost > 254 || startHost + configurableDevices.Length - 1 > 254)
+        {
+            throw new InvalidOperationException("La plage IP demandée doit rester entre .1 et .254.");
+        }
+
+        Dictionary<string, string> targetByDeviceName = configurableDevices
+            .Select((device, index) => new { device.Name, Address = $"{cleanPrefix}.{startHost + index}" })
+            .ToDictionary(item => item.Name, item => item.Address, StringComparer.OrdinalIgnoreCase);
+
+        return BuildDevicePreview(
+            $"fixer les IP depuis {cleanPrefix}.{startHost} / {cleanNetmask} / gateway {cleanGateway}",
+            Devices.Select(device =>
+            {
+                bool configurable = targetByDeviceName.TryGetValue(device.Name, out string? targetAddress);
+                string before = device.UsesStaticIp ? device.IpModeDisplay : "Auto";
+                return (
+                    Device: device.Name,
+                    Before: before,
+                    After: configurable ? $"Fixe ({targetAddress})" : "non modifiable",
+                    Changed: configurable && (!string.Equals(device.StaticIpAddress, targetAddress, StringComparison.OrdinalIgnoreCase)
+                        || !string.Equals(device.StaticIpNetmask, cleanNetmask, StringComparison.OrdinalIgnoreCase)
+                        || !string.Equals(device.StaticIpGateway, cleanGateway, StringComparison.OrdinalIgnoreCase)));
+            }));
     }
 
     public string BuildAllNetworkModePreview(bool redundant)
@@ -1837,7 +1963,17 @@ public sealed class DanteProject
                 }
             }
 
-            if (!string.IsNullOrWhiteSpace(ipv4Address.Value))
+            foreach (string elementName in StaticIpElementNames)
+            {
+                XElement? element = ipv4Address.Element(elementName);
+                if (element is not null)
+                {
+                    element.Remove();
+                    changed = true;
+                }
+            }
+
+            if (!ipv4Address.HasElements && !string.IsNullOrWhiteSpace(ipv4Address.Value))
             {
                 ipv4Address.Value = string.Empty;
                 changed = true;
@@ -1845,6 +1981,46 @@ public sealed class DanteProject
         }
 
         return changed;
+    }
+
+    private static void SetDeviceIpAddressStatic(DanteDevice device, string address, string netmask, string gateway)
+    {
+        XElement ipv4Address = FindOrCreateIpv4AddressElement(device.Element);
+        ipv4Address.SetAttributeValue("mode", "static");
+        foreach (string attributeName in StaticIpAttributeNames)
+        {
+            ipv4Address.Attribute(attributeName)?.Remove();
+        }
+
+        SetElementValue(ipv4Address, "address", address);
+        SetElementValue(ipv4Address, "netmask", netmask);
+        SetElementValue(ipv4Address, "gateway", gateway);
+        SetElementValue(ipv4Address, "dnsserver", "0.0.0.0");
+    }
+
+    private static XElement FindOrCreateIpv4AddressElement(XElement deviceElement)
+    {
+        XElement? ipv4Address = deviceElement.Descendants("ipv4_address").FirstOrDefault();
+        if (ipv4Address is not null)
+        {
+            return ipv4Address;
+        }
+
+        XElement? interfaceElement = deviceElement.Element("interface");
+        if (interfaceElement is null)
+        {
+            throw new InvalidOperationException($"La machine {deviceElement.Element("name")?.Value.Trim()} ne contient pas de balise <interface> IPv4 modifiable.");
+        }
+
+        ipv4Address = new XElement("ipv4_address");
+        interfaceElement.Add(ipv4Address);
+        return ipv4Address;
+    }
+
+    private static bool DeviceSupportsIpConfiguration(DanteDevice device)
+    {
+        return device.Element.Descendants("ipv4_address").Any()
+            || device.Element.Element("interface") is not null;
     }
 
     private static bool DeviceHasStaticIpConfiguration(DanteDevice device)
@@ -1857,6 +2033,7 @@ public sealed class DanteProject
         return device.Element.Descendants("ipv4_address").Any(ipv4Address =>
             !string.Equals(ipv4Address.Attribute("mode")?.Value, "dynamic", StringComparison.OrdinalIgnoreCase)
             || StaticIpAttributeNames.Any(attributeName => ipv4Address.Attribute(attributeName) is not null)
+            || StaticIpElementNames.Any(elementName => ipv4Address.Element(elementName) is not null)
             || !string.IsNullOrWhiteSpace(ipv4Address.Value));
     }
 
@@ -2067,6 +2244,38 @@ public sealed class DanteProject
         }
 
         return cleanEncoding;
+    }
+
+    private static string ValidateIpv4Address(string value, string label)
+    {
+        string cleanValue = value.Trim();
+        if (!IPAddress.TryParse(cleanValue, out IPAddress? address)
+            || address.AddressFamily is not System.Net.Sockets.AddressFamily.InterNetwork)
+        {
+            throw new InvalidOperationException($"Le champ {label} doit être une adresse IPv4 valide.");
+        }
+
+        return address.ToString();
+    }
+
+    private static string ValidateIpv4Prefix(string value)
+    {
+        string cleanValue = value.Trim();
+        string[] parts = cleanValue.Split('.', StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length != 3)
+        {
+            throw new InvalidOperationException("Le préfixe IP doit contenir les trois premiers octets, par exemple 192.168.1.");
+        }
+
+        foreach (string part in parts)
+        {
+            if (!int.TryParse(part, out int octet) || octet < 0 || octet > 255)
+            {
+                throw new InvalidOperationException("Le préfixe IP contient un octet invalide.");
+            }
+        }
+
+        return string.Join(".", parts.Select(part => int.Parse(part).ToString()));
     }
 
     private static string FormatSamplerateForDisplay(string samplerate)

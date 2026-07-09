@@ -63,6 +63,9 @@ public static class LocalizationService
         ["Action.SampleRateUpdated"] = "Sample rate mise à jour.",
         ["Action.EncodingUpdated"] = "Bits par échantillon mis à jour.",
         ["Action.IpAutoApplied"] = "IP automatique appliquée.",
+        ["Action.IpStaticApplied"] = "IP fixe appliquée.",
+        ["Action.DevicePatchesReset"] = "Patchs RX/TX de la machine réinitialisés.",
+        ["Action.DeviceDetailsUpdated"] = "Détail machine mis à jour.",
         ["Action.PreferredMasterUpdated"] = "Preferred master mis à jour.",
         ["Action.ChannelsReset"] = "Canaux réinitialisés.",
         ["Action.ChannelRenamed"] = "Canal renommé.",
@@ -72,6 +75,7 @@ public static class LocalizationService
         ["Action.AllSampleRatesApplied"] = "Sample rate appliquée à tous les devices.",
         ["Action.AllEncodingsApplied"] = "Bits par échantillon appliqués à tous les devices.",
         ["Action.AllIpAutoApplied"] = "IP automatique appliquée à tous les devices.",
+        ["Action.AllIpStaticApplied"] = "IP fixes appliquées en série.",
         ["Action.SolePreferredMasterApplied"] = "Preferred master unique appliqué.",
         ["Action.AllPreferredMastersCleared"] = "Tous les preferred masters ont été retirés.",
         ["Action.AllChannelsReset"] = "Tous les canaux ont été réinitialisés.",
@@ -130,6 +134,7 @@ public static class LocalizationService
         ["Dialog.NoFileLoadedTitle"] = "Aucun fichier chargé",
         ["Dialog.NoFileLoadedMessage"] = "Ouvrez d'abord un fichier XML de configuration Dante.",
         ["Dialog.DeleteDeviceWarning"] = "La machine '{0}' sera supprimée du projet. Les subscriptions/patchs qui pointent vers cette machine seront aussi supprimés. Continuer ?",
+        ["Dialog.ResetDevicePatchesWarning"] = "Les entrées RX de la machine '{0}' seront déconnectées, et tous les patchs qui utilisent ses TX seront supprimés. Continuer ?",
         ["Dialog.MergeXmlWarning"] = "Les machines du fichier XML sélectionné seront ajoutées au projet courant. Les noms de machines déjà présents seront refusés. Continuer ?",
         ["DuplicateDialog.Title"] = "Doublons de machines",
         ["DuplicateDialog.Intro"] = "Certaines machines du XML importé existent déjà dans le projet ouvert. Vous pouvez importer seulement les machines sans doublon, renommer automatiquement les doublons, ou choisir vous-même les nouveaux noms.",
@@ -146,6 +151,9 @@ public static class LocalizationService
         ["Dialog.LatencyWarningContinue"] = "Modifier la latence Dante peut provoquer une reconfiguration des flux lors de l'import/application dans les outils Dante. Continuer ?",
         ["Dialog.AudioFormatWarning"] = "Modifier la sample rate ou les bits par échantillon peut rendre certaines machines incompatibles si elles ne supportent pas cette valeur. Vérifiez toujours le preset dans Dante Controller.",
         ["Dialog.AudioFormatWarningContinue"] = "Modifier la sample rate ou les bits par échantillon peut rendre certaines machines incompatibles si elles ne supportent pas cette valeur. Continuer ?",
+        ["Dialog.IpStaticWarning"] = "Modifier une IP en fixe peut couper la communication si l'adresse, le masque ou la passerelle sont mauvais. Vérifiez toujours le preset dans Dante Controller.",
+        ["Dialog.IpStaticWarningContinue"] = "Modifier les IP en fixe peut couper la communication si la plage, le masque ou la passerelle sont mauvais. Continuer ?",
+        ["Dialog.DeviceDetailsWarning"] = "Les changements de cette fiche peuvent modifier le nom de la machine, ses formats, son IP et ses canaux. Continuer ?",
         ["Dialog.ResetDeviceChannelsWarning"] = "Les noms des canaux du device sélectionné seront remplacés par 1, 2, 3...",
         ["Dialog.BatchRenameWarning"] = "Les noms des canaux {0} {1} à {2} seront remplacés en série. Continuer ?",
         ["Dialog.Continue"] = "Continuer ?",
@@ -233,6 +241,9 @@ public static class LocalizationService
         ["Action.SampleRateUpdated"] = "Sample rate updated.",
         ["Action.EncodingUpdated"] = "Bits per sample updated.",
         ["Action.IpAutoApplied"] = "Automatic IP applied.",
+        ["Action.IpStaticApplied"] = "Static IP applied.",
+        ["Action.DevicePatchesReset"] = "Device Rx/Tx subscriptions reset.",
+        ["Action.DeviceDetailsUpdated"] = "Device details updated.",
         ["Action.PreferredMasterUpdated"] = "Preferred Master updated.",
         ["Action.ChannelsReset"] = "Channels reset.",
         ["Action.ChannelRenamed"] = "Channel renamed.",
@@ -242,6 +253,7 @@ public static class LocalizationService
         ["Action.AllSampleRatesApplied"] = "Sample rate applied to all devices.",
         ["Action.AllEncodingsApplied"] = "Bits per sample applied to all devices.",
         ["Action.AllIpAutoApplied"] = "Automatic IP applied to all devices.",
+        ["Action.AllIpStaticApplied"] = "Static IP range applied.",
         ["Action.SolePreferredMasterApplied"] = "Single Preferred Master applied.",
         ["Action.AllPreferredMastersCleared"] = "All Preferred Masters have been cleared.",
         ["Action.AllChannelsReset"] = "All channels have been reset.",
@@ -300,6 +312,7 @@ public static class LocalizationService
         ["Dialog.NoFileLoadedTitle"] = "No file loaded",
         ["Dialog.NoFileLoadedMessage"] = "Open a Dante configuration XML file first.",
         ["Dialog.DeleteDeviceWarning"] = "Device '{0}' will be deleted from the project. Subscriptions/patches pointing to this device will also be removed. Continue?",
+        ["Dialog.ResetDevicePatchesWarning"] = "The Rx inputs of device '{0}' will be disconnected, and all subscriptions using its Tx channels will be removed. Continue?",
         ["Dialog.MergeXmlWarning"] = "Devices from the selected XML file will be added to the current project. Device names that already exist will be rejected. Continue?",
         ["DuplicateDialog.Title"] = "Duplicate devices",
         ["DuplicateDialog.Intro"] = "Some devices from the imported XML already exist in the open project. You can import only non-duplicate devices, automatically rename duplicates, or choose the new names manually.",
@@ -316,6 +329,9 @@ public static class LocalizationService
         ["Dialog.LatencyWarningContinue"] = "Changing Dante latency may reconfigure flows when the preset is imported/applied in Dante tools. Continue?",
         ["Dialog.AudioFormatWarning"] = "Changing sample rate or bits per sample may make some devices incompatible if they do not support that value. Always verify the preset in Dante Controller.",
         ["Dialog.AudioFormatWarningContinue"] = "Changing sample rate or bits per sample may make some devices incompatible if they do not support that value. Continue?",
+        ["Dialog.IpStaticWarning"] = "Setting a static IP can break communication if the address, netmask, or gateway is wrong. Always verify the preset in Dante Controller.",
+        ["Dialog.IpStaticWarningContinue"] = "Setting static IPs can break communication if the range, netmask, or gateway is wrong. Continue?",
+        ["Dialog.DeviceDetailsWarning"] = "This device sheet can change the device name, formats, IP address, and channels. Continue?",
         ["Dialog.ResetDeviceChannelsWarning"] = "The selected device channel names will be replaced by 1, 2, 3...",
         ["Dialog.BatchRenameWarning"] = "Channel names {0} {1} to {2} will be replaced in a batch rename. Continue?",
         ["Dialog.Continue"] = "Continue?",
@@ -415,7 +431,13 @@ public static class LocalizationService
         Add(map, "Changer la fréquence", "Change sample rate");
         Add(map, "Bits par échantillon", "Bits per sample");
         Add(map, "Changer les bits", "Change bits");
+        Add(map, "Adresse IP fixe", "Static IP address");
+        Add(map, "Adresse IP", "IP address");
+        Add(map, "Masque", "Netmask");
+        Add(map, "Passerelle", "Gateway");
+        Add(map, "Fixer l'IP", "Set static IP");
         Add(map, "Mettre l'IP en automatique", "Set IP to automatic");
+        Add(map, "Reset patch RX/TX machine", "Reset device Rx/Tx subscriptions");
         Add(map, "Horloge", "Clock");
         Add(map, "Changer preferred master", "Change Preferred Master");
         Add(map, "Canaux de la machine", "Device channels");
@@ -437,6 +459,9 @@ public static class LocalizationService
         Add(map, "Appliquer la fréquence à tous", "Apply sample rate to all");
         Add(map, "Bits par échantillon globaux", "Global bits per sample");
         Add(map, "Appliquer les bits à tous", "Apply bits to all");
+        Add(map, "Préfixe IP", "IP prefix");
+        Add(map, "Premier numéro", "First number");
+        Add(map, "Fixer les IP en série", "Set static IP range");
         Add(map, "Mettre toutes les IP en automatique", "Set all IPs to automatic");
         Add(map, "Définir le device sélectionné comme seul preferred master", "Set selected device as sole Preferred Master");
         Add(map, "Appliquer preferred master sécurisé", "Apply safe Preferred Master");
@@ -447,6 +472,18 @@ public static class LocalizationService
         Add(map, "Sample rates", "Sample rates");
         Add(map, "Bits", "Bits");
         Add(map, "IP fixes", "Static IPs");
+        Add(map, "Détail machine", "Device details");
+        Add(map, "Identité et formats", "Identity and formats");
+        Add(map, "Nom machine", "Device name");
+        Add(map, "Adresse IP", "IP address");
+        Add(map, "Mode IP", "IP mode");
+        Add(map, "Automatique", "Automatic");
+        Add(map, "Fixe", "Static");
+        Add(map, "Canaux", "Channels");
+        Add(map, "Nom", "Name");
+        Add(map, "Annuler", "Cancel");
+        Add(map, "Appliquer", "Apply");
+        Add(map, "Les changements seront appliqués au XML après validation.", "Changes will be applied to the XML after confirmation.");
         Add(map, "Friendly name", "Friendly name");
         Add(map, "Latence", "Latency");
         Add(map, "IP", "IP");

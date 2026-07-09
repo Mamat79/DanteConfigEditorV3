@@ -487,6 +487,9 @@ public partial class MainWindow : Window
         SelectSampleRate(SampleRateComboBox, device.Samplerate);
         SelectEncoding(EncodingComboBox, device.Encoding);
         PreferredMasterCheckBox.IsChecked = device.PreferredMaster;
+        StaticIpAddressTextBox.Text = device.StaticIpAddress;
+        StaticIpNetmaskTextBox.Text = string.IsNullOrWhiteSpace(device.StaticIpNetmask) ? "255.255.255.0" : device.StaticIpNetmask;
+        StaticIpGatewayTextBox.Text = string.IsNullOrWhiteSpace(device.StaticIpGateway) ? "0.0.0.0" : device.StaticIpGateway;
         RefreshChannelSelector();
     }
 
@@ -547,6 +550,27 @@ public partial class MainWindow : Window
         RunProjectAction(
             T("Action.IpAutoApplied"),
             () => _project!.SetIpAddressDynamic(SelectedDeviceName()));
+    }
+
+    private void ApplyIpStaticButton_Click(object sender, RoutedEventArgs e)
+    {
+        RunProjectAction(
+            T("Action.IpStaticApplied"),
+            () => _project!.SetIpAddressStatic(
+                SelectedDeviceName(),
+                StaticIpAddressTextBox.Text,
+                StaticIpNetmaskTextBox.Text,
+                StaticIpGatewayTextBox.Text),
+            T("Dialog.IpStaticWarning"));
+    }
+
+    private void ResetDevicePatchesButton_Click(object sender, RoutedEventArgs e)
+    {
+        string deviceName = SelectedDeviceName();
+        RunProjectAction(
+            T("Action.DevicePatchesReset"),
+            () => _project!.ResetDevicePatches(deviceName),
+            Tf("Dialog.ResetDevicePatchesWarning", deviceName));
     }
 
     private void ApplyPreferredMasterButton_Click(object sender, RoutedEventArgs e)
@@ -671,6 +695,39 @@ public partial class MainWindow : Window
             T("Action.AllIpAutoApplied"),
             () => _project!.SetAllIpAddressesDynamic(),
             _project?.BuildAllIpAutoPreview() + Environment.NewLine + T("Dialog.Continue"));
+    }
+
+    private void ApplyAllIpStaticButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (!int.TryParse(GlobalIpStartTextBox.Text.Trim(), out int startHost))
+        {
+            ShowError(T("Dialog.InvalidNumberTitle"), T("Dialog.InvalidNumberMessage"));
+            return;
+        }
+
+        string preview;
+        try
+        {
+            preview = _project?.BuildAllStaticIpPreview(
+                GlobalIpPrefixTextBox.Text,
+                startHost,
+                GlobalIpNetmaskTextBox.Text,
+                GlobalIpGatewayTextBox.Text) ?? string.Empty;
+        }
+        catch (Exception ex)
+        {
+            ShowError(T("Dialog.ActionImpossibleTitle"), ex.Message);
+            return;
+        }
+
+        RunProjectAction(
+            T("Action.AllIpStaticApplied"),
+            () => _project!.SetAllIpAddressesStaticSequential(
+                GlobalIpPrefixTextBox.Text,
+                startHost,
+                GlobalIpNetmaskTextBox.Text,
+                GlobalIpGatewayTextBox.Text),
+            preview + Environment.NewLine + T("Dialog.IpStaticWarningContinue"));
     }
 
     private void ApplyAllPreferredMasterButton_Click(object sender, RoutedEventArgs e)
@@ -844,6 +901,124 @@ public partial class MainWindow : Window
                 {
                     ChannelComboBox.SelectedItem = channel;
                 }
+            }
+        }
+    }
+
+    private void DeviceGrid_MouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
+    {
+        if (DeviceGrid.SelectedItem is not DanteDevice device)
+        {
+            return;
+        }
+
+        OpenDeviceDetailsWindow(device.Name);
+    }
+
+    private void DevicePreferredMasterCheckBox_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is not CheckBox checkBox || checkBox.DataContext is not DanteDevice device)
+        {
+            return;
+        }
+
+        RunProjectAction(
+            T("Action.PreferredMasterUpdated"),
+            () => _project!.SetPreferredMaster(device.Name, checkBox.IsChecked == true));
+    }
+
+    private void OpenDeviceDetailsWindow(string deviceName)
+    {
+        if (!EnsureProjectLoaded())
+        {
+            return;
+        }
+
+        DanteDevice device = _project!.FindDevice(deviceName) ?? throw new InvalidOperationException("Device introuvable.");
+        DeviceDetailsWindow window = new(_language, device)
+        {
+            Owner = this
+        };
+
+        if (window.ShowDialog() != true || window.Result is null)
+        {
+            return;
+        }
+
+        RunProjectAction(
+            T("Action.DeviceDetailsUpdated"),
+            () => ApplyDeviceDetails(window.OriginalDeviceName, window.Result),
+            T("Dialog.DeviceDetailsWarning"));
+    }
+
+    private void ApplyDeviceDetails(string originalDeviceName, DeviceDetailsResult result)
+    {
+        DanteDevice originalDevice = _project!.FindDevice(originalDeviceName) ?? throw new InvalidOperationException("Device introuvable.");
+        string currentName = originalDevice.Name;
+
+        if (!string.Equals(currentName, result.DeviceName, StringComparison.Ordinal))
+        {
+            _project.RenameDevice(currentName, result.DeviceName);
+            currentName = result.DeviceName;
+        }
+
+        if (originalDevice.IsRedundant != result.IsRedundant)
+        {
+            _project.SetNetworkMode(currentName, result.IsRedundant);
+        }
+
+        if (!string.Equals(originalDevice.Latency, result.Latency, StringComparison.OrdinalIgnoreCase))
+        {
+            _project.SetLatency(currentName, result.Latency);
+        }
+
+        if (!string.Equals(originalDevice.Samplerate, result.Samplerate, StringComparison.OrdinalIgnoreCase))
+        {
+            _project.SetSamplerate(currentName, result.Samplerate);
+        }
+
+        if (!string.Equals(originalDevice.Encoding, result.Encoding, StringComparison.OrdinalIgnoreCase))
+        {
+            _project.SetEncoding(currentName, result.Encoding);
+        }
+
+        if (originalDevice.PreferredMaster != result.PreferredMaster)
+        {
+            _project.SetPreferredMaster(currentName, result.PreferredMaster);
+        }
+
+        if (result.UsesStaticIp)
+        {
+            if (!originalDevice.UsesStaticIp
+                || !string.Equals(originalDevice.StaticIpAddress, result.StaticIpAddress, StringComparison.OrdinalIgnoreCase)
+                || !string.Equals(originalDevice.StaticIpNetmask, result.StaticIpNetmask, StringComparison.OrdinalIgnoreCase)
+                || !string.Equals(originalDevice.StaticIpGateway, result.StaticIpGateway, StringComparison.OrdinalIgnoreCase))
+            {
+                _project.SetIpAddressStatic(currentName, result.StaticIpAddress, result.StaticIpNetmask, result.StaticIpGateway);
+            }
+        }
+        else if (originalDevice.UsesStaticIp)
+        {
+            _project.SetIpAddressDynamic(currentName);
+        }
+
+        foreach (DeviceChannelEdit channel in result.TxChannels)
+        {
+            DanteDevice? currentDevice = _project.FindDevice(currentName);
+            DanteChannel? currentChannel = currentDevice?.TxChannels.FirstOrDefault(candidate => candidate.Index == channel.Index);
+            if (currentChannel is not null && !string.Equals(currentChannel.DisplayName, channel.Name, StringComparison.Ordinal))
+            {
+                _project.RenameChannel(currentName, DanteChannelKind.Tx, channel.Index, channel.Name);
+            }
+        }
+
+        foreach (DeviceChannelEdit channel in result.RxChannels)
+        {
+            DanteDevice? currentDevice = _project.FindDevice(currentName);
+            DanteChannel? currentChannel = currentDevice?.RxChannels.FirstOrDefault(candidate => candidate.Index == channel.Index);
+            if (currentChannel is not null && !string.Equals(currentChannel.DisplayName, channel.Name, StringComparison.Ordinal))
+            {
+                _project.RenameChannel(currentName, DanteChannelKind.Rx, channel.Index, channel.Name);
             }
         }
     }
@@ -1733,6 +1908,8 @@ public partial class MainWindow : Window
         yield return ApplySampleRateButton;
         yield return ApplyEncodingButton;
         yield return ApplyIpAutoButton;
+        yield return ApplyIpStaticButton;
+        yield return ResetDevicePatchesButton;
         yield return ApplyPreferredMasterButton;
         yield return RenameChannelButton;
         yield return ResetDeviceChannelsButton;
@@ -1742,6 +1919,7 @@ public partial class MainWindow : Window
         yield return ApplyAllSampleRateButton;
         yield return ApplyAllEncodingButton;
         yield return ApplyAllIpAutoButton;
+        yield return ApplyAllIpStaticButton;
         yield return ApplyAllPreferredMasterButton;
         yield return ResetAllChannelsButton;
         yield return ApplyPatchButton;

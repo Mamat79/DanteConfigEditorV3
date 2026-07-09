@@ -65,6 +65,7 @@ Pour reconstruire l'installateur autonome :
 - Avertissement visible si plusieurs sample rates ou plusieurs encodages sont présents dans le preset.
 - Validation de sauvegarde adaptée aux imports et suppressions de machines.
 - Page Configuration plus lisible : zone de réglages défilable, table des machines gardée visible et recherche globale avec message d'aide.
+- Ouverture en plein écran, fiche machine au double-clic, preferred master cochable dans la table, IP fixe manuelle/en série et reset patch RX/TX par machine.
 
 ## Nouveautés V3.04
 

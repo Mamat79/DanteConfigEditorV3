@@ -29,6 +29,9 @@ Outil Windows pour éditer hors ligne des fichiers XML de configuration Dante.
 - Affiche et modifie les sample rates et les bits par échantillon machine par machine ou globalement.
 - Signale les projets qui mélangent plusieurs sample rates ou plusieurs encodages.
 - Peut remettre les adresses IPv4 des machines en automatique quand le XML contient ces informations.
+- Peut fixer une IP manuelle sur une machine ou générer une plage d'IP fixes en série.
+- Ouvre une fiche machine au double-clic pour modifier les formats, l'IP et les canaux TX/RX.
+- Réinitialise les patchs RX/TX d'une machine.
 - Affiche une page `Santé du fichier` avec les points à vérifier.
 - Annule la dernière action.
 - Recherche globalement dans les machines, canaux et patchs.
@@ -95,6 +98,7 @@ L'installateur contient uniquement l'application autonome et la documentation ut
 - Avertissements renforcés si plusieurs sample rates ou plusieurs encodages coexistent dans le projet.
 - Compatibilité de sauvegarde adaptée aux fonctions d'ajout/suppression de machines.
 - Page Configuration plus lisible : réglages défilables, table des machines gardée visible et recherche globale avec message d'aide.
+- Ouverture en plein écran, fiche machine au double-clic, preferred master cochable dans la table, IP fixe en série et reset patch RX/TX par machine.
 
 ## Nouveautés V3.04
 

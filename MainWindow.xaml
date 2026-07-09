@@ -6,6 +6,7 @@
         Height="820"
         MinWidth="1120"
         MinHeight="720"
+        WindowState="Maximized"
         Loaded="Window_Loaded">
     <Window.Resources>
         <SolidColorBrush x:Key="WindowBackgroundBrush" Color="#10141F" />
@@ -405,11 +406,7 @@
                                 <RowDefinition Height="2*" MinHeight="220" />
                             </Grid.RowDefinitions>
 
-                            <ScrollViewer Grid.Row="0"
-                                          Margin="0,0,0,12"
-                                          VerticalScrollBarVisibility="Auto"
-                                          HorizontalScrollBarVisibility="Disabled">
-                            <Grid>
+                            <Grid Grid.Row="0" Margin="0,0,0,12">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="1.15*" />
                                     <ColumnDefinition Width="1.15*" />
@@ -423,6 +420,8 @@
                                             <ColumnDefinition Width="*" />
                                         </Grid.ColumnDefinitions>
                                         <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto" />
+                                            <RowDefinition Height="Auto" />
                                             <RowDefinition Height="Auto" />
                                             <RowDefinition Height="Auto" />
                                             <RowDefinition Height="Auto" />
@@ -477,12 +476,39 @@
                                             <Button x:Name="ApplyEncodingButton" Content="Changer les bits" Click="ApplyEncodingButton_Click" />
                                         </StackPanel>
 
-                                        <Button x:Name="ApplyIpAutoButton"
-                                                Grid.Row="4"
-                                                Grid.ColumnSpan="2"
-                                                Content="Mettre l'IP en automatique"
-                                                Style="{StaticResource SecondaryButtonStyle}"
-                                                Click="ApplyIpAutoButton_Click" />
+                                        <Grid Grid.Row="4" Grid.ColumnSpan="2" Margin="0,8,0,0">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="*" />
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel Margin="0,0,8,0">
+                                                <Label Content="Adresse IP fixe" />
+                                                <TextBox x:Name="StaticIpAddressTextBox" />
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="1" Margin="0,0,8,0">
+                                                <Label Content="Masque" />
+                                                <TextBox x:Name="StaticIpNetmaskTextBox" Text="255.255.255.0" />
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="2">
+                                                <Label Content="Passerelle" />
+                                                <TextBox x:Name="StaticIpGatewayTextBox" Text="0.0.0.0" />
+                                            </StackPanel>
+                                        </Grid>
+
+                                        <WrapPanel Grid.Row="5" Grid.ColumnSpan="2" Margin="0,8,0,0">
+                                            <Button x:Name="ApplyIpStaticButton"
+                                                    Content="Fixer l'IP"
+                                                    Click="ApplyIpStaticButton_Click" />
+                                            <Button x:Name="ApplyIpAutoButton"
+                                                    Content="Mettre l'IP en automatique"
+                                                    Style="{StaticResource SecondaryButtonStyle}"
+                                                    Click="ApplyIpAutoButton_Click" />
+                                            <Button x:Name="ResetDevicePatchesButton"
+                                                    Content="Reset patch RX/TX machine"
+                                                    Style="{StaticResource SecondaryButtonStyle}"
+                                                    Click="ResetDevicePatchesButton_Click" />
+                                        </WrapPanel>
                                     </Grid>
                                 </GroupBox>
 
@@ -543,35 +569,6 @@
                                 </GroupBox>
 
                                 <StackPanel Grid.Column="2">
-                                    <GroupBox Header="Actions globales">
-                                        <StackPanel>
-                                            <StackPanel Orientation="Horizontal">
-                                                <RadioButton x:Name="GlobalRedundantRadioButton" Content="Redondant" GroupName="GlobalNetworkMode" />
-                                                <RadioButton x:Name="GlobalDaisychainRadioButton" Content="Daisychain" GroupName="GlobalNetworkMode" />
-                                            </StackPanel>
-                                            <Button x:Name="ApplyAllNetworkButton" Content="Appliquer le mode à tous" Click="ApplyAllNetworkButton_Click" />
-
-                                            <Label Content="Latence globale" />
-                                            <ComboBox x:Name="GlobalLatencyComboBox" ToolTip="La valeur affichée est en ms. Le XML conserve la valeur brute Dante." />
-                                            <Button x:Name="ApplyAllLatencyButton" Content="Appliquer la latence à tous" Click="ApplyAllLatencyButton_Click" />
-
-                                            <Label Content="Sample rate globale" />
-                                            <ComboBox x:Name="GlobalSampleRateComboBox" IsEditable="True" />
-                                            <Button x:Name="ApplyAllSampleRateButton" Content="Appliquer la fréquence à tous" Click="ApplyAllSampleRateButton_Click" />
-
-                                            <Label Content="Bits par échantillon globaux" />
-                                            <ComboBox x:Name="GlobalEncodingComboBox" IsEditable="True" />
-                                            <Button x:Name="ApplyAllEncodingButton" Content="Appliquer les bits à tous" Click="ApplyAllEncodingButton_Click" />
-
-                                            <Button x:Name="ApplyAllIpAutoButton" Content="Mettre toutes les IP en automatique" Style="{StaticResource SecondaryButtonStyle}" Click="ApplyAllIpAutoButton_Click" />
-
-                                            <CheckBox x:Name="GlobalPreferredMasterCheckBox" Content="Définir le device sélectionné comme seul preferred master" />
-                                            <Button x:Name="ApplyAllPreferredMasterButton" Content="Appliquer preferred master sécurisé" Click="ApplyAllPreferredMasterButton_Click" />
-
-                                            <Button x:Name="ResetAllChannelsButton" Content="Réinitialiser tous les canaux" Style="{StaticResource SecondaryButtonStyle}" Click="ResetAllChannelsButton_Click" />
-                                        </StackPanel>
-                                    </GroupBox>
-
                                     <GroupBox Header="Listes rapides">
                                         <WrapPanel>
                                             <Button Content="Redondants" Style="{StaticResource SecondaryButtonStyle}" Click="ListRedundantButton_Click" />
@@ -583,11 +580,59 @@
                                             <Button Content="Preferred masters" Style="{StaticResource SecondaryButtonStyle}" Click="ListPreferredMastersButton_Click" />
                                         </WrapPanel>
                                     </GroupBox>
+
+                                    <GroupBox Header="Actions globales">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="*" />
+                                            </Grid.ColumnDefinitions>
+
+                                            <StackPanel Margin="0,0,8,0">
+                                                <StackPanel Orientation="Horizontal">
+                                                    <RadioButton x:Name="GlobalRedundantRadioButton" Content="Redondant" GroupName="GlobalNetworkMode" />
+                                                    <RadioButton x:Name="GlobalDaisychainRadioButton" Content="Daisychain" GroupName="GlobalNetworkMode" />
+                                                </StackPanel>
+                                                <Button x:Name="ApplyAllNetworkButton" Content="Appliquer le mode à tous" Click="ApplyAllNetworkButton_Click" />
+
+                                                <Label Content="Latence globale" />
+                                                <ComboBox x:Name="GlobalLatencyComboBox" ToolTip="La valeur affichée est en ms. Le XML conserve la valeur brute Dante." />
+                                                <Button x:Name="ApplyAllLatencyButton" Content="Appliquer la latence à tous" Click="ApplyAllLatencyButton_Click" />
+
+                                                <Label Content="Sample rate globale" />
+                                                <ComboBox x:Name="GlobalSampleRateComboBox" IsEditable="True" />
+                                                <Button x:Name="ApplyAllSampleRateButton" Content="Appliquer la fréquence à tous" Click="ApplyAllSampleRateButton_Click" />
+
+                                                <Label Content="Bits par échantillon globaux" />
+                                                <ComboBox x:Name="GlobalEncodingComboBox" IsEditable="True" />
+                                                <Button x:Name="ApplyAllEncodingButton" Content="Appliquer les bits à tous" Click="ApplyAllEncodingButton_Click" />
+                                            </StackPanel>
+
+                                            <StackPanel Grid.Column="1">
+                                                <Label Content="Préfixe IP" />
+                                                <TextBox x:Name="GlobalIpPrefixTextBox" Text="192.168.1" />
+                                                <Label Content="Premier numéro" />
+                                                <TextBox x:Name="GlobalIpStartTextBox" Text="10" />
+                                                <Label Content="Masque" />
+                                                <TextBox x:Name="GlobalIpNetmaskTextBox" Text="255.255.255.0" />
+                                                <Label Content="Passerelle" />
+                                                <TextBox x:Name="GlobalIpGatewayTextBox" Text="0.0.0.0" />
+                                                <Button x:Name="ApplyAllIpStaticButton" Content="Fixer les IP en série" Click="ApplyAllIpStaticButton_Click" />
+                                                <Button x:Name="ApplyAllIpAutoButton" Content="Mettre toutes les IP en automatique" Style="{StaticResource SecondaryButtonStyle}" Click="ApplyAllIpAutoButton_Click" />
+
+                                                <CheckBox x:Name="GlobalPreferredMasterCheckBox" Content="Définir le device sélectionné comme seul preferred master" />
+                                                <Button x:Name="ApplyAllPreferredMasterButton" Content="Preferred master sécurisé" Click="ApplyAllPreferredMasterButton_Click" />
+                                                <Button x:Name="ResetAllChannelsButton" Content="Réinitialiser tous les canaux" Style="{StaticResource SecondaryButtonStyle}" Click="ResetAllChannelsButton_Click" />
+                                            </StackPanel>
+                                        </Grid>
+                                    </GroupBox>
                                 </StackPanel>
                             </Grid>
-                            </ScrollViewer>
 
-                            <DataGrid x:Name="DeviceGrid" Grid.Row="1" MinHeight="220">
+                            <DataGrid x:Name="DeviceGrid"
+                                      Grid.Row="1"
+                                      MinHeight="220"
+                                      MouseDoubleClick="DeviceGrid_MouseDoubleClick">
                                 <DataGrid.Columns>
                                     <DataGridTextColumn Header="Device" Binding="{Binding Name}" Width="2*" />
                                     <DataGridTextColumn Header="Friendly name" Binding="{Binding FriendlyName}" Width="2*" />
@@ -596,7 +641,15 @@
                                     <DataGridTextColumn Header="Sample rate" Binding="{Binding SampleRateDisplay}" Width="*" />
                                     <DataGridTextColumn Header="Bits" Binding="{Binding EncodingDisplay}" Width="0.7*" />
                                     <DataGridTextColumn Header="IP" Binding="{Binding IpModeDisplay}" Width="1.2*" />
-                                    <DataGridCheckBoxColumn Header="Preferred" Binding="{Binding PreferredMaster, Mode=OneWay}" Width="*" />
+                                    <DataGridTemplateColumn Header="Preferred" Width="*">
+                                        <DataGridTemplateColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <CheckBox IsChecked="{Binding PreferredMaster, Mode=OneWay}"
+                                                          HorizontalAlignment="Center"
+                                                          Click="DevicePreferredMasterCheckBox_Click" />
+                                            </DataTemplate>
+                                        </DataGridTemplateColumn.CellTemplate>
+                                    </DataGridTemplateColumn>
                                     <DataGridTextColumn Header="TX" Binding="{Binding TxCount}" Width="0.7*" />
                                     <DataGridTextColumn Header="RX" Binding="{Binding RxCount}" Width="0.7*" />
                                 </DataGrid.Columns>

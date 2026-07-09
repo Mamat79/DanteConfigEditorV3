@@ -13,6 +13,11 @@
 - Ajout d'alertes visibles si plusieurs sample rates ou plusieurs encodages coexistent dans le preset.
 - Adaptation de la validation de sauvegarde aux imports et suppressions de machines.
 - Amélioration visuelle de la page Configuration : zone de réglages défilable, table des machines toujours visible et recherche globale plus lisible quand aucun résultat n'est affiché.
+- Ouverture de l'application en plein écran pour que la page Configuration soit lisible dès le départ.
+- Ajout d'une fenêtre de détail machine au double-clic, avec édition du nom, formats audio, IP et canaux TX/RX.
+- Preferred master cochable directement depuis la table des machines.
+- Ajout de l'IP fixe manuelle par machine et d'une action globale pour fixer une plage IP en série.
+- Ajout d'un reset patch RX/TX par machine : déconnexion des entrées RX et suppression des patchs qui utilisent ses TX.
 
 ## 2026-07-07 - Version 3.04
 

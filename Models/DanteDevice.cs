@@ -18,6 +18,9 @@ public sealed class DanteDevice
         Encoding = ReadElementValue(element, "encoding");
         UsesStaticIp = DetectStaticIp(element);
         StaticIpAddress = UsesStaticIp ? ReadIpAddress(element) : string.Empty;
+        StaticIpNetmask = ReadIpField(element, "netmask");
+        StaticIpGateway = ReadIpField(element, "gateway");
+        StaticIpDnsServer = ReadIpField(element, "dnsserver");
 
         // L'index est basé sur l'ordre des balises dans le XML, ce qui
         // correspond à la numérotation affichée dans l'application.
@@ -55,6 +58,12 @@ public sealed class DanteDevice
     public bool UsesStaticIp { get; }
 
     public string StaticIpAddress { get; }
+
+    public string StaticIpNetmask { get; }
+
+    public string StaticIpGateway { get; }
+
+    public string StaticIpDnsServer { get; }
 
     public string IpModeDisplay => UsesStaticIp
         ? string.IsNullOrWhiteSpace(StaticIpAddress) ? "Fixe" : $"Fixe ({StaticIpAddress})"
@@ -183,6 +192,14 @@ public sealed class DanteDevice
             .OrderBy(candidate => candidate.Priority)
             .Select(candidate => candidate.Value)
             .FirstOrDefault() ?? string.Empty;
+    }
+
+    private static string ReadIpField(XElement element, string fieldName)
+    {
+        XElement? ipv4Address = element.Descendants("ipv4_address").FirstOrDefault(candidate =>
+            string.Equals(candidate.Attribute("mode")?.Value, "static", StringComparison.OrdinalIgnoreCase));
+
+        return ipv4Address?.Element(fieldName)?.Value.Trim() ?? string.Empty;
     }
 
     private static void AddIpCandidate(List<(int Priority, string Value)> candidates, string name, string value)
