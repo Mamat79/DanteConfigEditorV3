@@ -8,6 +8,10 @@ public static class LocalizationService
         ["Language.English"] = "Anglais",
         ["Language.Label"] = "Langue",
 
+        ["Search.Hint"] = "Tapez au moins 2 caractères pour chercher",
+        ["Search.NoFileLoaded"] = "Chargez un XML pour chercher",
+        ["Search.NoResult"] = "Aucun résultat",
+
         ["Filter.AllSenders"] = "Tous les émetteurs",
         ["Filter.AllReceivers"] = "Tous les récepteurs",
         ["Filter.AllRx"] = "Tous les RX",
@@ -56,12 +60,18 @@ public static class LocalizationService
         ["Action.DeviceRenamed"] = "Nom mis à jour.",
         ["Action.NetworkModeUpdated"] = "Mode réseau mis à jour.",
         ["Action.LatencyUpdated"] = "Latence mise à jour.",
+        ["Action.SampleRateUpdated"] = "Sample rate mise à jour.",
+        ["Action.EncodingUpdated"] = "Bits par échantillon mis à jour.",
+        ["Action.IpAutoApplied"] = "IP automatique appliquée.",
         ["Action.PreferredMasterUpdated"] = "Preferred master mis à jour.",
         ["Action.ChannelsReset"] = "Canaux réinitialisés.",
         ["Action.ChannelRenamed"] = "Canal renommé.",
         ["Action.BatchRenameApplied"] = "Renommage en série appliqué.",
         ["Action.AllNetworkModesApplied"] = "Mode réseau appliqué à tous les devices.",
         ["Action.AllLatenciesApplied"] = "Latence appliquée à tous les devices.",
+        ["Action.AllSampleRatesApplied"] = "Sample rate appliquée à tous les devices.",
+        ["Action.AllEncodingsApplied"] = "Bits par échantillon appliqués à tous les devices.",
+        ["Action.AllIpAutoApplied"] = "IP automatique appliquée à tous les devices.",
         ["Action.SolePreferredMasterApplied"] = "Preferred master unique appliqué.",
         ["Action.AllPreferredMastersCleared"] = "Tous les preferred masters ont été retirés.",
         ["Action.AllChannelsReset"] = "Tous les canaux ont été réinitialisés.",
@@ -121,8 +131,21 @@ public static class LocalizationService
         ["Dialog.NoFileLoadedMessage"] = "Ouvrez d'abord un fichier XML de configuration Dante.",
         ["Dialog.DeleteDeviceWarning"] = "La machine '{0}' sera supprimée du projet. Les subscriptions/patchs qui pointent vers cette machine seront aussi supprimés. Continuer ?",
         ["Dialog.MergeXmlWarning"] = "Les machines du fichier XML sélectionné seront ajoutées au projet courant. Les noms de machines déjà présents seront refusés. Continuer ?",
+        ["DuplicateDialog.Title"] = "Doublons de machines",
+        ["DuplicateDialog.Intro"] = "Certaines machines du XML importé existent déjà dans le projet ouvert. Vous pouvez importer seulement les machines sans doublon, renommer automatiquement les doublons, ou choisir vous-même les nouveaux noms.",
+        ["DuplicateDialog.OriginalName"] = "Nom dans le XML importé",
+        ["DuplicateDialog.NewName"] = "Nouveau nom à importer",
+        ["DuplicateDialog.UniqueOnly"] = "Importer uniques seulement",
+        ["DuplicateDialog.AutoRename"] = "Renommage auto",
+        ["DuplicateDialog.ManualRename"] = "Importer avec ces noms",
+        ["DuplicateDialog.Cancel"] = "Annuler",
+        ["DuplicateDialog.InvalidTitle"] = "Noms invalides",
+        ["DuplicateDialog.EmptyName"] = "Chaque machine renommée doit avoir un nouveau nom.",
+        ["DuplicateDialog.DuplicateNewName"] = "Deux machines importées ne peuvent pas recevoir le même nouveau nom.",
         ["Dialog.LatencyWarning"] = "Modifier la latence Dante peut provoquer une reconfiguration des flux lors de l'import/application dans les outils Dante. Vérifiez toujours le preset dans Dante Controller.",
         ["Dialog.LatencyWarningContinue"] = "Modifier la latence Dante peut provoquer une reconfiguration des flux lors de l'import/application dans les outils Dante. Continuer ?",
+        ["Dialog.AudioFormatWarning"] = "Modifier la sample rate ou les bits par échantillon peut rendre certaines machines incompatibles si elles ne supportent pas cette valeur. Vérifiez toujours le preset dans Dante Controller.",
+        ["Dialog.AudioFormatWarningContinue"] = "Modifier la sample rate ou les bits par échantillon peut rendre certaines machines incompatibles si elles ne supportent pas cette valeur. Continuer ?",
         ["Dialog.ResetDeviceChannelsWarning"] = "Les noms des canaux du device sélectionné seront remplacés par 1, 2, 3...",
         ["Dialog.BatchRenameWarning"] = "Les noms des canaux {0} {1} à {2} seront remplacés en série. Continuer ?",
         ["Dialog.Continue"] = "Continuer ?",
@@ -154,6 +177,10 @@ public static class LocalizationService
         ["Language.French"] = "French",
         ["Language.English"] = "English",
         ["Language.Label"] = "Language",
+
+        ["Search.Hint"] = "Type at least 2 characters to search",
+        ["Search.NoFileLoaded"] = "Load an XML file to search",
+        ["Search.NoResult"] = "No result",
 
         ["Filter.AllSenders"] = "All transmitters",
         ["Filter.AllReceivers"] = "All receivers",
@@ -203,12 +230,18 @@ public static class LocalizationService
         ["Action.DeviceRenamed"] = "Device name updated.",
         ["Action.NetworkModeUpdated"] = "Network mode updated.",
         ["Action.LatencyUpdated"] = "Latency updated.",
+        ["Action.SampleRateUpdated"] = "Sample rate updated.",
+        ["Action.EncodingUpdated"] = "Bits per sample updated.",
+        ["Action.IpAutoApplied"] = "Automatic IP applied.",
         ["Action.PreferredMasterUpdated"] = "Preferred Master updated.",
         ["Action.ChannelsReset"] = "Channels reset.",
         ["Action.ChannelRenamed"] = "Channel renamed.",
         ["Action.BatchRenameApplied"] = "Batch rename applied.",
         ["Action.AllNetworkModesApplied"] = "Network mode applied to all devices.",
         ["Action.AllLatenciesApplied"] = "Latency applied to all devices.",
+        ["Action.AllSampleRatesApplied"] = "Sample rate applied to all devices.",
+        ["Action.AllEncodingsApplied"] = "Bits per sample applied to all devices.",
+        ["Action.AllIpAutoApplied"] = "Automatic IP applied to all devices.",
         ["Action.SolePreferredMasterApplied"] = "Single Preferred Master applied.",
         ["Action.AllPreferredMastersCleared"] = "All Preferred Masters have been cleared.",
         ["Action.AllChannelsReset"] = "All channels have been reset.",
@@ -268,8 +301,21 @@ public static class LocalizationService
         ["Dialog.NoFileLoadedMessage"] = "Open a Dante configuration XML file first.",
         ["Dialog.DeleteDeviceWarning"] = "Device '{0}' will be deleted from the project. Subscriptions/patches pointing to this device will also be removed. Continue?",
         ["Dialog.MergeXmlWarning"] = "Devices from the selected XML file will be added to the current project. Device names that already exist will be rejected. Continue?",
+        ["DuplicateDialog.Title"] = "Duplicate devices",
+        ["DuplicateDialog.Intro"] = "Some devices from the imported XML already exist in the open project. You can import only non-duplicate devices, automatically rename duplicates, or choose the new names manually.",
+        ["DuplicateDialog.OriginalName"] = "Name in imported XML",
+        ["DuplicateDialog.NewName"] = "New name to import",
+        ["DuplicateDialog.UniqueOnly"] = "Import unique only",
+        ["DuplicateDialog.AutoRename"] = "Auto rename",
+        ["DuplicateDialog.ManualRename"] = "Import with these names",
+        ["DuplicateDialog.Cancel"] = "Cancel",
+        ["DuplicateDialog.InvalidTitle"] = "Invalid names",
+        ["DuplicateDialog.EmptyName"] = "Each renamed device must have a new name.",
+        ["DuplicateDialog.DuplicateNewName"] = "Two imported devices cannot receive the same new name.",
         ["Dialog.LatencyWarning"] = "Changing Dante latency may reconfigure flows when the preset is imported/applied in Dante tools. Always verify the preset in Dante Controller.",
         ["Dialog.LatencyWarningContinue"] = "Changing Dante latency may reconfigure flows when the preset is imported/applied in Dante tools. Continue?",
+        ["Dialog.AudioFormatWarning"] = "Changing sample rate or bits per sample may make some devices incompatible if they do not support that value. Always verify the preset in Dante Controller.",
+        ["Dialog.AudioFormatWarningContinue"] = "Changing sample rate or bits per sample may make some devices incompatible if they do not support that value. Continue?",
         ["Dialog.ResetDeviceChannelsWarning"] = "The selected device channel names will be replaced by 1, 2, 3...",
         ["Dialog.BatchRenameWarning"] = "Channel names {0} {1} to {2} will be replaced in a batch rename. Continue?",
         ["Dialog.Continue"] = "Continue?",
@@ -365,6 +411,11 @@ public static class LocalizationService
         Add(map, "Changer le mode", "Change mode");
         Add(map, "Latence unicast", "Unicast latency");
         Add(map, "Changer la latence", "Change latency");
+        Add(map, "Sample rate", "Sample rate");
+        Add(map, "Changer la fréquence", "Change sample rate");
+        Add(map, "Bits par échantillon", "Bits per sample");
+        Add(map, "Changer les bits", "Change bits");
+        Add(map, "Mettre l'IP en automatique", "Set IP to automatic");
         Add(map, "Horloge", "Clock");
         Add(map, "Changer preferred master", "Change Preferred Master");
         Add(map, "Canaux de la machine", "Device channels");
@@ -382,14 +433,23 @@ public static class LocalizationService
         Add(map, "Appliquer le mode à tous", "Apply mode to all");
         Add(map, "Latence globale", "Global latency");
         Add(map, "Appliquer la latence à tous", "Apply latency to all");
+        Add(map, "Sample rate globale", "Global sample rate");
+        Add(map, "Appliquer la fréquence à tous", "Apply sample rate to all");
+        Add(map, "Bits par échantillon globaux", "Global bits per sample");
+        Add(map, "Appliquer les bits à tous", "Apply bits to all");
+        Add(map, "Mettre toutes les IP en automatique", "Set all IPs to automatic");
         Add(map, "Définir le device sélectionné comme seul preferred master", "Set selected device as sole Preferred Master");
         Add(map, "Appliquer preferred master sécurisé", "Apply safe Preferred Master");
         Add(map, "Réinitialiser tous les canaux", "Reset all channels");
         Add(map, "Listes rapides", "Quick lists");
         Add(map, "Redondants", "Redundant");
         Add(map, "Latences", "Latencies");
+        Add(map, "Sample rates", "Sample rates");
+        Add(map, "Bits", "Bits");
+        Add(map, "IP fixes", "Static IPs");
         Add(map, "Friendly name", "Friendly name");
         Add(map, "Latence", "Latency");
+        Add(map, "IP", "IP");
         Add(map, "Preferred", "Preferred");
         Add(map, "Patch", "Patch");
         Add(map, "Filtre émetteur TX", "Tx transmitter filter");

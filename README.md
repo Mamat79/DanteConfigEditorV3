@@ -1,4 +1,4 @@
-# Dante Config Editor V3.04
+# Dante Config Editor V3.05
 
 Outil Windows pour éditer hors ligne des fichiers XML de configuration Dante.
 
@@ -11,7 +11,8 @@ Outil Windows pour éditer hors ligne des fichiers XML de configuration Dante.
 - Affiche les devices, canaux TX/RX, latences, mode réseau et preferred master.
 - Renomme les devices.
 - Supprime un device et nettoie les subscriptions/patchs qui pointent vers lui.
-- Ajoute les devices d'un second XML dans le projet ouvert, avec refus des noms de devices en doublon.
+- Ajoute les devices d'un second XML dans le projet ouvert, avec import des machines uniques même en présence de doublons.
+- Propose de renommer automatiquement ou manuellement les machines en doublon pendant l'import XML.
 - Renomme les canaux TX/RX.
 - Renomme des plages de canaux en série.
 - Réinitialise les noms de canaux.
@@ -25,6 +26,9 @@ Outil Windows pour éditer hors ligne des fichiers XML de configuration Dante.
 - Permet de modifier l'interface après ouverture d'un XML, mais impose une sauvegarde sous un autre nom pour protéger le fichier original.
 - Propose un choix de langue Français / Anglais dans l'application.
 - Affiche les latences Dante en ms tout en conservant les valeurs XML brutes.
+- Affiche et modifie les sample rates et les bits par échantillon machine par machine ou globalement.
+- Signale les projets qui mélangent plusieurs sample rates ou plusieurs encodages.
+- Peut remettre les adresses IPv4 des machines en automatique quand le XML contient ces informations.
 - Affiche une page `Santé du fichier` avec les points à vérifier.
 - Annule la dernière action.
 - Recherche globalement dans les machines, canaux et patchs.
@@ -34,7 +38,7 @@ Outil Windows pour éditer hors ligne des fichiers XML de configuration Dante.
 - Affiche un rapport compatibilité Dante Controller et une topologie simple TX vers RX.
 - Compare le fichier ouvert avec un autre XML.
 - Renomme des canaux en série.
-- Signale en gros les mélanges redondant/daisychain et les machines détectées en IP fixe.
+- Signale en gros les mélanges redondant/daisychain, les machines détectées en IP fixe et les formats audio mélangés.
 - Affiche les fichiers récents.
 - Propose un thème sombre et un thème clair.
 
@@ -78,6 +82,19 @@ L'installateur contient uniquement l'application autonome et la documentation ut
 7. Si besoin, utiliser `Ajouter XML au projet` pour importer les devices d'un autre export XML.
 8. Sauvegarder sous un nouveau nom.
 9. Valider le fichier généré dans l'outil Dante officiel approprié avant usage terrain.
+
+## Nouveautés V3.05
+
+- Import d'un second XML corrigé : les machines uniques sont importées même si d'autres machines du fichier sont en doublon.
+- Gestion des doublons à l'import : choix entre import des uniques seulement, renommage automatique ou renommage manuel.
+- Les patchs/subscriptions du XML importé suivent les nouveaux noms quand des machines importées sont renommées.
+- Réglages sample rate et bits par échantillon par machine.
+- Actions globales pour appliquer une sample rate ou des bits par échantillon à toutes les machines.
+- Fonction pour remettre les adresses IPv4 en automatique, par machine ou globalement, quand le XML expose ces champs.
+- Listes rapides Sample rates, Bits et IP fixes.
+- Avertissements renforcés si plusieurs sample rates ou plusieurs encodages coexistent dans le projet.
+- Compatibilité de sauvegarde adaptée aux fonctions d'ajout/suppression de machines.
+- Page Configuration plus lisible : réglages défilables, table des machines gardée visible et recherche globale avec message d'aide.
 
 ## Nouveautés V3.04
 

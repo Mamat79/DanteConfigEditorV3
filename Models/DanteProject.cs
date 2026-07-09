@@ -31,6 +31,38 @@ public sealed class DanteProject
         "source_channel_name"
     ];
 
+    private static readonly HashSet<string> SupportedSamplerates = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "44100",
+        "48000",
+        "88200",
+        "96000",
+        "176400",
+        "192000"
+    };
+
+    private static readonly HashSet<string> SupportedEncodings = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "16",
+        "24",
+        "32"
+    };
+
+    private static readonly string[] StaticIpAttributeNames =
+    [
+        "address",
+        "gateway",
+        "ip",
+        "ipv4",
+        "mask",
+        "netmask",
+        "static_address",
+        "static_ip",
+        "subnet",
+        "subnet_mask",
+        "value"
+    ];
+
     // Les éléments RX modifiés sont gardés pour l'affichage et pour le résumé
     // avant sauvegarde. La clé reste l'élément XML exact.
     private readonly Dictionary<XElement, bool> _modifiedRxElements = [];
@@ -214,6 +246,73 @@ public sealed class DanteProject
         RegisterChange("Latence globale", $"Tous -> {DanteLatencyFormatter.FormatLatencyWithXmlValue(latency)}");
     }
 
+    public void SetSamplerate(string deviceName, string samplerate)
+    {
+        string cleanSamplerate = ValidateSamplerate(samplerate);
+        DanteDevice device = FindDevice(deviceName) ?? throw new InvalidOperationException("Device introuvable.");
+        SetElementValue(device.Element, "samplerate", cleanSamplerate);
+        RegisterChange("Sample rate", $"{deviceName} -> {FormatSamplerateForDisplay(cleanSamplerate)}");
+    }
+
+    public void SetAllSamplerates(string samplerate)
+    {
+        string cleanSamplerate = ValidateSamplerate(samplerate);
+        foreach (DanteDevice device in Devices)
+        {
+            SetElementValue(device.Element, "samplerate", cleanSamplerate);
+        }
+
+        RegisterChange("Sample rate globale", $"Tous -> {FormatSamplerateForDisplay(cleanSamplerate)}");
+    }
+
+    public void SetEncoding(string deviceName, string encoding)
+    {
+        string cleanEncoding = ValidateEncoding(encoding);
+        DanteDevice device = FindDevice(deviceName) ?? throw new InvalidOperationException("Device introuvable.");
+        SetElementValue(device.Element, "encoding", cleanEncoding);
+        RegisterChange("Bits par échantillon", $"{deviceName} -> {FormatEncodingForDisplay(cleanEncoding)}");
+    }
+
+    public void SetAllEncodings(string encoding)
+    {
+        string cleanEncoding = ValidateEncoding(encoding);
+        foreach (DanteDevice device in Devices)
+        {
+            SetElementValue(device.Element, "encoding", cleanEncoding);
+        }
+
+        RegisterChange("Bits par échantillon globaux", $"Tous -> {FormatEncodingForDisplay(cleanEncoding)}");
+    }
+
+    public bool SetIpAddressDynamic(string deviceName)
+    {
+        DanteDevice device = FindDevice(deviceName) ?? throw new InvalidOperationException("Device introuvable.");
+        bool changed = SetDeviceIpAddressesDynamic(device);
+        if (!changed)
+        {
+            RegisterChange("IP automatique", $"{deviceName} déjà en automatique ou sans adresse IPv4 modifiable");
+            return false;
+        }
+
+        RegisterChange("IP automatique", $"{deviceName} -> dynamique");
+        return true;
+    }
+
+    public int SetAllIpAddressesDynamic()
+    {
+        int changedDevices = 0;
+        foreach (DanteDevice device in Devices)
+        {
+            if (SetDeviceIpAddressesDynamic(device))
+            {
+                changedDevices++;
+            }
+        }
+
+        RegisterChange("IP automatique globale", $"{changedDevices} machine(s) passée(s) en dynamique");
+        return changedDevices;
+    }
+
     public void SetPreferredMaster(string deviceName, bool preferredMaster)
     {
         DanteDevice device = FindDevice(deviceName) ?? throw new InvalidOperationException("Device introuvable.");
@@ -260,27 +359,93 @@ public sealed class DanteProject
         return removedSubscriptions;
     }
 
-    public int MergeDevicesFromXml(string path)
+    public IReadOnlyList<string> FindDuplicateDeviceNamesInXml(string path)
     {
         DanteProject importedProject = Load(path);
-        string[] duplicateNames = importedProject.Devices
+        return importedProject.Devices
             .Select(device => device.Name)
             .Where(name => Devices.Any(existing => string.Equals(existing.Name, name, StringComparison.OrdinalIgnoreCase)))
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .ToArray();
+    }
 
-        if (duplicateNames.Length > 0)
-        {
-            throw new InvalidOperationException("Import refusé : ces machines existent déjà dans le projet ouvert : " + string.Join(", ", duplicateNames));
-        }
+    public IReadOnlyDictionary<string, string> BuildAutomaticDuplicateRenameMap(string path)
+    {
+        DanteProject importedProject = Load(path);
+        HashSet<string> usedNames = Devices.Select(device => device.Name).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        Dictionary<string, string> renameMap = new(StringComparer.OrdinalIgnoreCase);
 
         foreach (DanteDevice device in importedProject.Devices)
         {
-            Document.Root!.Add(new XElement(device.Element));
+            if (!usedNames.Contains(device.Name))
+            {
+                usedNames.Add(device.Name);
+                continue;
+            }
+
+            string newName = BuildUniqueImportedDeviceName(device.Name, usedNames);
+            renameMap[device.Name] = newName;
+            usedNames.Add(newName);
         }
 
-        RegisterChange("Import XML", $"{importedProject.Devices.Count} machine(s) ajoutée(s) depuis {Path.GetFileName(path)}");
-        return importedProject.Devices.Count;
+        return renameMap;
+    }
+
+    public DanteMergeResult MergeDevicesFromXml(string path, IReadOnlyDictionary<string, string>? duplicateRenameMap = null)
+    {
+        DanteProject importedProject = Load(path);
+        Dictionary<string, string> cleanRenameMap = NormalizeRenameMap(duplicateRenameMap);
+        HashSet<string> usedNames = Devices.Select(device => device.Name).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        List<XElement> devicesToImport = [];
+        List<string> skippedDuplicates = [];
+        Dictionary<string, string> appliedRenames = new(StringComparer.OrdinalIgnoreCase);
+
+        foreach (DanteDevice device in importedProject.Devices)
+        {
+            bool nameAlreadyUsed = usedNames.Contains(device.Name);
+            XElement clone = new(device.Element);
+            string targetName = device.Name;
+
+            if (nameAlreadyUsed)
+            {
+                if (!cleanRenameMap.TryGetValue(device.Name, out string? renamedDeviceName) || string.IsNullOrWhiteSpace(renamedDeviceName))
+                {
+                    skippedDuplicates.Add(device.Name);
+                    continue;
+                }
+
+                targetName = renamedDeviceName;
+                RenameDeviceElement(clone, targetName);
+                appliedRenames[device.Name] = targetName;
+            }
+
+            if (usedNames.Contains(targetName))
+            {
+                throw new InvalidOperationException($"Import refusé : le nom '{targetName}' est déjà utilisé.");
+            }
+
+            if (ContainsProblematicCharacters(targetName))
+            {
+                throw new InvalidOperationException($"Import refusé : le nom '{targetName}' contient des caractères non imprimables.");
+            }
+
+            usedNames.Add(targetName);
+            devicesToImport.Add(clone);
+        }
+
+        foreach (XElement device in devicesToImport)
+        {
+            UpdateImportedSubscriptionDeviceNames(device, appliedRenames);
+            Document.Root!.Add(device);
+        }
+
+        RegisterChange("Import XML", $"{devicesToImport.Count} machine(s) ajoutée(s) depuis {Path.GetFileName(path)}");
+        return new DanteMergeResult(
+            devicesToImport.Count,
+            appliedRenames.Count,
+            skippedDuplicates.Count,
+            skippedDuplicates,
+            appliedRenames);
     }
 
     public void ResetChannels(string deviceName)
@@ -590,6 +755,18 @@ public sealed class DanteProject
             warnings.Add($"IP fixe détectée sur {staticIpDevices.Length} machine(s) : {devices}.");
         }
 
+        AddMixedValueWarning(
+            warnings,
+            "fréquences d'échantillonnage",
+            Devices.Select(device => device.Samplerate),
+            FormatSamplerateForDisplay);
+
+        AddMixedValueWarning(
+            warnings,
+            "bits par échantillon",
+            Devices.Select(device => device.Encoding),
+            FormatEncodingForDisplay);
+
         return warnings;
     }
 
@@ -662,6 +839,41 @@ public sealed class DanteProject
                 Before: DanteLatencyFormatter.FormatLatencyDisplay(device.Latency),
                 After: DanteLatencyFormatter.FormatLatencyDisplay(latency),
                 Changed: !string.Equals(device.Latency, latency, StringComparison.OrdinalIgnoreCase))));
+    }
+
+    public string BuildAllSampleratePreview(string samplerate)
+    {
+        string cleanSamplerate = ValidateSamplerate(samplerate);
+        return BuildDevicePreview(
+            $"appliquer la sample rate {FormatSamplerateForDisplay(cleanSamplerate)}",
+            Devices.Select(device => (
+                Device: device.Name,
+                Before: FormatSamplerateForDisplay(device.Samplerate),
+                After: FormatSamplerateForDisplay(cleanSamplerate),
+                Changed: !string.Equals(device.Samplerate, cleanSamplerate, StringComparison.OrdinalIgnoreCase))));
+    }
+
+    public string BuildAllEncodingPreview(string encoding)
+    {
+        string cleanEncoding = ValidateEncoding(encoding);
+        return BuildDevicePreview(
+            $"appliquer les bits par échantillon {FormatEncodingForDisplay(cleanEncoding)}",
+            Devices.Select(device => (
+                Device: device.Name,
+                Before: FormatEncodingForDisplay(device.Encoding),
+                After: FormatEncodingForDisplay(cleanEncoding),
+                Changed: !string.Equals(device.Encoding, cleanEncoding, StringComparison.OrdinalIgnoreCase))));
+    }
+
+    public string BuildAllIpAutoPreview()
+    {
+        return BuildDevicePreview(
+            "mettre les adresses IPv4 en automatique",
+            Devices.Select(device => (
+                Device: device.Name,
+                Before: device.IpModeDisplay,
+                After: "Auto",
+                Changed: DeviceHasStaticIpConfiguration(device))));
     }
 
     public string BuildAllNetworkModePreview(bool redundant)
@@ -1214,6 +1426,37 @@ public sealed class DanteProject
         return lines.Count > 0 ? string.Join(Environment.NewLine, lines) : "Aucune latence définie.";
     }
 
+    public string ListSamplerates()
+    {
+        List<string> lines = Devices
+            .Where(device => !string.IsNullOrWhiteSpace(device.Samplerate))
+            .Select(device => $"{device.Name}: {FormatSamplerateForDisplay(device.Samplerate)}")
+            .ToList();
+
+        return lines.Count > 0 ? string.Join(Environment.NewLine, lines) : "Aucune sample rate définie.";
+    }
+
+    public string ListEncodings()
+    {
+        List<string> lines = Devices
+            .Where(device => !string.IsNullOrWhiteSpace(device.Encoding))
+            .Select(device => $"{device.Name}: {FormatEncodingForDisplay(device.Encoding)}")
+            .ToList();
+
+        return lines.Count > 0 ? string.Join(Environment.NewLine, lines) : "Aucun encodage défini.";
+    }
+
+    public string ListStaticIpDevices()
+    {
+        DanteDevice[] staticIpDevices = Devices.Where(device => device.UsesStaticIp).ToArray();
+        if (staticIpDevices.Length == 0)
+        {
+            return "Aucune IP fixe détectée.";
+        }
+
+        return string.Join(Environment.NewLine, staticIpDevices.Select(FormatStaticIpDevice));
+    }
+
     public string ListPreferredMasters()
     {
         return BuildDeviceList(Devices.Where(device => device.PreferredMaster), "Aucune machine preferred master trouvée.");
@@ -1361,6 +1604,25 @@ public sealed class DanteProject
             : $"{device.Name} ({device.StaticIpAddress})";
     }
 
+    private static void AddMixedValueWarning(
+        List<string> warnings,
+        string label,
+        IEnumerable<string> values,
+        Func<string, string> formatter)
+    {
+        string[] distinctValues = values
+            .Where(value => !string.IsNullOrWhiteSpace(value))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToArray();
+
+        if (distinctValues.Length <= 1)
+        {
+            return;
+        }
+
+        warnings.Add($"ATTENTION : plusieurs {label} sont présentes dans le preset : {string.Join(", ", distinctValues.Select(formatter))}.");
+    }
+
     private static string FormatPatchbookSourceDevice(DanteSubscription subscription)
     {
         return subscription.IsLocalSubscription
@@ -1487,6 +1749,115 @@ public sealed class DanteProject
         {
             element.Value = value;
         }
+    }
+
+    private static Dictionary<string, string> NormalizeRenameMap(IReadOnlyDictionary<string, string>? renameMap)
+    {
+        Dictionary<string, string> clean = new(StringComparer.OrdinalIgnoreCase);
+        if (renameMap is null)
+        {
+            return clean;
+        }
+
+        foreach (KeyValuePair<string, string> item in renameMap)
+        {
+            string oldName = item.Key.Trim();
+            string newName = item.Value.Trim();
+            if (!string.IsNullOrWhiteSpace(oldName) && !string.IsNullOrWhiteSpace(newName))
+            {
+                clean[oldName] = newName;
+            }
+        }
+
+        return clean;
+    }
+
+    private static string BuildUniqueImportedDeviceName(string originalName, ISet<string> usedNames)
+    {
+        string baseName = string.IsNullOrWhiteSpace(originalName) ? "Imported device" : originalName.Trim();
+        string candidate = baseName + " (import)";
+        int index = 2;
+        while (usedNames.Contains(candidate))
+        {
+            candidate = $"{baseName} (import {index})";
+            index++;
+        }
+
+        return candidate;
+    }
+
+    private static void RenameDeviceElement(XElement deviceElement, string newName)
+    {
+        SetElementValue(deviceElement, "name", newName.Trim());
+        SetElementValue(deviceElement, "friendly_name", newName.Trim());
+    }
+
+    private static void UpdateImportedSubscriptionDeviceNames(XElement importedDeviceElement, IReadOnlyDictionary<string, string> renamedDevices)
+    {
+        if (renamedDevices.Count == 0)
+        {
+            return;
+        }
+
+        foreach (XElement rxChannel in importedDeviceElement.Elements("rxchannel"))
+        {
+            XElement? subscribedDevice = FindFirstElement(rxChannel, SubscriptionDeviceElementNames);
+            if (subscribedDevice is not null && renamedDevices.TryGetValue(subscribedDevice.Value.Trim(), out string? newDeviceName))
+            {
+                subscribedDevice.Value = newDeviceName;
+            }
+        }
+    }
+
+    private static bool SetDeviceIpAddressesDynamic(DanteDevice device)
+    {
+        XElement[] ipv4Addresses = device.Element.Descendants("ipv4_address").ToArray();
+        if (ipv4Addresses.Length == 0)
+        {
+            return false;
+        }
+
+        bool changed = false;
+        foreach (XElement ipv4Address in ipv4Addresses)
+        {
+            XAttribute? modeAttribute = ipv4Address.Attribute("mode");
+            if (!string.Equals(modeAttribute?.Value, "dynamic", StringComparison.OrdinalIgnoreCase))
+            {
+                ipv4Address.SetAttributeValue("mode", "dynamic");
+                changed = true;
+            }
+
+            foreach (string attributeName in StaticIpAttributeNames)
+            {
+                XAttribute? attribute = ipv4Address.Attribute(attributeName);
+                if (attribute is not null)
+                {
+                    attribute.Remove();
+                    changed = true;
+                }
+            }
+
+            if (!string.IsNullOrWhiteSpace(ipv4Address.Value))
+            {
+                ipv4Address.Value = string.Empty;
+                changed = true;
+            }
+        }
+
+        return changed;
+    }
+
+    private static bool DeviceHasStaticIpConfiguration(DanteDevice device)
+    {
+        if (device.UsesStaticIp)
+        {
+            return true;
+        }
+
+        return device.Element.Descendants("ipv4_address").Any(ipv4Address =>
+            !string.Equals(ipv4Address.Attribute("mode")?.Value, "dynamic", StringComparison.OrdinalIgnoreCase)
+            || StaticIpAttributeNames.Any(attributeName => ipv4Address.Attribute(attributeName) is not null)
+            || !string.IsNullOrWhiteSpace(ipv4Address.Value));
     }
 
     private static void SetChannelDisplayName(DanteChannel channel, string fallbackElementName, string value)
@@ -1674,6 +2045,44 @@ public sealed class DanteProject
         {
             throw new InvalidOperationException("Latence non reconnue. Valeurs autorisées : 250, 1000, 2000 ou 5000 ms.");
         }
+    }
+
+    private static string ValidateSamplerate(string samplerate)
+    {
+        string cleanSamplerate = samplerate.Trim();
+        if (!SupportedSamplerates.Contains(cleanSamplerate))
+        {
+            throw new InvalidOperationException("Sample rate non reconnue. Valeurs autorisées : 44100, 48000, 88200, 96000, 176400 ou 192000.");
+        }
+
+        return cleanSamplerate;
+    }
+
+    private static string ValidateEncoding(string encoding)
+    {
+        string cleanEncoding = encoding.Trim();
+        if (!SupportedEncodings.Contains(cleanEncoding))
+        {
+            throw new InvalidOperationException("Bits par échantillon non reconnus. Valeurs autorisées : 16, 24 ou 32.");
+        }
+
+        return cleanEncoding;
+    }
+
+    private static string FormatSamplerateForDisplay(string samplerate)
+    {
+        if (!int.TryParse(samplerate, out int value) || value <= 0)
+        {
+            return Blank(samplerate);
+        }
+
+        decimal khz = value / 1000m;
+        return $"{khz:0.#} kHz ({value})";
+    }
+
+    private static string FormatEncodingForDisplay(string encoding)
+    {
+        return string.IsNullOrWhiteSpace(encoding) ? Blank(encoding) : $"{encoding} bit";
     }
 
     private void RegisterChange(string action, string details)

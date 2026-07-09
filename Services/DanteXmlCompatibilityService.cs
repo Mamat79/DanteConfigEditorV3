@@ -111,13 +111,37 @@ public static class DanteXmlCompatibilityService
 
         if (currentDevices.Length != originalProfile.Devices.Count)
         {
-            result.AddError(DanteIssueCategory.XmlCompatibility, $"Le nombre de devices a changé : {originalProfile.Devices.Count} attendu(s), {currentDevices.Length} trouvé(s).");
+            result.AddWarning(DanteIssueCategory.XmlCompatibility, $"Le nombre de devices a changé : {originalProfile.Devices.Count} au chargement, {currentDevices.Length} maintenant.");
         }
 
-        int maxDevices = Math.Min(currentDevices.Length, originalProfile.Devices.Count);
-        for (int index = 0; index < maxDevices; index++)
+        Dictionary<string, Queue<int>> originalIndexesByName = BuildOriginalIndexesByName(originalProfile.Devices);
+        HashSet<int> matchedOriginalIndexes = [];
+        for (int index = 0; index < currentDevices.Length; index++)
         {
-            ValidateDevice(currentDevices[index], originalProfile.Devices[index], result);
+            XElement currentDevice = currentDevices[index];
+            string currentName = ReadDeviceName(currentDevice, $"Device {index + 1}");
+            int? originalIndex = TryTakeOriginalIndexByName(originalIndexesByName, currentName, matchedOriginalIndexes);
+
+            if (!originalIndex.HasValue
+                && index < originalProfile.Devices.Count
+                && matchedOriginalIndexes.Add(index))
+            {
+                originalIndex = index;
+            }
+
+            if (originalIndex.HasValue)
+            {
+                ValidateDevice(currentDevice, originalProfile.Devices[originalIndex.Value], result);
+            }
+            else
+            {
+                ValidateNewDevice(currentDevice, result);
+            }
+        }
+
+        foreach (int originalIndex in Enumerable.Range(0, originalProfile.Devices.Count).Where(index => !matchedOriginalIndexes.Contains(index)))
+        {
+            result.AddWarning(DanteIssueCategory.XmlCompatibility, $"Device d'origine absent du XML courant : {originalProfile.Devices[originalIndex].Name}.");
         }
 
         return result;
@@ -152,6 +176,42 @@ public static class DanteXmlCompatibilityService
         };
     }
 
+    private static Dictionary<string, Queue<int>> BuildOriginalIndexesByName(IReadOnlyList<DanteDeviceXmlSignature> devices)
+    {
+        Dictionary<string, Queue<int>> indexesByName = new(StringComparer.OrdinalIgnoreCase);
+        for (int index = 0; index < devices.Count; index++)
+        {
+            string name = devices[index].Name;
+            if (!indexesByName.TryGetValue(name, out Queue<int>? indexes))
+            {
+                indexes = new Queue<int>();
+                indexesByName[name] = indexes;
+            }
+
+            indexes.Enqueue(index);
+        }
+
+        return indexesByName;
+    }
+
+    private static int? TryTakeOriginalIndexByName(Dictionary<string, Queue<int>> indexesByName, string deviceName, ISet<int> matchedOriginalIndexes)
+    {
+        if (!indexesByName.TryGetValue(deviceName, out Queue<int>? indexes))
+        {
+            return null;
+        }
+
+        while (indexes.TryDequeue(out int candidateIndex))
+        {
+            if (matchedOriginalIndexes.Add(candidateIndex))
+            {
+                return candidateIndex;
+            }
+        }
+
+        return null;
+    }
+
     private static void ValidateDeclaration(XDocument document, DanteXmlCompatibilityProfile originalProfile, DanteValidationResult result)
     {
         if (document.Declaration is null && (!string.IsNullOrWhiteSpace(originalProfile.DeclarationVersion)
@@ -183,7 +243,7 @@ public static class DanteXmlCompatibilityService
 
     private static void ValidateDevice(XElement currentDevice, DanteDeviceXmlSignature originalDevice, DanteValidationResult result)
     {
-        string currentName = currentDevice.Element("name")?.Value.Trim() ?? originalDevice.Name;
+        string currentName = ReadDeviceName(currentDevice, originalDevice.Name);
         foreach (string technicalElement in originalDevice.TechnicalElements)
         {
             if (currentDevice.Element(technicalElement) is null)
@@ -195,6 +255,32 @@ public static class DanteXmlCompatibilityService
         ValidateChannels(currentDevice, "txchannel", originalDevice.TxChannels, currentName, "TX", result);
         ValidateChannels(currentDevice, "rxchannel", originalDevice.RxChannels, currentName, "RX", result);
         ValidatePatchPairs(currentDevice, currentName, result);
+    }
+
+    private static void ValidateNewDevice(XElement currentDevice, DanteValidationResult result)
+    {
+        string currentName = ReadDeviceName(currentDevice, "Device ajouté");
+        ValidateNewDeviceChannels(currentDevice, "txchannel", currentName, "TX", result);
+        ValidateNewDeviceChannels(currentDevice, "rxchannel", currentName, "RX", result);
+        ValidatePatchPairs(currentDevice, currentName, result);
+    }
+
+    private static void ValidateNewDeviceChannels(
+        XElement device,
+        string elementName,
+        string deviceName,
+        string channelKind,
+        DanteValidationResult result)
+    {
+        HashSet<string> seenDanteIds = new(StringComparer.OrdinalIgnoreCase);
+        foreach (XElement channel in device.Elements(elementName))
+        {
+            string? danteId = channel.Attribute("danteId")?.Value;
+            if (!string.IsNullOrWhiteSpace(danteId) && !seenDanteIds.Add(danteId))
+            {
+                result.AddError(DanteIssueCategory.Channel, $"{deviceName} : Dante Id {danteId} en doublon sur les canaux {channelKind}.", deviceName, danteId: ParseDanteId(danteId));
+            }
+        }
     }
 
     private static void ValidateChannels(
@@ -263,6 +349,12 @@ public static class DanteXmlCompatibilityService
                 result.AddError(DanteIssueCategory.Patch, $"{deviceName} RX Dante Id {danteId?.ToString() ?? "?"} : subscribed_device renseigné sans subscribed_channel.", deviceName, danteId: danteId);
             }
         }
+    }
+
+    private static string ReadDeviceName(XElement device, string fallback)
+    {
+        string name = device.Element("name")?.Value.Trim() ?? string.Empty;
+        return string.IsNullOrWhiteSpace(name) ? fallback : name;
     }
 
     private static int? ParseDanteId(string? value)

@@ -28,6 +28,21 @@ public partial class MainWindow : Window
         new("2000", "2 ms"),
         new("5000", "5 ms")
     ];
+    private readonly SampleRateChoice[] _sampleRates =
+    [
+        new("44100", "44,1 kHz"),
+        new("48000", "48 kHz"),
+        new("88200", "88,2 kHz"),
+        new("96000", "96 kHz"),
+        new("176400", "176,4 kHz"),
+        new("192000", "192 kHz")
+    ];
+    private readonly EncodingChoice[] _encodings =
+    [
+        new("16", "16 bit"),
+        new("24", "24 bit"),
+        new("32", "32 bit")
+    ];
     private readonly string[] _patchViewModeKeys = ["PatchView.Simple", "PatchView.Expert"];
     private readonly string[] _patchStateFilterKeys =
     [
@@ -86,6 +101,22 @@ public partial class MainWindow : Window
         }
     }
 
+    private sealed record SampleRateChoice(string XmlValue, string Display)
+    {
+        public override string ToString()
+        {
+            return Display;
+        }
+    }
+
+    private sealed record EncodingChoice(string XmlValue, string Display)
+    {
+        public override string ToString()
+        {
+            return Display;
+        }
+    }
+
     private sealed record LocalizedOption(string Key, string Display)
     {
         public override string ToString()
@@ -121,6 +152,10 @@ public partial class MainWindow : Window
         SetupLanguageComboBox();
         LatencyComboBox.ItemsSource = _latencies;
         GlobalLatencyComboBox.ItemsSource = _latencies;
+        SampleRateComboBox.ItemsSource = _sampleRates;
+        GlobalSampleRateComboBox.ItemsSource = _sampleRates;
+        EncodingComboBox.ItemsSource = _encodings;
+        GlobalEncodingComboBox.ItemsSource = _encodings;
         ChannelKindComboBox.ItemsSource = new[] { "TX", "RX" };
         ChannelKindComboBox.SelectedItem = "TX";
         RefreshLocalizedOptionSources();
@@ -170,10 +205,54 @@ public partial class MainWindow : Window
             return;
         }
 
+        IReadOnlyDictionary<string, string> renameMap = new Dictionary<string, string>();
+        IReadOnlyList<string> duplicateNames;
+        try
+        {
+            duplicateNames = _project!.FindDuplicateDeviceNamesInXml(dialog.FileName);
+        }
+        catch (Exception ex)
+        {
+            ShowError(T("Dialog.OpenFailedTitle"), ex.Message);
+            return;
+        }
+
+        if (duplicateNames.Count > 0)
+        {
+            DuplicateDeviceRenameWindow duplicateWindow = new(
+                _language,
+                duplicateNames,
+                _project!.BuildAutomaticDuplicateRenameMap(dialog.FileName))
+            {
+                Owner = this
+            };
+
+            if (duplicateWindow.ShowDialog() != true || duplicateWindow.Choice == DuplicateDeviceImportChoice.Cancel)
+            {
+                return;
+            }
+
+            renameMap = duplicateWindow.RenameMap;
+        }
+        else
+        {
+            MessageBoxResult confirm = MessageBox.Show(this, T("Dialog.MergeXmlWarning"), T("Dialog.ConfirmTitle"), MessageBoxButton.YesNo, MessageBoxImage.Warning);
+            if (confirm != MessageBoxResult.Yes)
+            {
+                return;
+            }
+        }
+
+        DanteMergeResult? mergeResult = null;
         RunProjectAction(
             T("Action.XmlMerged"),
-            () => _project!.MergeDevicesFromXml(dialog.FileName),
-            T("Dialog.MergeXmlWarning"));
+            () => mergeResult = _project!.MergeDevicesFromXml(dialog.FileName, renameMap));
+
+        if (mergeResult is not null)
+        {
+            AddLog(BuildMergeResultLog(dialog.FileName, mergeResult));
+            SetStatus(BuildMergeResultStatus(mergeResult));
+        }
     }
 
     private void OpenRecentButton_Click(object sender, RoutedEventArgs e)
@@ -405,6 +484,8 @@ public partial class MainWindow : Window
         RedundantRadioButton.IsChecked = device.IsRedundant;
         DaisychainRadioButton.IsChecked = !device.IsRedundant;
         SelectLatency(LatencyComboBox, device.Latency);
+        SelectSampleRate(SampleRateComboBox, device.Samplerate);
+        SelectEncoding(EncodingComboBox, device.Encoding);
         PreferredMasterCheckBox.IsChecked = device.PreferredMaster;
         RefreshChannelSelector();
     }
@@ -435,6 +516,37 @@ public partial class MainWindow : Window
             _project!.SetLatency(SelectedDeviceName(), latency);
         },
         T("Dialog.LatencyWarning"));
+    }
+
+    private void ApplySampleRateButton_Click(object sender, RoutedEventArgs e)
+    {
+        RunProjectAction(
+            T("Action.SampleRateUpdated"),
+            () =>
+            {
+                string samplerate = SelectedSampleRateXmlValue(SampleRateComboBox);
+                _project!.SetSamplerate(SelectedDeviceName(), samplerate);
+            },
+            T("Dialog.AudioFormatWarning"));
+    }
+
+    private void ApplyEncodingButton_Click(object sender, RoutedEventArgs e)
+    {
+        RunProjectAction(
+            T("Action.EncodingUpdated"),
+            () =>
+            {
+                string encoding = SelectedEncodingXmlValue(EncodingComboBox);
+                _project!.SetEncoding(SelectedDeviceName(), encoding);
+            },
+            T("Dialog.AudioFormatWarning"));
+    }
+
+    private void ApplyIpAutoButton_Click(object sender, RoutedEventArgs e)
+    {
+        RunProjectAction(
+            T("Action.IpAutoApplied"),
+            () => _project!.SetIpAddressDynamic(SelectedDeviceName()));
     }
 
     private void ApplyPreferredMasterButton_Click(object sender, RoutedEventArgs e)
@@ -531,6 +643,36 @@ public partial class MainWindow : Window
                 + T("Dialog.LatencyWarningContinue"));
     }
 
+    private void ApplyAllSampleRateButton_Click(object sender, RoutedEventArgs e)
+    {
+        string samplerate = SelectedSampleRateXmlValue(GlobalSampleRateComboBox);
+        RunProjectAction(
+            T("Action.AllSampleRatesApplied"),
+            () => _project!.SetAllSamplerates(samplerate),
+            _project?.BuildAllSampleratePreview(samplerate)
+                + Environment.NewLine
+                + T("Dialog.AudioFormatWarningContinue"));
+    }
+
+    private void ApplyAllEncodingButton_Click(object sender, RoutedEventArgs e)
+    {
+        string encoding = SelectedEncodingXmlValue(GlobalEncodingComboBox);
+        RunProjectAction(
+            T("Action.AllEncodingsApplied"),
+            () => _project!.SetAllEncodings(encoding),
+            _project?.BuildAllEncodingPreview(encoding)
+                + Environment.NewLine
+                + T("Dialog.AudioFormatWarningContinue"));
+    }
+
+    private void ApplyAllIpAutoButton_Click(object sender, RoutedEventArgs e)
+    {
+        RunProjectAction(
+            T("Action.AllIpAutoApplied"),
+            () => _project!.SetAllIpAddressesDynamic(),
+            _project?.BuildAllIpAutoPreview() + Environment.NewLine + T("Dialog.Continue"));
+    }
+
     private void ApplyAllPreferredMasterButton_Click(object sender, RoutedEventArgs e)
     {
         if (!EnsureProjectLoaded())
@@ -575,6 +717,21 @@ public partial class MainWindow : Window
     private void ListLatenciesButton_Click(object sender, RoutedEventArgs e)
     {
         ShowProjectList("Latences", project => project.ListLatencies());
+    }
+
+    private void ListSampleRatesButton_Click(object sender, RoutedEventArgs e)
+    {
+        ShowProjectList("Sample rates", project => project.ListSamplerates());
+    }
+
+    private void ListEncodingsButton_Click(object sender, RoutedEventArgs e)
+    {
+        ShowProjectList("Bits par échantillon", project => project.ListEncodings());
+    }
+
+    private void ListStaticIpsButton_Click(object sender, RoutedEventArgs e)
+    {
+        ShowProjectList("IP fixes", project => project.ListStaticIpDevices());
     }
 
     private void ListPreferredMastersButton_Click(object sender, RoutedEventArgs e)
@@ -1072,6 +1229,7 @@ public partial class MainWindow : Window
                 SaveSummaryTextBox.Text = T("Status.NoFileLoaded");
                 HealthSummaryTextBlock.Text = T("Status.NoFileLoaded");
                 _searchResults.Clear();
+                UpdateGlobalSearchHint(T("Search.NoFileLoaded"));
                 _patchRows.Clear();
                 _healthIssues.Clear();
                 UpdateCommandState();
@@ -1106,6 +1264,8 @@ public partial class MainWindow : Window
             DeviceComboBox.ItemsSource = deviceNames;
             DeviceComboBox.SelectedItem = deviceNames.Contains(selectedDevice) ? selectedDevice : deviceNames.FirstOrDefault();
             SelectLatency(GlobalLatencyComboBox, _latencies.First().XmlValue);
+            SelectSampleRate(GlobalSampleRateComboBox, devices.Select(device => device.Samplerate).FirstOrDefault(value => !string.IsNullOrWhiteSpace(value)) ?? _sampleRates.First().XmlValue);
+            SelectEncoding(GlobalEncodingComboBox, devices.Select(device => device.Encoding).FirstOrDefault(value => !string.IsNullOrWhiteSpace(value)) ?? _encodings.First().XmlValue);
 
             string[] senderFilterItems = new[] { AllSendersItem }.Concat(deviceNames).ToArray();
             string[] receiverFilterItems = new[] { AllReceiversItem }.Concat(deviceNames).ToArray();
@@ -1343,8 +1503,15 @@ public partial class MainWindow : Window
         string search = GlobalSearchTextBox.Text.Trim();
         _searchResults.Clear();
 
-        if (_project is null || search.Length < 2)
+        if (_project is null)
         {
+            UpdateGlobalSearchHint(T("Search.NoFileLoaded"));
+            return;
+        }
+
+        if (search.Length < 2)
+        {
+            UpdateGlobalSearchHint(T("Search.Hint"));
             return;
         }
 
@@ -1394,6 +1561,14 @@ public partial class MainWindow : Window
         {
             _searchResults.RemoveAt(_searchResults.Count - 1);
         }
+
+        UpdateGlobalSearchHint(_searchResults.Count == 0 ? T("Search.NoResult") : string.Empty);
+    }
+
+    private void UpdateGlobalSearchHint(string message)
+    {
+        GlobalSearchHintTextBlock.Text = message;
+        GlobalSearchHintTextBlock.Visibility = string.IsNullOrWhiteSpace(message) ? Visibility.Collapsed : Visibility.Visible;
     }
 
     private void RefreshRecentFiles()
@@ -1480,6 +1655,7 @@ public partial class MainWindow : Window
         LanguageLabelTextBlock.Text = T("Language.Label");
         TranslateDependencyObject(this, []);
         ApplyDataGridColumnHeaders();
+        RefreshGlobalSearchResults();
         UpdateCommandState();
     }
 
@@ -1554,12 +1730,18 @@ public partial class MainWindow : Window
         yield return DeleteDeviceButton;
         yield return ApplyNetworkButton;
         yield return ApplyLatencyButton;
+        yield return ApplySampleRateButton;
+        yield return ApplyEncodingButton;
+        yield return ApplyIpAutoButton;
         yield return ApplyPreferredMasterButton;
         yield return RenameChannelButton;
         yield return ResetDeviceChannelsButton;
         yield return BatchRenameButton;
         yield return ApplyAllNetworkButton;
         yield return ApplyAllLatencyButton;
+        yield return ApplyAllSampleRateButton;
+        yield return ApplyAllEncodingButton;
+        yield return ApplyAllIpAutoButton;
         yield return ApplyAllPreferredMasterButton;
         yield return ResetAllChannelsButton;
         yield return ApplyPatchButton;
@@ -1573,6 +1755,27 @@ public partial class MainWindow : Window
         string source = _project?.OriginalFilePath ?? "rapport";
         string name = Path.GetFileNameWithoutExtension(source);
         return $"{name}_rapport_DanteConfigEditor{extension}";
+    }
+
+    private string BuildMergeResultLog(string path, DanteMergeResult result)
+    {
+        string details = _language == UiLanguage.English
+            ? $"XML import: {Path.GetFileName(path)} - {result.ImportedDeviceCount} device(s) imported, {result.RenamedDeviceCount} renamed, {result.SkippedDuplicateDeviceCount} duplicate(s) skipped."
+            : $"Import XML : {Path.GetFileName(path)} - {result.ImportedDeviceCount} machine(s) importée(s), {result.RenamedDeviceCount} renommée(s), {result.SkippedDuplicateDeviceCount} doublon(s) ignoré(s).";
+
+        if (result.RenamedDevices.Count > 0)
+        {
+            details += " " + string.Join(", ", result.RenamedDevices.Select(item => $"{item.Key} -> {item.Value}"));
+        }
+
+        return details;
+    }
+
+    private string BuildMergeResultStatus(DanteMergeResult result)
+    {
+        return _language == UiLanguage.English
+            ? $"XML added: {result.ImportedDeviceCount} imported, {result.RenamedDeviceCount} renamed, {result.SkippedDuplicateDeviceCount} skipped."
+            : $"XML ajouté : {result.ImportedDeviceCount} importée(s), {result.RenamedDeviceCount} renommée(s), {result.SkippedDuplicateDeviceCount} ignorée(s).";
     }
 
     private void RunProjectAction(string successMessage, Action action, string? confirmationMessage = null)
@@ -1663,9 +1866,41 @@ public partial class MainWindow : Window
             : comboBox.SelectedItem as string ?? string.Empty;
     }
 
+    private string SelectedSampleRateXmlValue(ComboBox comboBox)
+    {
+        return comboBox.SelectedItem is SampleRateChoice sampleRateChoice
+            ? sampleRateChoice.XmlValue
+            : !string.IsNullOrWhiteSpace(comboBox.Text)
+                ? comboBox.Text
+                : comboBox.SelectedItem as string ?? string.Empty;
+    }
+
+    private string SelectedEncodingXmlValue(ComboBox comboBox)
+    {
+        return comboBox.SelectedItem is EncodingChoice encodingChoice
+            ? encodingChoice.XmlValue
+            : !string.IsNullOrWhiteSpace(comboBox.Text)
+                ? comboBox.Text
+                : comboBox.SelectedItem as string ?? string.Empty;
+    }
+
     private void SelectLatency(ComboBox comboBox, string xmlValue)
     {
         comboBox.SelectedItem = _latencies.FirstOrDefault(latency => string.Equals(latency.XmlValue, xmlValue, StringComparison.OrdinalIgnoreCase));
+    }
+
+    private void SelectSampleRate(ComboBox comboBox, string xmlValue)
+    {
+        SampleRateChoice? choice = _sampleRates.FirstOrDefault(sampleRate => string.Equals(sampleRate.XmlValue, xmlValue, StringComparison.OrdinalIgnoreCase));
+        comboBox.SelectedItem = choice;
+        comboBox.Text = choice?.Display ?? xmlValue;
+    }
+
+    private void SelectEncoding(ComboBox comboBox, string xmlValue)
+    {
+        EncodingChoice? choice = _encodings.FirstOrDefault(encoding => string.Equals(encoding.XmlValue, xmlValue, StringComparison.OrdinalIgnoreCase));
+        comboBox.SelectedItem = choice;
+        comboBox.Text = choice?.Display ?? xmlValue;
     }
 
     private string SelectedSourceChannelName()

@@ -1,4 +1,4 @@
-# Dante Config Editor V3.04
+# Dante Config Editor V3.05
 
 Application Windows WPF pour éditer hors ligne des fichiers XML de configuration Dante compatibles avec la structure utilisée par la V2.
 
@@ -28,7 +28,7 @@ dist\DanteConfigEditorV3_Installer.exe
 
 La personne le lance, choisit le dossier d'installation si besoin, puis l'application est installée par défaut dans Program Files avec un raccourci dans le Menu Démarrer. Un raccourci Bureau est proposé en option.
 
-Cette version est publiée en mode `self-contained win-x64` : le runtime .NET nécessaire est inclus dans l'exécutable de l'application. La machine destinataire n'a pas besoin d'installer le SDK .NET ni le runtime .NET pour utiliser Dante Config Editor V3.04.
+Cette version est publiée en mode `self-contained win-x64` : le runtime .NET nécessaire est inclus dans l'exécutable de l'application. La machine destinataire n'a pas besoin d'installer le SDK .NET ni le runtime .NET pour utiliser Dante Config Editor V3.05.
 
 L'installateur ne déploie pas les sources du projet. Il installe uniquement l'application autonome et la documentation utilisateur.
 
@@ -52,6 +52,19 @@ Pour reconstruire l'installateur autonome :
 ```powershell
 .\installer\build_installer.ps1
 ```
+
+## Nouveautés V3.05
+
+- Import d'un second XML corrigé : les machines uniques sont ajoutées même si le fichier contient aussi des noms déjà présents.
+- Fenêtre de résolution des doublons à l'import : import des uniques seulement, renommage automatique ou renommage manuel.
+- Mise à jour des subscriptions/patchs importés quand une machine importée est renommée.
+- Modification de la sample rate et des bits par échantillon machine par machine.
+- Actions globales pour appliquer sample rate et bits par échantillon à toutes les machines.
+- Remise des adresses IPv4 en automatique par machine ou globalement quand le XML expose ces champs.
+- Listes rapides Sample rates, Bits et IP fixes.
+- Avertissement visible si plusieurs sample rates ou plusieurs encodages sont présents dans le preset.
+- Validation de sauvegarde adaptée aux imports et suppressions de machines.
+- Page Configuration plus lisible : zone de réglages défilable, table des machines gardée visible et recherche globale avec message d'aide.
 
 ## Nouveautés V3.04
 

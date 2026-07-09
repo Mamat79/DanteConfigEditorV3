@@ -14,6 +14,8 @@ public sealed class DanteDevice
         IsRedundant = string.Equals(element.Element("redundancy")?.Attribute("value")?.Value, "true", StringComparison.OrdinalIgnoreCase);
         PreferredMaster = string.Equals(element.Element("preferred_master")?.Attribute("value")?.Value, "true", StringComparison.OrdinalIgnoreCase);
         Latency = ReadElementValue(element, "unicast_latency");
+        Samplerate = ReadElementValue(element, "samplerate");
+        Encoding = ReadElementValue(element, "encoding");
         UsesStaticIp = DetectStaticIp(element);
         StaticIpAddress = UsesStaticIp ? ReadIpAddress(element) : string.Empty;
 
@@ -40,11 +42,23 @@ public sealed class DanteDevice
 
     public string LatencyDisplay => DanteLatencyFormatter.FormatLatencyDisplay(Latency);
 
+    public string Samplerate { get; }
+
+    public string SampleRateDisplay => FormatSampleRateDisplay(Samplerate);
+
+    public string Encoding { get; }
+
+    public string EncodingDisplay => FormatEncodingDisplay(Encoding);
+
     public bool PreferredMaster { get; }
 
     public bool UsesStaticIp { get; }
 
     public string StaticIpAddress { get; }
+
+    public string IpModeDisplay => UsesStaticIp
+        ? string.IsNullOrWhiteSpace(StaticIpAddress) ? "Fixe" : $"Fixe ({StaticIpAddress})"
+        : "Auto";
 
     public int TxCount => TxChannels.Count;
 
@@ -59,6 +73,22 @@ public sealed class DanteDevice
     private static string ReadElementValue(XElement element, string name)
     {
         return element.Element(name)?.Value?.Trim() ?? string.Empty;
+    }
+
+    private static string FormatSampleRateDisplay(string samplerate)
+    {
+        if (!int.TryParse(samplerate, out int value) || value <= 0)
+        {
+            return string.IsNullOrWhiteSpace(samplerate) ? "-" : samplerate;
+        }
+
+        decimal khz = value / 1000m;
+        return $"{khz:0.#} kHz";
+    }
+
+    private static string FormatEncodingDisplay(string encoding)
+    {
+        return string.IsNullOrWhiteSpace(encoding) ? "-" : $"{encoding} bit";
     }
 
     private static bool DetectStaticIp(XElement element)

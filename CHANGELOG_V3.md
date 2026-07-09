@@ -1,5 +1,19 @@
 # Changelog V3
 
+## 2026-07-09 - Version 3.05
+
+- Passage des textes visibles et métadonnées en V3.05 dev.
+- Correction de l'import d'un second XML : les machines uniques sont importées même si d'autres machines du fichier sont en doublon.
+- Ajout d'une fenêtre de résolution des doublons à l'import, avec choix entre import des uniques seulement, renommage automatique et renommage manuel.
+- Mise à jour des subscriptions/patchs importés quand une machine importée est renommée.
+- Ajout des réglages sample rate et bits par échantillon machine par machine.
+- Ajout des actions globales sample rate et bits par échantillon.
+- Ajout d'une fonction pour remettre les adresses IPv4 en automatique, par machine ou globalement quand le XML expose ces champs.
+- Ajout des listes rapides Sample rates, Bits et IP fixes.
+- Ajout d'alertes visibles si plusieurs sample rates ou plusieurs encodages coexistent dans le preset.
+- Adaptation de la validation de sauvegarde aux imports et suppressions de machines.
+- Amélioration visuelle de la page Configuration : zone de réglages défilable, table des machines toujours visible et recherche globale plus lisible quand aucun résultat n'est affiché.
+
 ## 2026-07-07 - Version 3.04
 
 - Passage des textes visibles et métadonnées en V3.04 dev.

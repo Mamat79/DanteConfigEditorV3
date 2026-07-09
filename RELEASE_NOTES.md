@@ -1,4 +1,4 @@
-# Dante Config Editor V3.04
+# Dante Config Editor V3.05
 
 ## Statut
 
@@ -8,6 +8,16 @@ Travaillez toujours sur une copie de vos fichiers XML Dante et validez le result
 
 ## Nouveautes principales
 
+- Version 3.05 dev.
+- Import d'un second XML corrige : les machines uniques sont importees meme si le fichier contient aussi des noms deja presents.
+- Fenetre de resolution des doublons a l'import : import des uniques seulement, renommage automatique ou renommage manuel.
+- Mise a jour des subscriptions/patchs importes quand une machine importee est renommee.
+- Reglage sample rate et bits par echantillon machine par machine.
+- Actions globales pour appliquer sample rate et bits par echantillon a toutes les machines.
+- Remise des adresses IPv4 en automatique par machine ou globalement quand le XML expose ces champs.
+- Listes rapides Sample rates, Bits et IP fixes.
+- Avertissements visibles si plusieurs sample rates ou plusieurs encodages coexistent dans le preset.
+- Page Configuration plus lisible : reglages defilables, table des machines gardee visible et recherche globale avec message d'aide.
 - Garde-fou de modifications XML : la sauvegarde est bloquee si une zone technique Dante sensible change par accident.
 - Rapport compatibilite Dante Controller.
 - Mode Lecture seule par defaut apres ouverture du XML, avec bouton Activer l'edition.
@@ -20,7 +30,7 @@ Travaillez toujours sur une copie de vos fichiers XML Dante et validez le result
 - Page Sante enrichie et vue Topologie simple.
 - Script installateur plus portable.
 - Correction des accents dans l'export PDF.
-- Ajout de la mention `Fait avec le soft Dante Config Editor V3.04 - version 3.04-dev - By Mamat` dans les exports TXT/PDF.
+- Ajout de la mention `Fait avec le soft Dante Config Editor V3.05 - version 3.05-dev - By Mamat` dans les exports TXT/PDF.
 - Correction des boutons d'action après ouverture d'un XML : l'interface reste modifiable, mais l'enregistrement impose un nouveau nom de fichier.
 - Sélecteur Français / Anglais directement dans l'interface, modifiable à tout moment.
 - Suppression d'une machine avec nettoyage des subscriptions/patchs qui pointent vers elle.
