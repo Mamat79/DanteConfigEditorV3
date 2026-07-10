@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Net;
@@ -7,6 +8,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Media;
+using System.Windows.Threading;
 using DanteConfigEditor.Models;
 using DanteConfigEditor.Services;
 using Microsoft.Win32;
@@ -27,6 +29,8 @@ public partial class MainWindow : Window
     private readonly ObservableCollection<DanteValidationIssue> _healthIssues = [];
     private readonly HashSet<string> _lockedDeviceNames = new(StringComparer.OrdinalIgnoreCase);
     private readonly HashSet<string> _warningDeviceNames = new(StringComparer.OrdinalIgnoreCase);
+    private readonly DispatcherTimer _recoveryTimer;
+    private CancellationTokenSource? _recoveryWriteCancellation;
     private string? _selectedWarningKey;
     private readonly LatencyChoice[] _latencies =
     [
@@ -217,6 +221,11 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+        _recoveryTimer = new DispatcherTimer(DispatcherPriority.Background)
+        {
+            Interval = TimeSpan.FromMilliseconds(750)
+        };
+        _recoveryTimer.Tick += RecoveryTimer_Tick;
     }
 
     private void Window_Loaded(object sender, RoutedEventArgs e)
@@ -495,6 +504,7 @@ public partial class MainWindow : Window
 
         try
         {
+            CancelPendingRecoveryWrite();
             string previousFilePath = _project.OriginalFilePath;
             string backupPath = _project.SaveAs(dialog.FileName);
             SessionRecoveryService.Delete(previousFilePath);
@@ -560,7 +570,7 @@ public partial class MainWindow : Window
             string label = _project!.UndoLastChange();
             AddLog(Tf("Log.ActionUndone", label));
             RefreshAll();
-            UpdateRecoverySnapshot();
+            ScheduleRecoverySnapshot();
             SetStatus(T("Status.LastActionUndone"));
         }
         catch (Exception ex)
@@ -626,7 +636,7 @@ public partial class MainWindow : Window
 
         RunProjectAction(
             T("Action.DeviceSettingsUpdated"),
-            () => ApplySelectedDeviceSettings(originalName, newName, isRedundant, latency, preferredMaster),
+            () => _project!.ApplyBatch(_ => ApplySelectedDeviceSettings(originalName, newName, isRedundant, latency, preferredMaster)),
             latencyChanged ? T("Dialog.LatencyWarning") : null);
     }
 
@@ -765,13 +775,13 @@ public partial class MainWindow : Window
         string targetLabel = redundant ? "Redondant" : "Daisychain";
         RunProjectAction(
             T("Action.AllNetworkModesApplied"),
-            () =>
+            () => _project!.ApplyBatch(project =>
             {
                 foreach (DanteDevice device in target.Devices)
                 {
-                    _project!.SetNetworkMode(device.Name, redundant);
+                    project.SetNetworkMode(device.Name, redundant);
                 }
-            },
+            }),
             BuildTargetPreview(
                 $"appliquer le mode réseau {targetLabel}",
                 target,
@@ -794,13 +804,13 @@ public partial class MainWindow : Window
         string latencyDisplay = DanteLatencyFormatter.FormatLatencyDisplay(latency);
         RunProjectAction(
             T("Action.AllLatenciesApplied"),
-            () =>
+            () => _project!.ApplyBatch(project =>
             {
                 foreach (DanteDevice device in target.Devices)
                 {
-                    _project!.SetLatency(device.Name, latency);
+                    project.SetLatency(device.Name, latency);
                 }
-            },
+            }),
             BuildTargetPreview(
                 $"appliquer la latence {latencyDisplay}",
                 target,
@@ -825,13 +835,13 @@ public partial class MainWindow : Window
         string samplerateDisplay = GlobalSampleRateComboBox.Text;
         RunProjectAction(
             T("Action.AllSampleRatesApplied"),
-            () =>
+            () => _project!.ApplyBatch(project =>
             {
                 foreach (DanteDevice device in target.Devices)
                 {
-                    _project!.SetSamplerate(device.Name, samplerate);
+                    project.SetSamplerate(device.Name, samplerate);
                 }
-            },
+            }),
             BuildTargetPreview(
                 $"appliquer la sample rate {samplerateDisplay}",
                 target,
@@ -856,13 +866,13 @@ public partial class MainWindow : Window
         string encodingDisplay = GlobalEncodingComboBox.Text;
         RunProjectAction(
             T("Action.AllEncodingsApplied"),
-            () =>
+            () => _project!.ApplyBatch(project =>
             {
                 foreach (DanteDevice device in target.Devices)
                 {
-                    _project!.SetEncoding(device.Name, encoding);
+                    project.SetEncoding(device.Name, encoding);
                 }
-            },
+            }),
             BuildTargetPreview(
                 $"appliquer les bits par échantillon {encodingDisplay}",
                 target,
@@ -950,13 +960,13 @@ public partial class MainWindow : Window
 
         RunProjectAction(
             T("Action.AllIpAutoApplied"),
-            () =>
+            () => _project!.ApplyBatch(project =>
             {
                 foreach (DanteDevice device in target.Devices)
                 {
-                    _project!.SetIpAddressDynamic(device.Name);
+                    project.SetIpAddressDynamic(device.Name);
                 }
-            },
+            }),
             BuildTargetPreview(
                 "mettre les adresses IPv4 en automatique",
                 target,
@@ -1018,13 +1028,13 @@ public partial class MainWindow : Window
 
         RunProjectAction(
             T("Action.AllIpStaticApplied"),
-            () =>
+            () => _project!.ApplyBatch(project =>
             {
                 foreach (DanteDevice device in configurableDevices)
                 {
-                    _project!.SetIpAddressStatic(device.Name, targetAddressByDevice[device.Name], netmask, gateway);
+                    project.SetIpAddressStatic(device.Name, targetAddressByDevice[device.Name], netmask, gateway);
                 }
-            },
+            }),
             BuildTargetPreview(
                 $"fixer les IP depuis {prefix}.{startHost} / {netmask} / gateway {gateway}",
                 target,
@@ -1051,13 +1061,13 @@ public partial class MainWindow : Window
 
         RunProjectAction(
             T("Action.AllChannelsReset"),
-            () =>
+            () => _project!.ApplyBatch(project =>
             {
                 foreach (DanteDevice device in target.Devices)
                 {
-                    _project!.ResetChannels(device.Name);
+                    project.ResetChannels(device.Name);
                 }
-            },
+            }),
             BuildTargetPreview(
                 "réinitialiser les noms de canaux TX/RX",
                 target,
@@ -1440,7 +1450,7 @@ public partial class MainWindow : Window
 
         RunProjectAction(
             T("Action.DeviceDetailsUpdated"),
-            () => ApplyDeviceDetails(window.OriginalDeviceName, window.Result),
+            () => _project!.ApplyBatch(_ => ApplyDeviceDetails(window.OriginalDeviceName, window.Result)),
             T("Dialog.DeviceDetailsWarning"));
     }
 
@@ -2907,40 +2917,97 @@ public partial class MainWindow : Window
             action();
             AddLog(successMessage);
             RefreshAll();
-            UpdateRecoverySnapshot();
+            ScheduleRecoverySnapshot();
             SetStatus(successMessage);
         }
         catch (Exception ex)
         {
             _project?.RestoreLastUndoSnapshot();
             RefreshAll();
-            UpdateRecoverySnapshot();
+            ScheduleRecoverySnapshot();
             ShowError("Action impossible", ex.Message);
         }
     }
 
-    private void UpdateRecoverySnapshot()
+    private void ScheduleRecoverySnapshot()
     {
         if (_project is null)
         {
             return;
         }
 
+        _recoveryTimer.Stop();
+        _recoveryTimer.Start();
+    }
+
+    private async void RecoveryTimer_Tick(object? sender, EventArgs e)
+    {
+        _recoveryTimer.Stop();
+        await UpdateRecoverySnapshotAsync();
+    }
+
+    private async Task UpdateRecoverySnapshotAsync()
+    {
+        DanteProject? project = _project;
+        if (project is null)
+        {
+            return;
+        }
+
+        _recoveryWriteCancellation?.Cancel();
+        CancellationTokenSource cancellation = new();
+        _recoveryWriteCancellation = cancellation;
         try
         {
-            if (_project.IsModified)
+            if (project.IsModified)
             {
-                SessionRecoveryService.Save(_project);
+                await SessionRecoveryService.SaveAsync(project, cancellationToken: cancellation.Token);
             }
             else
             {
-                SessionRecoveryService.Delete(_project.OriginalFilePath);
+                await SessionRecoveryService.DeleteAsync(project.OriginalFilePath, cancellationToken: cancellation.Token);
             }
+        }
+        catch (OperationCanceledException)
+        {
         }
         catch (Exception ex)
         {
             AddLog(Tf("Log.RecoveryUnavailable", ex.Message));
         }
+        finally
+        {
+            if (ReferenceEquals(_recoveryWriteCancellation, cancellation))
+            {
+                _recoveryWriteCancellation = null;
+            }
+
+            cancellation.Dispose();
+        }
+    }
+
+    private void CancelPendingRecoveryWrite()
+    {
+        _recoveryTimer.Stop();
+        _recoveryWriteCancellation?.Cancel();
+    }
+
+    protected override void OnClosing(CancelEventArgs e)
+    {
+        CancelPendingRecoveryWrite();
+        if (_project?.IsModified == true)
+        {
+            try
+            {
+                SessionRecoveryService.Save(_project);
+            }
+            catch
+            {
+                // La fermeture ne doit pas être bloquée si le fichier de récupération est indisponible.
+            }
+        }
+
+        base.OnClosing(e);
     }
 
     private string SelectedDeviceName()

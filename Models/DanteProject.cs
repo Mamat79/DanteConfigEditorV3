@@ -9,6 +9,8 @@ namespace DanteConfigEditor.Models;
 
 public sealed class DanteProject
 {
+    public const int MaximumUndoSnapshots = 10;
+
     // Noms de balises reconnus pour identifier le device TX auquel un RX est abonné.
     // Plusieurs variantes sont acceptées pour rester tolérant avec les exports XML.
     private static readonly string[] SubscriptionDeviceElementNames =
@@ -82,6 +84,8 @@ public sealed class DanteProject
     private readonly Stack<UndoSnapshot> _undoSnapshots = [];
     private XDocument _originalDocument;
     private DanteXmlCompatibilityProfile _originalCompatibilityProfile;
+    private int _batchDepth;
+    private bool _reloadPending;
 
     private DanteProject(string originalFilePath, XDocument document, XDocument? originalDocument = null)
     {
@@ -147,6 +151,7 @@ public sealed class DanteProject
     {
         // Copie complète du XML : plus lourd qu'une annulation ciblée, mais plus sûr
         // car les modifications peuvent toucher plusieurs balises de patch.
+        TrimUndoHistory();
         _undoSnapshots.Push(new UndoSnapshot(
             label,
             new XDocument(Document),
@@ -184,7 +189,26 @@ public sealed class DanteProject
             return null;
         }
 
-        return Devices.FirstOrDefault(device => string.Equals(device.Name, name, StringComparison.OrdinalIgnoreCase));
+        return Devices.FirstOrDefault(device =>
+            string.Equals(device.Element.ChildValue("name"), name, StringComparison.OrdinalIgnoreCase));
+    }
+
+    public void ApplyBatch(Action<DanteProject> mutation)
+    {
+        ArgumentNullException.ThrowIfNull(mutation);
+        _batchDepth++;
+        try
+        {
+            mutation(this);
+        }
+        finally
+        {
+            _batchDepth--;
+            if (_batchDepth == 0 && _reloadPending)
+            {
+                ReloadModel();
+            }
+        }
     }
 
     public void RenameDevice(string oldName, string newName)
@@ -568,7 +592,7 @@ public sealed class DanteProject
             SetChannelDisplayName(channel, "label", trimmedNewName);
             // Un canal TX peut être utilisé par plusieurs RX : on met à jour
             // toutes les références reconnues dans le fichier.
-            UpdateSubscriptionsForRenamedTxChannel(device.Name, oldName, trimmedNewName);
+            UpdateSubscriptionsForRenamedTxChannel(device.Element.ChildValue("name"), oldName, trimmedNewName);
         }
         else
         {
@@ -2203,6 +2227,7 @@ public sealed class DanteProject
         // pour refléter les nouvelles valeurs.
         Devices = Document.Root.Children("device").Select(device => new DanteDevice(device)).ToList();
         PatchMatrix = new DantePatchMatrix(BuildSubscriptions());
+        _reloadPending = false;
     }
 
     private IReadOnlyList<DanteSubscription> BuildSubscriptions()
@@ -2738,7 +2763,29 @@ public sealed class DanteProject
     {
         _changes.Add(new ChangeRecord(DateTime.Now, action, details));
         IsModified = true;
-        ReloadModel();
+        _reloadPending = true;
+        if (_batchDepth == 0)
+        {
+            ReloadModel();
+        }
+    }
+
+    private void TrimUndoHistory()
+    {
+        if (_undoSnapshots.Count < MaximumUndoSnapshots)
+        {
+            return;
+        }
+
+        UndoSnapshot[] snapshotsToKeep = _undoSnapshots
+            .Take(MaximumUndoSnapshots - 1)
+            .Reverse()
+            .ToArray();
+        _undoSnapshots.Clear();
+        foreach (UndoSnapshot snapshot in snapshotsToKeep)
+        {
+            _undoSnapshots.Push(snapshot);
+        }
     }
 
     private static bool ContainsProblematicCharacters(string value)
