@@ -22,6 +22,7 @@
   <ItemGroup>
     <Compile Remove="tmp\**\*.cs" />
     <Compile Remove="tests\**\*.cs" />
+    <Compile Remove="benchmarks\**\*.cs" />
     <None Remove="tmp\**\*" />
   </ItemGroup>
 </Project>
