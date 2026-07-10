@@ -49,28 +49,30 @@ public sealed class DanteProject
         "32"
     };
 
-    private static readonly string[] StaticIpAttributeNames =
+    private static readonly string[] IpAddressAttributeNames =
     [
         "address",
-        "dnsserver",
-        "gateway",
         "ip",
         "ipv4",
-        "mask",
-        "netmask",
         "static_address",
         "static_ip",
-        "subnet",
-        "subnet_mask",
         "value"
     ];
 
-    private static readonly string[] StaticIpElementNames =
+    private static readonly string[] IpNetmaskAttributeNames =
+    [
+        "mask",
+        "netmask",
+        "subnet",
+        "subnet_mask"
+    ];
+
+    private static readonly string[] DynamicIpClearedElementNames =
     [
         "address",
         "netmask",
-        "gateway",
-        "dnsserver"
+        "subnet",
+        "subnet_mask"
     ];
 
     // Les éléments RX modifiés sont gardés pour l'affichage et pour le résumé
@@ -2376,47 +2378,44 @@ public sealed class DanteProject
 
     private static bool SetDeviceIpAddressesDynamic(DanteDevice device)
     {
-        XElement[] ipv4Addresses = device.Element.DescendantsNamed("ipv4_address").ToArray();
-        if (ipv4Addresses.Length == 0)
+        XElement? ipv4Address = DanteIpConfiguration.FindPrimaryIpv4Address(device.Element);
+        if (ipv4Address is null)
         {
             return false;
         }
 
         bool changed = false;
-        foreach (XElement ipv4Address in ipv4Addresses)
+        XAttribute? modeAttribute = ipv4Address.Attribute("mode");
+        if (!string.Equals(modeAttribute?.Value, "dynamic", StringComparison.OrdinalIgnoreCase))
         {
-            XAttribute? modeAttribute = ipv4Address.Attribute("mode");
-            if (!string.Equals(modeAttribute?.Value, "dynamic", StringComparison.OrdinalIgnoreCase))
+            ipv4Address.SetAttributeValue("mode", "dynamic");
+            changed = true;
+        }
+
+        foreach (string attributeName in IpAddressAttributeNames.Concat(IpNetmaskAttributeNames))
+        {
+            XAttribute? attribute = ipv4Address.Attribute(attributeName);
+            if (attribute is not null)
             {
-                ipv4Address.SetAttributeValue("mode", "dynamic");
+                attribute.Remove();
                 changed = true;
             }
+        }
 
-            foreach (string attributeName in StaticIpAttributeNames)
+        foreach (string elementName in DynamicIpClearedElementNames)
+        {
+            XElement? element = ipv4Address.Child(elementName);
+            if (element is not null)
             {
-                XAttribute? attribute = ipv4Address.Attribute(attributeName);
-                if (attribute is not null)
-                {
-                    attribute.Remove();
-                    changed = true;
-                }
-            }
-
-            foreach (string elementName in StaticIpElementNames)
-            {
-                XElement? element = ipv4Address.Element(elementName);
-                if (element is not null)
-                {
-                    element.Remove();
-                    changed = true;
-                }
-            }
-
-            if (!ipv4Address.HasElements && !string.IsNullOrWhiteSpace(ipv4Address.Value))
-            {
-                ipv4Address.Value = string.Empty;
+                element.Remove();
                 changed = true;
             }
+        }
+
+        if (!ipv4Address.HasElements && !string.IsNullOrWhiteSpace(ipv4Address.Value))
+        {
+            ipv4Address.Value = string.Empty;
+            changed = true;
         }
 
         return changed;
@@ -2424,56 +2423,58 @@ public sealed class DanteProject
 
     private static void SetDeviceIpAddressStatic(DanteDevice device, string address, string netmask, string gateway)
     {
-        XElement ipv4Address = FindOrCreateIpv4AddressElement(device.Element);
+        XElement ipv4Address = DanteIpConfiguration.FindOrCreatePrimaryIpv4Address(device.Element);
         ipv4Address.SetAttributeValue("mode", "static");
-        foreach (string attributeName in StaticIpAttributeNames)
-        {
-            ipv4Address.Attribute(attributeName)?.Remove();
-        }
-
-        SetElementValue(ipv4Address, "address", address);
-        SetElementValue(ipv4Address, "netmask", netmask);
-        SetElementValue(ipv4Address, "gateway", gateway);
-        SetElementValue(ipv4Address, "dnsserver", "0.0.0.0");
-    }
-
-    private static XElement FindOrCreateIpv4AddressElement(XElement deviceElement)
-    {
-        XElement? ipv4Address = deviceElement.DescendantsNamed("ipv4_address").FirstOrDefault();
-        if (ipv4Address is not null)
-        {
-            return ipv4Address;
-        }
-
-        XElement? interfaceElement = deviceElement.Child("interface");
-        if (interfaceElement is null)
-        {
-            throw new InvalidOperationException($"La machine {deviceElement.Child("name")?.Value.Trim()} ne contient pas de balise <interface> IPv4 modifiable.");
-        }
-
-        ipv4Address = new XElement(interfaceElement.ChildName("ipv4_address"));
-        interfaceElement.Add(ipv4Address);
-        return ipv4Address;
+        SetIpField(ipv4Address, IpAddressAttributeNames, "address", address);
+        SetIpField(ipv4Address, IpNetmaskAttributeNames, "netmask", netmask);
+        SetIpField(ipv4Address, ["gateway"], "gateway", gateway);
     }
 
     private static bool DeviceSupportsIpConfiguration(DanteDevice device)
     {
-        return device.Element.DescendantsNamed("ipv4_address").Any()
-            || device.Element.Child("interface") is not null;
+        return DanteIpConfiguration.FindPrimaryInterface(device.Element) is not null;
     }
 
     private static bool DeviceHasStaticIpConfiguration(DanteDevice device)
     {
-        if (device.UsesStaticIp)
+        XElement? ipv4Address = DanteIpConfiguration.FindPrimaryIpv4Address(device.Element);
+        if (ipv4Address is null)
         {
-            return true;
+            return false;
         }
 
-        return device.Element.DescendantsNamed("ipv4_address").Any(ipv4Address =>
-            !string.Equals(ipv4Address.Attribute("mode")?.Value, "dynamic", StringComparison.OrdinalIgnoreCase)
-            || StaticIpAttributeNames.Any(attributeName => ipv4Address.Attribute(attributeName) is not null)
-            || StaticIpElementNames.Any(elementName => ipv4Address.Child(elementName) is not null)
-            || !string.IsNullOrWhiteSpace(ipv4Address.Value));
+        string mode = ipv4Address.Attribute("mode")?.Value.Trim() ?? string.Empty;
+        if (string.Equals(mode, "dynamic", StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        return device.UsesStaticIp
+            || IpAddressAttributeNames.Concat(IpNetmaskAttributeNames).Any(attributeName => ipv4Address.Attribute(attributeName) is not null)
+            || DynamicIpClearedElementNames.Any(elementName => ipv4Address.Child(elementName) is not null)
+            || !string.IsNullOrWhiteSpace(ipv4Address.Value);
+    }
+
+    private static void SetIpField(XElement ipv4Address, IEnumerable<string> aliases, string canonicalName, string value)
+    {
+        foreach (string alias in aliases)
+        {
+            XAttribute? attribute = ipv4Address.Attribute(alias);
+            if (attribute is not null)
+            {
+                attribute.Value = value;
+                return;
+            }
+
+            XElement? element = ipv4Address.Child(alias);
+            if (element is not null)
+            {
+                element.Value = value;
+                return;
+            }
+        }
+
+        SetElementValue(ipv4Address, canonicalName, value);
     }
 
     private static void SetChannelDisplayName(DanteChannel channel, string fallbackElementName, string value)

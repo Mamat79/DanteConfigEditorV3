@@ -102,7 +102,19 @@ public sealed class DanteDevice
 
     private static bool DetectStaticIp(XElement element)
     {
-        foreach (XElement candidate in element.DescendantsAndSelf())
+        XElement? primaryIpv4Address = DanteIpConfiguration.FindPrimaryIpv4Address(element);
+        if (primaryIpv4Address is null)
+        {
+            return false;
+        }
+
+        string mode = primaryIpv4Address.Attribute("mode")?.Value.Trim() ?? string.Empty;
+        if (string.Equals(mode, "dynamic", StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        foreach (XElement candidate in primaryIpv4Address.DescendantsAndSelf())
         {
             if (IsStaticIpMarker(candidate.Name.LocalName, candidate.Value, BuildXmlPath(candidate)))
             {
@@ -177,8 +189,14 @@ public sealed class DanteDevice
 
     private static string ReadIpAddress(XElement element)
     {
+        XElement? primaryIpv4Address = DanteIpConfiguration.FindPrimaryIpv4Address(element);
+        if (primaryIpv4Address is null)
+        {
+            return string.Empty;
+        }
+
         List<(int Priority, string Value)> candidates = [];
-        foreach (XElement candidate in element.Descendants())
+        foreach (XElement candidate in primaryIpv4Address.DescendantsAndSelf())
         {
             AddIpCandidate(candidates, candidate.Name.LocalName, candidate.Value);
 
@@ -196,10 +214,11 @@ public sealed class DanteDevice
 
     private static string ReadIpField(XElement element, string fieldName)
     {
-        XElement? ipv4Address = element.DescendantsNamed("ipv4_address").FirstOrDefault(candidate =>
-            string.Equals(candidate.Attribute("mode")?.Value, "static", StringComparison.OrdinalIgnoreCase));
+        XElement? ipv4Address = DanteIpConfiguration.FindPrimaryIpv4Address(element);
 
-        return ipv4Address.Child(fieldName)?.Value.Trim() ?? string.Empty;
+        return ipv4Address?.Attribute(fieldName)?.Value.Trim()
+            ?? ipv4Address.Child(fieldName)?.Value.Trim()
+            ?? string.Empty;
     }
 
     private static void AddIpCandidate(List<(int Priority, string Value)> candidates, string name, string value)
