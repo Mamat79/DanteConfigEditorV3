@@ -495,8 +495,11 @@ public partial class MainWindow : Window
 
         try
         {
+            string previousFilePath = _project.OriginalFilePath;
             string backupPath = _project.SaveAs(dialog.FileName);
+            SessionRecoveryService.Delete(previousFilePath);
             SessionRecoveryService.Delete(_project.OriginalFilePath);
+            RecentFilesService.Add(_project.OriginalFilePath);
             AddLog(Tf("Log.OriginalBackupCreated", backupPath));
             AddLog(Tf("Log.FileSaved", dialog.FileName));
             RefreshAll();

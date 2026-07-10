@@ -78,8 +78,8 @@ public sealed class DanteProject
     private readonly Dictionary<XElement, bool> _modifiedRxElements = [];
     private readonly List<ChangeRecord> _changes = [];
     private readonly Stack<UndoSnapshot> _undoSnapshots = [];
-    private readonly XDocument _originalDocument;
-    private readonly DanteXmlCompatibilityProfile _originalCompatibilityProfile;
+    private XDocument _originalDocument;
+    private DanteXmlCompatibilityProfile _originalCompatibilityProfile;
 
     private DanteProject(string originalFilePath, XDocument document, XDocument? originalDocument = null)
     {
@@ -90,7 +90,7 @@ public sealed class DanteProject
         ReloadModel();
     }
 
-    public string OriginalFilePath { get; }
+    public string OriginalFilePath { get; private set; }
 
     public string PresetName => Document.Root.Child("name")?.Value.Trim() ?? Path.GetFileNameWithoutExtension(OriginalFilePath);
 
@@ -1651,6 +1651,16 @@ public sealed class DanteProject
 
     public string SaveAs(string destinationPath)
     {
+        return SaveAs(destinationPath, null);
+    }
+
+    internal string SaveAs(string destinationPath, Action<string>? saveStageObserver)
+    {
+        if (string.IsNullOrWhiteSpace(destinationPath))
+        {
+            throw new ArgumentException("Le chemin de destination doit être renseigné.", nameof(destinationPath));
+        }
+
         DanteValidationResult validation = Validate();
         if (validation.HasErrors)
         {
@@ -1663,7 +1673,17 @@ public sealed class DanteProject
             throw new InvalidOperationException("Sauvegarde refusée : une modification interdite du XML Dante a été détectée." + Environment.NewLine + guard.ToDisplayText());
         }
 
-        string temporaryPath = destinationPath + ".tmp";
+        string fullDestinationPath = Path.GetFullPath(destinationPath);
+        string destinationDirectory = Path.GetDirectoryName(fullDestinationPath)
+            ?? throw new InvalidOperationException("Le dossier de destination est introuvable.");
+        if (!Directory.Exists(destinationDirectory))
+        {
+            throw new DirectoryNotFoundException($"Le dossier de destination n'existe pas : {destinationDirectory}");
+        }
+
+        string temporaryPath = Path.Combine(
+            destinationDirectory,
+            $".{Path.GetFileName(fullDestinationPath)}.{Guid.NewGuid():N}.tmp");
         string backupPath = string.Empty;
 
         try
@@ -1671,6 +1691,7 @@ public sealed class DanteProject
             // On sauvegarde d'abord dans un fichier temporaire, puis on le relit.
             // Cela évite de remplacer le fichier final par un XML illisible.
             Document.Save(temporaryPath, SaveOptions.DisableFormatting);
+            saveStageObserver?.Invoke("AfterTemporaryFileCreated");
             XDocument temporaryDocument = XDocument.Load(temporaryPath, LoadOptions.PreserveWhitespace | LoadOptions.SetLineInfo);
             DanteValidationResult compatibility = DanteXmlCompatibilityService.ValidateCompatibility(temporaryDocument, _originalCompatibilityProfile);
             if (compatibility.HasErrors)
@@ -1690,14 +1711,19 @@ public sealed class DanteProject
                 throw new InvalidOperationException("Sauvegarde refusée : une modification interdite du XML Dante a été détectée dans le fichier temporaire." + Environment.NewLine + temporaryGuard.ToDisplayText());
             }
 
-            backupPath = SafeFileService.CreateOriginalBackup(OriginalFilePath);
+            string previousFilePath = OriginalFilePath;
+            backupPath = SafeFileService.CreateOriginalBackup(previousFilePath);
+            saveStageObserver?.Invoke("BeforeDestinationCommit");
 
-            if (File.Exists(destinationPath))
+            if (File.Exists(fullDestinationPath))
             {
-                File.Delete(destinationPath);
+                string destinationBackupPath = SafeFileService.BuildDestinationBackupPath(fullDestinationPath);
+                File.Replace(temporaryPath, fullDestinationPath, destinationBackupPath, ignoreMetadataErrors: true);
             }
-
-            File.Move(temporaryPath, destinationPath);
+            else
+            {
+                File.Move(temporaryPath, fullDestinationPath);
+            }
         }
         finally
         {
@@ -1707,8 +1733,11 @@ public sealed class DanteProject
             }
         }
 
-        LastSavedPath = destinationPath;
-        RegisterChange("Sauvegarde", $"Fichier sauvegardé sous {destinationPath}");
+        OriginalFilePath = fullDestinationPath;
+        LastSavedPath = fullDestinationPath;
+        _originalDocument = new XDocument(Document);
+        _originalCompatibilityProfile = DanteXmlCompatibilityService.CaptureProfile(_originalDocument);
+        RegisterChange("Sauvegarde", $"Fichier sauvegardé sous {fullDestinationPath}");
         IsModified = false;
         _undoSnapshots.Clear();
         return backupPath;
