@@ -199,6 +199,8 @@ public static class DanteXmlChangeGuardService
         string parentPath,
         DanteValidationResult result)
     {
+        // L'ordre des balises n'est pas une modification de contenu. Les
+        // enfants sont comparés par nom puis par identité technique connue.
         string[] childNames = originalChildren.Select(element => element.Name.LocalName)
             .Concat(currentChildren.Select(element => element.Name.LocalName))
             .Distinct(StringComparer.Ordinal)
@@ -302,6 +304,8 @@ public static class DanteXmlChangeGuardService
         IReadOnlyList<XElement> currentDevices,
         DanteValidationResult result)
     {
+        // Le nom visible peut changer. On associe d'abord les machines par
+        // device_id, puis par default_name et enfin par signature matérielle.
         HashSet<int> matchedCurrentIndexes = [];
         for (int originalIndex = 0; originalIndex < originalDevices.Count; originalIndex++)
         {
@@ -351,6 +355,8 @@ public static class DanteXmlChangeGuardService
             }
         }
 
+        // Le repli par position n'est autorisé que si aucun device n'a été
+        // ajouté ou supprimé ; il permet alors de détecter un identifiant altéré.
         if (originalDeviceCount == currentDevices.Count)
         {
             return originalIndex < currentDevices.Count && !matchedCurrentIndexes.Contains(originalIndex)

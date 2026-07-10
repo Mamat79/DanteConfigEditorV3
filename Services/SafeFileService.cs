@@ -28,6 +28,8 @@ public static class SafeFileService
 
     public static string BuildDestinationBackupPath(string destinationPath)
     {
+        // File.Replace créera cette copie dans le même volume que la destination,
+        // ce qui permet de conserver un remplacement réellement atomique.
         return BuildUniqueBackupPath(destinationPath, "destination-remplacee");
     }
 

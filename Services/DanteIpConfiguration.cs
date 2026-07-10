@@ -6,6 +6,8 @@ internal static class DanteIpConfiguration
 {
     public static XElement? FindPrimaryInterface(XElement deviceElement)
     {
+        // Les exports Dante identifient généralement l'interface principale par
+        // network="0". À défaut, la première interface reste le choix conservateur.
         XElement[] interfaces = deviceElement.Children("interface").ToArray();
         if (interfaces.Length == 0)
         {

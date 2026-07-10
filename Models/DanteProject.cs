@@ -196,6 +196,8 @@ public sealed class DanteProject
     public void ApplyBatch(Action<DanteProject> mutation)
     {
         ArgumentNullException.ThrowIfNull(mutation);
+        // Les méthodes métier continuent d'enregistrer chaque changement, mais
+        // le modèle de lecture n'est reconstruit qu'à la sortie du lot externe.
         _batchDepth++;
         try
         {
@@ -2777,6 +2779,8 @@ public sealed class DanteProject
             return;
         }
 
+        // Stack énumère du plus récent au plus ancien. On conserve donc les
+        // derniers états, puis on les réempile dans leur ordre d'origine.
         UndoSnapshot[] snapshotsToKeep = _undoSnapshots
             .Take(MaximumUndoSnapshots - 1)
             .Reverse()

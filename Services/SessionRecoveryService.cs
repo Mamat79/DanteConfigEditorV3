@@ -37,6 +37,8 @@ public static class SessionRecoveryService
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(project);
+        // La copie fige l'état XML sur le thread appelant. Les accès disque et
+        // la relecture de contrôle s'exécutent ensuite hors du thread WPF.
         XDocument snapshot = new(project.Document);
         string sourcePath = project.OriginalFilePath;
         await WriteGate.WaitAsync(cancellationToken).ConfigureAwait(false);
