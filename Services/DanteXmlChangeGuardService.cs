@@ -199,6 +199,17 @@ public static class DanteXmlChangeGuardService
         string parentPath,
         DanteValidationResult result)
     {
+        if (CanCompareChildrenByPosition(originalChildren, currentChildren))
+        {
+            for (int index = 0; index < originalChildren.Count; index++)
+            {
+                string childPath = NormalizePath(parentPath + "/" + originalChildren[index].Name.LocalName);
+                CompareElements(originalChildren[index], currentChildren[index], childPath, result);
+            }
+
+            return;
+        }
+
         // L'ordre des balises n'est pas une modification de contenu. Les
         // enfants sont comparés par nom puis par identité technique connue.
         string[] childNames = originalChildren.Select(element => element.Name.LocalName)
@@ -213,6 +224,61 @@ public static class DanteXmlChangeGuardService
             XElement[] currentGroup = currentChildren.Where(element => element.Name.LocalName == childName).ToArray();
             CompareElementGroup(originalGroup, currentGroup, NormalizePath(parentPath + "/" + childName), result);
         }
+    }
+
+    private static bool CanCompareChildrenByPosition(
+        IReadOnlyList<XElement> originalChildren,
+        IReadOnlyList<XElement> currentChildren)
+    {
+        if (originalChildren.Count != currentChildren.Count)
+        {
+            return false;
+        }
+
+        for (int index = 0; index < originalChildren.Count; index++)
+        {
+            XElement original = originalChildren[index];
+            XElement current = currentChildren[index];
+            if (original.Name != current.Name || !StableChildKeyMatches(original, current))
+            {
+                return false;
+            }
+
+            if (BuildChildMatchKey(original) is null)
+            {
+                for (int previous = 0; previous < index; previous++)
+                {
+                    if (originalChildren[previous].Name == original.Name)
+                    {
+                        return false;
+                    }
+                }
+            }
+        }
+
+        return true;
+    }
+
+    private static bool StableChildKeyMatches(XElement original, XElement current)
+    {
+        string localName = original.Name.LocalName;
+        if (localName is "txchannel" or "rxchannel")
+        {
+            return string.Equals(
+                original.Attribute("danteId")?.Value,
+                current.Attribute("danteId")?.Value,
+                StringComparison.OrdinalIgnoreCase);
+        }
+
+        if (localName == "interface")
+        {
+            return string.Equals(
+                original.Attribute("network")?.Value,
+                current.Attribute("network")?.Value,
+                StringComparison.OrdinalIgnoreCase);
+        }
+
+        return true;
     }
 
     private static void CompareElementGroup(
@@ -306,24 +372,33 @@ public static class DanteXmlChangeGuardService
     {
         // Le nom visible peut changer. On associe d'abord les machines par
         // device_id, puis par default_name et enfin par signature matérielle.
-        HashSet<int> matchedCurrentIndexes = [];
+        bool[] matchedCurrentIndexes = new bool[currentDevices.Count];
+        Dictionary<string, Queue<int>>[] currentIndexesByIdentity = DeviceIdentitySelectors
+            .Select(selector => BuildDeviceIndexes(currentDevices, selector))
+            .ToArray();
         for (int originalIndex = 0; originalIndex < originalDevices.Count; originalIndex++)
         {
             XElement originalDevice = originalDevices[originalIndex];
-            int? currentIndex = FindMatchingDeviceIndex(originalDevice, originalDevices.Count, currentDevices, matchedCurrentIndexes, originalIndex);
+            int? currentIndex = FindMatchingDeviceIndex(
+                originalDevice,
+                originalDevices.Count,
+                currentDevices,
+                currentIndexesByIdentity,
+                matchedCurrentIndexes,
+                originalIndex);
             if (!currentIndex.HasValue)
             {
                 AddChangeIssue(result, "/preset/device", $"Device supprimé : {DeviceDisplayName(originalDevice, originalIndex + 1)}.");
                 continue;
             }
 
-            matchedCurrentIndexes.Add(currentIndex.Value);
+            matchedCurrentIndexes[currentIndex.Value] = true;
             CompareElements(originalDevice, currentDevices[currentIndex.Value], "/preset/device", result);
         }
 
         for (int currentIndex = 0; currentIndex < currentDevices.Count; currentIndex++)
         {
-            if (!matchedCurrentIndexes.Contains(currentIndex))
+            if (!matchedCurrentIndexes[currentIndex])
             {
                 AddChangeIssue(result, "/preset/device", $"Device ajouté : {DeviceDisplayName(currentDevices[currentIndex], currentIndex + 1)}.");
             }
@@ -334,24 +409,28 @@ public static class DanteXmlChangeGuardService
         XElement originalDevice,
         int originalDeviceCount,
         IReadOnlyList<XElement> currentDevices,
-        ISet<int> matchedCurrentIndexes,
+        IReadOnlyList<Dictionary<string, Queue<int>>> currentIndexesByIdentity,
+        IReadOnlyList<bool> matchedCurrentIndexes,
         int originalIndex)
     {
-        foreach (Func<XElement, string> identitySelector in DeviceIdentitySelectors)
+        for (int selectorIndex = 0; selectorIndex < DeviceIdentitySelectors.Length; selectorIndex++)
         {
+            Func<XElement, string> identitySelector = DeviceIdentitySelectors[selectorIndex];
             string originalIdentity = identitySelector(originalDevice);
             if (string.IsNullOrWhiteSpace(originalIdentity))
             {
                 continue;
             }
 
-            int[] matches = Enumerable.Range(0, currentDevices.Count)
-                .Where(index => !matchedCurrentIndexes.Contains(index))
-                .Where(index => string.Equals(identitySelector(currentDevices[index]), originalIdentity, StringComparison.OrdinalIgnoreCase))
-                .ToArray();
-            if (matches.Length > 0)
+            if (currentIndexesByIdentity[selectorIndex].TryGetValue(originalIdentity, out Queue<int>? candidates))
             {
-                return matches.OrderBy(index => Math.Abs(index - originalIndex)).First();
+                while (candidates.TryDequeue(out int candidateIndex))
+                {
+                    if (!matchedCurrentIndexes[candidateIndex])
+                    {
+                        return candidateIndex;
+                    }
+                }
             }
         }
 
@@ -359,14 +438,39 @@ public static class DanteXmlChangeGuardService
         // ajouté ou supprimé ; il permet alors de détecter un identifiant altéré.
         if (originalDeviceCount == currentDevices.Count)
         {
-            return originalIndex < currentDevices.Count && !matchedCurrentIndexes.Contains(originalIndex)
+            return originalIndex < currentDevices.Count && !matchedCurrentIndexes[originalIndex]
                 ? originalIndex
-                : Enumerable.Range(0, currentDevices.Count).FirstOrDefault(index => !matchedCurrentIndexes.Contains(index), -1) is int fallback && fallback >= 0
+                : Enumerable.Range(0, currentDevices.Count).FirstOrDefault(index => !matchedCurrentIndexes[index], -1) is int fallback && fallback >= 0
                     ? fallback
                     : null;
         }
 
         return null;
+    }
+
+    private static Dictionary<string, Queue<int>> BuildDeviceIndexes(
+        IReadOnlyList<XElement> devices,
+        Func<XElement, string> identitySelector)
+    {
+        Dictionary<string, Queue<int>> indexes = new(StringComparer.OrdinalIgnoreCase);
+        for (int index = 0; index < devices.Count; index++)
+        {
+            string identity = identitySelector(devices[index]);
+            if (string.IsNullOrWhiteSpace(identity))
+            {
+                continue;
+            }
+
+            if (!indexes.TryGetValue(identity, out Queue<int>? queue))
+            {
+                queue = new Queue<int>();
+                indexes[identity] = queue;
+            }
+
+            queue.Enqueue(index);
+        }
+
+        return indexes;
     }
 
     private static readonly Func<XElement, string>[] DeviceIdentitySelectors =
@@ -397,30 +501,26 @@ public static class DanteXmlChangeGuardService
 
     private static void CompareAttributes(XElement original, XElement current, string path, DanteValidationResult result)
     {
-        Dictionary<XName, XAttribute> originalAttributes = original.Attributes()
-            .Where(attribute => !attribute.IsNamespaceDeclaration)
-            .ToDictionary(attribute => attribute.Name);
-        Dictionary<XName, XAttribute> currentAttributes = current.Attributes()
-            .Where(attribute => !attribute.IsNamespaceDeclaration)
-            .ToDictionary(attribute => attribute.Name);
-
-        foreach (XName name in originalAttributes.Keys.Union(currentAttributes.Keys))
+        foreach (XAttribute originalAttribute in original.Attributes().Where(attribute => !attribute.IsNamespaceDeclaration))
         {
-            string attributePath = NormalizePath(path + "/@" + name.LocalName);
-            bool hasOriginal = originalAttributes.TryGetValue(name, out XAttribute? originalAttribute);
-            bool hasCurrent = currentAttributes.TryGetValue(name, out XAttribute? currentAttribute);
+            XAttribute? currentAttribute = current.Attribute(originalAttribute.Name);
+            string attributePath = NormalizePath(path + "/@" + originalAttribute.Name.LocalName);
+            if (currentAttribute is null)
+            {
+                AddChangeIssue(result, attributePath, $"Attribut supprimé : @{originalAttribute.Name.LocalName}.");
+            }
+            else if (!string.Equals(originalAttribute.Value, currentAttribute.Value, StringComparison.Ordinal))
+            {
+                AddChangeIssue(result, attributePath, $"Attribut @{originalAttribute.Name.LocalName} modifié : {FormatValue(originalAttribute.Value)} -> {FormatValue(currentAttribute.Value)}.");
+            }
+        }
 
-            if (!hasOriginal)
+        foreach (XAttribute currentAttribute in current.Attributes().Where(attribute => !attribute.IsNamespaceDeclaration))
+        {
+            if (original.Attribute(currentAttribute.Name) is null)
             {
-                AddChangeIssue(result, attributePath, $"Attribut ajouté : @{name.LocalName}.");
-            }
-            else if (!hasCurrent)
-            {
-                AddChangeIssue(result, attributePath, $"Attribut supprimé : @{name.LocalName}.");
-            }
-            else if (!string.Equals(originalAttribute!.Value, currentAttribute!.Value, StringComparison.Ordinal))
-            {
-                AddChangeIssue(result, attributePath, $"Attribut @{name.LocalName} modifié : {FormatValue(originalAttribute.Value)} -> {FormatValue(currentAttribute.Value)}.");
+                string attributePath = NormalizePath(path + "/@" + currentAttribute.Name.LocalName);
+                AddChangeIssue(result, attributePath, $"Attribut ajouté : @{currentAttribute.Name.LocalName}.");
             }
         }
     }
