@@ -1,8 +1,8 @@
 # Audit V3.06 - baseline V3.05 Beta
 
-Date de mesure : 2026-07-10  
-Commit audite : `9dda89c6017793eedf0a5f36fd1cb2f5bfd2a16d`  
-Branche de travail : `agent/v3-06-hardening`  
+Date de mesure : 2026-07-10
+Commit audite : `9dda89c6017793eedf0a5f36fd1cb2f5bfd2a16d`
+Branche de travail : `agent/v3-06-hardening`
 Environnement : Windows `10.0.26200`, x64, SDK .NET `8.0.422`, MSBuild `17.11.48`, VSTest `17.11.1`.
 
 Ce document decrit l'etat initial avant toute correction du code de production. Les mesures ne constituent pas une garantie de compatibilite avec Dante Controller : elles servent de reference reproductible pour les travaux de durcissement V3.06 Beta.
@@ -96,3 +96,56 @@ Le garde-fou initial retourne `HasErrors=false` dans les neuf executions, bien q
 - Aucun import automatique dans Dante Controller n'est disponible dans ce depot ; la compatibilite finale reste a confirmer manuellement dans le logiciel Audinate sur des copies de fichiers.
 - Les timings dependent de la machine et de l'activite systeme. Les memes presets et le meme protocole seront reutilises pour la comparaison apres correction.
 - L'audit ne valide pas encore l'accessibilite avec un lecteur d'ecran reel.
+
+## 8. Validation finale V3.06 Beta
+
+La phase de correction a ete realisee apres l'ajout des tests de securite et de non-regression. La suite finale contient 38 tests et couvre notamment l'identite stable apres renommage, les chemins XML inconnus, le reordonnancement de balises, la sauvegarde atomique, la nouvelle reference apres `SaveAs`, les interfaces IPv4 multiples, tous les alias de subscription, les namespaces par defaut, les mutations groupees, la recuperation temporisee et la limite de la pile d'annulation.
+
+| Commande finale | Code retour | Temps mesure | Resultat exact |
+|---|---:|---:|---|
+| `dotnet restore` | 0 | 0,951 s | Tous les projets etaient a jour. |
+| `dotnet test .\tests\DanteConfigEditorV3.Tests\DanteConfigEditorV3.Tests.csproj -c Release --no-restore` | 0 | 7,863 s | 38 reussis, 0 echec, 0 ignore ; execution des tests 2 s. |
+| `dotnet build .\DanteConfigEditorV3.csproj -c Release --no-restore` | 0 | 0,915 s | Generation reussie ; 0 avertissement, 0 erreur ; temps MSBuild 0,65 s. |
+| `dotnet publish .\DanteConfigEditorV3.csproj -c Release -r win-x64` | 0 | 2,957 s | Publication autonome Windows reussie dans `bin\Release\net8.0-windows\win-x64\publish`. |
+
+Le test d'integration local a egalement charge, sans les modifier, les neuf XML Dante trouves sous `Montpellier 2026`. Les neuf fichiers contiennent au moins un device et le garde-fou ne detecte aucune difference sur leur contenu charge intact.
+
+### Corrections verifiees
+
+1. Les devices sont associes par identifiants techniques stables et non plus par leur seul nom visible.
+2. Une modification XML inconnue est bloquante par defaut, tandis qu'un simple reordonnancement conserve une comparaison semantique.
+3. `SaveAs` ecrit et valide un fichier temporaire dans le repertoire cible, sauvegarde la destination existante, puis utilise un remplacement atomique. En cas d'erreur injectee apres creation du temporaire, l'ancienne destination reste intacte.
+4. Apres `SaveAs`, la destination devient la reference de la session et de la recuperation automatique.
+5. Les changements IP ciblent uniquement l'interface IPv4 principale ; DNS, passerelle et interface secondaire ne sont plus reecrits implicitement.
+6. Les modifications groupees ne reconstruisent le modele qu'une fois. La recuperation est asynchrone, temporisee et annule l'ecriture devenue obsolete. La pile d'annulation est bornee a dix snapshots.
+7. La CI Windows restaure, teste, compile et publie sur `windows-latest`. `build.ps1` arrete immediatement la construction lorsqu'une commande echoue.
+
+## 9. Benchmarks apres correction
+
+Le protocole est identique a la baseline : trois executions, mediane, 64 TX et 64 RX par machine. Les fichiers bruts et le programme reproductible sont conserves dans `benchmarks`.
+
+| Machines | Chargement | Allocation chargement | Edition detail | Allocation edition | Garde-fou | Allocation garde-fou | SaveAs | Allocation SaveAs | Working set final |
+|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| 10 | 23,180 ms | 2,783 MiB | 34,042 ms | 20,075 MiB | 7,201 ms | 5,735 MiB | 94,898 ms | 29,802 MiB | 51,336 MiB |
+| 50 | 76,186 ms | 13,735 MiB | 211,272 ms | 97,378 MiB | 31,021 ms | 27,734 MiB | 266,858 ms | 145,565 MiB | 86,977 MiB |
+| 200 | 243,042 ms | 54,822 MiB | 279,990 ms | 387,250 MiB | 55,482 ms | 110,238 MiB | 683,049 ms | 579,725 MiB | 180,867 MiB |
+
+### Evolution par rapport a V3.05 Beta
+
+Une valeur positive indique une reduction du temps ou de la memoire allouee.
+
+| Machines | Chargement | Edition | Allocation edition | Garde-fou | Allocation garde-fou | SaveAs | Allocation SaveAs | Working set |
+|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| 10 | 43,7 % | 96,1 % | 95,4 % | 24,0 % | 14,6 % | 22,8 % | 20,6 % | 58,3 % |
+| 50 | 39,7 % | 95,2 % | 95,5 % | -10,9 % | 22,9 % | 19,6 % | 25,1 % | 40,6 % |
+| 200 | 34,2 % | 98,5 % | 95,6 % | 45,6 % | 24,3 % | 37,4 % | 25,9 % | 19,6 % |
+
+Le temps du garde-fou a 50 machines varie davantage entre les trois passages et sa mediane est 10,9 % plus lente que la baseline. Cette regression mesuree est conservee explicitement. A 10 et 200 machines, le garde-fou est plus rapide et ses allocations diminuent pour les trois tailles. Le gain principal vient de l'edition groupee : a 200 machines, le scenario complet passe de 18 977,339 ms a 279,990 ms.
+
+## 10. Limites restantes
+
+- La structure XML est protegee par comparaison et par tests, mais l'import final doit encore etre confirme manuellement dans une version officielle de Dante Controller. Le depot ne contient ni SDK Audinate ni automatisation de cet import.
+- L'application reste un editeur de fichiers hors ligne ; elle ne pilote pas le reseau Dante en temps reel.
+- `MainWindow.xaml.cs` et `DanteProject.cs` restent volumineux. Leur decomposition n'a pas ete incluse afin de ne pas melanger une refonte generale avec le durcissement V3.06.
+- L'accessibilite n'a pas ete validee avec un lecteur d'ecran, un mode contraste eleve ou un fort grossissement.
+- Les temps sont des mesures locales et non des seuils contractuels. La mesure du garde-fou a 50 machines montre la variabilite attendue d'un micro-benchmark execute sur un poste de travail.
