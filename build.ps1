@@ -8,10 +8,12 @@ if ($dotnetCommand) {
 
 $dotnet = $null
 foreach ($candidate in ($dotnetCandidates | Select-Object -Unique)) {
-    if ((Test-Path $candidate) -and ((& $candidate --list-sdks) -match "^8\."))
-    {
-        $dotnet = $candidate
-        break
+    if (Test-Path $candidate) {
+        $sdkList = & $candidate --list-sdks
+        if ($LASTEXITCODE -eq 0 -and ($sdkList -match "^8\.")) {
+            $dotnet = $candidate
+            break
+        }
     }
 }
 
@@ -21,8 +23,27 @@ if (-not $dotnet) {
     exit 1
 }
 
-& $dotnet build "$PSScriptRoot\DanteConfigEditorV3.csproj" -c Release
-& $dotnet publish "$PSScriptRoot\DanteConfigEditorV3.csproj" -c Release -r win-x64 --self-contained false -o "$PSScriptRoot\publish"
+function Invoke-DotNetStep {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Name,
+        [Parameter(Mandatory = $true)]
+        [string[]]$Arguments
+    )
+
+    Write-Host ""
+    Write-Host $Name
+    & $dotnet @Arguments
+    $exitCode = $LASTEXITCODE
+    if ($exitCode -ne 0) {
+        throw "$Name a échoué avec le code retour $exitCode."
+    }
+}
+
+$project = "$PSScriptRoot\DanteConfigEditorV3.csproj"
+Invoke-DotNetStep -Name "Restauration des dépendances" -Arguments @("restore", $project)
+Invoke-DotNetStep -Name "Compilation Release" -Arguments @("build", $project, "-c", "Release", "--no-restore")
+Invoke-DotNetStep -Name "Publication Windows x64" -Arguments @("publish", $project, "-c", "Release", "-r", "win-x64", "--self-contained", "false", "-o", "$PSScriptRoot\publish")
 
 Write-Host ""
 Write-Host "Compilation terminée."
