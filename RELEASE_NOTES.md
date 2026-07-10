@@ -1,14 +1,14 @@
-# Dante Config Editor V3.05
+# Dante Config Editor V3.05 Beta
 
 ## Statut
 
-Version en developpement. Cette application n'est pas exempte de bugs.
+Version beta en developpement. Cette application n'est pas exempte de bugs.
 
 Travaillez toujours sur une copie de vos fichiers XML Dante et validez le resultat dans les outils Dante officiels avant utilisation sur une installation reelle.
 
 ## Nouveautes principales
 
-- Version 3.05 dev.
+- Version 3.05 beta.
 - Les alertes `Points a verifier` sont navigables : elles affichent et filtrent les machines concernees.
 - Nouveau filtre `Modifiees uniquement` et comparaison detaillee `Avant / apres` des machines, canaux et patchs.
 - Alertes dynamiques et comparaison avant/apres traduites en francais et en anglais.
@@ -47,7 +47,7 @@ Travaillez toujours sur une copie de vos fichiers XML Dante et validez le result
 - Reset patch RX et reset patch TX separes, en plus du reset RX/TX complet de la machine.
 - Rapport final avant import Dante et historique d'actions accessibles dans l'application.
 - Comparaison XML en tableau, en plus du resume texte.
-- Notice rapide PDF et notice complete PDF integrees a l'application et a l'installateur.
+- Notices rapide et complete en francais/anglais, ouvertes automatiquement selon la langue active et integrees a l'installateur.
 - Info-bulles ajoutees sur les principales commandes.
 - L'installateur detecte une version deja installee et propose de remplacer l'installation existante ou d'installer une copie supplementaire dans un autre dossier.
 - Garde-fou de modifications XML : la sauvegarde est bloquee si une zone technique Dante sensible change par accident.
@@ -61,7 +61,7 @@ Travaillez toujours sur une copie de vos fichiers XML Dante et validez le result
 - Page Sante enrichie et vue Topologie simple.
 - Script installateur plus portable.
 - Correction des accents dans l'export PDF.
-- Ajout de la mention `Fait avec le soft Dante Config Editor V3.05 - version 3.05-dev - By Mamat` dans les exports TXT/PDF.
+- Ajout de la mention `Fait avec le soft Dante Config Editor V3.05 - version 3.05-beta - By Mamat` dans les exports TXT/PDF.
 - Correction des boutons d'action après ouverture d'un XML : l'interface reste modifiable, mais l'enregistrement impose un nouveau nom de fichier.
 - Sélecteur Français / Anglais directement dans l'interface, modifiable à tout moment.
 - Suppression d'une machine avec nettoyage des subscriptions/patchs qui pointent vers elle.
@@ -119,8 +119,10 @@ Si une version de Dante Config Editor est deja installee, l'assistant le signale
 En fin d'installation, l'assistant peut ouvrir :
 
 - les release notes ;
-- la notice rapide PDF ;
-- la notice d'utilisation PDF du logiciel.
+- la notice rapide PDF dans la langue de l'installateur ;
+- la notice complete PDF dans la langue de l'installateur.
+
+Les quatre PDF francais/anglais sont installes et restent accessibles depuis l'application et le menu Demarrer.
 
 ## Limites connues
 

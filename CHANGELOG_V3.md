@@ -2,6 +2,8 @@
 
 ## 2026-07-10 - Version 3.05 - mise à jour
 
+- Passage du statut public et des métadonnées de `dev` à `beta`, sans changer le numéro V3.05.
+- Ajout des notices rapide et complète en français et en anglais ; l'application ouvre automatiquement la langue active.
 - Ajout d'alertes navigables qui filtrent les machines concernées depuis `Points à vérifier`.
 - Ajout du filtre `Modifiées uniquement` et d'une comparaison détaillée `Avant / après` des machines, canaux et patchs.
 - Traduction complète en français/anglais des alertes dynamiques et des lignes de comparaison avant/après.
@@ -21,7 +23,7 @@
 
 ## 2026-07-09 - Version 3.05
 
-- Passage des textes visibles et métadonnées en V3.05 dev.
+- Première publication des textes visibles et métadonnées V3.05.
 - Correction de l'import d'un second XML : les machines uniques sont importées même si d'autres machines du fichier sont en doublon.
 - Ajout d'une fenêtre de résolution des doublons à l'import, avec choix entre import des uniques seulement, renommage automatique et renommage manuel.
 - Mise à jour des subscriptions/patchs importés quand une machine importée est renommée.

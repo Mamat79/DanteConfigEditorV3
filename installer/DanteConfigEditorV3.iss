@@ -1,9 +1,9 @@
-#define MyAppName "Dante Config Editor V3.05"
-#define MyAppVersion "3.05-dev"
+#define MyAppName "Dante Config Editor V3.05 Beta"
+#define MyAppVersion "3.05-beta"
 #define MyAppPublisher "Mamat"
 #define MyAppExeName "DanteConfigEditorV3.exe"
 #define MyAppShortcutName "Dante Config Editor V3"
-#define MyAppSideBySideName "Dante Config Editor V3 3.05-dev"
+#define MyAppSideBySideName "Dante Config Editor V3 3.05-beta"
 #define SourceRoot ".."
 
 [Setup]
@@ -45,14 +45,24 @@ Source: "{#SourceRoot}\README.md"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#SourceRoot}\README_V3.md"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#SourceRoot}\CHANGELOG_V3.md"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#SourceRoot}\RELEASE_NOTES.md"; DestDir: "{app}"; Flags: ignoreversion
-Source: "{#SourceRoot}\docs\QuickStart_DanteConfigEditorV3.pdf"; DestDir: "{app}"; Flags: ignoreversion
-Source: "{#SourceRoot}\docs\Notice_DanteConfigEditorV3.pdf"; DestDir: "{app}"; Flags: ignoreversion
+Source: "{#SourceRoot}\docs\QuickStart_DanteConfigEditorV3_FR.pdf"; DestDir: "{app}"; Flags: ignoreversion
+Source: "{#SourceRoot}\docs\QuickStart_DanteConfigEditorV3_EN.pdf"; DestDir: "{app}"; Flags: ignoreversion
+Source: "{#SourceRoot}\docs\Notice_DanteConfigEditorV3_FR.pdf"; DestDir: "{app}"; Flags: ignoreversion
+Source: "{#SourceRoot}\docs\Notice_DanteConfigEditorV3_EN.pdf"; DestDir: "{app}"; Flags: ignoreversion
+
+[InstallDelete]
+Type: files; Name: "{app}\QuickStart_DanteConfigEditorV3.pdf"
+Type: files; Name: "{app}\Notice_DanteConfigEditorV3.pdf"
+Type: files; Name: "{group}\Quick start PDF.lnk"
+Type: files; Name: "{group}\Notice PDF.lnk"
 
 [Icons]
 Name: "{group}\{code:GetShortcutAppName}"; Filename: "{app}\{#MyAppExeName}"; WorkingDir: "{app}"; IconFilename: "{app}\DanteEdit.ico"
 Name: "{group}\Documentation"; Filename: "{app}\README.md"
-Name: "{group}\Quick start PDF"; Filename: "{app}\QuickStart_DanteConfigEditorV3.pdf"
-Name: "{group}\Notice PDF"; Filename: "{app}\Notice_DanteConfigEditorV3.pdf"
+Name: "{group}\Démarrage rapide - Français"; Filename: "{app}\QuickStart_DanteConfigEditorV3_FR.pdf"
+Name: "{group}\Quick start - English"; Filename: "{app}\QuickStart_DanteConfigEditorV3_EN.pdf"
+Name: "{group}\Notice complète - Français"; Filename: "{app}\Notice_DanteConfigEditorV3_FR.pdf"
+Name: "{group}\Full user guide - English"; Filename: "{app}\Notice_DanteConfigEditorV3_EN.pdf"
 Name: "{group}\Release notes"; Filename: "{app}\RELEASE_NOTES.md"
 Name: "{group}\Désinstaller {code:GetShortcutAppName}"; Filename: "{uninstallexe}"
 Name: "{autodesktop}\{code:GetShortcutAppName}"; Filename: "{app}\{#MyAppExeName}"; WorkingDir: "{app}"; IconFilename: "{app}\DanteEdit.ico"; Tasks: desktopicon
@@ -60,8 +70,10 @@ Name: "{autodesktop}\{code:GetShortcutAppName}"; Filename: "{app}\{#MyAppExeName
 [Run]
 Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,Dante Config Editor V3}"; Flags: nowait postinstall skipifsilent
 Filename: "{app}\RELEASE_NOTES.md"; Description: "Ouvrir les release notes"; Flags: postinstall shellexec unchecked skipifsilent
-Filename: "{app}\QuickStart_DanteConfigEditorV3.pdf"; Description: "Ouvrir le quick start PDF"; Flags: postinstall shellexec unchecked skipifsilent
-Filename: "{app}\Notice_DanteConfigEditorV3.pdf"; Description: "Ouvrir la notice d'utilisation PDF"; Flags: postinstall shellexec unchecked skipifsilent
+Filename: "{app}\QuickStart_DanteConfigEditorV3_FR.pdf"; Description: "Ouvrir le démarrage rapide en français"; Flags: postinstall shellexec unchecked skipifsilent; Check: IsFrenchLanguage
+Filename: "{app}\Notice_DanteConfigEditorV3_FR.pdf"; Description: "Ouvrir la notice complète en français"; Flags: postinstall shellexec unchecked skipifsilent; Check: IsFrenchLanguage
+Filename: "{app}\QuickStart_DanteConfigEditorV3_EN.pdf"; Description: "Open the English quick start"; Flags: postinstall shellexec unchecked skipifsilent; Check: IsEnglishLanguage
+Filename: "{app}\Notice_DanteConfigEditorV3_EN.pdf"; Description: "Open the full English user guide"; Flags: postinstall shellexec unchecked skipifsilent; Check: IsEnglishLanguage
 
 [Code]
 var
@@ -81,6 +93,16 @@ begin
   begin
     Result := '{#MyAppShortcutName}';
   end;
+end;
+
+function IsFrenchLanguage(): Boolean;
+begin
+  Result := ActiveLanguage = 'french';
+end;
+
+function IsEnglishLanguage(): Boolean;
+begin
+  Result := ActiveLanguage = 'english';
 end;
 
 procedure OpenGithub(Sender: TObject);

@@ -1,8 +1,8 @@
-# Dante Config Editor V3.05
+# Dante Config Editor V3.05 Beta
 
 Outil Windows pour éditer hors ligne des fichiers XML de configuration Dante.
 
-> **Statut du projet : version en développement.**  
+> **Statut du projet : version bêta en développement.**
 > Cette application est fournie comme outil de travail en cours. Elle n'est pas exempte de bugs, peut encore mal interpréter certains fichiers XML Dante, et ne doit pas être utilisée directement sur des fichiers critiques sans sauvegarde et validation dans les outils Dante officiels.
 
 ## Ce que fait l'application
@@ -33,7 +33,7 @@ Outil Windows pour éditer hors ligne des fichiers XML de configuration Dante.
 - Ouvre une fiche machine au double-clic pour modifier les formats, l'IP et les canaux TX/RX.
 - Filtre, sélectionne et verrouille des machines pour contrôler précisément les actions globales.
 - Réinitialise les patchs RX/TX d'une machine, ou seulement ses RX / seulement ses TX.
-- Ouvre une notice rapide PDF et une notice complète PDF depuis l'application.
+- Ouvre une notice rapide PDF et une notice complète PDF dans la langue active de l'application.
 - Affiche des info-bulles sur les principales fonctions.
 - Permet de cliquer sur un point important pour filtrer immédiatement les machines concernées.
 - Filtre les machines modifiées et affiche une comparaison détaillée avant / après.
@@ -74,13 +74,21 @@ La version autonome inclut le runtime .NET nécessaire. Sur une machine Windows 
 
 L'installateur contient uniquement l'application autonome et la documentation utilisateur. Les sources du projet ne sont pas installees sur la machine de l'utilisateur.
 
-En fin d'installation, il peut proposer d'ouvrir les release notes, le quick start PDF et la notice complète PDF.
+En fin d'installation, il peut proposer d'ouvrir les release notes, le quick start PDF et la notice complète PDF dans la langue choisie dans l'installateur. Les quatre PDF français/anglais restent installés et accessibles depuis le menu Démarrer.
+
+Notices fournies :
+
+- `QuickStart_DanteConfigEditorV3_FR.pdf` et `Notice_DanteConfigEditorV3_FR.pdf` ;
+- `QuickStart_DanteConfigEditorV3_EN.pdf` et `Notice_DanteConfigEditorV3_EN.pdf`.
+
+Dans l'application, les boutons d'aide ouvrent automatiquement les fichiers FR ou EN selon la langue active.
 
 Si une version est déjà installée, l'assistant le détecte et propose soit de remplacer / mettre à jour l'installation existante, soit d'installer une copie supplémentaire dans un autre dossier.
 
 ## Version distribuée
 
 - La V3.05 est la seule version binaire conservée dans les distributions locales et les Releases GitHub.
+- La publication courante porte le tag `v3.05-beta`.
 - Les anciennes publications ont été retirées pour éviter de transmettre un installateur obsolète.
 - L'historique du projet reste consultable dans Git et dans `CHANGELOG_V3.md`.
 
@@ -119,7 +127,7 @@ Si une version est déjà installée, l'assistant le détecte et propose soit de
 - Cible d'actions globales : toutes non verrouillées, sélection non verrouillée ou filtre affiché non verrouillé.
 - Verrouillage de machines pour éviter qu'une action globale ne les modifie.
 - Reset patch RX et reset patch TX séparés.
-- Notice rapide, notice complète et info-bulles intégrées.
+- Notices rapide et complète en français/anglais, sélectionnées automatiquement selon la langue de l'interface, et info-bulles intégrées.
 - Comparaison XML en tableau.
 - Installateur avec détection d'une version déjà installée et choix remplacement ou installation en plus.
 - Listes rapides Sample rates, Bits et IP fixes.

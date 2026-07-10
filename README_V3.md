@@ -1,6 +1,6 @@
-# Dante Config Editor V3.05
+# Dante Config Editor V3.05 Beta
 
-Application Windows WPF pour éditer hors ligne des fichiers XML de configuration Dante reconnus par l'application.
+Application Windows WPF en version bêta pour éditer hors ligne des fichiers XML de configuration Dante reconnus par l'application.
 
 ## Lancer l'application
 
@@ -77,7 +77,7 @@ Pour reconstruire l'installateur autonome :
 - Filtre machines, sélection multiple et verrouillage `Lock` pour protéger certaines machines des actions globales.
 - Cible d'actions globales : toutes non verrouillées, sélection non verrouillée ou filtre affiché non verrouillé.
 - Reset patch RX et reset patch TX séparés.
-- Notice rapide PDF, notice complète PDF et info-bulles dans l'interface.
+- Notices rapide et complète en français et en anglais, ouvertes selon la langue active, et info-bulles dans l'interface.
 - Installateur avec détection d'une version déjà installée et choix remplacement ou installation en plus.
 - Listes rapides Sample rates, Bits et IP fixes.
 - Avertissement visible si plusieurs sample rates ou plusieurs encodages sont présents dans le preset.

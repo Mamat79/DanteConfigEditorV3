@@ -1744,12 +1744,17 @@ public partial class MainWindow : Window
 
     private void OpenQuickStartButton_Click(object sender, RoutedEventArgs e)
     {
-        OpenBundledDocument("QuickStart_DanteConfigEditorV3.pdf");
+        OpenBundledDocument($"QuickStart_DanteConfigEditorV3_{DocumentLanguageSuffix()}.pdf");
     }
 
     private void OpenFullNoticeButton_Click(object sender, RoutedEventArgs e)
     {
-        OpenBundledDocument("Notice_DanteConfigEditorV3.pdf");
+        OpenBundledDocument($"Notice_DanteConfigEditorV3_{DocumentLanguageSuffix()}.pdf");
+    }
+
+    private string DocumentLanguageSuffix()
+    {
+        return _language == UiLanguage.English ? "EN" : "FR";
     }
 
     private void ExportTxtButton_Click(object sender, RoutedEventArgs e)

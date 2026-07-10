@@ -1,10 +1,21 @@
 using DanteConfigEditor.Models;
 using DanteConfigEditor.Services;
+using System.Reflection;
 
 namespace DanteConfigEditorV3.Tests;
 
 public sealed class DanteProjectTests
 {
+    [Fact]
+    public void AssemblyMetadataUsesBetaLabel()
+    {
+        string version = typeof(DanteProject).Assembly
+            .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?
+            .InformationalVersion ?? string.Empty;
+
+        Assert.StartsWith("3.05-beta", version, StringComparison.Ordinal);
+    }
+
     [Fact]
     public void RepresentativePresetLoadsWithExpectedTopology()
     {

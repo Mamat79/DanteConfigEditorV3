@@ -13,8 +13,10 @@ $files = @(
     "DanteEdit.ico",
     "README_V3.md",
     "CHANGELOG_V3.md",
-    "QuickStart_DanteConfigEditorV3.pdf",
-    "Notice_DanteConfigEditorV3.pdf",
+    "QuickStart_DanteConfigEditorV3_FR.pdf",
+    "QuickStart_DanteConfigEditorV3_EN.pdf",
+    "Notice_DanteConfigEditorV3_FR.pdf",
+    "Notice_DanteConfigEditorV3_EN.pdf",
     "uninstall.ps1"
 )
 
