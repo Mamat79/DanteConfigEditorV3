@@ -546,39 +546,36 @@ public partial class MainWindow : Window
         RefreshChannelSelector();
     }
 
-    private void ApplyRenameButton_Click(object sender, RoutedEventArgs e)
+    private void ApplyDeviceSettingsButton_Click(object sender, RoutedEventArgs e)
     {
-        RunProjectAction(T("Action.DeviceRenamed"), () =>
+        if (!EnsureProjectLoaded())
         {
-            string oldName = SelectedDeviceName();
-            string newName = NewNameTextBox.Text;
-            _project!.RenameDevice(oldName, newName);
-        });
-    }
+            return;
+        }
 
-    private void ApplyNetworkButton_Click(object sender, RoutedEventArgs e)
-    {
-        RunProjectAction(T("Action.NetworkModeUpdated"), () =>
+        string originalName = SelectedDeviceName();
+        DanteDevice device = _project!.FindDevice(originalName) ?? throw new InvalidOperationException("Device introuvable.");
+        string newName = NewNameTextBox.Text.Trim();
+        bool isRedundant = RedundantRadioButton.IsChecked == true;
+        string latency = SelectedLatencyXmlValue(LatencyComboBox);
+        bool preferredMaster = PreferredMasterCheckBox.IsChecked == true;
+
+        bool latencyChanged = !string.Equals(device.Latency, latency, StringComparison.OrdinalIgnoreCase);
+        bool hasChanges = !string.Equals(device.Name, newName, StringComparison.Ordinal)
+            || device.IsRedundant != isRedundant
+            || latencyChanged
+            || device.PreferredMaster != preferredMaster;
+
+        if (!hasChanges)
         {
-            _project!.SetNetworkMode(SelectedDeviceName(), RedundantRadioButton.IsChecked == true);
-        });
-    }
+            SetStatus(T("Status.NoDeviceSettingsChanged"));
+            return;
+        }
 
-    private void ApplyLatencyButton_Click(object sender, RoutedEventArgs e)
-    {
-        RunProjectAction(T("Action.LatencyUpdated"), () =>
-        {
-            string latency = SelectedLatencyXmlValue(LatencyComboBox);
-            _project!.SetLatency(SelectedDeviceName(), latency);
-        },
-        T("Dialog.LatencyWarning"));
-    }
-
-    private void ApplyIpAutoButton_Click(object sender, RoutedEventArgs e)
-    {
         RunProjectAction(
-            T("Action.IpAutoApplied"),
-            () => _project!.SetIpAddressDynamic(SelectedDeviceName()));
+            T("Action.DeviceSettingsUpdated"),
+            () => ApplySelectedDeviceSettings(originalName, newName, isRedundant, latency, preferredMaster),
+            latencyChanged ? T("Dialog.LatencyWarning") : null);
     }
 
     private void ResetDevicePatchesButton_Click(object sender, RoutedEventArgs e)
@@ -608,12 +605,37 @@ public partial class MainWindow : Window
             $"Tous les patchs qui utilisent les TX de la machine '{deviceName}' seront supprimés. Continuer ?");
     }
 
-    private void ApplyPreferredMasterButton_Click(object sender, RoutedEventArgs e)
+    private void ApplySelectedDeviceSettings(
+        string originalName,
+        string newName,
+        bool isRedundant,
+        string latency,
+        bool preferredMaster)
     {
-        RunProjectAction(T("Action.PreferredMasterUpdated"), () =>
+        DanteDevice originalDevice = _project!.FindDevice(originalName) ?? throw new InvalidOperationException("Device introuvable.");
+        string currentName = originalDevice.Name;
+
+        // Une seule validation utilisateur applique tous les champs visibles de la machine.
+        if (!string.Equals(originalDevice.Name, newName, StringComparison.Ordinal))
         {
-            _project!.SetPreferredMaster(SelectedDeviceName(), PreferredMasterCheckBox.IsChecked == true);
-        });
+            _project.RenameDevice(currentName, newName);
+            currentName = newName;
+        }
+
+        if (originalDevice.IsRedundant != isRedundant)
+        {
+            _project.SetNetworkMode(currentName, isRedundant);
+        }
+
+        if (!string.Equals(originalDevice.Latency, latency, StringComparison.OrdinalIgnoreCase))
+        {
+            _project.SetLatency(currentName, latency);
+        }
+
+        if (originalDevice.PreferredMaster != preferredMaster)
+        {
+            _project.SetPreferredMaster(currentName, preferredMaster);
+        }
     }
 
     private void DeleteDeviceButton_Click(object sender, RoutedEventArgs e)
@@ -1032,6 +1054,38 @@ public partial class MainWindow : Window
         }
 
         RefreshAll();
+    }
+
+    private void ToggleConfigurationEditorsButton_Click(object sender, RoutedEventArgs e)
+    {
+        ConfigurationEditorsGrid.Visibility = ConfigurationEditorsGrid.Visibility == Visibility.Visible
+            ? Visibility.Collapsed
+            : Visibility.Visible;
+        UpdateConfigurationEditorsToggleText();
+    }
+
+    private void UpdateConfigurationEditorsToggleText()
+    {
+        bool collapsed = ConfigurationEditorsGrid.Visibility == Visibility.Collapsed;
+        ToggleConfigurationEditorsButton.Content = LocalizeLiteral(collapsed ? "Afficher les réglages" : "Réduire les réglages");
+        ToggleConfigurationEditorsButton.ToolTip = LocalizeLiteral(collapsed
+            ? "Affiche les panneaux de réglage de la configuration."
+            : "Masque les panneaux de réglage pour agrandir le tableau des machines.");
+    }
+
+    private void ImportantWarningsDetailsButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (string.IsNullOrWhiteSpace(ImportantWarningsTextBlock.Text))
+        {
+            return;
+        }
+
+        MessageBox.Show(
+            this,
+            ImportantWarningsTextBlock.Text,
+            LocalizeLiteral("POINTS À VÉRIFIER"),
+            MessageBoxButton.OK,
+            MessageBoxImage.Warning);
     }
 
     private void SelectVisibleDevicesButton_Click(object sender, RoutedEventArgs e)
@@ -1837,7 +1891,6 @@ public partial class MainWindow : Window
             {
                 FilePathTextBlock.Text = T("Status.NoFileOpen");
                 ProjectSummaryTextBlock.Text = T("Status.LoadXmlToStart");
-                ConfigSummaryTextBlock.Text = T("Status.NoFileLoaded");
                 ImportantWarningsBorder.Visibility = Visibility.Collapsed;
                 ImportantWarningsTextBlock.Text = string.Empty;
                 DirtyStateTextBlock.Text = T("Status.Unmodified");
@@ -1881,7 +1934,6 @@ public partial class MainWindow : Window
             ProjectSummaryTextBlock.Text = _language == UiLanguage.English
                 ? $"{devices.Count} devices\n{txCount} TX channels\n{rxCount} RX channels\n{_project.PatchMatrix.ActivePatchCount} active subscriptions"
                 : $"{devices.Count} devices\n{txCount} canaux TX\n{rxCount} canaux RX\n{_project.PatchMatrix.ActivePatchCount} patchs actifs";
-            ConfigSummaryTextBlock.Text = $"{Path.GetFileName(_project.OriginalFilePath)} - {devices.Count} devices, {txCount} TX, {rxCount} RX.";
             CountsTextBlock.Text = $"{devices.Count} devices - {txCount} TX - {rxCount} RX";
 
             string importantWarnings = string.Join(Environment.NewLine, _project.BuildImportantWarnings());
@@ -2460,6 +2512,7 @@ public partial class MainWindow : Window
     {
         LanguageLabelTextBlock.Text = T("Language.Label");
         TranslateDependencyObject(this, []);
+        UpdateConfigurationEditorsToggleText();
         ApplyDataGridColumnHeaders();
         RefreshGlobalSearchResults();
         UpdateCommandState();
@@ -2532,16 +2585,12 @@ public partial class MainWindow : Window
     private IEnumerable<Control> EditableControls()
     {
         yield return MergeXmlButton;
-        yield return ApplyRenameButton;
+        yield return ApplyDeviceSettingsButton;
         yield return DeleteDeviceButton;
-        yield return ApplyNetworkButton;
-        yield return ApplyLatencyButton;
-        yield return ApplyIpAutoButton;
         yield return ResetDevicePatchesButton;
         yield return ResetDeviceRxPatchesButton;
         yield return ResetDeviceTxPatchesButton;
         yield return OpenDeviceDetailsButton;
-        yield return ApplyPreferredMasterButton;
         yield return RenameChannelButton;
         yield return ResetDeviceChannelsButton;
         yield return BatchRenameButton;

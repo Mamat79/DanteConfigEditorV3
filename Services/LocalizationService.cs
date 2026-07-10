@@ -67,6 +67,7 @@ public static class LocalizationService
         ["Status.NoFileOpen"] = "Aucun fichier ouvert",
         ["Status.Unmodified"] = "Non modifié",
         ["Status.ModifiedUnsaved"] = "Modifié - non sauvegardé",
+        ["Status.NoDeviceSettingsChanged"] = "Aucun paramètre de la machine à appliquer.",
         ["Status.EditActiveButton"] = "Édition active",
         ["Status.ActivateEditButton"] = "Activer l'édition",
         ["Status.LoadXmlToStart"] = "Chargez un fichier XML pour commencer.",
@@ -82,6 +83,7 @@ public static class LocalizationService
         ["Action.DeviceRxPatchesReset"] = "Patchs RX de la machine réinitialisés.",
         ["Action.DeviceTxPatchesReset"] = "Patchs TX de la machine réinitialisés.",
         ["Action.DeviceDetailsUpdated"] = "Détail machine mis à jour.",
+        ["Action.DeviceSettingsUpdated"] = "Paramètres de la machine mis à jour.",
         ["Action.PreferredMasterUpdated"] = "Preferred master mis à jour.",
         ["Action.ChannelsReset"] = "Canaux réinitialisés.",
         ["Action.ChannelRenamed"] = "Canal renommé.",
@@ -259,6 +261,7 @@ public static class LocalizationService
         ["Status.NoFileOpen"] = "No file open",
         ["Status.Unmodified"] = "Unmodified",
         ["Status.ModifiedUnsaved"] = "Modified - not saved",
+        ["Status.NoDeviceSettingsChanged"] = "No device settings to apply.",
         ["Status.EditActiveButton"] = "Edit active",
         ["Status.ActivateEditButton"] = "Enable editing",
         ["Status.LoadXmlToStart"] = "Load an XML file to begin.",
@@ -274,6 +277,7 @@ public static class LocalizationService
         ["Action.DeviceRxPatchesReset"] = "Device Rx subscriptions reset.",
         ["Action.DeviceTxPatchesReset"] = "Device Tx subscriptions reset.",
         ["Action.DeviceDetailsUpdated"] = "Device details updated.",
+        ["Action.DeviceSettingsUpdated"] = "Device settings updated.",
         ["Action.PreferredMasterUpdated"] = "Preferred Master updated.",
         ["Action.ChannelsReset"] = "Channels reset.",
         ["Action.ChannelRenamed"] = "Channel renamed.",
@@ -456,6 +460,7 @@ public static class LocalizationService
         Add(map, "Machine", "Device");
         Add(map, "Nouveau nom", "New name");
         Add(map, "Changer le nom", "Change name");
+        Add(map, "Appliquer les paramètres", "Apply settings");
         Add(map, "Supprimer la machine", "Delete device");
         Add(map, "Mode réseau", "Network mode");
         Add(map, "Redondant", "Redundant");
@@ -473,6 +478,7 @@ public static class LocalizationService
         Add(map, "Fixer l'IP", "Set static IP");
         Add(map, "Mettre l'IP en automatique", "Set IP to automatic");
         Add(map, "Reset patch RX/TX machine", "Reset device Rx/Tx subscriptions");
+        Add(map, "Reset patch RX/TX", "Reset Rx/Tx subscriptions");
         Add(map, "Reset patch RX", "Reset Rx subscriptions");
         Add(map, "Reset patch TX", "Reset Tx subscriptions");
         Add(map, "Horloge", "Clock");
@@ -509,6 +515,9 @@ public static class LocalizationService
         Add(map, "Bits", "Bits");
         Add(map, "IP fixes", "Static IPs");
         Add(map, "Détail machine", "Device details");
+        Add(map, "Détails", "Details");
+        Add(map, "Réduire les réglages", "Hide settings");
+        Add(map, "Afficher les réglages", "Show settings");
         Add(map, "Identité et formats", "Identity and formats");
         Add(map, "Nom machine", "Device name");
         Add(map, "Adresse IP", "IP address");
@@ -604,6 +613,11 @@ public static class LocalizationService
         Add(map, "Ouvre la notice complète PDF.", "Opens the full guide PDF.");
         Add(map, "Le XML conserve la valeur brute Dante.", "The XML keeps the raw Dante value.");
         Add(map, "La valeur affichée est en ms. Le XML conserve la valeur brute Dante.", "Displayed value is in ms. The XML keeps the raw Dante value.");
+        Add(map, "Applique en une seule fois le nom, le mode réseau, la latence et le statut Preferred master.", "Applies the name, network mode, latency, and Preferred Master status in one operation.");
+        Add(map, "Ouvre tous les réglages de la machine : IP automatique ou fixe, formats audio et noms des canaux.", "Opens all device settings: automatic or static IP, audio formats, and channel names.");
+        Add(map, "Supprime la machine et nettoie les patchs qui lui sont associés.", "Deletes the device and removes its associated subscriptions.");
+        Add(map, "Masque les panneaux de réglage pour agrandir le tableau des machines.", "Hides the settings panels to enlarge the device table.");
+        Add(map, "Affiche les panneaux de réglage de la configuration.", "Shows the configuration settings panels.");
 
         return map;
     }

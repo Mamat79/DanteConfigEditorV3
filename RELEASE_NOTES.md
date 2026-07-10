@@ -9,6 +9,12 @@ Travaillez toujours sur une copie de vos fichiers XML Dante et validez le result
 ## Nouveautes principales
 
 - Version 3.05 dev.
+- Reglages de la machine selectionnee simplifies : le nom, le mode reseau, la latence et le preferred master sont appliques ensemble avec un seul bouton `Appliquer les parametres`.
+- Le reglage IP automatique ou fixe reste accessible dans `Detail machine`, avec les formats audio et les noms des canaux.
+- Les commandes reset patch RX/TX, reset RX, reset TX et suppression sont regroupees sur une seule ligne.
+- Le bandeau `Points a verifier` est maintenant compact, avec un bouton `Details` pour lire le message complet.
+- Bouton `Reduire les reglages` pour masquer les panneaux superieurs et agrandir instantanement le tableau des machines.
+- Le resume de fichier duplique a ete retire de la page Configuration afin de conserver davantage de lignes visibles, y compris lorsqu'une alerte est presente.
 - Import d'un second XML corrige : les machines uniques sont importees meme si le fichier contient aussi des noms deja presents.
 - Fenetre de resolution des doublons a l'import : import des uniques seulement, renommage automatique ou renommage manuel.
 - Mise a jour des subscriptions/patchs importes quand une machine importee est renommee.

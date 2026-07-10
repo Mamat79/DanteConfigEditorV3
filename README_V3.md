@@ -57,6 +57,11 @@ Pour reconstruire l'installateur autonome :
 
 ## Nouveautés V3.05
 
+- Un bouton unique `Appliquer les paramètres` applique ensemble le nom, le mode réseau, la latence et le preferred master de la machine sélectionnée.
+- La fenêtre `Détail machine` conserve les réglages IP automatique/fixe, sample rate, bits et noms de canaux TX/RX.
+- Le bandeau `Points à vérifier` est compact, avec un bouton `Détails` pour afficher son texte complet.
+- Le bouton `Réduire les réglages` / `Afficher les réglages` permet d'agrandir le tableau des machines.
+- Les resets patch RX/TX, RX, TX et la suppression sont regroupés sur une seule ligne.
 - Import d'un second XML corrigé : les machines uniques sont ajoutées même si le fichier contient aussi des noms déjà présents.
 - Fenêtre de résolution des doublons à l'import : import des uniques seulement, renommage automatique ou renommage manuel.
 - Mise à jour des subscriptions/patchs importés quand une machine importée est renommée.
@@ -71,7 +76,7 @@ Pour reconstruire l'installateur autonome :
 - Listes rapides Sample rates, Bits et IP fixes.
 - Avertissement visible si plusieurs sample rates ou plusieurs encodages sont présents dans le preset.
 - Validation de sauvegarde adaptée aux imports et suppressions de machines.
-- Page Configuration plus lisible : zone de réglages défilable, table des machines gardée visible et recherche globale avec message d'aide.
+- Page Configuration plus lisible : alerte compacte, panneaux masquables, table des machines gardée visible et recherche globale avec message d'aide.
 - Ouverture en plein écran, fiche machine au double-clic, preferred master cochable dans la table, IP fixe manuelle/en série et reset patch RX/TX par machine.
 
 ## Nouveautés V3.04

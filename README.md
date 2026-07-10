@@ -95,6 +95,11 @@ Si une version est déjà installée, l'assistant le détecte et propose soit de
 
 ## Nouveautés V3.05
 
+- Un seul bouton `Appliquer les paramètres` valide ensemble le nom, le mode réseau, la latence et le preferred master de la machine sélectionnée.
+- Les IP automatique/fixe, sample rate, bits et noms de canaux restent modifiables dans `Détail machine`.
+- L'alerte `Points à vérifier` reste compacte et le bouton `Détails` affiche son texte complet.
+- Le bouton `Réduire les réglages` agrandit le tableau des machines quand les panneaux supérieurs ne sont pas nécessaires.
+- Les resets patch RX/TX, RX, TX et la suppression de machine sont regroupés sur une seule ligne.
 - Import d'un second XML corrigé : les machines uniques sont importées même si d'autres machines du fichier sont en doublon.
 - Gestion des doublons à l'import : choix entre import des uniques seulement, renommage automatique ou renommage manuel.
 - Les patchs/subscriptions du XML importé suivent les nouveaux noms quand des machines importées sont renommées.
@@ -110,7 +115,7 @@ Si une version est déjà installée, l'assistant le détecte et propose soit de
 - Listes rapides Sample rates, Bits et IP fixes.
 - Avertissements renforcés si plusieurs sample rates ou plusieurs encodages coexistent dans le projet.
 - Compatibilité de sauvegarde adaptée aux fonctions d'ajout/suppression de machines.
-- Page Configuration plus lisible : réglages défilables, table des machines gardée visible et recherche globale avec message d'aide.
+- Page Configuration plus lisible : alerte compacte, panneaux masquables, table des machines gardée visible et recherche globale avec message d'aide.
 - Ouverture en plein écran, fiche machine au double-clic, preferred master cochable dans la table, IP fixe en série et reset patch RX/TX par machine.
 
 ## Nouveautés V3.04

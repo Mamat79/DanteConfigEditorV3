@@ -1,5 +1,16 @@
 # Changelog V3
 
+## 2026-07-10 - Version 3.05 - mise à jour
+
+- Remplacement des boutons séparés de nom, mode réseau, latence et preferred master par un bouton unique `Appliquer les paramètres`.
+- Conservation de la configuration IP automatique/fixe dans la fenêtre `Détail machine`.
+- Regroupement sur une seule ligne des resets patch RX/TX, RX, TX et de la suppression de machine.
+- Transformation du bandeau `Points à vérifier` en alerte compacte sur une ligne, avec accès au message complet par `Détails`.
+- Ajout d'un bouton `Réduire les réglages` / `Afficher les réglages` pour donner plus de hauteur au tableau des machines.
+- Suppression du résumé de fichier dupliqué au-dessus de la page Configuration.
+- Vérification visuelle à 1920 x 1080 : plusieurs lignes du tableau restent visibles avec une alerte de sample rates mélangées.
+- Vérification fonctionnelle du bouton unique et de l'annulation groupée des changements.
+
 ## 2026-07-09 - Version 3.05
 
 - Passage des textes visibles et métadonnées en V3.05 dev.
