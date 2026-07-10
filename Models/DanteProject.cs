@@ -92,7 +92,7 @@ public sealed class DanteProject
 
     public string OriginalFilePath { get; }
 
-    public string PresetName => Document.Root?.Element("name")?.Value.Trim() ?? Path.GetFileNameWithoutExtension(OriginalFilePath);
+    public string PresetName => Document.Root.Child("name")?.Value.Trim() ?? Path.GetFileNameWithoutExtension(OriginalFilePath);
 
     public string PresetVersion => Document.Root?.Attribute("version")?.Value ?? string.Empty;
 
@@ -208,7 +208,7 @@ public sealed class DanteProject
 
         // Si le device TX est renommé, les patchs qui pointaient vers son ancien
         // nom doivent suivre pour ne pas casser les abonnements reconnus.
-        foreach (XElement rxChannel in Document.Root!.Elements("device").Elements("rxchannel"))
+        foreach (XElement rxChannel in Document.Root!.Children("device").SelectMany(deviceElement => deviceElement.Children("rxchannel")))
         {
             XElement? subscribedDevice = FindFirstElement(rxChannel, SubscriptionDeviceElementNames);
             if (subscribedDevice is not null && string.Equals(subscribedDevice.Value.Trim(), oldName, StringComparison.OrdinalIgnoreCase))
@@ -715,7 +715,7 @@ public sealed class DanteProject
     private int RemoveSubscriptionsReferencingDevice(string txDeviceName)
     {
         int count = 0;
-        foreach (XElement rxChannel in Document.Root!.Elements("device").Elements("rxchannel").ToArray())
+        foreach (XElement rxChannel in Document.Root!.Children("device").SelectMany(deviceElement => deviceElement.Children("rxchannel")).ToArray())
         {
             XElement? subscribedDevice = FindFirstElement(rxChannel, SubscriptionDeviceElementNames);
             if (subscribedDevice is null || !string.Equals(subscribedDevice.Value.Trim(), txDeviceName, StringComparison.OrdinalIgnoreCase))
@@ -739,7 +739,7 @@ public sealed class DanteProject
     {
         DanteDevice device = FindDevice(rxDeviceName) ?? throw new InvalidOperationException("Device introuvable.");
         int count = 0;
-        foreach (XElement rxChannel in device.Element.Elements("rxchannel").ToArray())
+        foreach (XElement rxChannel in device.Element.Children("rxchannel").ToArray())
         {
             bool hadSubscription = SubscriptionDeviceElementNames
                 .Concat(SubscriptionChannelElementNames)
@@ -1560,8 +1560,8 @@ public sealed class DanteProject
             CompareValue(differences, $"{deviceName} / mode réseau", current.NetworkMode, compared.NetworkMode);
             CompareValue(differences, $"{deviceName} / latence", DanteLatencyFormatter.FormatLatencyDisplay(current.Latency), DanteLatencyFormatter.FormatLatencyDisplay(compared.Latency));
             CompareValue(differences, $"{deviceName} / preferred master", current.PreferredMaster.ToString(), compared.PreferredMaster.ToString());
-            CompareValue(differences, $"{deviceName} / samplerate", current.Element.Element("samplerate")?.Value.Trim() ?? string.Empty, compared.Element.Element("samplerate")?.Value.Trim() ?? string.Empty);
-            CompareValue(differences, $"{deviceName} / encoding", current.Element.Element("encoding")?.Value.Trim() ?? string.Empty, compared.Element.Element("encoding")?.Value.Trim() ?? string.Empty);
+            CompareValue(differences, $"{deviceName} / samplerate", current.Element.Child("samplerate")?.Value.Trim() ?? string.Empty, compared.Element.Child("samplerate")?.Value.Trim() ?? string.Empty);
+            CompareValue(differences, $"{deviceName} / encoding", current.Element.Child("encoding")?.Value.Trim() ?? string.Empty, compared.Element.Child("encoding")?.Value.Trim() ?? string.Empty);
             CompareChannels(differences, deviceName, "TX", current.TxChannels, compared.TxChannels);
             CompareChannels(differences, deviceName, "RX", current.RxChannels, compared.RxChannels);
         }
@@ -1951,7 +1951,7 @@ public sealed class DanteProject
     {
         Dictionary<string, XElement> devices = new(StringComparer.OrdinalIgnoreCase);
         Dictionary<string, int> occurrences = new(StringComparer.OrdinalIgnoreCase);
-        foreach (XElement device in document.Root?.Elements("device") ?? [])
+        foreach (XElement device in document.Root.Children("device"))
         {
             string identity = BuildDeviceIdentity(device);
             occurrences.TryGetValue(identity, out int occurrence);
@@ -1965,13 +1965,13 @@ public sealed class DanteProject
 
     private static string BuildDeviceIdentity(XElement device)
     {
-        string deviceId = device.Element("instance_id")?.Element("device_id")?.Value.Trim() ?? string.Empty;
+        string deviceId = device.Child("instance_id").ChildValue("device_id");
         if (!string.IsNullOrWhiteSpace(deviceId))
         {
             return "device-id:" + deviceId;
         }
 
-        string defaultName = device.Element("default_name")?.Value.Trim() ?? string.Empty;
+        string defaultName = device.ChildValue("default_name");
         if (!string.IsNullOrWhiteSpace(defaultName))
         {
             return "default-name:" + defaultName;
@@ -1982,7 +1982,7 @@ public sealed class DanteProject
 
     private static string ReadDeviceElementValue(XElement? device, string elementName)
     {
-        return device?.Element(elementName)?.Value.Trim() ?? string.Empty;
+        return device.ChildValue(elementName);
     }
 
     private static void AddDeviceFieldChanges(
@@ -2170,7 +2170,7 @@ public sealed class DanteProject
     {
         // Après chaque modification XML, les objets de lecture sont reconstruits
         // pour refléter les nouvelles valeurs.
-        Devices = Document.Root?.Elements("device").Select(device => new DanteDevice(device)).ToList() ?? [];
+        Devices = Document.Root.Children("device").Select(device => new DanteDevice(device)).ToList();
         PatchMatrix = new DantePatchMatrix(BuildSubscriptions());
     }
 
@@ -2264,7 +2264,7 @@ public sealed class DanteProject
     {
         foreach (string name in names)
         {
-            XElement? element = parent.Element(name);
+            XElement? element = parent.Child(name);
             if (element is not null)
             {
                 return element;
@@ -2276,10 +2276,10 @@ public sealed class DanteProject
 
     private static void SetElementValue(XElement parent, string elementName, string value)
     {
-        XElement? element = parent.Element(elementName);
+        XElement? element = parent.Child(elementName);
         if (element is null)
         {
-            parent.Add(new XElement(elementName, value));
+            parent.Add(new XElement(parent.ChildName(elementName), value));
         }
         else
         {
@@ -2335,7 +2335,7 @@ public sealed class DanteProject
             return;
         }
 
-        foreach (XElement rxChannel in importedDeviceElement.Elements("rxchannel"))
+        foreach (XElement rxChannel in importedDeviceElement.Children("rxchannel"))
         {
             XElement? subscribedDevice = FindFirstElement(rxChannel, SubscriptionDeviceElementNames);
             if (subscribedDevice is not null && renamedDevices.TryGetValue(subscribedDevice.Value.Trim(), out string? newDeviceName))
@@ -2347,7 +2347,7 @@ public sealed class DanteProject
 
     private static bool SetDeviceIpAddressesDynamic(DanteDevice device)
     {
-        XElement[] ipv4Addresses = device.Element.Descendants("ipv4_address").ToArray();
+        XElement[] ipv4Addresses = device.Element.DescendantsNamed("ipv4_address").ToArray();
         if (ipv4Addresses.Length == 0)
         {
             return false;
@@ -2410,27 +2410,27 @@ public sealed class DanteProject
 
     private static XElement FindOrCreateIpv4AddressElement(XElement deviceElement)
     {
-        XElement? ipv4Address = deviceElement.Descendants("ipv4_address").FirstOrDefault();
+        XElement? ipv4Address = deviceElement.DescendantsNamed("ipv4_address").FirstOrDefault();
         if (ipv4Address is not null)
         {
             return ipv4Address;
         }
 
-        XElement? interfaceElement = deviceElement.Element("interface");
+        XElement? interfaceElement = deviceElement.Child("interface");
         if (interfaceElement is null)
         {
-            throw new InvalidOperationException($"La machine {deviceElement.Element("name")?.Value.Trim()} ne contient pas de balise <interface> IPv4 modifiable.");
+            throw new InvalidOperationException($"La machine {deviceElement.Child("name")?.Value.Trim()} ne contient pas de balise <interface> IPv4 modifiable.");
         }
 
-        ipv4Address = new XElement("ipv4_address");
+        ipv4Address = new XElement(interfaceElement.ChildName("ipv4_address"));
         interfaceElement.Add(ipv4Address);
         return ipv4Address;
     }
 
     private static bool DeviceSupportsIpConfiguration(DanteDevice device)
     {
-        return device.Element.Descendants("ipv4_address").Any()
-            || device.Element.Element("interface") is not null;
+        return device.Element.DescendantsNamed("ipv4_address").Any()
+            || device.Element.Child("interface") is not null;
     }
 
     private static bool DeviceHasStaticIpConfiguration(DanteDevice device)
@@ -2440,10 +2440,10 @@ public sealed class DanteProject
             return true;
         }
 
-        return device.Element.Descendants("ipv4_address").Any(ipv4Address =>
+        return device.Element.DescendantsNamed("ipv4_address").Any(ipv4Address =>
             !string.Equals(ipv4Address.Attribute("mode")?.Value, "dynamic", StringComparison.OrdinalIgnoreCase)
             || StaticIpAttributeNames.Any(attributeName => ipv4Address.Attribute(attributeName) is not null)
-            || StaticIpElementNames.Any(elementName => ipv4Address.Element(elementName) is not null)
+            || StaticIpElementNames.Any(elementName => ipv4Address.Child(elementName) is not null)
             || !string.IsNullOrWhiteSpace(ipv4Address.Value));
     }
 
@@ -2470,11 +2470,11 @@ public sealed class DanteProject
 
     private static void SetBooleanElementAttribute(XElement parent, string elementName, string attributeName, bool value, string afterElementName)
     {
-        XElement? element = parent.Element(elementName);
+        XElement? element = parent.Child(elementName);
         if (element is null)
         {
-            element = new XElement(elementName, new XAttribute(attributeName, value.ToString().ToLowerInvariant()));
-            XElement? previous = parent.Element(afterElementName);
+            element = new XElement(parent.ChildName(elementName), new XAttribute(attributeName, value.ToString().ToLowerInvariant()));
+            XElement? previous = parent.Child(afterElementName);
             if (previous is null)
             {
                 parent.Add(element);
@@ -2497,8 +2497,8 @@ public sealed class DanteProject
 
         if (channelElement is null)
         {
-            channelElement = new XElement(SubscriptionChannelElementNames[0], txChannelName);
-            XElement? nameElement = rxElement.Element("name");
+            channelElement = new XElement(rxElement.ChildName(SubscriptionChannelElementNames[0]), txChannelName);
+            XElement? nameElement = rxElement.Child("name");
             if (nameElement is not null)
             {
                 nameElement.AddAfterSelf(channelElement);
@@ -2515,7 +2515,7 @@ public sealed class DanteProject
 
         if (deviceElement is null)
         {
-            deviceElement = new XElement(SubscriptionDeviceElementNames[0], txDeviceName);
+            deviceElement = new XElement(rxElement.ChildName(SubscriptionDeviceElementNames[0]), txDeviceName);
             channelElement.AddAfterSelf(deviceElement);
         }
         else
@@ -2535,7 +2535,7 @@ public sealed class DanteProject
 
         if (channelElement is null)
         {
-            rxElement.Add(new XElement(SubscriptionChannelElementNames[0], txChannelName));
+            rxElement.Add(new XElement(rxElement.ChildName(SubscriptionChannelElementNames[0]), txChannelName));
         }
         else
         {
@@ -2597,9 +2597,9 @@ public sealed class DanteProject
             return;
         }
 
-        foreach (XElement rxChannel in Document.Root!.Elements("device").Elements("rxchannel"))
+        foreach (XElement rxChannel in Document.Root!.Children("device").SelectMany(deviceElement => deviceElement.Children("rxchannel")))
         {
-            string rxDeviceName = rxChannel.Parent?.Element("name")?.Value.Trim() ?? string.Empty;
+            string rxDeviceName = rxChannel.Parent.ChildValue("name");
             bool sameDevice = rxChannel.Elements()
                 .Where(element => SubscriptionDeviceElementNames.Contains(element.Name.LocalName))
                 .Any(element =>
@@ -2725,7 +2725,7 @@ public sealed class DanteProject
 
         string currentRawDevice = FindFirstElement(rxElement, SubscriptionDeviceElementNames)?.Value.Trim() ?? string.Empty;
         return string.Equals(currentRawDevice, ".", StringComparison.Ordinal)
-            || Document.Root!.Elements("device").Elements("rxchannel")
+            || Document.Root!.Children("device").SelectMany(deviceElement => deviceElement.Children("rxchannel"))
                 .Select(channel => FindFirstElement(channel, SubscriptionDeviceElementNames)?.Value.Trim() ?? string.Empty)
                 .Any(value => string.Equals(value, ".", StringComparison.Ordinal));
     }

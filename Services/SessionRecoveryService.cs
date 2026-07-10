@@ -30,7 +30,7 @@ public static class SessionRecoveryService
         {
             project.Document.Save(xmlTemporaryPath, SaveOptions.DisableFormatting);
             XDocument verification = XDocument.Load(xmlTemporaryPath, LoadOptions.PreserveWhitespace);
-            if (verification.Root is null || !verification.Root.Elements("device").Any())
+            if (verification.Root is null || !verification.Root.Children("device").Any())
             {
                 throw new InvalidOperationException("La copie de récupération XML n'est pas exploitable.");
             }

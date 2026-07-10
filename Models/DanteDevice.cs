@@ -11,8 +11,8 @@ public sealed class DanteDevice
         Element = element;
         Name = ReadElementValue(element, "name");
         FriendlyName = ReadElementValue(element, "friendly_name");
-        IsRedundant = string.Equals(element.Element("redundancy")?.Attribute("value")?.Value, "true", StringComparison.OrdinalIgnoreCase);
-        PreferredMaster = string.Equals(element.Element("preferred_master")?.Attribute("value")?.Value, "true", StringComparison.OrdinalIgnoreCase);
+        IsRedundant = string.Equals(element.Child("redundancy")?.Attribute("value")?.Value, "true", StringComparison.OrdinalIgnoreCase);
+        PreferredMaster = string.Equals(element.Child("preferred_master")?.Attribute("value")?.Value, "true", StringComparison.OrdinalIgnoreCase);
         Latency = ReadElementValue(element, "unicast_latency");
         Samplerate = ReadElementValue(element, "samplerate");
         Encoding = ReadElementValue(element, "encoding");
@@ -24,11 +24,11 @@ public sealed class DanteDevice
 
         // L'index est basé sur l'ordre des balises dans le XML, ce qui
         // correspond à la numérotation affichée dans l'application.
-        TxChannels = element.Elements("txchannel")
+        TxChannels = element.Children("txchannel")
             .Select((channel, index) => new DanteChannel(Name, DanteChannelKind.Tx, index + 1, channel))
             .ToList();
 
-        RxChannels = element.Elements("rxchannel")
+        RxChannels = element.Children("rxchannel")
             .Select((channel, index) => new DanteChannel(Name, DanteChannelKind.Rx, index + 1, channel))
             .ToList();
     }
@@ -81,7 +81,7 @@ public sealed class DanteDevice
 
     private static string ReadElementValue(XElement element, string name)
     {
-        return element.Element(name)?.Value?.Trim() ?? string.Empty;
+        return element.Child(name)?.Value?.Trim() ?? string.Empty;
     }
 
     private static string FormatSampleRateDisplay(string samplerate)
@@ -196,10 +196,10 @@ public sealed class DanteDevice
 
     private static string ReadIpField(XElement element, string fieldName)
     {
-        XElement? ipv4Address = element.Descendants("ipv4_address").FirstOrDefault(candidate =>
+        XElement? ipv4Address = element.DescendantsNamed("ipv4_address").FirstOrDefault(candidate =>
             string.Equals(candidate.Attribute("mode")?.Value, "static", StringComparison.OrdinalIgnoreCase));
 
-        return ipv4Address?.Element(fieldName)?.Value.Trim() ?? string.Empty;
+        return ipv4Address.Child(fieldName)?.Value.Trim() ?? string.Empty;
     }
 
     private static void AddIpCandidate(List<(int Priority, string Value)> candidates, string name, string value)
