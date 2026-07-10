@@ -1,4 +1,4 @@
-# Dante Config Editor V3.05 Beta
+# Dante Config Editor V3.06 Beta
 
 Application Windows WPF en version bêta pour éditer hors ligne des fichiers XML de configuration Dante reconnus par l'application.
 
@@ -28,9 +28,9 @@ dist\DanteConfigEditorV3_Installer.exe
 
 La personne le lance, choisit le dossier d'installation si besoin, puis l'application est installée par défaut dans Program Files avec un raccourci dans le Menu Démarrer. Un raccourci Bureau est proposé en option.
 
-Si une version est déjà installée, l'assistant le signale et propose de remplacer / mettre à jour l'installation existante ou d'installer une copie supplémentaire dans un autre dossier.
+Si une version est déjà installée, l'assistant le signale et propose de remplacer / mettre à jour l'installation existante. Il ne crée pas de version parallèle.
 
-Cette version est publiée en mode `self-contained win-x64` : le runtime .NET nécessaire est inclus dans l'exécutable de l'application. La machine destinataire n'a pas besoin d'installer le SDK .NET ni le runtime .NET pour utiliser Dante Config Editor V3.05.
+Cette version est publiée en mode `self-contained win-x64` : le runtime .NET nécessaire est inclus dans l'exécutable de l'application. La machine destinataire n'a pas besoin d'installer le SDK .NET ni le runtime .NET pour utiliser Dante Config Editor V3.06.
 
 L'installateur ne déploie pas les sources du projet. Il installe uniquement l'application autonome et la documentation utilisateur.
 
@@ -55,6 +55,19 @@ Pour reconstruire l'installateur autonome :
 .\installer\build_installer.ps1
 ```
 
+## Nouveautés V3.06
+
+- Identité technique stable pour comparer les machines même après renommage.
+- Refus par défaut de toute modification XML hors liste autorisée.
+- Compatibilité avec les presets qui utilisent un namespace XML par défaut.
+- Sauvegarde atomique et backup d'une destination existante avant remplacement.
+- La destination d'`Enregistrer sous` devient la nouvelle référence de récupération.
+- Seule l'interface IPv4 principale est modifiée ; DNS et interface secondaire sont conservés.
+- Réglages groupés avec une seule reconstruction du modèle.
+- Récupération automatique asynchrone après temporisation et pile d'annulation limitée.
+- Tests 10/50/200 machines, 64 TX et 64 RX par machine, plus workflow CI Windows.
+- Mise à niveau de l'installation existante sans option de copie parallèle.
+
 ## Nouveautés V3.05
 
 - Alertes navigables : `Voir les machines` affiche les points importants et filtre les devices concernés.
@@ -78,7 +91,7 @@ Pour reconstruire l'installateur autonome :
 - Cible d'actions globales : toutes non verrouillées, sélection non verrouillée ou filtre affiché non verrouillé.
 - Reset patch RX et reset patch TX séparés.
 - Notices rapide et complète en français et en anglais, ouvertes selon la langue active, et info-bulles dans l'interface.
-- Installateur avec détection d'une version déjà installée et choix remplacement ou installation en plus.
+- Installateur avec détection d'une version déjà installée.
 - Listes rapides Sample rates, Bits et IP fixes.
 - Avertissement visible si plusieurs sample rates ou plusieurs encodages sont présents dans le preset.
 - Validation de sauvegarde adaptée aux imports et suppressions de machines.

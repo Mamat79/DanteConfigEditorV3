@@ -17,6 +17,8 @@ dist/
 *.tmp
 *.bak
 tmp/
+__pycache__/
+*.pyc
 
 # OS files
 Thumbs.db

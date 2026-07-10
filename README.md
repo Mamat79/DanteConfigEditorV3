@@ -1,4 +1,4 @@
-# Dante Config Editor V3.05 Beta
+# Dante Config Editor V3.06 Beta
 
 Outil Windows pour éditer hors ligne des fichiers XML de configuration Dante.
 
@@ -19,8 +19,8 @@ Outil Windows pour éditer hors ligne des fichiers XML de configuration Dante.
 - Modifie les paramètres réseau et audio exposés par les fichiers XML reconnus.
 - Affiche une page Patch pour visualiser et modifier les abonnements RX vers TX lorsque le format XML le permet.
 - Met à jour les patchs RX quand un canal TX utilisé est renommé.
-- Crée une sauvegarde du fichier original avant sauvegarde.
-- Sauvegarde via un fichier temporaire relu avant remplacement final.
+- Crée une sauvegarde du fichier source et de toute destination existante avant sauvegarde.
+- Sauvegarde via un fichier temporaire relu puis un remplacement atomique de la destination.
 - Vérifie la compatibilité XML de base avant sauvegarde.
 - Bloque les modifications interdites des zones sensibles du XML Dante grâce au garde-fou de changements XML.
 - Permet de modifier l'interface après ouverture d'un XML, mais impose une sauvegarde sous un autre nom pour protéger le fichier original.
@@ -37,7 +37,7 @@ Outil Windows pour éditer hors ligne des fichiers XML de configuration Dante.
 - Affiche des info-bulles sur les principales fonctions.
 - Permet de cliquer sur un point important pour filtrer immédiatement les machines concernées.
 - Filtre les machines modifiées et affiche une comparaison détaillée avant / après.
-- Enregistre automatiquement une copie de récupération après chaque modification non sauvegardée.
+- Enregistre automatiquement une copie de récupération asynchrone après un court délai suivant les modifications.
 - Applique des profils rapides 48/96 kHz, 24 bit, latence, mode réseau et IP automatique à la cible choisie.
 - Affiche une page `Santé du fichier` avec les points à vérifier.
 - Annule la dernière action.
@@ -83,12 +83,12 @@ Notices fournies :
 
 Dans l'application, les boutons d'aide ouvrent automatiquement les fichiers FR ou EN selon la langue active.
 
-Si une version est déjà installée, l'assistant le détecte et propose soit de remplacer / mettre à jour l'installation existante, soit d'installer une copie supplémentaire dans un autre dossier.
+Si une version est déjà installée, l'assistant le détecte et propose de remplacer / mettre à jour l'installation existante. La V3.06 n'installe pas de copie parallèle.
 
 ## Version distribuée
 
-- La V3.05 est la seule version binaire conservée dans les distributions locales et les Releases GitHub.
-- La publication courante porte le tag `v3.05-beta`.
+- La V3.06 est la seule version binaire conservée dans les distributions locales et les Releases GitHub.
+- La publication courante porte le tag `v3.06-beta`.
 - Les anciennes publications ont été retirées pour éviter de transmettre un installateur obsolète.
 - L'historique du projet reste consultable dans Git et dans `CHANGELOG_V3.md`.
 
@@ -103,6 +103,21 @@ Si une version est déjà installée, l'assistant le détecte et propose soit de
 7. Si besoin, utiliser `Ajouter XML au projet` pour importer les devices d'un autre export XML.
 8. Sauvegarder sous un nouveau nom.
 9. Valider le fichier généré dans l'outil Dante officiel approprié avant usage terrain.
+
+## Nouveautés V3.06
+
+- Garde-fou XML associé aux machines par identité technique stable et non plus par leur nom visible.
+- Blocage par défaut des chemins et balises XML inconnus.
+- Comparaison XML sémantique qui tolère le réordonnancement de balises inchangées.
+- Lecture, modification et sauvegarde des presets utilisant un namespace XML par défaut.
+- `Enregistrer sous` atomique : l'ancienne destination reste intacte en cas d'échec et reçoit une copie de sécurité lors d'un remplacement.
+- Le fichier créé par `Enregistrer sous` devient la référence de la session et de la récupération automatique.
+- Les changements IPv4 ciblent uniquement l'interface principale et ne réécrivent plus implicitement le DNS ou une interface secondaire.
+- Mutations groupées avec une seule reconstruction du modèle pour les réglages de détail et les actions globales.
+- Récupération automatique asynchrone et temporisée ; historique d'annulation limité à 10 états.
+- 38 tests de sécurité et de non-régression, dont les presets synthétiques de 10, 50 et 200 machines en 64 TX / 64 RX.
+- Workflow GitHub Actions sur Windows et script `build.ps1` qui vérifie chaque code de retour.
+- Installateur de mise à niveau unique : la V3.06 Beta remplace la version déjà installée sans proposer de copie parallèle.
 
 ## Nouveautés V3.05
 
@@ -129,7 +144,7 @@ Si une version est déjà installée, l'assistant le détecte et propose soit de
 - Reset patch RX et reset patch TX séparés.
 - Notices rapide et complète en français/anglais, sélectionnées automatiquement selon la langue de l'interface, et info-bulles intégrées.
 - Comparaison XML en tableau.
-- Installateur avec détection d'une version déjà installée et choix remplacement ou installation en plus.
+- Installateur avec détection d'une version déjà installée.
 - Listes rapides Sample rates, Bits et IP fixes.
 - Avertissements renforcés si plusieurs sample rates ou plusieurs encodages coexistent dans le projet.
 - Compatibilité de sauvegarde adaptée aux fonctions d'ajout/suppression de machines.
