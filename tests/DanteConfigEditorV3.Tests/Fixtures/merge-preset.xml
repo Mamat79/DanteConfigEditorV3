@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<preset version="3.0.0">
+  <name>Second preset anonymisé</name>
+  <device>
+    <captureInfo />
+    <name>DEVICE-A</name>
+    <default_name>Duplicate-A</default_name>
+    <instance_id><device_id>001DC1FFFE100001</device_id><process_id>0</process_id></instance_id>
+    <manufacturer_id>0000000000000011</manufacturer_id><manufacturer_name>Test</manufacturer_name>
+    <model_id>0000000000000011</model_id><model_name>Duplicate</model_name><model_version>1.0</model_version>
+    <device_type>0000000000000011</device_type><device_type_string>TestDevice</device_type_string>
+    <friendly_name>DEVICE-A</friendly_name><preferred_master value="false" /><redundancy value="false" />
+    <samplerate>48000</samplerate><encoding>24</encoding><unicast_latency>1000</unicast_latency>
+    <interface network="0"><ipv4_address mode="dynamic" /></interface>
+  </device>
+  <device>
+    <captureInfo />
+    <name>DEVICE-D</name>
+    <default_name>Device-D-Default</default_name>
+    <instance_id><device_id>001DC1FFFE100004</device_id><process_id>0</process_id></instance_id>
+    <manufacturer_id>0000000000000014</manufacturer_id><manufacturer_name>Test</manufacturer_name>
+    <model_id>0000000000000014</model_id><model_name>Imported</model_name><model_version>1.0</model_version>
+    <device_type>0000000000000014</device_type><device_type_string>TestDevice</device_type_string>
+    <friendly_name>DEVICE-D</friendly_name><preferred_master value="false" /><redundancy value="false" />
+    <samplerate>48000</samplerate><encoding>24</encoding><unicast_latency>1000</unicast_latency>
+    <interface network="0"><ipv4_address mode="dynamic" /></interface>
+    <txchannel danteId="1" mediaType="audio"><label>IMPORTED TX</label></txchannel>
+    <rxchannel danteId="1" mediaType="audio"><name>IMPORTED RX</name><subscribed_channel>IMPORTED TX</subscribed_channel><subscribed_device>.</subscribed_device></rxchannel>
+  </device>
+</preset>

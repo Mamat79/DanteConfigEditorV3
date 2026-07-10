@@ -81,12 +81,12 @@ public sealed class DanteProject
     private readonly XDocument _originalDocument;
     private readonly DanteXmlCompatibilityProfile _originalCompatibilityProfile;
 
-    private DanteProject(string originalFilePath, XDocument document)
+    private DanteProject(string originalFilePath, XDocument document, XDocument? originalDocument = null)
     {
         OriginalFilePath = originalFilePath;
         Document = document;
-        _originalDocument = new XDocument(document);
-        _originalCompatibilityProfile = DanteXmlCompatibilityService.CaptureProfile(document);
+        _originalDocument = new XDocument(originalDocument ?? document);
+        _originalCompatibilityProfile = DanteXmlCompatibilityService.CaptureProfile(_originalDocument);
         ReloadModel();
     }
 
@@ -114,22 +114,7 @@ public sealed class DanteProject
 
     public static DanteProject Load(string path)
     {
-        XDocument document;
-        try
-        {
-            // PreserveWhitespace évite de réécrire inutilement tout le fichier
-            // lors du chargement.
-            document = XDocument.Load(path, LoadOptions.PreserveWhitespace | LoadOptions.SetLineInfo);
-        }
-        catch (XmlException ex)
-        {
-            throw new InvalidOperationException($"Le fichier XML n'est pas lisible : {ex.Message}", ex);
-        }
-
-        if (document.Root is null)
-        {
-            throw new InvalidOperationException("Le fichier XML ne contient pas de racine.");
-        }
+        XDocument document = LoadDocument(path);
 
         DanteProject project = new(path, document);
         if (project.Devices.Count == 0)
@@ -137,6 +122,22 @@ public sealed class DanteProject
             throw new InvalidOperationException("Aucun élément <device> n'a été trouvé. Ce fichier ne semble pas compatible avec cette version.");
         }
 
+        return project;
+    }
+
+    public static DanteProject LoadRecovered(string originalPath, string recoveryPath)
+    {
+        XDocument originalDocument = LoadDocument(originalPath);
+        XDocument recoveredDocument = LoadDocument(recoveryPath);
+        DanteProject project = new(originalPath, recoveredDocument, originalDocument);
+        if (project.Devices.Count == 0)
+        {
+            throw new InvalidOperationException("La session récupérée ne contient aucune machine Dante.");
+        }
+
+        project.IsModified = true;
+        project._changes.Add(new ChangeRecord(DateTime.Now, "Récupération automatique", "Session temporaire restaurée après interruption"));
+        project.MarkRecoveredPatchChanges();
         return project;
     }
 
@@ -866,13 +867,27 @@ public sealed class DanteProject
 
     public IReadOnlyList<string> BuildImportantWarnings()
     {
-        List<string> warnings = [];
+        return BuildImportantWarningDetails().Select(warning => warning.Message).ToArray();
+    }
 
-        int redundantCount = Devices.Count(device => device.IsRedundant);
-        int daisychainCount = Devices.Count(device => !device.IsRedundant);
+    public IReadOnlyList<DanteImportantWarning> BuildImportantWarningDetails()
+    {
+        List<DanteImportantWarning> warnings = [];
+
+        DanteDevice[] redundantDevices = Devices.Where(device => device.IsRedundant).ToArray();
+        DanteDevice[] daisychainDevices = Devices.Where(device => !device.IsRedundant).ToArray();
+        int redundantCount = redundantDevices.Length;
+        int daisychainCount = daisychainDevices.Length;
         if (redundantCount > 0 && daisychainCount > 0)
         {
-            warnings.Add($"ATTENTION : le fichier mélange {redundantCount} machine(s) en redondant et {daisychainCount} machine(s) en daisychain. Vérifiez que c'est volontaire pour ce réseau.");
+            DanteDevice[] affectedDevices = redundantCount == daisychainCount
+                ? Devices.ToArray()
+                : redundantCount < daisychainCount ? redundantDevices : daisychainDevices;
+            warnings.Add(new DanteImportantWarning(
+                "Warning.MixedNetworkModes",
+                $"ATTENTION : le fichier mélange {redundantCount} machine(s) en redondant et {daisychainCount} machine(s) en daisychain. Vérifiez que c'est volontaire pour ce réseau.",
+                affectedDevices.Select(device => device.Name).ToArray(),
+                $"WARNING: the file mixes {redundantCount} redundant device(s) and {daisychainCount} daisychain device(s). Check that this is intentional for this network."));
         }
 
         DanteDevice[] staticIpDevices = Devices.Where(device => device.UsesStaticIp).ToArray();
@@ -884,22 +899,148 @@ public sealed class DanteProject
                 devices += $", +{staticIpDevices.Length - 12} autre(s)";
             }
 
-            warnings.Add($"IP fixe détectée sur {staticIpDevices.Length} machine(s) : {devices}.");
+            warnings.Add(new DanteImportantWarning(
+                "Warning.StaticIp",
+                $"IP fixe détectée sur {staticIpDevices.Length} machine(s) : {devices}.",
+                staticIpDevices.Select(device => device.Name).ToArray(),
+                $"Static IP detected on {staticIpDevices.Length} device(s): {devices}."));
         }
 
-        AddMixedValueWarning(
+        AddMixedValueWarningDetails(
             warnings,
+            "Warning.MixedSampleRates",
             "fréquences d'échantillonnage",
-            Devices.Select(device => device.Samplerate),
+            "sample rates",
+            device => device.Samplerate,
             FormatSamplerateForDisplay);
 
-        AddMixedValueWarning(
+        AddMixedValueWarningDetails(
             warnings,
+            "Warning.MixedEncodings",
             "bits par échantillon",
-            Devices.Select(device => device.Encoding),
+            "bits per sample values",
+            device => device.Encoding,
             FormatEncodingForDisplay);
 
         return warnings;
+    }
+
+    public IReadOnlyList<DeviceChangeRow> BuildDeviceChangeRows()
+    {
+        Dictionary<string, XElement> originalDevices = BuildDeviceIdentityMap(_originalDocument);
+        Dictionary<string, XElement> currentDevices = BuildDeviceIdentityMap(Document);
+        List<string> identities = originalDevices.Keys
+            .Concat(currentDevices.Keys)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
+        List<DeviceChangeRow> rows = [];
+
+        foreach (string identity in identities)
+        {
+            originalDevices.TryGetValue(identity, out XElement? originalElement);
+            currentDevices.TryGetValue(identity, out XElement? currentElement);
+            string originalName = ReadDeviceElementValue(originalElement, "name");
+            string currentName = ReadDeviceElementValue(currentElement, "name");
+            string displayName = !string.IsNullOrWhiteSpace(currentName) ? currentName : originalName;
+
+            if (originalElement is null && currentElement is not null)
+            {
+                rows.Add(new DeviceChangeRow(displayName, "Machine", "Absente", "Ajoutée", "Ajoutée", true));
+                continue;
+            }
+
+            if (currentElement is null && originalElement is not null)
+            {
+                rows.Add(new DeviceChangeRow(displayName, "Machine", "Présente", "Supprimée", "Supprimée", false));
+                continue;
+            }
+
+            if (originalElement is null || currentElement is null)
+            {
+                continue;
+            }
+
+            AddDeviceFieldChanges(rows, displayName, originalElement, currentElement);
+            AddChannelChanges(rows, displayName, originalElement, currentElement, DanteChannelKind.Tx);
+            AddChannelChanges(rows, displayName, originalElement, currentElement, DanteChannelKind.Rx);
+        }
+
+        return rows;
+    }
+
+    public IReadOnlySet<string> GetModifiedDeviceNames()
+    {
+        if (!IsModified)
+        {
+            return new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        }
+
+        return BuildDeviceChangeRows()
+            .Where(row => row.HasCurrentDevice)
+            .Select(row => row.DeviceName)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+    }
+
+    public int ApplyDeviceProfile(IEnumerable<string> deviceNames, DeviceProfile profile)
+    {
+        ArgumentNullException.ThrowIfNull(profile);
+        ValidateLatency(profile.Latency);
+        string samplerate = ValidateSamplerate(profile.Samplerate);
+        string encoding = ValidateEncoding(profile.Encoding);
+        HashSet<string> requestedNames = deviceNames
+            .Where(name => !string.IsNullOrWhiteSpace(name))
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+        DanteDevice[] targets = Devices.Where(device => requestedNames.Contains(device.Name)).ToArray();
+        if (targets.Length == 0)
+        {
+            throw new InvalidOperationException("Aucune machine ne correspond à la cible du profil.");
+        }
+
+        int changedDevices = 0;
+        foreach (DanteDevice device in targets)
+        {
+            bool changed = false;
+            if (!string.Equals(device.Samplerate, samplerate, StringComparison.OrdinalIgnoreCase))
+            {
+                SetElementValue(device.Element, "samplerate", samplerate);
+                changed = true;
+            }
+
+            if (!string.Equals(device.Encoding, encoding, StringComparison.OrdinalIgnoreCase))
+            {
+                SetElementValue(device.Element, "encoding", encoding);
+                changed = true;
+            }
+
+            if (!string.Equals(device.Latency, profile.Latency, StringComparison.OrdinalIgnoreCase))
+            {
+                SetElementValue(device.Element, "unicast_latency", profile.Latency);
+                changed = true;
+            }
+
+            if (profile.IsRedundant.HasValue && device.IsRedundant != profile.IsRedundant.Value)
+            {
+                SetBooleanElementAttribute(device.Element, "redundancy", "value", profile.IsRedundant.Value, afterElementName: "friendly_name");
+                changed = true;
+            }
+
+            if (profile.SetIpAutomatic && SetDeviceIpAddressesDynamic(device))
+            {
+                changed = true;
+            }
+
+            if (changed)
+            {
+                changedDevices++;
+            }
+        }
+
+        if (changedDevices > 0)
+        {
+            RegisterChange("Profil rapide", $"{profile.Key} appliqué à {changedDevices} machine(s)");
+        }
+
+        return changedDevices;
     }
 
     private void AddDuplicateDanteIdIssues(DanteValidationResult result)
@@ -1567,7 +1708,6 @@ public sealed class DanteProject
         }
 
         LastSavedPath = destinationPath;
-        IsModified = false;
         RegisterChange("Sauvegarde", $"Fichier sauvegardé sous {destinationPath}");
         IsModified = false;
         _undoSnapshots.Clear();
@@ -1772,23 +1912,251 @@ public sealed class DanteProject
             : $"{device.Name} ({device.StaticIpAddress})";
     }
 
-    private static void AddMixedValueWarning(
-        List<string> warnings,
+    private void AddMixedValueWarningDetails(
+        List<DanteImportantWarning> warnings,
+        string key,
         string label,
-        IEnumerable<string> values,
+        string englishLabel,
+        Func<DanteDevice, string> valueSelector,
         Func<string, string> formatter)
     {
-        string[] distinctValues = values
-            .Where(value => !string.IsNullOrWhiteSpace(value))
-            .Distinct(StringComparer.OrdinalIgnoreCase)
+        IGrouping<string, DanteDevice>[] groups = Devices
+            .Where(device => !string.IsNullOrWhiteSpace(valueSelector(device)))
+            .GroupBy(valueSelector, StringComparer.OrdinalIgnoreCase)
             .ToArray();
 
-        if (distinctValues.Length <= 1)
+        if (groups.Length <= 1)
         {
             return;
         }
 
-        warnings.Add($"ATTENTION : plusieurs {label} sont présentes dans le preset : {string.Join(", ", distinctValues.Select(formatter))}.");
+        IGrouping<string, DanteDevice> majority = groups
+            .OrderByDescending(group => group.Count())
+            .ThenBy(group => group.Key, StringComparer.OrdinalIgnoreCase)
+            .First();
+        string[] affectedNames = groups
+            .Where(group => !string.Equals(group.Key, majority.Key, StringComparison.OrdinalIgnoreCase))
+            .SelectMany(group => group)
+            .Select(device => device.Name)
+            .ToArray();
+        string[] distinctValues = groups.Select(group => group.Key).ToArray();
+        warnings.Add(new DanteImportantWarning(
+            key,
+            $"ATTENTION : plusieurs {label} sont présentes dans le preset : {string.Join(", ", distinctValues.Select(formatter))}.",
+            affectedNames,
+            $"WARNING: multiple {englishLabel} are present in the preset: {string.Join(", ", distinctValues.Select(formatter))}."));
+    }
+
+    private static Dictionary<string, XElement> BuildDeviceIdentityMap(XDocument document)
+    {
+        Dictionary<string, XElement> devices = new(StringComparer.OrdinalIgnoreCase);
+        Dictionary<string, int> occurrences = new(StringComparer.OrdinalIgnoreCase);
+        foreach (XElement device in document.Root?.Elements("device") ?? [])
+        {
+            string identity = BuildDeviceIdentity(device);
+            occurrences.TryGetValue(identity, out int occurrence);
+            occurrence++;
+            occurrences[identity] = occurrence;
+            devices[$"{identity}#{occurrence}"] = device;
+        }
+
+        return devices;
+    }
+
+    private static string BuildDeviceIdentity(XElement device)
+    {
+        string deviceId = device.Element("instance_id")?.Element("device_id")?.Value.Trim() ?? string.Empty;
+        if (!string.IsNullOrWhiteSpace(deviceId))
+        {
+            return "device-id:" + deviceId;
+        }
+
+        string defaultName = device.Element("default_name")?.Value.Trim() ?? string.Empty;
+        if (!string.IsNullOrWhiteSpace(defaultName))
+        {
+            return "default-name:" + defaultName;
+        }
+
+        return "name:" + ReadDeviceElementValue(device, "name");
+    }
+
+    private static string ReadDeviceElementValue(XElement? device, string elementName)
+    {
+        return device?.Element(elementName)?.Value.Trim() ?? string.Empty;
+    }
+
+    private static void AddDeviceFieldChanges(
+        List<DeviceChangeRow> rows,
+        string deviceName,
+        XElement originalElement,
+        XElement currentElement)
+    {
+        DanteDevice original = new(originalElement);
+        DanteDevice current = new(currentElement);
+        AddDeviceChange(rows, deviceName, "Nom de machine", original.Name, current.Name);
+        AddDeviceChange(rows, deviceName, "Friendly name", original.FriendlyName, current.FriendlyName);
+        AddDeviceChange(rows, deviceName, "Mode réseau", original.NetworkMode, current.NetworkMode);
+        AddDeviceChange(rows, deviceName, "Latence", original.LatencyDisplay, current.LatencyDisplay);
+        AddDeviceChange(rows, deviceName, "Sample rate", original.SampleRateDisplay, current.SampleRateDisplay);
+        AddDeviceChange(rows, deviceName, "Bits par échantillon", original.EncodingDisplay, current.EncodingDisplay);
+        AddDeviceChange(rows, deviceName, "Preferred master", original.PreferredMaster ? "Oui" : "Non", current.PreferredMaster ? "Oui" : "Non");
+        AddDeviceChange(rows, deviceName, "Adresse IP", FormatIpForComparison(original), FormatIpForComparison(current));
+    }
+
+    private static void AddChannelChanges(
+        List<DeviceChangeRow> rows,
+        string deviceName,
+        XElement originalElement,
+        XElement currentElement,
+        DanteChannelKind kind)
+    {
+        DanteDevice originalDevice = new(originalElement);
+        DanteDevice currentDevice = new(currentElement);
+        IEnumerable<DanteChannel> originalChannels = kind == DanteChannelKind.Tx ? originalDevice.TxChannels : originalDevice.RxChannels;
+        IEnumerable<DanteChannel> currentChannels = kind == DanteChannelKind.Tx ? currentDevice.TxChannels : currentDevice.RxChannels;
+        Dictionary<string, DanteChannel> originalMap = BuildChannelIdentityMap(originalChannels);
+        Dictionary<string, DanteChannel> currentMap = BuildChannelIdentityMap(currentChannels);
+        string kindLabel = kind == DanteChannelKind.Tx ? "TX" : "RX";
+
+        foreach (string identity in originalMap.Keys.Concat(currentMap.Keys).Distinct(StringComparer.OrdinalIgnoreCase))
+        {
+            originalMap.TryGetValue(identity, out DanteChannel? originalChannel);
+            currentMap.TryGetValue(identity, out DanteChannel? currentChannel);
+            int danteId = currentChannel?.DanteId ?? originalChannel?.DanteId ?? 0;
+            string channelLabel = $"Canal {kindLabel} {danteId}";
+
+            if (originalChannel is null && currentChannel is not null)
+            {
+                rows.Add(new DeviceChangeRow(deviceName, channelLabel, "Absent", currentChannel.DisplayName, "Ajouté", true));
+                continue;
+            }
+
+            if (currentChannel is null && originalChannel is not null)
+            {
+                rows.Add(new DeviceChangeRow(deviceName, channelLabel, originalChannel.DisplayName, "Supprimé", "Supprimé", true));
+                continue;
+            }
+
+            if (originalChannel is null || currentChannel is null)
+            {
+                continue;
+            }
+
+            AddDeviceChange(rows, deviceName, channelLabel + " - nom", originalChannel.DisplayName, currentChannel.DisplayName);
+            if (kind == DanteChannelKind.Rx)
+            {
+                AddDeviceChange(
+                    rows,
+                    deviceName,
+                    channelLabel + " - patch",
+                    ReadSubscriptionForComparison(originalChannel.Element),
+                    ReadSubscriptionForComparison(currentChannel.Element));
+            }
+        }
+    }
+
+    private static Dictionary<string, DanteChannel> BuildChannelIdentityMap(IEnumerable<DanteChannel> channels)
+    {
+        Dictionary<string, DanteChannel> result = new(StringComparer.OrdinalIgnoreCase);
+        Dictionary<string, int> occurrences = new(StringComparer.OrdinalIgnoreCase);
+        foreach (DanteChannel channel in channels)
+        {
+            string identity = channel.HasDanteId ? $"dante-id:{channel.DanteId}" : $"position:{channel.PositionIndex}";
+            occurrences.TryGetValue(identity, out int occurrence);
+            occurrence++;
+            occurrences[identity] = occurrence;
+            result[$"{identity}#{occurrence}"] = channel;
+        }
+
+        return result;
+    }
+
+    private static void AddDeviceChange(
+        ICollection<DeviceChangeRow> rows,
+        string deviceName,
+        string parameter,
+        string before,
+        string after)
+    {
+        if (string.Equals(before?.Trim(), after?.Trim(), StringComparison.Ordinal))
+        {
+            return;
+        }
+
+        rows.Add(new DeviceChangeRow(
+            deviceName,
+            parameter,
+            string.IsNullOrWhiteSpace(before) ? "-" : before,
+            string.IsNullOrWhiteSpace(after) ? "-" : after,
+            "Modifié",
+            true));
+    }
+
+    private static string FormatIpForComparison(DanteDevice device)
+    {
+        if (!device.UsesStaticIp)
+        {
+            return "Automatique";
+        }
+
+        string address = string.IsNullOrWhiteSpace(device.StaticIpAddress) ? "adresse inconnue" : device.StaticIpAddress;
+        string netmask = string.IsNullOrWhiteSpace(device.StaticIpNetmask) ? "masque inconnu" : device.StaticIpNetmask;
+        string gateway = string.IsNullOrWhiteSpace(device.StaticIpGateway) ? "passerelle inconnue" : device.StaticIpGateway;
+        return $"Fixe : {address} / {netmask} / {gateway}";
+    }
+
+    private static string ReadSubscriptionForComparison(XElement rxChannel)
+    {
+        string device = FindFirstElement(rxChannel, SubscriptionDeviceElementNames)?.Value.Trim() ?? string.Empty;
+        string channel = FindFirstElement(rxChannel, SubscriptionChannelElementNames)?.Value.Trim() ?? string.Empty;
+        if (string.IsNullOrWhiteSpace(device) && string.IsNullOrWhiteSpace(channel))
+        {
+            return "Libre";
+        }
+
+        string displayDevice = string.Equals(device, ".", StringComparison.Ordinal) ? "LOCAL" : device;
+        return $"{Blank(displayDevice)} / {Blank(channel)}";
+    }
+
+    private static XDocument LoadDocument(string path)
+    {
+        try
+        {
+            // PreserveWhitespace évite de réécrire inutilement tout le fichier.
+            XDocument document = XDocument.Load(path, LoadOptions.PreserveWhitespace | LoadOptions.SetLineInfo);
+            return document.Root is null
+                ? throw new InvalidOperationException("Le fichier XML ne contient pas de racine.")
+                : document;
+        }
+        catch (XmlException ex)
+        {
+            throw new InvalidOperationException($"Le fichier XML n'est pas lisible : {ex.Message}", ex);
+        }
+    }
+
+    private void MarkRecoveredPatchChanges()
+    {
+        Dictionary<string, XElement> originalDevices = BuildDeviceIdentityMap(_originalDocument);
+        Dictionary<string, XElement> currentDevices = BuildDeviceIdentityMap(Document);
+        foreach (string identity in originalDevices.Keys.Intersect(currentDevices.Keys, StringComparer.OrdinalIgnoreCase))
+        {
+            DanteDevice originalDevice = new(originalDevices[identity]);
+            DanteDevice currentDevice = new(currentDevices[identity]);
+            Dictionary<string, DanteChannel> originalRx = BuildChannelIdentityMap(originalDevice.RxChannels);
+            Dictionary<string, DanteChannel> currentRx = BuildChannelIdentityMap(currentDevice.RxChannels);
+            foreach (string channelIdentity in originalRx.Keys.Intersect(currentRx.Keys, StringComparer.OrdinalIgnoreCase))
+            {
+                if (!string.Equals(
+                        ReadSubscriptionForComparison(originalRx[channelIdentity].Element),
+                        ReadSubscriptionForComparison(currentRx[channelIdentity].Element),
+                        StringComparison.Ordinal))
+                {
+                    _modifiedRxElements[currentRx[channelIdentity].Element] = true;
+                }
+            }
+        }
+
+        ReloadModel();
     }
 
     private static string FormatPatchbookSourceDevice(DanteSubscription subscription)

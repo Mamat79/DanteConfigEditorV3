@@ -16,7 +16,7 @@ Outil Windows pour éditer hors ligne des fichiers XML de configuration Dante.
 - Renomme les canaux TX/RX.
 - Renomme des plages de canaux en série.
 - Réinitialise les noms de canaux.
-- Modifie les paramètres déjà couverts par la V2.
+- Modifie les paramètres réseau et audio exposés par les fichiers XML reconnus.
 - Affiche une page Patch pour visualiser et modifier les abonnements RX vers TX lorsque le format XML le permet.
 - Met à jour les patchs RX quand un canal TX utilisé est renommé.
 - Crée une sauvegarde du fichier original avant sauvegarde.
@@ -35,6 +35,10 @@ Outil Windows pour éditer hors ligne des fichiers XML de configuration Dante.
 - Réinitialise les patchs RX/TX d'une machine, ou seulement ses RX / seulement ses TX.
 - Ouvre une notice rapide PDF et une notice complète PDF depuis l'application.
 - Affiche des info-bulles sur les principales fonctions.
+- Permet de cliquer sur un point important pour filtrer immédiatement les machines concernées.
+- Filtre les machines modifiées et affiche une comparaison détaillée avant / après.
+- Enregistre automatiquement une copie de récupération après chaque modification non sauvegardée.
+- Applique des profils rapides 48/96 kHz, 24 bit, latence, mode réseau et IP automatique à la cible choisie.
 - Affiche une page `Santé du fichier` avec les points à vérifier.
 - Annule la dernière action.
 - Recherche globalement dans les machines, canaux et patchs.
@@ -74,12 +78,11 @@ En fin d'installation, il peut proposer d'ouvrir les release notes, le quick sta
 
 Si une version est déjà installée, l'assistant le détecte et propose soit de remplacer / mettre à jour l'installation existante, soit d'installer une copie supplémentaire dans un autre dossier.
 
-## Versions incluses
+## Version distribuée
 
-- La V3 est la version active du projet, avec les sources dans ce dépôt.
-- Une copie de la V2 historique est disponible dans `legacy/V2`.
-- La V2 est conservée comme archive de référence : elle contient les binaires compilés d'origine, pas les sources.
-- L'analyse de la V2 est documentée dans `ANALYSE_V2.md`.
+- La V3.05 est la seule version binaire conservée dans les distributions locales et les Releases GitHub.
+- Les anciennes publications ont été retirées pour éviter de transmettre un installateur obsolète.
+- L'historique du projet reste consultable dans Git et dans `CHANGELOG_V3.md`.
 
 ## Utilisation rapide
 
@@ -95,6 +98,13 @@ Si une version est déjà installée, l'assistant le détecte et propose soit de
 
 ## Nouveautés V3.05
 
+- Les alertes `Points à vérifier` ouvrent la liste des machines concernées et permettent de les filtrer dans le tableau principal.
+- Le filtre `Modifiées uniquement` et le bouton `Avant / après` permettent de contrôler précisément les changements depuis l'ouverture du XML.
+- Les messages dynamiques de ces nouvelles vues suivent le choix Français / Anglais de l'interface.
+- Une récupération automatique protège les modifications non sauvegardées après une fermeture inattendue ; l'utilisateur choisit de restaurer ou d'abandonner la copie temporaire à la prochaine ouverture du même fichier.
+- Des profils rapides 48/96 kHz et 24 bit combinent latence, IP automatique et, selon le profil, mode redondant ou daisychain.
+- Les profils respectent la cible des actions globales et ignorent les machines verrouillées.
+- Une suite de tests vérifie le chargement XML, les renommages et leurs patchs, les imports, la suppression, les profils, la récupération et la sauvegarde sécurisée.
 - Un seul bouton `Appliquer les paramètres` valide ensemble le nom, le mode réseau, la latence et le preferred master de la machine sélectionnée.
 - Les IP automatique/fixe, sample rate, bits et noms de canaux restent modifiables dans `Détail machine`.
 - L'alerte `Points à vérifier` reste compacte et le bouton `Détails` affiche son texte complet.
@@ -208,6 +218,12 @@ Pour reconstruire l'installateur autonome :
 
 ```powershell
 .\installer\build_installer.ps1
+```
+
+Pour lancer les tests automatiques :
+
+```powershell
+.\tests\run-tests.ps1
 ```
 
 ## Sécurité des fichiers

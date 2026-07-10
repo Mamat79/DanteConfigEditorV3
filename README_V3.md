@@ -1,6 +1,6 @@
 # Dante Config Editor V3.05
 
-Application Windows WPF pour éditer hors ligne des fichiers XML de configuration Dante compatibles avec la structure utilisée par la V2.
+Application Windows WPF pour éditer hors ligne des fichiers XML de configuration Dante reconnus par l'application.
 
 ## Lancer l'application
 
@@ -57,6 +57,12 @@ Pour reconstruire l'installateur autonome :
 
 ## Nouveautés V3.05
 
+- Alertes navigables : `Voir les machines` affiche les points importants et filtre les devices concernés.
+- Filtre `Modifiées uniquement` et fenêtre `Avant / après` pour comparer les valeurs d'origine et les valeurs courantes.
+- Alertes et comparaison avant/après entièrement traduites selon la langue active.
+- Récupération automatique de session après chaque modification non sauvegardée, avec choix de restauration à la prochaine ouverture du XML.
+- Profils rapides 48/96 kHz, 24 bit, latence, IP automatique et mode réseau optionnel, appliqués à toutes les machines, à la sélection ou au filtre affiché.
+- Tests de non-régression sur des XML anonymisés et contrôle local facultatif d'un corpus de vrais exports Dante.
 - Un bouton unique `Appliquer les paramètres` applique ensemble le nom, le mode réseau, la latence et le preferred master de la machine sélectionnée.
 - La fenêtre `Détail machine` conserve les réglages IP automatique/fixe, sample rate, bits et noms de canaux TX/RX.
 - Le bandeau `Points à vérifier` est compact, avec un bouton `Détails` pour afficher son texte complet.
@@ -197,10 +203,12 @@ Pour reconstruire l'installateur autonome :
 - Si un fichier Dante utilise une structure propriétaire différente, la V3 peut afficher des données partielles ou signaler des conflits.
 - Aucun contournement de protection Audinate ni reverse engineering protocolaire n'est implémenté.
 
-## Prochaines améliorations possibles
+## Vérification automatique
 
-- Ajouter une vraie matrice graphique TX vers RX avec cases à cocher.
-- Ajouter une comparaison visuelle original / modifié.
-- Ajouter import/export CSV des patchs.
-- Ajouter tests unitaires sur plusieurs vrais exemples XML Dante.
-- Ajouter une détection de schéma plus large si d'autres formats hors ligne doivent être pris en charge.
+La commande suivante exécute les contrôles de chargement, renommage, propagation des patchs, import, suppression, profil rapide, récupération et sauvegarde :
+
+```powershell
+.\tests\run-tests.ps1
+```
+
+Un corpus local de vrais exports peut aussi être contrôlé en renseignant `DANTE_REAL_XML_ROOT`. Les fichiers réels restent hors du dépôt public.

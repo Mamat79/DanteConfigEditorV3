@@ -1,0 +1,58 @@
+<Window x:Class="DanteConfigEditor.DeviceChangesWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Modifications avant / après"
+        Width="1120"
+        Height="680"
+        MinWidth="840"
+        MinHeight="480"
+        WindowStartupLocation="CenterOwner">
+    <Grid Margin="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <TextBlock x:Name="SummaryTextBlock"
+                   FontSize="16"
+                   FontWeight="SemiBold"
+                   Margin="0,0,0,12" />
+
+        <DataGrid x:Name="ChangesGrid"
+                  Grid.Row="1"
+                  AutoGenerateColumns="False"
+                  CanUserAddRows="False"
+                  CanUserDeleteRows="False"
+                  IsReadOnly="True"
+                  GridLinesVisibility="Horizontal">
+            <DataGrid.Columns>
+                <DataGridTextColumn x:Name="DeviceColumn" Header="Machine" Binding="{Binding DeviceName}" Width="1.4*" />
+                <DataGridTextColumn x:Name="ParameterColumn" Header="Paramètre" Binding="{Binding Parameter}" Width="1.6*" />
+                <DataGridTemplateColumn x:Name="BeforeColumn" Header="Avant" Width="2*">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding Before}" TextWrapping="Wrap" Margin="4" />
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn x:Name="AfterColumn" Header="Après" Width="2*">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding After}" TextWrapping="Wrap" Margin="4" />
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTextColumn x:Name="StatusColumn" Header="État" Binding="{Binding Status}" Width="0.8*" />
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <Button x:Name="CloseButton"
+                Grid.Row="2"
+                Content="Fermer"
+                Padding="18,8"
+                HorizontalAlignment="Right"
+                Margin="0,12,0,0"
+                IsCancel="True" />
+    </Grid>
+</Window>

@@ -26,6 +26,8 @@ public partial class MainWindow : Window
     private readonly ObservableCollection<GlobalSearchResult> _searchResults = [];
     private readonly ObservableCollection<DanteValidationIssue> _healthIssues = [];
     private readonly HashSet<string> _lockedDeviceNames = new(StringComparer.OrdinalIgnoreCase);
+    private readonly HashSet<string> _warningDeviceNames = new(StringComparer.OrdinalIgnoreCase);
+    private string? _selectedWarningKey;
     private readonly LatencyChoice[] _latencies =
     [
         new("250", "0,25 ms"),
@@ -84,6 +86,8 @@ public partial class MainWindow : Window
         "DeviceFilter.Daisychain",
         "DeviceFilter.NoTx",
         "DeviceFilter.NoRx",
+        "DeviceFilter.Modified",
+        "DeviceFilter.WarningSelection",
         "DeviceFilter.SampleRateDifferent",
         "DeviceFilter.EncodingDifferent"
     ];
@@ -149,6 +153,14 @@ public partial class MainWindow : Window
         }
     }
 
+    private sealed record ProfileChoice(DeviceProfile Profile, string Display)
+    {
+        public override string ToString()
+        {
+            return Display;
+        }
+    }
+
     private sealed record GlobalSearchResult(
         string Kind,
         string Label,
@@ -166,15 +178,18 @@ public partial class MainWindow : Window
 
     private sealed class DeviceRow
     {
-        public DeviceRow(DanteDevice device, bool isLocked)
+        public DeviceRow(DanteDevice device, bool isLocked, bool isModified)
         {
             Device = device;
             IsLocked = isLocked;
+            IsModified = isModified;
         }
 
         public DanteDevice Device { get; }
 
         public bool IsLocked { get; set; }
+
+        public bool IsModified { get; }
 
         public string Name => Device.Name;
 
@@ -208,6 +223,7 @@ public partial class MainWindow : Window
     {
         // Initialisation des sources de données utilisées par les contrôles.
         _language = LanguageSettingsService.Load();
+        SessionRecoveryService.CleanupOld(TimeSpan.FromDays(30));
         SetupLanguageComboBox();
         LatencyComboBox.ItemsSource = _latencies;
         GlobalLatencyComboBox.ItemsSource = _latencies;
@@ -216,6 +232,7 @@ public partial class MainWindow : Window
         ChannelKindComboBox.ItemsSource = new[] { "TX", "RX" };
         ChannelKindComboBox.SelectedItem = "TX";
         RefreshLocalizedOptionSources();
+        RefreshQuickProfileOptions();
         PatchGrid.ItemsSource = _patchRows;
         DeviceGrid.ItemsSource = _deviceRows;
         LogListBox.ItemsSource = _logs;
@@ -337,14 +354,43 @@ public partial class MainWindow : Window
         {
             // DanteProject contient toute la logique XML. La fenêtre ne garde que
             // l'état d'affichage et les actions utilisateur.
-            _project = DanteProject.Load(path);
+            RecoveryCandidate? recovery = SessionRecoveryService.Find(path);
+            bool recovered = false;
+            DanteProject? loadedProject = null;
+            if (recovery is not null)
+            {
+                string sourceWarning = recovery.SourceMatches
+                    ? string.Empty
+                    : Environment.NewLine + Environment.NewLine + T("Dialog.RecoverySourceChanged");
+                MessageBoxResult restore = MessageBox.Show(
+                    this,
+                    Tf("Dialog.RecoveryFound", recovery.SavedAtUtc.ToLocalTime()) + sourceWarning,
+                    T("Dialog.RecoveryTitle"),
+                    MessageBoxButton.YesNo,
+                    MessageBoxImage.Warning);
+                if (restore == MessageBoxResult.Yes)
+                {
+                    loadedProject = DanteProject.LoadRecovered(path, recovery.RecoveryXmlPath);
+                    recovered = true;
+                }
+                else
+                {
+                    SessionRecoveryService.Delete(path);
+                }
+            }
+
+            _project = loadedProject ?? DanteProject.Load(path);
             _editModeEnabled = true;
             _logs.Clear();
             RecentFilesService.Add(path);
             RefreshRecentFiles();
             AddLog(Tf("Log.FileLoaded", path));
+            if (recovered)
+            {
+                AddLog(T("Log.RecoveryRestored"));
+            }
             RefreshAll();
-            SetStatus(T("Status.FileLoaded"));
+            SetStatus(T(recovered ? "Status.RecoveryRestored" : "Status.FileLoaded"));
         }
         catch (Exception ex)
         {
@@ -450,6 +496,7 @@ public partial class MainWindow : Window
         try
         {
             string backupPath = _project.SaveAs(dialog.FileName);
+            SessionRecoveryService.Delete(_project.OriginalFilePath);
             AddLog(Tf("Log.OriginalBackupCreated", backupPath));
             AddLog(Tf("Log.FileSaved", dialog.FileName));
             RefreshAll();
@@ -486,6 +533,7 @@ public partial class MainWindow : Window
         try
         {
             string path = _project.OriginalFilePath;
+            SessionRecoveryService.Delete(path);
             _project = DanteProject.Load(path);
             AddLog(T("Log.ReloadOriginal"));
             RefreshAll();
@@ -509,6 +557,7 @@ public partial class MainWindow : Window
             string label = _project!.UndoLastChange();
             AddLog(Tf("Log.ActionUndone", label));
             RefreshAll();
+            UpdateRecoverySnapshot();
             SetStatus(T("Status.LastActionUndone"));
         }
         catch (Exception ex)
@@ -823,6 +872,71 @@ public partial class MainWindow : Window
                 + T("Dialog.AudioFormatWarningContinue"));
     }
 
+    private void ApplyQuickProfileButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (QuickProfileComboBox.SelectedItem is not ProfileChoice choice)
+        {
+            ShowError(T("Dialog.ActionImpossibleTitle"), T("Dialog.SelectProfile"));
+            return;
+        }
+
+        TargetDeviceSet? target = GetTargetDeviceSet();
+        if (target is null)
+        {
+            return;
+        }
+
+        DeviceProfile profile = choice.Profile;
+        (DanteDevice Device, string Before, string After, bool Changed)[] previewRows = target.Devices
+            .Select(device => (
+                Device: device,
+                Before: BuildDeviceProfileState(device),
+                After: BuildTargetProfileState(device, profile),
+                Changed: DeviceDiffersFromProfile(device, profile)))
+            .ToArray();
+        if (!previewRows.Any(row => row.Changed))
+        {
+            SetStatus(T("Status.ProfileAlreadyApplied"));
+            return;
+        }
+
+        RunProjectAction(
+            T("Action.QuickProfileApplied"),
+            () => _project!.ApplyDeviceProfile(target.Devices.Select(device => device.Name), profile),
+            BuildTargetPreview(
+                $"appliquer le profil {choice.Display}",
+                target,
+                previewRows)
+                + Environment.NewLine
+                + T("Dialog.ProfileWarningContinue"));
+    }
+
+    private static bool DeviceDiffersFromProfile(DanteDevice device, DeviceProfile profile)
+    {
+        return !string.Equals(device.Samplerate, profile.Samplerate, StringComparison.OrdinalIgnoreCase)
+            || !string.Equals(device.Encoding, profile.Encoding, StringComparison.OrdinalIgnoreCase)
+            || !string.Equals(device.Latency, profile.Latency, StringComparison.OrdinalIgnoreCase)
+            || profile.IsRedundant.HasValue && device.IsRedundant != profile.IsRedundant.Value
+            || profile.SetIpAutomatic && device.UsesStaticIp;
+    }
+
+    private static string BuildDeviceProfileState(DanteDevice device)
+    {
+        return $"{device.SampleRateDisplay} / {device.EncodingDisplay} / {device.LatencyDisplay} / {device.NetworkMode} / {device.IpModeDisplay}";
+    }
+
+    private static string BuildTargetProfileState(DanteDevice device, DeviceProfile profile)
+    {
+        string samplerate = int.TryParse(profile.Samplerate, out int samplerateValue)
+            ? $"{samplerateValue / 1000m:0.#} kHz"
+            : profile.Samplerate;
+        string networkMode = profile.IsRedundant.HasValue
+            ? profile.IsRedundant.Value ? "Redondant" : "Daisychain"
+            : device.NetworkMode;
+        string ipMode = profile.SetIpAutomatic ? "Auto" : device.IpModeDisplay;
+        return $"{samplerate} / {profile.Encoding} bit / {DanteLatencyFormatter.FormatLatencyDisplay(profile.Latency)} / {networkMode} / {ipMode}";
+    }
+
     private void ApplyAllIpAutoButton_Click(object sender, RoutedEventArgs e)
     {
         TargetDeviceSet? target = GetTargetDeviceSet();
@@ -1075,17 +1189,88 @@ public partial class MainWindow : Window
 
     private void ImportantWarningsDetailsButton_Click(object sender, RoutedEventArgs e)
     {
-        if (string.IsNullOrWhiteSpace(ImportantWarningsTextBlock.Text))
+        if (!EnsureProjectLoaded())
         {
             return;
         }
 
-        MessageBox.Show(
-            this,
-            ImportantWarningsTextBlock.Text,
-            LocalizeLiteral("POINTS À VÉRIFIER"),
-            MessageBoxButton.OK,
-            MessageBoxImage.Warning);
+        IReadOnlyList<DanteImportantWarning> warnings = _project!.BuildImportantWarningDetails();
+        if (warnings.Count == 0)
+        {
+            SetStatus(T("Status.NoImportantWarning"));
+            return;
+        }
+
+        DanteImportantWarning? selectedWarning;
+        if (warnings.Count == 1)
+        {
+            selectedWarning = warnings[0];
+        }
+        else
+        {
+            ImportantWarningsWindow window = new(_language, warnings)
+            {
+                Owner = this
+            };
+            selectedWarning = window.ShowDialog() == true ? window.SelectedWarning : null;
+        }
+
+        if (selectedWarning is not null)
+        {
+            ApplyImportantWarningFilter(selectedWarning);
+        }
+    }
+
+    private void ApplyImportantWarningFilter(DanteImportantWarning warning)
+    {
+        _selectedWarningKey = warning.Key;
+        _warningDeviceNames.Clear();
+        _warningDeviceNames.UnionWith(warning.DeviceNames);
+        if (_warningDeviceNames.Count == 0)
+        {
+            MessageBox.Show(this, LocalizedWarningMessage(warning), LocalizeLiteral("POINTS À VÉRIFIER"), MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
+        }
+
+        bool previousRefreshing = _refreshingUi;
+        _refreshingUi = true;
+        DeviceFilterComboBox.SelectedItem = (DeviceFilterComboBox.ItemsSource as IEnumerable<LocalizedOption>)
+            ?.FirstOrDefault(option => option.Key == "DeviceFilter.WarningSelection");
+        _refreshingUi = previousRefreshing;
+        RefreshAll();
+        DeviceGrid.SelectedItems.Clear();
+        foreach (DeviceRow row in _deviceRows)
+        {
+            DeviceGrid.SelectedItems.Add(row);
+        }
+
+        if (_deviceRows.FirstOrDefault() is DeviceRow firstRow)
+        {
+            DeviceGrid.ScrollIntoView(firstRow);
+        }
+
+        SetStatus(Tf("Status.WarningDevicesDisplayed", _deviceRows.Count));
+    }
+
+    private void ShowDeviceChangesButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (!EnsureProjectLoaded())
+        {
+            return;
+        }
+
+        IReadOnlyList<DeviceChangeRow> changes = _project!.BuildDeviceChangeRows();
+        if (changes.Count == 0)
+        {
+            MessageBox.Show(this, T("Dialog.NoDeviceChanges"), T("Dialog.DeviceChangesTitle"), MessageBoxButton.OK, MessageBoxImage.Information);
+            return;
+        }
+
+        DeviceChangesWindow window = new(_language, changes)
+        {
+            Owner = this
+        };
+        window.Show();
     }
 
     private void SelectVisibleDevicesButton_Click(object sender, RoutedEventArgs e)
@@ -1893,6 +2078,8 @@ public partial class MainWindow : Window
                 ProjectSummaryTextBlock.Text = T("Status.LoadXmlToStart");
                 ImportantWarningsBorder.Visibility = Visibility.Collapsed;
                 ImportantWarningsTextBlock.Text = string.Empty;
+                _warningDeviceNames.Clear();
+                _selectedWarningKey = null;
                 DirtyStateTextBlock.Text = T("Status.Unmodified");
                 ModeTextBlock.Text = T("Status.ReadOnlyMode");
                 CountsTextBlock.Text = "0 device - 0 TX - 0 RX";
@@ -1936,15 +2123,43 @@ public partial class MainWindow : Window
                 : $"{devices.Count} devices\n{txCount} canaux TX\n{rxCount} canaux RX\n{_project.PatchMatrix.ActivePatchCount} patchs actifs";
             CountsTextBlock.Text = $"{devices.Count} devices - {txCount} TX - {rxCount} RX";
 
-            string importantWarnings = string.Join(Environment.NewLine, _project.BuildImportantWarnings());
-            ImportantWarningsTextBlock.Text = importantWarnings;
-            ImportantWarningsBorder.Visibility = string.IsNullOrWhiteSpace(importantWarnings) ? Visibility.Collapsed : Visibility.Visible;
+            IReadOnlyList<DanteImportantWarning> importantWarnings = _project.BuildImportantWarningDetails();
+            string fullWarningText = string.Join(Environment.NewLine, importantWarnings.Select(LocalizedWarningMessage));
+            ImportantWarningsTextBlock.Text = importantWarnings.Count <= 1
+                ? fullWarningText
+                : $"{LocalizedWarningMessage(importantWarnings[0])}  (+{importantWarnings.Count - 1} {(_language == UiLanguage.English ? "more" : "autre(s)")})";
+            ImportantWarningsTextBlock.ToolTip = fullWarningText;
+            ImportantWarningsBorder.Visibility = importantWarnings.Count == 0 ? Visibility.Collapsed : Visibility.Visible;
+
+            if (!string.IsNullOrWhiteSpace(_selectedWarningKey))
+            {
+                DanteImportantWarning? activeWarning = importantWarnings.FirstOrDefault(warning => warning.Key == _selectedWarningKey);
+                _warningDeviceNames.Clear();
+                if (activeWarning is not null)
+                {
+                    _warningDeviceNames.UnionWith(activeWarning.DeviceNames);
+                }
+                else
+                {
+                    _selectedWarningKey = null;
+                    if (SelectedOptionKey(DeviceFilterComboBox, _deviceFilterKeys[0]) == "DeviceFilter.WarningSelection")
+                    {
+                        DeviceFilterComboBox.SelectedItem = (DeviceFilterComboBox.ItemsSource as IEnumerable<LocalizedOption>)
+                            ?.FirstOrDefault(option => option.Key == "DeviceFilter.All");
+                    }
+                }
+            }
 
             _lockedDeviceNames.RemoveWhere(name => !deviceNames.Contains(name, StringComparer.OrdinalIgnoreCase));
+            _warningDeviceNames.RemoveWhere(name => !deviceNames.Contains(name, StringComparer.OrdinalIgnoreCase));
+            IReadOnlySet<string> modifiedDeviceNames = _project.GetModifiedDeviceNames();
             _deviceRows.Clear();
             foreach (DanteDevice device in ApplyDeviceFilter(devices))
             {
-                _deviceRows.Add(new DeviceRow(device, _lockedDeviceNames.Contains(device.Name)));
+                _deviceRows.Add(new DeviceRow(
+                    device,
+                    _lockedDeviceNames.Contains(device.Name),
+                    modifiedDeviceNames.Contains(device.Name)));
             }
 
             DeviceGrid.SelectedItems.Clear();
@@ -1994,6 +2209,9 @@ public partial class MainWindow : Window
         string majorityEncoding = MostCommonValue(materializedDevices.Select(device => device.Encoding));
         bool hasMultipleSamplerates = materializedDevices.Select(device => device.Samplerate).Where(value => !string.IsNullOrWhiteSpace(value)).Distinct(StringComparer.OrdinalIgnoreCase).Skip(1).Any();
         bool hasMultipleEncodings = materializedDevices.Select(device => device.Encoding).Where(value => !string.IsNullOrWhiteSpace(value)).Distinct(StringComparer.OrdinalIgnoreCase).Skip(1).Any();
+        IReadOnlySet<string> modifiedDeviceNames = filter == "DeviceFilter.Modified" && _project is not null
+            ? _project.GetModifiedDeviceNames()
+            : new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
         return filter switch
         {
@@ -2004,6 +2222,8 @@ public partial class MainWindow : Window
             "DeviceFilter.Daisychain" => materializedDevices.Where(device => !device.IsRedundant),
             "DeviceFilter.NoTx" => materializedDevices.Where(device => device.TxCount == 0),
             "DeviceFilter.NoRx" => materializedDevices.Where(device => device.RxCount == 0),
+            "DeviceFilter.Modified" => materializedDevices.Where(device => modifiedDeviceNames.Contains(device.Name)),
+            "DeviceFilter.WarningSelection" => materializedDevices.Where(device => _warningDeviceNames.Contains(device.Name)),
             "DeviceFilter.SampleRateDifferent" => hasMultipleSamplerates
                 ? materializedDevices.Where(device => !string.Equals(device.Samplerate, majoritySamplerate, StringComparison.OrdinalIgnoreCase))
                 : [],
@@ -2484,11 +2704,24 @@ public partial class MainWindow : Window
             SetOptions(PatchbookScopeComboBox, _patchbookScopeKeys, SelectedOptionKey(PatchbookScopeComboBox, _patchbookScopeKeys[0]));
             SetOptions(DeviceFilterComboBox, _deviceFilterKeys, SelectedOptionKey(DeviceFilterComboBox, _deviceFilterKeys[0]));
             SetOptions(TargetScopeComboBox, _targetScopeKeys, SelectedOptionKey(TargetScopeComboBox, _targetScopeKeys[0]));
+            RefreshQuickProfileOptions();
         }
         finally
         {
             _refreshingUi = previousRefreshing;
         }
+    }
+
+    private void RefreshQuickProfileOptions()
+    {
+        string selectedKey = (QuickProfileComboBox.SelectedItem as ProfileChoice)?.Profile.Key
+            ?? DeviceProfileCatalog.BuiltIn[0].Key;
+        ProfileChoice[] profiles = DeviceProfileCatalog.BuiltIn
+            .Select(profile => new ProfileChoice(profile, T(profile.Key)))
+            .ToArray();
+        QuickProfileComboBox.ItemsSource = profiles;
+        QuickProfileComboBox.SelectedItem = profiles.FirstOrDefault(choice => choice.Profile.Key == selectedKey)
+            ?? profiles.FirstOrDefault();
     }
 
     private void SetOptions(ComboBox comboBox, IEnumerable<string> keys, string selectedKey)
@@ -2573,6 +2806,7 @@ public partial class MainWindow : Window
         ActivateEditButton.Content = hasProject && _editModeEnabled ? T("Status.EditActiveButton") : T("Status.ActivateEditButton");
         SaveAsButton.IsEnabled = hasProject;
         RevertButton.IsEnabled = hasProject;
+        ShowDeviceChangesButton.IsEnabled = hasProject;
         UndoLastButton.IsEnabled = hasProject && _project?.CanUndo == true;
         UndoLastButton.Content = LocalizeLiteral("Annuler action");
 
@@ -2598,6 +2832,7 @@ public partial class MainWindow : Window
         yield return ApplyAllLatencyButton;
         yield return ApplyAllSampleRateButton;
         yield return ApplyAllEncodingButton;
+        yield return ApplyQuickProfileButton;
         yield return ApplyAllIpAutoButton;
         yield return ApplyAllIpStaticButton;
         yield return ResetAllChannelsButton;
@@ -2651,7 +2886,7 @@ public partial class MainWindow : Window
 
         if (!string.IsNullOrWhiteSpace(confirmationMessage))
         {
-            MessageBoxResult confirm = MessageBox.Show(this, confirmationMessage, "Confirmation requise", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+            MessageBoxResult confirm = MessageBox.Show(this, confirmationMessage, T("Dialog.ConfirmTitle"), MessageBoxButton.YesNo, MessageBoxImage.Warning);
             if (confirm != MessageBoxResult.Yes)
             {
                 return;
@@ -2664,13 +2899,39 @@ public partial class MainWindow : Window
             action();
             AddLog(successMessage);
             RefreshAll();
+            UpdateRecoverySnapshot();
             SetStatus(successMessage);
         }
         catch (Exception ex)
         {
             _project?.RestoreLastUndoSnapshot();
             RefreshAll();
+            UpdateRecoverySnapshot();
             ShowError("Action impossible", ex.Message);
+        }
+    }
+
+    private void UpdateRecoverySnapshot()
+    {
+        if (_project is null)
+        {
+            return;
+        }
+
+        try
+        {
+            if (_project.IsModified)
+            {
+                SessionRecoveryService.Save(_project);
+            }
+            else
+            {
+                SessionRecoveryService.Delete(_project.OriginalFilePath);
+            }
+        }
+        catch (Exception ex)
+        {
+            AddLog(Tf("Log.RecoveryUnavailable", ex.Message));
         }
     }
 
@@ -2920,6 +3181,11 @@ public partial class MainWindow : Window
     private string LocalizeLiteral(string value)
     {
         return LocalizationService.TranslateLiteral(_language, value);
+    }
+
+    private string LocalizedWarningMessage(DanteImportantWarning warning)
+    {
+        return warning.LocalizedMessage(_language == UiLanguage.English);
     }
 
     private string Blank(string value)

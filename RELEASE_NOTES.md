@@ -9,6 +9,12 @@ Travaillez toujours sur une copie de vos fichiers XML Dante et validez le result
 ## Nouveautes principales
 
 - Version 3.05 dev.
+- Les alertes `Points a verifier` sont navigables : elles affichent et filtrent les machines concernees.
+- Nouveau filtre `Modifiees uniquement` et comparaison detaillee `Avant / apres` des machines, canaux et patchs.
+- Alertes dynamiques et comparaison avant/apres traduites en francais et en anglais.
+- Recuperation automatique des modifications non sauvegardees apres une fermeture inattendue.
+- Profils rapides 48/96 kHz, 24 bit, latence, IP automatique et mode reseau optionnel, appliques a la cible choisie sans toucher aux machines verrouillees.
+- Suite de tests de non-regression sur des XML anonymises, completee par un controle local facultatif de vrais exports Dante.
 - Reglages de la machine selectionnee simplifies : le nom, le mode reseau, la latence et le preferred master sont appliques ensemble avec un seul bouton `Appliquer les parametres`.
 - Le reglage IP automatique ou fixe reste accessible dans `Detail machine`, avec les formats audio et les noms des canaux.
 - Les commandes reset patch RX/TX, reset RX, reset TX et suppression sont regroupees sur une seule ligne.
@@ -132,3 +138,5 @@ En fin d'installation, l'assistant peut ouvrir :
 ## Depot GitHub
 
 https://github.com/Mamat79/DanteConfigEditorV3
+
+Seule la publication V3.05 courante est conservee dans les Releases. L'historique des versions reste disponible dans Git et dans le changelog.

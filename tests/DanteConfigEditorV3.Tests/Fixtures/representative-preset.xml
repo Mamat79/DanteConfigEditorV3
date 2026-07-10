@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<preset version="3.0.0">
+  <name>Preset de test anonymisé</name>
+  <description>Structure inspirée de plusieurs exports Dante Controller réels, sans donnée de production.</description>
+  <device>
+    <captureInfo />
+    <name>DEVICE-A</name>
+    <default_name>Device-A-Default</default_name>
+    <instance_id><device_id>001DC1FFFE000001</device_id><process_id>0</process_id></instance_id>
+    <manufacturer_id>0000000000000001</manufacturer_id>
+    <manufacturer_name>Test Manufacturer</manufacturer_name>
+    <model_id>0000000000000001</model_id>
+    <model_name>Test TX</model_name>
+    <model_version>1.0</model_version>
+    <device_type>0000000000000001</device_type>
+    <device_type_string>TestDevice</device_type_string>
+    <friendly_name>DEVICE-A</friendly_name>
+    <preferred_master value="false" />
+    <redundancy value="false" />
+    <samplerate>48000</samplerate>
+    <encoding>24</encoding>
+    <unicast_latency>1000</unicast_latency>
+    <interface network="0"><ipv4_address mode="dynamic" /></interface>
+    <txchannel danteId="1" mediaType="audio"><label>PROGRAM L</label></txchannel>
+    <txchannel danteId="2" mediaType="audio"><label>PROGRAM R</label></txchannel>
+    <rxchannel danteId="1" mediaType="audio"><name>LOCAL MON</name><subscribed_channel>PROGRAM L</subscribed_channel><subscribed_device>.</subscribed_device></rxchannel>
+    <rtp><interop_mode>none</interop_mode></rtp>
+    <clock><subdomain_name>_DFLT</subdomain_name></clock>
+    <clock_priority><preferred>false</preferred><follower_only>false</follower_only></clock_priority>
+  </device>
+  <device>
+    <captureInfo />
+    <name>DEVICE-B</name>
+    <default_name>Device-B-Default</default_name>
+    <instance_id><device_id>001DC1FFFE000002</device_id><process_id>0</process_id></instance_id>
+    <manufacturer_id>0000000000000002</manufacturer_id>
+    <manufacturer_name>Test Manufacturer</manufacturer_name>
+    <model_id>0000000000000002</model_id>
+    <model_name>Test RX</model_name>
+    <model_version>1.0</model_version>
+    <device_type>0000000000000002</device_type>
+    <device_type_string>TestDevice</device_type_string>
+    <friendly_name>DEVICE-B</friendly_name>
+    <preferred_master value="true" />
+    <redundancy value="true" />
+    <samplerate>96000</samplerate>
+    <encoding>32</encoding>
+    <unicast_latency>2000</unicast_latency>
+    <interface network="0"><ipv4_address mode="static"><address>192.168.50.20</address><netmask>255.255.255.0</netmask><gateway>0.0.0.0</gateway></ipv4_address></interface>
+    <rxchannel danteId="1" mediaType="audio"><name>INPUT L</name><subscribed_channel>PROGRAM L</subscribed_channel><subscribed_device>DEVICE-A</subscribed_device></rxchannel>
+    <rxchannel danteId="2" mediaType="audio"><name>INPUT R</name><subscribed_channel>PROGRAM R</subscribed_channel><subscribed_device>DEVICE-A</subscribed_device></rxchannel>
+    <rtp><interop_mode>none</interop_mode></rtp>
+    <clock><subdomain_name>_DFLT</subdomain_name></clock>
+    <clock_priority><preferred>true</preferred><follower_only>false</follower_only></clock_priority>
+  </device>
+  <device>
+    <captureInfo />
+    <name>DEVICE-C</name>
+    <default_name>Device-C-Default</default_name>
+    <instance_id><device_id>001DC1FFFE000003</device_id><process_id>0</process_id></instance_id>
+    <manufacturer_id>0000000000000003</manufacturer_id>
+    <manufacturer_name>Test Manufacturer</manufacturer_name>
+    <model_id>0000000000000003</model_id>
+    <model_name>Test IO</model_name>
+    <model_version>1.0</model_version>
+    <device_type>0000000000000003</device_type>
+    <device_type_string>TestDevice</device_type_string>
+    <friendly_name>DEVICE-C</friendly_name>
+    <preferred_master value="false" />
+    <redundancy value="false" />
+    <samplerate>48000</samplerate>
+    <encoding>24</encoding>
+    <unicast_latency>1000</unicast_latency>
+    <interface network="0"><ipv4_address mode="dynamic" /></interface>
+    <txchannel danteId="1" mediaType="audio"><name>AUX</name></txchannel>
+    <rxchannel danteId="1" mediaType="audio"><name>RETURN</name></rxchannel>
+    <rtp><interop_mode>none</interop_mode></rtp>
+    <clock><subdomain_name>_DFLT</subdomain_name></clock>
+    <clock_priority><preferred>false</preferred><follower_only>false</follower_only></clock_priority>
+  </device>
+</preset>

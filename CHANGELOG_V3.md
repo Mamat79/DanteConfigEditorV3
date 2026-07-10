@@ -2,6 +2,14 @@
 
 ## 2026-07-10 - Version 3.05 - mise à jour
 
+- Ajout d'alertes navigables qui filtrent les machines concernées depuis `Points à vérifier`.
+- Ajout du filtre `Modifiées uniquement` et d'une comparaison détaillée `Avant / après` des machines, canaux et patchs.
+- Traduction complète en français/anglais des alertes dynamiques et des lignes de comparaison avant/après.
+- Ajout d'une récupération automatique des modifications non sauvegardées, avec détection d'un XML original modifié depuis la copie temporaire.
+- Ajout de six profils rapides combinant sample rate, bits, latence, IP automatique et mode réseau optionnel.
+- Les profils rapides utilisent la cible d'actions globales et respectent le verrouillage des machines.
+- Ajout d'une suite de tests de non-régression sur des fixtures XML anonymisées et d'un contrôle facultatif des vrais exports locaux.
+- Retrait des binaires V2 du dépôt et des anciennes Releases V3.03/V3.04 ; la V3.05 reste l'unique publication téléchargeable.
 - Remplacement des boutons séparés de nom, mode réseau, latence et preferred master par un bouton unique `Appliquer les paramètres`.
 - Conservation de la configuration IP automatique/fixe dans la fenêtre `Détail machine`.
 - Regroupement sur une seule ligne des resets patch RX/TX, RX, TX et de la suppression de machine.

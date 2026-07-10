@@ -42,6 +42,8 @@ public static class LocalizationService
         ["DeviceFilter.Daisychain"] = "Daisychain",
         ["DeviceFilter.NoTx"] = "Sans TX",
         ["DeviceFilter.NoRx"] = "Sans RX",
+        ["DeviceFilter.Modified"] = "Modifiées uniquement",
+        ["DeviceFilter.WarningSelection"] = "Alerte sélectionnée",
         ["DeviceFilter.SampleRateDifferent"] = "Sample rate différente",
         ["DeviceFilter.EncodingDifferent"] = "Bits différents",
         ["Target.AllUnlocked"] = "Toutes non verrouillées",
@@ -68,6 +70,10 @@ public static class LocalizationService
         ["Status.Unmodified"] = "Non modifié",
         ["Status.ModifiedUnsaved"] = "Modifié - non sauvegardé",
         ["Status.NoDeviceSettingsChanged"] = "Aucun paramètre de la machine à appliquer.",
+        ["Status.RecoveryRestored"] = "Session automatique récupérée - modifications non sauvegardées.",
+        ["Status.NoImportantWarning"] = "Aucun point important à vérifier.",
+        ["Status.WarningDevicesDisplayed"] = "{0} machine(s) concernée(s) affichée(s).",
+        ["Status.ProfileAlreadyApplied"] = "Le profil est déjà appliqué à toute la cible.",
         ["Status.EditActiveButton"] = "Édition active",
         ["Status.ActivateEditButton"] = "Activer l'édition",
         ["Status.LoadXmlToStart"] = "Chargez un fichier XML pour commencer.",
@@ -84,6 +90,7 @@ public static class LocalizationService
         ["Action.DeviceTxPatchesReset"] = "Patchs TX de la machine réinitialisés.",
         ["Action.DeviceDetailsUpdated"] = "Détail machine mis à jour.",
         ["Action.DeviceSettingsUpdated"] = "Paramètres de la machine mis à jour.",
+        ["Action.QuickProfileApplied"] = "Profil rapide appliqué.",
         ["Action.PreferredMasterUpdated"] = "Preferred master mis à jour.",
         ["Action.ChannelsReset"] = "Canaux réinitialisés.",
         ["Action.ChannelRenamed"] = "Canal renommé.",
@@ -170,6 +177,13 @@ public static class LocalizationService
         ["Dialog.IpStaticWarning"] = "Modifier une IP en fixe peut couper la communication si l'adresse, le masque ou la passerelle sont mauvais. Vérifiez toujours le preset dans Dante Controller.",
         ["Dialog.IpStaticWarningContinue"] = "Modifier les IP en fixe peut couper la communication si la plage, le masque ou la passerelle sont mauvais. Continuer ?",
         ["Dialog.DeviceDetailsWarning"] = "Les changements de cette fiche peuvent modifier le nom de la machine, ses formats, son IP et ses canaux. Continuer ?",
+        ["Dialog.RecoveryTitle"] = "Récupération de session",
+        ["Dialog.RecoveryFound"] = "Une copie automatique non enregistrée datant du {0:g} a été trouvée. Voulez-vous la récupérer ?\n\nNon supprimera cette copie temporaire et ouvrira le XML original.",
+        ["Dialog.RecoverySourceChanged"] = "Attention : le fichier XML original a changé depuis cette récupération. Vérifiez attentivement les différences avant de sauvegarder.",
+        ["Dialog.NoDeviceChanges"] = "Aucune modification de machine, canal ou patch n'est détectée depuis l'ouverture du XML.",
+        ["Dialog.DeviceChangesTitle"] = "Modifications avant / après",
+        ["Dialog.SelectProfile"] = "Sélectionnez un profil rapide.",
+        ["Dialog.ProfileWarningContinue"] = "Ce profil peut modifier plusieurs paramètres audio et réseau en une seule action. Vérifiez la prévisualisation et contrôlez le XML final dans Dante Controller. Continuer ?",
         ["Dialog.ResetDeviceChannelsWarning"] = "Les noms des canaux du device sélectionné seront remplacés par 1, 2, 3...",
         ["Dialog.BatchRenameWarning"] = "Les noms des canaux {0} {1} à {2} seront remplacés en série. Continuer ?",
         ["Dialog.Continue"] = "Continuer ?",
@@ -184,6 +198,8 @@ public static class LocalizationService
         ["Log.FileSaved"] = "Fichier enregistré : {0}",
         ["Log.ReloadOriginal"] = "Changements annulés. Rechargement du fichier original.",
         ["Log.ActionUndone"] = "Action annulée : {0}",
+        ["Log.RecoveryRestored"] = "Session automatique récupérée.",
+        ["Log.RecoveryUnavailable"] = "Récupération automatique indisponible : {0}",
         ["Log.TxtExported"] = "Rapport TXT exporté : {0}",
         ["Log.PdfExported"] = "Rapport PDF exporté : {0}",
         ["Log.PatchbookTxtExported"] = "Patchbook TXT exporté : {0}",
@@ -192,6 +208,12 @@ public static class LocalizationService
 
         ["Summary.PatchRows"] = "{0} lignes - {1} actifs - {2} locaux - {3} warning(s) - {4} conflit(s)",
         ["Summary.Health"] = "Preset : {0}  |  Version : {1}  |  Mode : {2}  |  Fichier : {3}\nDevices : {4}  |  TX : {5}  |  RX : {6}  |  Patchs actifs : {7}  |  RX libres : {8}\nPatchs locaux : {9}  |  Devices TX absents : {10}  |  Canaux TX introuvables : {11}  |  Preferred masters : {12}\nSamplerates : {13}  |  Encodages : {14}  |  Latences : {15}\nRedondants : {16}  |  Daisychain : {17}  |  IP fixes détectées : {18}  |  Erreurs : {19}  |  Warnings : {20}",
+        ["Profile.48k24b1msAuto"] = "48 kHz / 24 bit / 1 ms / IP auto",
+        ["Profile.48k24b2msAuto"] = "48 kHz / 24 bit / 2 ms / IP auto",
+        ["Profile.96k24b1msAuto"] = "96 kHz / 24 bit / 1 ms / IP auto",
+        ["Profile.96k24b2msAuto"] = "96 kHz / 24 bit / 2 ms / IP auto",
+        ["Profile.48k24b1msRedundant"] = "48 kHz / 24 bit / 1 ms / Redondant / IP auto",
+        ["Profile.48k24b1msDaisychain"] = "48 kHz / 24 bit / 1 ms / Daisychain / IP auto",
 
         ["Blank"] = "(vide)"
     };
@@ -236,6 +258,8 @@ public static class LocalizationService
         ["DeviceFilter.Daisychain"] = "Daisychain",
         ["DeviceFilter.NoTx"] = "No Tx",
         ["DeviceFilter.NoRx"] = "No Rx",
+        ["DeviceFilter.Modified"] = "Modified only",
+        ["DeviceFilter.WarningSelection"] = "Selected warning",
         ["DeviceFilter.SampleRateDifferent"] = "Different sample rate",
         ["DeviceFilter.EncodingDifferent"] = "Different bits",
         ["Target.AllUnlocked"] = "All unlocked",
@@ -262,6 +286,10 @@ public static class LocalizationService
         ["Status.Unmodified"] = "Unmodified",
         ["Status.ModifiedUnsaved"] = "Modified - not saved",
         ["Status.NoDeviceSettingsChanged"] = "No device settings to apply.",
+        ["Status.RecoveryRestored"] = "Automatic session recovered - unsaved changes.",
+        ["Status.NoImportantWarning"] = "No important item to check.",
+        ["Status.WarningDevicesDisplayed"] = "{0} affected device(s) displayed.",
+        ["Status.ProfileAlreadyApplied"] = "The profile is already applied to the whole target.",
         ["Status.EditActiveButton"] = "Edit active",
         ["Status.ActivateEditButton"] = "Enable editing",
         ["Status.LoadXmlToStart"] = "Load an XML file to begin.",
@@ -278,6 +306,7 @@ public static class LocalizationService
         ["Action.DeviceTxPatchesReset"] = "Device Tx subscriptions reset.",
         ["Action.DeviceDetailsUpdated"] = "Device details updated.",
         ["Action.DeviceSettingsUpdated"] = "Device settings updated.",
+        ["Action.QuickProfileApplied"] = "Quick profile applied.",
         ["Action.PreferredMasterUpdated"] = "Preferred Master updated.",
         ["Action.ChannelsReset"] = "Channels reset.",
         ["Action.ChannelRenamed"] = "Channel renamed.",
@@ -364,6 +393,13 @@ public static class LocalizationService
         ["Dialog.IpStaticWarning"] = "Setting a static IP can break communication if the address, netmask, or gateway is wrong. Always verify the preset in Dante Controller.",
         ["Dialog.IpStaticWarningContinue"] = "Setting static IPs can break communication if the range, netmask, or gateway is wrong. Continue?",
         ["Dialog.DeviceDetailsWarning"] = "This device sheet can change the device name, formats, IP address, and channels. Continue?",
+        ["Dialog.RecoveryTitle"] = "Session recovery",
+        ["Dialog.RecoveryFound"] = "An unsaved automatic copy from {0:g} was found. Do you want to recover it?\n\nNo will delete this temporary copy and open the original XML.",
+        ["Dialog.RecoverySourceChanged"] = "Warning: the original XML file has changed since this recovery. Carefully review the differences before saving.",
+        ["Dialog.NoDeviceChanges"] = "No device, channel, or subscription change is detected since the XML was opened.",
+        ["Dialog.DeviceChangesTitle"] = "Before / after changes",
+        ["Dialog.SelectProfile"] = "Select a quick profile.",
+        ["Dialog.ProfileWarningContinue"] = "This profile can change several audio and network settings in one operation. Review the preview and validate the final XML in Dante Controller. Continue?",
         ["Dialog.ResetDeviceChannelsWarning"] = "The selected device channel names will be replaced by 1, 2, 3...",
         ["Dialog.BatchRenameWarning"] = "Channel names {0} {1} to {2} will be replaced in a batch rename. Continue?",
         ["Dialog.Continue"] = "Continue?",
@@ -378,6 +414,8 @@ public static class LocalizationService
         ["Log.FileSaved"] = "File saved: {0}",
         ["Log.ReloadOriginal"] = "Changes reverted. Original file reloaded.",
         ["Log.ActionUndone"] = "Action undone: {0}",
+        ["Log.RecoveryRestored"] = "Automatic session recovered.",
+        ["Log.RecoveryUnavailable"] = "Automatic recovery unavailable: {0}",
         ["Log.TxtExported"] = "TXT report exported: {0}",
         ["Log.PdfExported"] = "PDF report exported: {0}",
         ["Log.PatchbookTxtExported"] = "Patchbook TXT exported: {0}",
@@ -386,6 +424,12 @@ public static class LocalizationService
 
         ["Summary.PatchRows"] = "{0} rows - {1} active - {2} local - {3} warning(s) - {4} conflict(s)",
         ["Summary.Health"] = "Preset: {0}  |  Version: {1}  |  Mode: {2}  |  File: {3}\nDevices: {4}  |  TX: {5}  |  RX: {6}  |  Active subscriptions: {7}  |  Free RX: {8}\nLocal subscriptions: {9}  |  Missing TX devices: {10}  |  Missing TX channels: {11}  |  Preferred Masters: {12}\nSample rates: {13}  |  Encoding: {14}  |  Latencies: {15}\nRedundant: {16}  |  Daisy-chain: {17}  |  Static IPs detected: {18}  |  Errors: {19}  |  Warnings: {20}",
+        ["Profile.48k24b1msAuto"] = "48 kHz / 24 bit / 1 ms / automatic IP",
+        ["Profile.48k24b2msAuto"] = "48 kHz / 24 bit / 2 ms / automatic IP",
+        ["Profile.96k24b1msAuto"] = "96 kHz / 24 bit / 1 ms / automatic IP",
+        ["Profile.96k24b2msAuto"] = "96 kHz / 24 bit / 2 ms / automatic IP",
+        ["Profile.48k24b1msRedundant"] = "48 kHz / 24 bit / 1 ms / Redundant / automatic IP",
+        ["Profile.48k24b1msDaisychain"] = "48 kHz / 24 bit / 1 ms / Daisy-chain / automatic IP",
 
         ["Blank"] = "(empty)"
     };
@@ -449,12 +493,14 @@ public static class LocalizationService
         Add(map, "Mode hors ligne : l'application modifie uniquement les fichiers XML chargés. Elle ne se connecte pas au réseau Dante.", "Offline mode: the application only modifies loaded XML files. It does not connect to the Dante network.");
         Add(map, "Configuration", "Configuration");
         Add(map, "POINTS À VÉRIFIER", "ITEMS TO CHECK");
+        Add(map, "Voir les machines", "Show devices");
         Add(map, "Filtre machines", "Device filter");
         Add(map, "Cible actions", "Action target");
         Add(map, "Sélectionner visibles", "Select visible");
         Add(map, "Effacer sélection", "Clear selection");
         Add(map, "Verrouiller sélection", "Lock selection");
         Add(map, "Déverrouiller sélection", "Unlock selection");
+        Add(map, "Avant / après", "Before / after");
         Add(map, "Lock", "Lock");
         Add(map, "Machine sélectionnée", "Selected device");
         Add(map, "Machine", "Device");
@@ -478,9 +524,9 @@ public static class LocalizationService
         Add(map, "Fixer l'IP", "Set static IP");
         Add(map, "Mettre l'IP en automatique", "Set IP to automatic");
         Add(map, "Reset patch RX/TX machine", "Reset device Rx/Tx subscriptions");
-        Add(map, "Reset patch RX/TX", "Reset Rx/Tx subscriptions");
-        Add(map, "Reset patch RX", "Reset Rx subscriptions");
-        Add(map, "Reset patch TX", "Reset Tx subscriptions");
+        Add(map, "Reset patch RX/TX", "Clear Rx/Tx");
+        Add(map, "Reset patch RX", "Clear Rx");
+        Add(map, "Reset patch TX", "Clear Tx");
         Add(map, "Horloge", "Clock");
         Add(map, "Changer preferred master", "Change Preferred Master");
         Add(map, "Canaux de la machine", "Device channels");
@@ -496,6 +542,9 @@ public static class LocalizationService
         Add(map, "Renommer la série", "Rename range");
         Add(map, "Actions globales", "Global actions");
         Add(map, "Réseau / audio", "Network / audio");
+        Add(map, "Profils", "Profiles");
+        Add(map, "Profil rapide", "Quick profile");
+        Add(map, "Appliquer le profil à la cible", "Apply profile to target");
         Add(map, "Appliquer le mode à tous", "Apply mode to all");
         Add(map, "Latence globale", "Global latency");
         Add(map, "Appliquer la latence à tous", "Apply latency to all");
@@ -618,6 +667,8 @@ public static class LocalizationService
         Add(map, "Supprime la machine et nettoie les patchs qui lui sont associés.", "Deletes the device and removes its associated subscriptions.");
         Add(map, "Masque les panneaux de réglage pour agrandir le tableau des machines.", "Hides the settings panels to enlarge the device table.");
         Add(map, "Affiche les panneaux de réglage de la configuration.", "Shows the configuration settings panels.");
+        Add(map, "Affiche toutes les différences de machines, canaux et patchs depuis l'ouverture du XML.", "Shows all device, channel, and subscription differences since the XML was opened.");
+        Add(map, "Applique en une seule action les formats audio, la latence, l'IP automatique et éventuellement le mode réseau du profil à la cible choisie.", "Applies the profile audio formats, latency, automatic IP, and optional network mode to the selected target in one operation.");
 
         return map;
     }
