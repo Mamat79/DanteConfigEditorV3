@@ -84,6 +84,25 @@ Le scan `dotnet list package --vulnerable --include-transitive` a signalé :
 
 Cette table décrit l'état initial, pas l'état final attendu. Les dépendances seront mises à jour séparément, puis le scan et tous les tests seront rejoués.
 
+### Résolution des advisories
+
+Mise à jour appliquée dans un commit séparé :
+
+- Avalonia `11.3.18` et Avalonia Headless `11.3.18` ;
+- `Avalonia.Controls.DataGrid` reste en `11.3.13`, dernière version publiée sur la ligne 11 et compatible avec Avalonia 11.3.x ;
+- Microsoft.NET.Test.Sdk `18.7.0` ;
+- xUnit `2.9.3` et runner Visual Studio `3.1.5` ;
+- coverlet.collector `10.0.1`.
+
+Après mise à jour :
+
+- `dotnet list package --vulnerable --include-transitive` ne signale plus aucun package vulnérable dans les deux projets de tests ;
+- 38 tests Core et 2 tests UI Mac réussissent ;
+- les builds Windows et Mac réussissent sans warning ;
+- les publications autonomes `osx-arm64` et `osx-x64` réussissent.
+
+xUnit v2 est désormais une ligne de maintenance dépréciée au profit de xUnit v3. La migration v3 n'est pas mélangée à cette mise à jour corrective, car Avalonia Headless 11 reste intégré au modèle xUnit v2. Elle doit faire l'objet d'un chantier séparé avec validation CI Windows/macOS.
+
 ## Ce qui n'est pas validé par cette baseline
 
 - aucun import dans Dante Controller n'a été exécuté pendant cette baseline ;

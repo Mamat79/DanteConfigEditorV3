@@ -86,7 +86,7 @@ public sealed class DanteProjectTests
 
         int changed = project.ApplyDeviceProfile(["DEVICE-B"], profile);
 
-        DanteDevice device = Assert.Single(project.Devices.Where(item => item.Name == "DEVICE-B"));
+        DanteDevice device = Assert.Single(project.Devices, item => item.Name == "DEVICE-B");
         Assert.Equal(1, changed);
         Assert.Equal("48000", device.Samplerate);
         Assert.Equal("24", device.Encoding);
@@ -100,7 +100,7 @@ public sealed class DanteProjectTests
         Assert.False(project.IsModified);
         Assert.Empty(project.GetModifiedDeviceNames());
         DanteProject reloaded = DanteProject.Load(outputPath);
-        DanteDevice reloadedDevice = Assert.Single(reloaded.Devices.Where(item => item.Name == "DEVICE-B"));
+        DanteDevice reloadedDevice = Assert.Single(reloaded.Devices, item => item.Name == "DEVICE-B");
         Assert.Equal("48000", reloadedDevice.Samplerate);
         Assert.False(reloadedDevice.UsesStaticIp);
     }
