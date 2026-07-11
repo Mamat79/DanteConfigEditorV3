@@ -32,6 +32,25 @@ public sealed class InstallerContractTests
         Assert.Contains("Notice_DanteConfigEditorV3_EN.pdf", installerScript, StringComparison.Ordinal);
         Assert.Contains("https://github.com/Mamat79/DanteConfigEditorV3", installerScript, StringComparison.Ordinal);
         Assert.Contains("By Mamat", installerScript, StringComparison.Ordinal);
+        Assert.Contains("Assert-RepositoryPath", buildScript, StringComparison.Ordinal);
+        Assert.Contains("Remove-GeneratedPath", buildScript, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void TestScriptsCoverBothSuitesAndARealUpgradePass()
+    {
+        string testScript = File.ReadAllText(RepositoryFile("tests", "run-tests.ps1"));
+        string upgradeScript = File.ReadAllText(RepositoryFile("tests", "Test-InstallerUpgrade.ps1"));
+
+        Assert.Contains("DanteConfigEditorV3.Tests.csproj", testScript, StringComparison.Ordinal);
+        Assert.Contains("DanteConfigEditor.Mac.Tests.csproj", testScript, StringComparison.Ordinal);
+        Assert.Contains("--no-restore", testScript, StringComparison.Ordinal);
+
+        Assert.Contains("/VERYSILENT", upgradeScript, StringComparison.Ordinal);
+        Assert.Contains("Invoke-InstallerPass", upgradeScript, StringComparison.Ordinal);
+        Assert.Contains("Mise à niveau de contrôle", upgradeScript, StringComparison.Ordinal);
+        Assert.Contains("StableInstallRecords", upgradeScript, StringComparison.Ordinal);
+        Assert.Contains("V3InstallRecords", upgradeScript, StringComparison.Ordinal);
     }
 
     private static string RepositoryFile(params string[] relativeParts)

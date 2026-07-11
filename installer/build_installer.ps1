@@ -1,6 +1,43 @@
 $ErrorActionPreference = "Stop"
 
-$root = Split-Path $PSScriptRoot -Parent
+$root = [System.IO.Path]::GetFullPath((Split-Path $PSScriptRoot -Parent))
+
+function Assert-RepositoryPath {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Path
+    )
+
+    # Toute suppression du script doit rester strictement sous la racine du dépôt.
+    $absolutePath = [System.IO.Path]::GetFullPath($Path)
+    $rootPrefix = $root.TrimEnd([System.IO.Path]::DirectorySeparatorChar, [System.IO.Path]::AltDirectorySeparatorChar) + [System.IO.Path]::DirectorySeparatorChar
+    if (-not $absolutePath.StartsWith($rootPrefix, [System.StringComparison]::OrdinalIgnoreCase)) {
+        throw "Chemin généré hors du dépôt refusé : $absolutePath"
+    }
+
+    return $absolutePath
+}
+
+function Remove-GeneratedPath {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Path,
+        [switch]$Recurse
+    )
+
+    $safePath = Assert-RepositoryPath $Path
+    if (-not (Test-Path -LiteralPath $safePath)) {
+        return
+    }
+
+    if ($Recurse) {
+        Remove-Item -LiteralPath $safePath -Recurse -Force
+    }
+    else {
+        Remove-Item -LiteralPath $safePath -Force
+    }
+}
+
 $project = Join-Path $root "DanteConfigEditorV3.csproj"
 $dist = Join-Path $root "dist"
 $payload = Join-Path $dist "installer_payload"
@@ -41,9 +78,7 @@ if (-not $iscc) {
 New-Item -ItemType Directory -Force -Path $dist | Out-Null
 
 foreach ($temporaryPath in @($payload, (Join-Path $dist "self-contained-win-x64"), (Join-Path $dist "portable"), (Join-Path $dist "setup_payload"))) {
-    if (Test-Path $temporaryPath) {
-        Remove-Item -LiteralPath $temporaryPath -Recurse -Force
-    }
+    Remove-GeneratedPath -Path $temporaryPath -Recurse
 }
 
 foreach ($obsoleteFile in @(
@@ -52,9 +87,7 @@ foreach ($obsoleteFile in @(
     (Join-Path $dist "DanteConfigEditorV3_SetupPayload.zip"),
     (Join-Path $dist "DanteConfigEditorV3_SfxConfig.txt")
 )) {
-    if (Test-Path $obsoleteFile) {
-        Remove-Item -LiteralPath $obsoleteFile -Force
-    }
+    Remove-GeneratedPath -Path $obsoleteFile
 }
 
 & $dotnet publish $project `
@@ -80,14 +113,8 @@ if (-not (Test-Path $installer)) {
     throw "L'installateur final est introuvable : $installer"
 }
 
-Remove-Item -LiteralPath $payload -Recurse -Force
-
-if (Test-Path (Join-Path $root "bin")) {
-    Remove-Item -LiteralPath (Join-Path $root "bin") -Recurse -Force
-}
-
-if (Test-Path (Join-Path $root "obj")) {
-    Remove-Item -LiteralPath (Join-Path $root "obj") -Recurse -Force
-}
+Remove-GeneratedPath -Path $payload -Recurse
+Remove-GeneratedPath -Path (Join-Path $root "bin") -Recurse
+Remove-GeneratedPath -Path (Join-Path $root "obj") -Recurse
 
 Write-Host "Installateur professionnel créé : $installer"
