@@ -24,6 +24,8 @@
     <Compile Remove="tests\**\*.cs" />
     <Compile Remove="benchmarks\**\*.cs" />
     <Compile Remove="src\**\*.cs" />
+    <Compile Remove="tools\**\*.cs" />
     <None Remove="tmp\**\*" />
+    <None Remove="tools\**\*" />
   </ItemGroup>
 </Project>
