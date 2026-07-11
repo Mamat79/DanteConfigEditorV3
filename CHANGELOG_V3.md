@@ -1,5 +1,21 @@
 # Changelog V3
 
+## 2026-07-12 - Version 3.08 Beta Windows
+
+- Création de la branche `3.08-beta` depuis la V3.07 officielle, sans workflow ni compilation macOS.
+- Nouvel AppId V3.08, dossier `Program Files`, groupe Menu Démarrer et stockage local distincts pour permettre la coexistence avec la V3.07.
+- Ajout d'un moteur central de patch par sélection avec identités RX stables basées sur le device et le Dante Id.
+- Appariement un-à-un pour des sélections TX/RX de même taille et diffusion d'un TX vers plusieurs RX.
+- Blocage de plusieurs TX vers un RX, des tailles multiples incohérentes et des plages incomplètes.
+- Prévisualisation des créations, remplacements et lignes inchangées avant préparation du lot.
+- Résolution explicite des conflits : annuler le lot, ignorer les RX déjà patchés ou remplacer leurs subscriptions.
+- Déconnexion groupée de plusieurs RX, matrice unitaire conservée et suppression de la dépendance au glisser-déposer.
+- Ajout d'un patch par plage avec premier TX, premier RX et quantité exacte.
+- Intégration de l'atelier dans `Détail machine`, avec RX verrouillé sur la machine ouverte et application avant les renommages.
+- Application finale des patchs en un seul lot annulable et persistance contrôlée après sauvegarde/rechargement.
+- Extension de la suite Windows à 84 tests ; build WPF sans warning.
+- Génération automatique d'une somme SHA-256 fraîche après chaque construction de l'installateur.
+
 ## 2026-07-11 - Version 3.07 officielle
 
 - Promotion de la V3.07 en version stable officielle du projet, sans prétendre à une publication officielle Audinate.

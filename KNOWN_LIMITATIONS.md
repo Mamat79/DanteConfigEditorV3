@@ -1,4 +1,4 @@
-# Limites connues - V3.07
+# Limites connues - V3.08 Beta
 
 ## Compatibilité Dante
 
@@ -16,7 +16,9 @@
 - `subscribed_device="."` est traité comme une source locale au device RX.
 - Des noms TX dupliqués sur un même device rendent une subscription textuelle ambiguë. Le patch visuel refuse cette affectation ; renommer d'abord les TX concernés.
 - La matrice affiche un couple de devices à la fois pour rester exploitable sur les gros presets.
-- Sur macOS, la matrice est limitée aux 128 premiers TX et 128 premiers RX du couple choisi. Les listes conservent tous les canaux et permettent l'affectation séquentielle au-delà de cette vue.
+- Une sélection multiple doit contenir autant de TX que de RX, sauf lorsqu'un seul TX alimente plusieurs RX. Plusieurs TX vers un RX sont refusés.
+- Une plage est entièrement refusée si le nombre demandé dépasse les TX ou RX disponibles ; il n'existe pas d'application partielle silencieuse.
+- Un RX déjà patché demande un choix explicite : annuler, ignorer le conflit ou remplacer la subscription.
 - Les changements du patch visuel restent en attente jusqu'à `Appliquer au projet`. Fermer sans appliquer les abandonne.
 
 ## Fichiers et récupération
@@ -37,10 +39,10 @@
 
 - L'installateur Windows est autonome pour Windows x64 et inclut .NET 8. Les architectures Windows ARM64 et x86 ne sont pas distribuées.
 - L'installateur Windows n'est pas signé avec un certificat Authenticode public. Vérifier le SHA-256 publié avant distribution ; Windows peut afficher un avertissement de réputation.
-- Les paquets Mac Apple Silicon et Intel sont autonomes, mais la distribution n'est pas notariée par Apple. Un premier lancement par clic droit puis `Ouvrir` peut être nécessaire.
-- Les tests Mac automatisés sont headless. VoiceOver et le rendu sur matériel macOS réel restent à contrôler.
+- La V3.08 Beta est distribuée uniquement sur Windows. La version Mac reste la V3.07 stable jusqu'à la future Release officielle V3.08.
+- Aucun workflow, DMG ou résultat de test Mac ne doit être attribué à la branche V3.08 Beta.
 - Le contraste élevé, les lecteurs d'écran et les échelles Windows 125 %, 150 % et 200 % nécessitent encore la validation manuelle décrite dans `ACCESSIBILITY.md`.
 
 ## Statut de la version
 
-La V3.07 est la version stable officielle du projet Dante Config Editor, mais reste un outil tiers non officiel Audinate et n'est pas exempte de bugs. Toujours travailler sur une copie, lire le rapport avant/après et valider le fichier généré dans l'outil Dante officiel avant une utilisation terrain.
+La V3.08 Beta est une version Windows en développement. La V3.07 reste la version stable officielle recommandée. Les deux restent des outils tiers non officiels Audinate. Toujours travailler sur une copie, lire le rapport avant/après et valider le fichier généré dans l'outil Dante officiel avant une utilisation terrain.

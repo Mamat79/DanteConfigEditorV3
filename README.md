@@ -1,9 +1,9 @@
-# Dante Config Editor V3.07
+# Dante Config Editor V3.08 Beta
 
-Outil Windows et macOS pour éditer hors ligne des fichiers XML de configuration Dante.
+Branche bêta Windows pour éditer hors ligne des fichiers XML de configuration Dante.
 
-> **Statut du projet : V3.07 stable. Outil tiers non officiel Audinate.**
-> Cette version est la publication officielle stable du projet Dante Config Editor. Elle n'est pas un produit Audinate, peut encore contenir des bugs ou mal interpréter certaines structures XML, et ne doit jamais être utilisée sur un fichier critique sans sauvegarde et validation dans les outils Dante officiels.
+> **Statut : V3.08 Beta Windows. Outil tiers non officiel Audinate.**
+> Cette branche est en développement et peut contenir des bugs. La V3.07 reste la Release stable recommandée pour Windows et macOS. Travaillez toujours sur une copie et validez le XML généré dans les outils Dante officiels.
 
 ## Ce que fait l'application
 
@@ -18,7 +18,7 @@ Outil Windows et macOS pour éditer hors ligne des fichiers XML de configuration
 - Réinitialise les noms de canaux.
 - Modifie les paramètres réseau et audio exposés par les fichiers XML reconnus.
 - Affiche une page Patch pour visualiser et modifier les abonnements RX vers TX lorsque le format XML le permet.
-- Ouvre un atelier de patch visuel filtré par machines TX/RX, avec sélection multiple, affectation séquentielle, glisser-déposer et matrice interactive.
+- Ouvre un atelier de patch TX vers RX avec sélection multiple des deux côtés, prévisualisation, plages strictes, résolution explicite des conflits et matrice interactive.
 - Met à jour les patchs RX quand un canal TX utilisé est renommé.
 - Crée une sauvegarde du fichier source et de toute destination existante avant sauvegarde.
 - Sauvegarde via un fichier temporaire relu puis un remplacement atomique de la destination.
@@ -31,7 +31,7 @@ Outil Windows et macOS pour éditer hors ligne des fichiers XML de configuration
 - Signale les projets qui mélangent plusieurs sample rates ou plusieurs encodages.
 - Peut remettre les adresses IPv4 des machines en automatique quand le XML contient ces informations.
 - Peut fixer une IP manuelle sur une machine ou générer une plage d'IP fixes en série.
-- Ouvre une fiche machine au double-clic pour modifier les formats, l'IP et les canaux TX/RX.
+- Ouvre une fiche machine au double-clic pour modifier les formats, l'IP, les canaux TX/RX et les patchs de ses entrées RX.
 - Filtre, sélectionne et verrouille des machines pour contrôler précisément les actions globales.
 - Réinitialise les patchs RX/TX d'une machine, ou seulement ses RX / seulement ses TX.
 - Ouvre une notice rapide PDF et une notice complète PDF dans la langue active de l'application.
@@ -69,13 +69,13 @@ Outil Windows et macOS pour éditer hors ligne des fichiers XML de configuration
 
 Le fichier recommandé est fourni dans le dossier `dist` local et dans les Releases GitHub :
 
-- `dist/DanteConfigEditorV3_Installer.exe` : installateur Windows recommandé, avec installation par défaut dans Program Files, choix du dossier d'installation, raccourcis Menu Démarrer/Bureau et désinstallation propre.
+- `dist/DanteConfigEditorV3_08_Beta_Installer.exe` : installateur Windows bêta autonome, avec installation par défaut dans Program Files, choix du dossier, raccourcis et désinstallation propre.
 
 La version autonome inclut le runtime .NET nécessaire. Sur une machine Windows x64, il ne devrait pas être nécessaire d'installer .NET séparément pour utiliser l'application.
 
 ### macOS
 
-La Release GitHub fournit deux DMG autonomes :
+La V3.08 Beta n'est pas compilée ni distribuée pour macOS. Les utilisateurs Mac doivent rester sur la Release stable V3.07, qui fournit deux DMG autonomes :
 
 - `DanteConfigEditorV3_macOS_AppleSilicon.dmg` pour les Mac M1, M2, M3, M4 et suivants ;
 - `DanteConfigEditorV3_macOS_Intel.dmg` pour les Mac Intel 64 bits.
@@ -95,12 +95,13 @@ Notices fournies :
 
 Dans l'application, les boutons d'aide ouvrent automatiquement les fichiers FR ou EN selon la langue active.
 
-Si une version est déjà installée, l'assistant le détecte et propose de remplacer / mettre à jour l'installation existante. La V3.07 n'installe pas de copie parallèle.
+La V3.08 Beta utilise un AppId, un dossier Program Files, un menu Démarrer et un stockage local distincts. Elle peut donc cohabiter avec la V3.07. Une nouvelle V3.08 Beta remplace uniquement une précédente installation V3.08.
 
 ## Version distribuée
 
-- La V3.07 est la version stable actuellement maintenue et recommandée.
-- La publication officielle courante porte le tag `v3.07`.
+- La V3.07 est la version stable actuellement recommandée et porte le tag `v3.07`.
+- La branche `3.08-beta` contient la bêta Windows en cours de validation.
+- Aucun paquet Mac V3.08 ne sera produit avant la future Release officielle.
 - Les anciens tags et Releases restent de l'historique ; ils ne doivent pas être utilisés à la place de la publication courante.
 - L'historique fonctionnel reste consultable dans Git et dans `CHANGELOG_V3.md`.
 
@@ -111,11 +112,26 @@ Si une version est déjà installée, l'assistant le détecte et propose de remp
 3. Sélectionner une copie du fichier de configuration Dante.
 4. Vérifier les devices et paramètres détectés.
 5. Modifier les champs souhaités.
-6. Utiliser la page `Patch` ou `Patch visuel / grille` pour consulter ou préparer les subscriptions reconnues.
-7. Dans le patch visuel, contrôler la liste des changements en attente puis cliquer sur `Appliquer au projet`.
+6. Dans `Patch visuel / grille`, sélectionner les TX et RX, puis prévisualiser la sélection ou une plage.
+7. Choisir explicitement d'annuler, d'ignorer ou de remplacer les patchs existants, préparer le lot, puis cliquer sur `Appliquer au projet`.
 8. Si besoin, utiliser `Ajouter XML au projet` pour importer les devices d'un autre export XML.
 9. Sauvegarder sous un nouveau nom.
 10. Valider le fichier généré dans l'outil Dante officiel approprié avant usage terrain.
+
+## Nouveautés V3.08 Beta
+
+- Sélection multiple indépendante des canaux TX et RX avec `Ctrl` ou `Maj`, plus commandes `Tout sélectionner`.
+- Appariement un-à-un quand les quantités sont égales et diffusion autorisée d'un seul TX vers plusieurs RX.
+- Blocage de plusieurs TX vers un seul RX et de toute sélection multiple aux quantités incohérentes.
+- Patch par plage avec premier TX, premier RX et nombre exact ; aucune application partielle si la plage dépasse les canaux disponibles.
+- Prévisualisation avant préparation : création, remplacement ou ligne inchangée.
+- Traitement explicite des RX déjà patchés : annuler le lot, ignorer les conflits ou remplacer les subscriptions.
+- Déconnexion groupée de plusieurs RX et matrice unitaire TX vers RX conservée.
+- Changements préparés en mémoire puis appliqués au XML en un seul lot et une seule étape d'annulation.
+- Onglet `Patch RX` dans `Détail machine`, limité aux entrées de la machine ouverte.
+- Identité d'installation, dossier Program Files, raccourcis et données locales séparés de la V3.07.
+- V3.08 Beta limitée à Windows ; le workflow et les paquets Mac seront ajoutés lors de la future Release officielle.
+- 84 tests Core et contrats Windows validant notamment sélection, plages, conflits, rollback, persistance et intégration au détail machine.
 
 ## Nouveautés V3.07
 
@@ -143,7 +159,7 @@ Si une version est déjà installée, l'assistant le détecte et propose de remp
 - `TESTING.md` : commandes, résultats et mesures synthétiques ;
 - `COMPATIBILITY_MATRIX.md` : niveau de preuve par structure XML ;
 - `MANUAL_DANTE_CONTROLLER_TESTS.md` : checklist d'import réel ;
-- `RC_VALIDATION.md` : preuves de validation et limites de la publication V3.07 ;
+- `RC_VALIDATION.md` : preuves historiques de validation de la publication stable V3.07 ;
 - `ACCESSIBILITY.md` : contrôles effectués et tests manuels restants ;
 - `KNOWN_LIMITATIONS.md` : limites techniques et de distribution ;
 - `ARCHITECTURE_REFACTORING.md` : extractions réalisées et suite prudente.

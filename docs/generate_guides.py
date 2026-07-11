@@ -23,8 +23,8 @@ from reportlab.platypus import (
 ROOT = Path(__file__).resolve().parent
 # Les quatre PDF sont générés depuis une source unique pour garder les versions
 # française et anglaise synchronisées avec l'application et l'installateur.
-PRODUCT = "Dante Config Editor V3.07"
-VERSION = "3.07"
+PRODUCT = "Dante Config Editor V3.08 Beta"
+VERSION = "3.08-beta"
 GITHUB = "github.com/Mamat79/DanteConfigEditorV3"
 
 INK = colors.HexColor("#172033")
@@ -222,9 +222,9 @@ def quick_start(language: str) -> None:
         else "Quick start - offline editing of Dante XML files"
     )
     warning = (
-        "<b>Outil tiers non officiel Audinate.</b> Cette V3.07 est la version stable du projet. Travaillez sur une copie et validez toujours le XML final par un import dans l'outil Dante officiel adapté avant toute utilisation réelle."
+        "<b>Outil tiers non officiel Audinate.</b> Cette V3.08 est une bêta Windows. La V3.07 reste la version stable recommandée. Travaillez sur une copie et validez toujours le XML final par un import dans l'outil Dante officiel adapté avant toute utilisation réelle."
         if french
-        else "<b>Third-party tool, not an official Audinate product.</b> V3.07 is the stable project release. Work on a copy and always validate the final XML by importing it into the appropriate official Dante tool before real use."
+        else "<b>Third-party tool, not an official Audinate product.</b> V3.08 is a Windows beta. V3.07 remains the recommended stable release. Work on a copy and always validate the final XML by importing it into the appropriate official Dante tool before real use."
     )
     steps = (
         [
@@ -247,14 +247,14 @@ def quick_start(language: str) -> None:
     )
     features = (
         [
-            ("Patch visuel", "Sélectionnez plusieurs TX puis affectez-les aux RX suivants par bouton ou glisser-déposer. La grille reste limitée aux deux machines choisies."),
+            ("Patch visuel", "Sélectionnez les TX et RX, prévisualisez le lot, puis choisissez comment traiter les RX déjà patchés. Les plages sont strictes et la grille reste disponible."),
             ("Récupération", "Une copie est écrite en arrière-plan après un court délai. La nouvelle destination devient la référence après Enregistrer sous."),
             ("Sous-projet", "Ajouter XML au projet importe les machines uniques et ne propose un renommage que pour les doublons."),
             ("IPv4", "Seule l'interface principale est ciblée. DNS et interface secondaire ne sont pas réécrits implicitement."),
         ]
         if french
         else [
-            ("Visual patch", "Select several Tx channels, then assign them to following Rx channels by button or drag and drop. The matrix stays limited to the two selected devices."),
+            ("Visual patch", "Select Tx and Rx channels, preview the batch, then choose how to handle already patched Rx channels. Ranges are strict and the matrix remains available."),
             ("Recovery", "A copy is written in the background after a short delay. Save as makes the new destination the session reference."),
             ("Sub-project", "Add XML to project imports unique devices and only asks about conflicting names."),
             ("IPv4", "Only the primary interface is targeted. DNS and the secondary interface are not rewritten implicitly."),
@@ -312,14 +312,14 @@ def full_guide(language: str) -> None:
         page1 = [
             para(PRODUCT, "title"),
             para(f"Notice complète - version {VERSION}", "subtitle"),
-            callout("<b>Important :</b> cette application est un outil tiers non officiel Audinate. La V3.07 est la version stable du projet. Elle édite des XML hors ligne, sans connexion au réseau Dante ni API Audinate. Conservez l'original et validez le fichier généré dans Dante Controller avant toute utilisation en production."),
+            callout("<b>Important :</b> cette application est un outil tiers non officiel Audinate. La V3.08 est une bêta Windows ; la V3.07 reste la version stable recommandée. Elle édite des XML hors ligne, sans connexion au réseau Dante ni API Audinate. Conservez l'original et validez le fichier généré dans Dante Controller avant toute utilisation en production."),
             para("1. Installation et démarrage", "h1"),
-            para("Les livrables autonomes contiennent l'application et le runtime .NET 8 nécessaire. Windows x64 et macOS n'ont normalement pas besoin d'installer .NET séparément."),
+            para("L'installateur Windows x64 contient l'application et le runtime .NET 8 nécessaire. Il n'est normalement pas nécessaire d'installer .NET séparément."),
             *bullets([
                 "L'installation proposée par défaut se trouve dans Program Files et crée un raccourci dans le menu Démarrer.",
-                "Sur Mac, choisissez le DMG Apple Silicon ou Intel, ouvrez-le, puis glissez Dante Config Editor dans Applications.",
-                "La distribution Mac n'est pas encore notariée : au premier lancement, faites un clic droit sur l'application, choisissez Ouvrir, puis confirmez.",
-                "Une version précédente est remplacée ou mise à jour. La V3.07 ne propose plus d'installation parallèle.",
+                "La V3.08 Beta utilise son propre dossier Program Files, son propre raccourci et son propre AppId.",
+                "Elle peut cohabiter avec la V3.07 stable et ne met à niveau qu'une précédente V3.08.",
+                "La V3.08 Beta n'est pas distribuée sur Mac ; utilisez la V3.07 stable jusqu'à la Release officielle V3.08.",
                 "Les quatre notices PDF françaises et anglaises sont installées et restent accessibles depuis l'application.",
             ]),
             para("2. Principes de sécurité", "h1"),
@@ -338,7 +338,7 @@ def full_guide(language: str) -> None:
             para("Machine sélectionnée", "h2"),
             *bullets([
                 "Modifiez ensemble le nom, le mode réseau, la latence et le preferred master avec Appliquer les paramètres.",
-                "Double-cliquez une ligne ou utilisez Détail machine pour régler l'IP, la sample rate, les bits et les canaux TX/RX.",
+                "Double-cliquez une ligne ou utilisez Détail machine pour régler l'IP, la sample rate, les bits, les canaux TX/RX et le patch de ses entrées RX.",
                 "Les changements d'une fiche machine sont appliqués en groupe avec une seule reconstruction du modèle.",
                 "Les resets peuvent déconnecter les RX, retirer les patchs utilisant les TX, ou effectuer les deux opérations.",
                 "La suppression d'une machine retire aussi les points de patch qui la référencent.",
@@ -392,8 +392,11 @@ def full_guide(language: str) -> None:
                 "Les canaux TX/RX peuvent être renommés individuellement ou par plage avec {00}, {000}, {n} et {device}.",
                 "Le renommage d'un TX met à jour tous les alias de subscription reconnus dans le projet.",
                 "Les Dante Id ne sont pas renumérotés. Le marqueur local subscribed_device=\".\" est conservé.",
-                "Patch visuel / grille ouvre un atelier filtré sur une machine TX et une machine RX.",
-                "Sélectionnez plusieurs TX puis déposez-les sur le premier RX, ou utilisez le bouton d'affectation : les RX suivants sont remplis dans l'ordre réel du XML.",
+                "Patch visuel / grille ouvre un atelier filtré sur une machine TX et une machine RX, sans dépendre du glisser-déposer.",
+                "Sélectionnez autant de TX que de RX pour un appariement un-à-un, ou un seul TX pour alimenter plusieurs RX.",
+                "Plusieurs TX vers un RX et les sélections multiples de tailles différentes sont refusés.",
+                "Le patch par plage demande un premier TX, un premier RX et une quantité exacte ; une plage incomplète est entièrement bloquée.",
+                "La prévisualisation classe chaque ligne en création, remplacement ou inchangée. Pour les conflits, choisissez annuler, ignorer ou remplacer.",
                 "Dans la grille, les RX sont en lignes et les TX en colonnes. Cliquer une cellule affecte la source ; cliquer la cellule active prépare sa déconnexion.",
                 "Les changements restent en attente jusqu'à Appliquer au projet. Ils sont alors exécutés en un seul lot et une seule étape d'annulation.",
             ]),
@@ -432,14 +435,15 @@ def full_guide(language: str) -> None:
                 [48, 122],
             ),
             para("13. Tests de non-régression", "h1"),
-            para("La suite V3.07 exécute 67 tests du moteur XML et 7 tests d'interface Mac : identités techniques, chemins inconnus, sauvegarde atomique, récupération, interfaces IPv4, alias de subscription, namespace par défaut, presets synthétiques, alertes latérales, modes de vue du patch et atelier de patch visuel. GitHub Actions les rejoue sur Windows et macOS."),
+            para("La suite V3.08 Beta exécute 84 tests Core et contrats Windows : identités techniques, chemins inconnus, sauvegarde atomique, récupération, interfaces IPv4, alias de subscription, namespace par défaut, presets synthétiques, sélection TX/RX, plages, conflits, rollback, persistance, matrice et détail machine. GitHub Actions les rejoue sur Windows."),
             para("14. Limites connues", "h1"),
             *bullets([
                 "Aucun pilotage en temps réel et aucune communication avec les appareils.",
                 "Aucun SDK/API Audinate et aucun contournement de protocole propriétaire.",
                 "La compatibilité dépend de la structure du XML ; seul l'import officiel confirme le fichier final.",
                 "L'historique d'annulation conserve au maximum 10 états pour limiter la mémoire.",
-                "La matrice affiche uniquement les deux machines choisies. Sur Mac, elle est limitée aux 128 premiers TX et RX ; les listes conservent tous les canaux.",
+                "La matrice affiche uniquement les deux machines choisies pour préserver les performances sur les gros presets.",
+                "La V3.08 Beta est uniquement distribuée sur Windows ; la version Mac reste la V3.07 stable.",
                 "Des noms TX dupliqués sont ambigus dans les subscriptions Dante et doivent être renommés avant le patch visuel.",
             ]),
             para("15. Aide et informations", "h1"),
@@ -450,14 +454,14 @@ def full_guide(language: str) -> None:
         page1 = [
             para(PRODUCT, "title"),
             para(f"Full user guide - version {VERSION}", "subtitle"),
-            callout("<b>Important:</b> this is a third-party tool, not an official Audinate product. V3.07 is the stable project release. It edits XML files offline without connecting to a Dante network or using an Audinate API. Keep the original and validate the generated file in Dante Controller before production use."),
+            callout("<b>Important:</b> this is a third-party tool, not an official Audinate product. V3.08 is a Windows beta; V3.07 remains the recommended stable release. It edits XML files offline without connecting to a Dante network or using an Audinate API. Keep the original and validate the generated file in Dante Controller before production use."),
             para("1. Installation and startup", "h1"),
-            para("The self-contained packages include the application and the required .NET 8 runtime. Windows x64 and macOS normally do not need a separate .NET installation."),
+            para("The Windows x64 installer includes the application and the required .NET 8 runtime. A separate .NET installation is normally not required."),
             *bullets([
                 "The default location is Program Files, with a Start menu shortcut.",
-                "On Mac, choose the Apple Silicon or Intel DMG, open it, then drag Dante Config Editor to Applications.",
-                "The Mac distribution is not notarized yet. For the first launch, right-click the application, choose Open, then confirm.",
-                "A previous version is replaced or updated. V3.07 no longer offers a parallel installation.",
+                "V3.08 Beta uses its own Program Files folder, shortcut, and AppId.",
+                "It can coexist with stable V3.07 and only upgrades an earlier V3.08 installation.",
+                "V3.08 Beta is not distributed on Mac; use stable V3.07 until the official V3.08 Release.",
                 "All four French and English PDFs are installed and remain available from the application.",
             ]),
             para("2. Safety principles", "h1"),
@@ -476,7 +480,7 @@ def full_guide(language: str) -> None:
             para("Selected device", "h2"),
             *bullets([
                 "Apply the name, network mode, latency, and Preferred Master state together with Apply settings.",
-                "Double-click a row or use Device details to edit IP settings, sample rate, bits per sample, and TX/RX names.",
+                "Double-click a row or use Device details to edit IP settings, sample rate, bits per sample, TX/RX names, and subscriptions for its Rx inputs.",
                 "A complete Device details change is grouped into one model rebuild.",
                 "Clear actions can disconnect Rx inputs, remove subscriptions using Tx channels, or do both.",
                 "Deleting a device also removes subscription points that reference it.",
@@ -530,8 +534,11 @@ def full_guide(language: str) -> None:
                 "TX/RX channels can be renamed individually or by range with {00}, {000}, {n}, and {device}.",
                 "Renaming a Tx channel updates every recognized subscription alias in the project.",
                 "Dante IDs are not renumbered. The local subscribed_device=\".\" marker is preserved.",
-                "Visual patch / matrix opens a workspace filtered to one Tx device and one Rx device.",
-                "Select several Tx channels and drop them on the first Rx, or use the assignment button: following Rx channels are filled in the actual XML order.",
+                "Visual patch / matrix opens a workspace filtered to one Tx device and one Rx device without relying on drag and drop.",
+                "Select equal Tx and Rx counts for one-to-one mapping, or one Tx to feed several Rx channels.",
+                "Several Tx channels to one Rx and unequal multiple selections are blocked.",
+                "Range patching requires a first Tx, first Rx, and exact count; an incomplete range is blocked as a whole.",
+                "The preview classifies rows as create, replace, or unchanged. For conflicts, choose cancel, skip, or replace.",
                 "In the matrix, Rx channels are rows and Tx channels are columns. Clicking a cell assigns its source; clicking the active cell stages a disconnection.",
                 "Changes remain pending until Apply to project. They are then executed as one batch and one undo step.",
             ]),
@@ -570,14 +577,15 @@ def full_guide(language: str) -> None:
                 [48, 122],
             ),
             para("13. Regression tests", "h1"),
-            para("The V3.07 suite runs 67 shared XML engine tests and 7 Mac UI tests covering technical identities, unknown paths, atomic save, recovery, IPv4 interfaces, subscription aliases, default namespaces, synthetic presets, side alerts, patch view modes, and the visual patch workspace. GitHub Actions reruns them on Windows and macOS."),
+            para("The V3.08 Beta suite runs 84 Core and Windows contract tests covering technical identities, unknown paths, atomic save, recovery, IPv4 interfaces, subscription aliases, default namespaces, synthetic presets, Tx/Rx selection, ranges, conflicts, rollback, persistence, matrix actions, and Device details integration. GitHub Actions reruns them on Windows."),
             para("14. Known limitations", "h1"),
             *bullets([
                 "No real-time Dante control and no communication with devices.",
                 "No Audinate SDK/API and no proprietary protocol bypass.",
                 "Compatibility depends on the XML structure; only an official import confirms the final file.",
                 "Undo keeps at most 10 states to limit memory use.",
-                "The matrix displays only the two selected devices. On Mac, it is limited to the first 128 Tx and Rx channels; the lists retain every channel.",
+                "The matrix displays only the two selected devices to preserve performance on large presets.",
+                "V3.08 Beta is distributed only on Windows; the Mac version remains stable V3.07.",
                 "Duplicate Tx names are ambiguous in Dante subscriptions and must be renamed before visual patching.",
             ]),
             para("15. Help and information", "h1"),
