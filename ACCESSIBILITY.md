@@ -9,6 +9,7 @@
 - fenêtre maximisée observée à environ `1920 x 1032` : panneaux et tableau accessibles sans recouvrement incohérent ;
 - atelier de patch ouvert, sélections et commandes actionnées via l'arbre d'accessibilité ;
 - libellés d'automatisation et info-bulles ajoutés aux commandes du patch visuel.
+- exécutable final installé contrôlé : démarrage, bouton `Ouvrir XML`, ouverture d'une fixture anonymisée et résumé du projet lus par l'arbre d'accessibilité.
 
 La capture pixel directe des surfaces WPF a renvoyé une image vide dans l'outil utilisé. Les interactions et états ont été vérifiés par l'arbre d'accessibilité, mais ce cycle ne constitue donc pas une validation visuelle pixel par pixel complète de Windows.
 

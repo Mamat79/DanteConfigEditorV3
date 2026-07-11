@@ -1,16 +1,53 @@
 # Tests et baseline V3.07 Beta
 
-## État courant avant emballage final
+## Validation finale locale du 2026-07-11
 
-État vérifié après l'ajout de l'atelier de patch visuel et avant la reconstruction finale de l'installateur :
+Source fonctionnelle testée :
 
-- 63 tests Core réussis, 0 échec ;
-- 7 tests d'interface Mac headless réussis, 0 échec ;
-- build Windows Release : 0 warning, 0 erreur ;
-- build Mac Release : 0 warning, 0 erreur ;
-- interface compacte et patch visuel couverts par les tests Avalonia et un contrôle fonctionnel Windows via l'arbre d'accessibilité.
+- branche : `main` ;
+- commit : `840566b5451d7ddd3985cc1abdc82277a6efa986` ;
+- système : Windows `10.0.26200`, `win-x64` ;
+- .NET SDK `8.0.422`, MSBuild `17.11.48` ;
+- Inno Setup `6.7.3`.
 
-La validation finale rejoue toutes ces étapes à partir de l'état committé, puis ajoute le publish autonome, l'installateur, le remplacement de la version installée et les workflows GitHub Actions. Ses hashes et temps exacts seront consignés ci-dessous avant publication.
+| Étape | Temps | Code retour | Résultat |
+|---|---:|---:|---|
+| Restore application Windows | 0,862 s | 0 | réussi |
+| Restore tests Core | 0,878 s | 0 | réussi |
+| Restore tests UI Mac | 0,729 s | 0 | réussi |
+| Tests Core Release | 6,946 s | 0 | 63 réussis, 0 échec, 0 ignoré |
+| Tests UI Mac Release | 8,919 s | 0 | 7 réussis, 0 échec, 0 ignoré |
+| Build Windows Release | 1,785 s | 0 | 0 warning, 0 erreur |
+| Build interface Mac Release | 1,040 s | 0 | 0 warning, 0 erreur |
+| Publish Windows `win-x64` framework-dependent | 2,468 s | 0 | réussi |
+| Publish Mac autonome `osx-arm64` | 3,631 s | 0 | réussi |
+| Publish Mac autonome `osx-x64` | 3,505 s | 0 | réussi |
+| Pack de validation XML | 1,424 s | 0 | 8 scénarios, rapports, checklist et hashes produits |
+| Installateur Windows autonome | 32,764 s | 0 | réussi, 0 erreur Inno Setup |
+| Installation puis mise à niveau de contrôle | 13,229 s | 0 | deux passages, une seule installation conservée |
+
+Installateur validé :
+
+- fichier : `dist/DanteConfigEditorV3_Installer.exe` ;
+- version : `3.07-beta` ;
+- taille : `66 842 463` octets ;
+- SHA-256 : `3D06B9EF344A2153AFD67CE8296EEB1FA8EDCB75710C2738BB46EEF9DB5C7FAE` ;
+- signature Authenticode : absente (`NotSigned`).
+
+Installation vérifiée :
+
+- dossier : `C:\Program Files\Dante Config Editor V3\` ;
+- version de fichier : `3.7.0.0` ;
+- SHA-256 de l'exécutable installé : `11BA21D50308C5A5FB69C962E91E4DE71F4B52E7CA39EEFFF1DA36DE1DA004CA` ;
+- une seule entrée de désinstallation V3 ;
+- raccourci Menu Démarrer, désinstallateur et quatre notices FR/EN présents ;
+- démarrage réel réussi, titre `Dante Config Editor V3.07 Beta` ;
+- fixture anonymisée ouverte : 3 devices, 3 TX, 4 RX, 3 patchs actifs, état `Non modifié` ;
+- fermeture propre et aucune erreur Application Windows liée au processus pendant le contrôle.
+
+Les quatre projets inspectés par `dotnet list package --vulnerable --include-transitive` ne signalent aucun package vulnérable avec les sources NuGet du jour. Les bundles Mac autonomes sont publiables depuis Windows, mais les DMG exigent macOS et sont construits par le workflow macOS.
+
+La CI distante reste à confirmer après le push. Aucun import Dante Controller n'a été exécuté pendant cette validation locale.
 
 ## Baseline historique du 2026-07-11
 
