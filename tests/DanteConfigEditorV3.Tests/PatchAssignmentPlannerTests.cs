@@ -98,6 +98,64 @@ public sealed class PatchAssignmentPlannerTests
         Assert.Throws<InvalidOperationException>(() => PatchAssignmentPlanner.PlanSequential(sources, targets, foreignTarget));
     }
 
+    [Fact]
+    public void WorkspaceKeepsEditsPendingUntilTheyAreAppliedByTheCaller()
+    {
+        using TestDirectory directory = new();
+        DanteProject project = DanteProject.Load(directory.CopyFixture("representative-preset.xml"));
+        DanteDevice txDevice = Assert.IsType<DanteDevice>(project.FindDevice("DEVICE-A"));
+        DanteDevice rxDevice = Assert.IsType<DanteDevice>(project.FindDevice("DEVICE-B"));
+        PatchWorkspaceSession workspace = new(project.PatchMatrix.Subscriptions);
+        PatchSourceDescriptor source = SourceFrom(txDevice.TxChannels[1]);
+        PatchTargetDescriptor target = TargetFrom(rxDevice.RxChannels[0]);
+
+        workspace.Assign(new PlannedPatchAssignment(source, target));
+
+        Assert.True(workspace.HasChanges);
+        Assert.False(project.IsModified);
+        Assert.Equal("PROGRAM R", workspace.GetEffectiveAssignment(target).TxChannelName);
+        Assert.Equal(
+            "PROGRAM L",
+            project.PatchMatrix.Subscriptions.Single(item =>
+                string.Equals(item.RxDevice, target.DeviceName, StringComparison.OrdinalIgnoreCase)
+                && item.RxDanteId == target.DanteId).TxChannelName);
+    }
+
+    [Fact]
+    public void WorkspaceRemovesPendingEditWhenAssignmentReturnsToOriginalSource()
+    {
+        using TestDirectory directory = new();
+        DanteProject project = DanteProject.Load(directory.CopyFixture("representative-preset.xml"));
+        DanteDevice txDevice = Assert.IsType<DanteDevice>(project.FindDevice("DEVICE-A"));
+        DanteDevice rxDevice = Assert.IsType<DanteDevice>(project.FindDevice("DEVICE-B"));
+        PatchWorkspaceSession workspace = new(project.PatchMatrix.Subscriptions);
+        PatchTargetDescriptor target = TargetFrom(rxDevice.RxChannels[0]);
+
+        workspace.Assign(new PlannedPatchAssignment(SourceFrom(txDevice.TxChannels[1]), target));
+        workspace.Assign(new PlannedPatchAssignment(SourceFrom(txDevice.TxChannels[0]), target));
+
+        Assert.False(workspace.HasChanges);
+        Assert.Empty(workspace.Edits);
+    }
+
+    [Fact]
+    public void WorkspaceCanResetAllPendingVisualChanges()
+    {
+        using TestDirectory directory = new();
+        DanteProject project = DanteProject.Load(directory.CopyFixture("representative-preset.xml"));
+        DanteDevice rxDevice = Assert.IsType<DanteDevice>(project.FindDevice("DEVICE-B"));
+        PatchWorkspaceSession workspace = new(project.PatchMatrix.Subscriptions);
+        PatchTargetDescriptor target = TargetFrom(rxDevice.RxChannels[0]);
+
+        workspace.Remove(target);
+        Assert.Single(workspace.Edits);
+
+        workspace.Reset();
+
+        Assert.False(workspace.HasChanges);
+        Assert.True(workspace.GetEffectiveAssignment(target).IsActive);
+    }
+
     private static PatchSourceDescriptor Source(int danteId, int position, string name)
     {
         return new PatchSourceDescriptor("TX-DEVICE", danteId, position, name);
@@ -106,6 +164,16 @@ public sealed class PatchAssignmentPlannerTests
     private static PatchTargetDescriptor Target(int danteId, int position, string name)
     {
         return new PatchTargetDescriptor("RX-DEVICE", danteId, position, name);
+    }
+
+    private static PatchSourceDescriptor SourceFrom(DanteChannel channel)
+    {
+        return new PatchSourceDescriptor(channel.DeviceName, channel.DanteId, channel.PositionIndex, channel.DisplayName);
+    }
+
+    private static PatchTargetDescriptor TargetFrom(DanteChannel channel)
+    {
+        return new PatchTargetDescriptor(channel.DeviceName, channel.DanteId, channel.PositionIndex, channel.DisplayName);
     }
 
     private sealed class TestDirectory : IDisposable
