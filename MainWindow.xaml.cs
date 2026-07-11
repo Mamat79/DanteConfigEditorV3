@@ -54,7 +54,7 @@ public partial class MainWindow : Window
         new("24", "24 bit"),
         new("32", "32 bit")
     ];
-    private readonly string[] _patchViewModeKeys = ["PatchView.Simple", "PatchView.Expert"];
+    private readonly string[] _patchViewModeKeys = [PatchViewMode.SimpleKey, PatchViewMode.ExpertKey];
     private readonly string[] _patchStateFilterKeys =
     [
         "Filter.AllRx",
@@ -3131,7 +3131,8 @@ public partial class MainWindow : Window
 
     private void ApplyPatchViewMode()
     {
-        bool expert = string.Equals(PatchViewModeComboBox.SelectedItem as string, "Expert", StringComparison.OrdinalIgnoreCase);
+        string selectedKey = SelectedOptionKey(PatchViewModeComboBox, PatchViewMode.SimpleKey);
+        bool expert = PatchViewMode.IsExpert(selectedKey);
         Visibility expertVisibility = expert ? Visibility.Visible : Visibility.Collapsed;
 
         PatchDisplayTxColumn.Visibility = expertVisibility;
