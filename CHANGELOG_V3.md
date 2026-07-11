@@ -11,9 +11,12 @@
 - Résolution explicite des conflits : annuler le lot, ignorer les RX déjà patchés ou remplacer leurs subscriptions.
 - Déconnexion groupée de plusieurs RX, matrice unitaire conservée et suppression de la dépendance au glisser-déposer.
 - Ajout d'un patch par plage avec premier TX, premier RX et quantité exacte.
+- Ajout d'un véritable onglet principal `Easy patch` à côté de l'onglet classique `Patch`.
+- Réorganisation de l'outil avec RX à gauche, TX à droite et navigation précédent/suivant entre machines.
+- Ajout d'un sélecteur de machine en haut de `Détail machine`, avec protection des modifications non appliquées.
 - Intégration de l'atelier dans `Détail machine`, avec RX verrouillé sur la machine ouverte et application avant les renommages.
 - Application finale des patchs en un seul lot annulable et persistance contrôlée après sauvegarde/rechargement.
-- Extension de la suite Windows à 84 tests ; build WPF sans warning.
+- Extension de la suite Windows à 86 tests ; build WPF sans warning.
 - Génération automatique d'une somme SHA-256 fraîche après chaque construction de l'installateur.
 
 ## 2026-07-11 - Version 3.07 officielle

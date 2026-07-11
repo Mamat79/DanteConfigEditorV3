@@ -18,7 +18,7 @@ Branche bêta Windows pour éditer hors ligne des fichiers XML de configuration 
 - Réinitialise les noms de canaux.
 - Modifie les paramètres réseau et audio exposés par les fichiers XML reconnus.
 - Affiche une page Patch pour visualiser et modifier les abonnements RX vers TX lorsque le format XML le permet.
-- Ouvre un atelier de patch TX vers RX avec sélection multiple des deux côtés, prévisualisation, plages strictes, résolution explicite des conflits et matrice interactive.
+- Ajoute l'onglet Windows `Easy patch` avec RX à gauche, TX à droite, navigation rapide entre machines, sélection multiple, prévisualisation, plages strictes, résolution explicite des conflits et matrice interactive.
 - Met à jour les patchs RX quand un canal TX utilisé est renommé.
 - Crée une sauvegarde du fichier source et de toute destination existante avant sauvegarde.
 - Sauvegarde via un fichier temporaire relu puis un remplacement atomique de la destination.
@@ -112,8 +112,8 @@ La V3.08 Beta utilise un AppId, un dossier Program Files, un menu Démarrer et u
 3. Sélectionner une copie du fichier de configuration Dante.
 4. Vérifier les devices et paramètres détectés.
 5. Modifier les champs souhaités.
-6. Dans `Patch visuel / grille`, sélectionner les TX et RX, puis prévisualiser la sélection ou une plage.
-7. Choisir explicitement d'annuler, d'ignorer ou de remplacer les patchs existants, préparer le lot, puis cliquer sur `Appliquer au projet`.
+6. Dans l'onglet `Easy patch`, choisir les machines RX et TX, sélectionner les canaux, puis prévisualiser la sélection ou une plage.
+7. Choisir explicitement d'annuler, d'ignorer ou de remplacer les patchs existants, préparer le lot, puis cliquer sur `Appliquer à la configuration`.
 8. Si besoin, utiliser `Ajouter XML au projet` pour importer les devices d'un autre export XML.
 9. Sauvegarder sous un nouveau nom.
 10. Valider le fichier généré dans l'outil Dante officiel approprié avant usage terrain.
@@ -128,10 +128,14 @@ La V3.08 Beta utilise un AppId, un dossier Program Files, un menu Démarrer et u
 - Traitement explicite des RX déjà patchés : annuler le lot, ignorer les conflits ou remplacer les subscriptions.
 - Déconnexion groupée de plusieurs RX et matrice unitaire TX vers RX conservée.
 - Changements préparés en mémoire puis appliqués au XML en un seul lot et une seule étape d'annulation.
+- Onglets principaux distincts : `Patch` conserve l'éditeur classique et `Easy patch` accueille le nouveau système.
+- Disposition `Easy patch` avec machines et canaux RX à gauche, machines et canaux TX à droite.
+- Menus et flèches précédent/suivant pour parcourir rapidement les machines RX et TX.
+- Sélecteur de machine dans `Détail machine`, avec confirmation appliquer/abandonner/annuler si des changements sont en attente.
 - Onglet `Patch RX` dans `Détail machine`, limité aux entrées de la machine ouverte.
 - Identité d'installation, dossier Program Files, raccourcis et données locales séparés de la V3.07.
 - V3.08 Beta limitée à Windows ; le workflow et les paquets Mac seront ajoutés lors de la future Release officielle.
-- 84 tests Core et contrats Windows validant notamment sélection, plages, conflits, rollback, persistance et intégration au détail machine.
+- 86 tests Core et contrats Windows validant notamment sélection, plages, conflits, rollback, persistance, onglet Easy patch et navigation du détail machine.
 
 ## Nouveautés V3.07
 

@@ -230,7 +230,7 @@ def quick_start(language: str) -> None:
         [
             ("Ouvrir XML", "Choisissez un export Dante. L'application travaille hors ligne et n'accède pas au réseau."),
             ("Contrôler les alertes", "Affichez les machines concernées et vérifiez chaque point signalé."),
-            ("Modifier", "Utilisez Détail machine, Patch visuel ou les actions globales. Verrouillez les machines à exclure."),
+            ("Modifier", "Utilisez Détail machine, Easy patch ou les actions globales. Verrouillez les machines à exclure."),
             ("Vérifier", "Utilisez Modifiées uniquement puis Avant / après. Les changements techniques inconnus sont bloqués."),
             ("Enregistrer sous", "Choisissez un nouveau nom. La destination est remplacée atomiquement et sauvegardée si elle existait."),
             ("Tester l'import", "Importez le résultat dans Dante Controller sur une copie de travail avant toute intervention terrain."),
@@ -239,7 +239,7 @@ def quick_start(language: str) -> None:
         else [
             ("Open XML", "Choose a Dante export. The application works offline and does not access the network."),
             ("Review alerts", "Show affected devices and verify every reported item."),
-            ("Edit", "Use Device details, Visual patch, or global actions. Lock devices that must be excluded."),
+            ("Edit", "Use Device details, Easy patch, or global actions. Lock devices that must be excluded."),
             ("Review", "Use Modified only and Before / after. Unknown technical changes are blocked."),
             ("Save as", "Choose a new name. The destination is replaced atomically and backed up when it already exists."),
             ("Test the import", "Import the result into Dante Controller on a working copy before any field operation."),
@@ -247,14 +247,14 @@ def quick_start(language: str) -> None:
     )
     features = (
         [
-            ("Patch visuel", "Sélectionnez les TX et RX, prévisualisez le lot, puis choisissez comment traiter les RX déjà patchés. Les plages sont strictes et la grille reste disponible."),
+            ("Easy patch", "Choisissez les RX à gauche et les TX à droite, changez de machine par le menu ou les flèches, prévisualisez le lot, puis traitez explicitement les conflits."),
             ("Récupération", "Une copie est écrite en arrière-plan après un court délai. La nouvelle destination devient la référence après Enregistrer sous."),
             ("Sous-projet", "Ajouter XML au projet importe les machines uniques et ne propose un renommage que pour les doublons."),
             ("IPv4", "Seule l'interface principale est ciblée. DNS et interface secondaire ne sont pas réécrits implicitement."),
         ]
         if french
         else [
-            ("Visual patch", "Select Tx and Rx channels, preview the batch, then choose how to handle already patched Rx channels. Ranges are strict and the matrix remains available."),
+            ("Easy patch", "Choose Rx channels on the left and Tx channels on the right, switch devices with the menu or arrows, preview the batch, then resolve conflicts explicitly."),
             ("Recovery", "A copy is written in the background after a short delay. Save as makes the new destination the session reference."),
             ("Sub-project", "Add XML to project imports unique devices and only asks about conflicting names."),
             ("IPv4", "Only the primary interface is targeted. DNS and the secondary interface are not rewritten implicitly."),
@@ -392,13 +392,14 @@ def full_guide(language: str) -> None:
                 "Les canaux TX/RX peuvent être renommés individuellement ou par plage avec {00}, {000}, {n} et {device}.",
                 "Le renommage d'un TX met à jour tous les alias de subscription reconnus dans le projet.",
                 "Les Dante Id ne sont pas renumérotés. Le marqueur local subscribed_device=\".\" est conservé.",
-                "Patch visuel / grille ouvre un atelier filtré sur une machine TX et une machine RX, sans dépendre du glisser-déposer.",
+                "L'onglet Easy patch affiche les RX à gauche et les TX à droite. Les menus et flèches permettent de changer rapidement de machine, sans dépendre du glisser-déposer.",
                 "Sélectionnez autant de TX que de RX pour un appariement un-à-un, ou un seul TX pour alimenter plusieurs RX.",
                 "Plusieurs TX vers un RX et les sélections multiples de tailles différentes sont refusés.",
                 "Le patch par plage demande un premier TX, un premier RX et une quantité exacte ; une plage incomplète est entièrement bloquée.",
                 "La prévisualisation classe chaque ligne en création, remplacement ou inchangée. Pour les conflits, choisissez annuler, ignorer ou remplacer.",
                 "Dans la grille, les RX sont en lignes et les TX en colonnes. Cliquer une cellule affecte la source ; cliquer la cellule active prépare sa déconnexion.",
-                "Les changements restent en attente jusqu'à Appliquer au projet. Ils sont alors exécutés en un seul lot et une seule étape d'annulation.",
+                "Les changements restent en attente jusqu'à Appliquer à la configuration. Ils sont alors exécutés en un seul lot et une seule étape d'annulation.",
+                "Dans Détail machine, le menu supérieur passe à une autre machine et protège les modifications non appliquées.",
             ]),
             para("9. Ajouter un XML au projet", "h1"),
             *bullets([
@@ -435,7 +436,7 @@ def full_guide(language: str) -> None:
                 [48, 122],
             ),
             para("13. Tests de non-régression", "h1"),
-            para("La suite V3.08 Beta exécute 84 tests Core et contrats Windows : identités techniques, chemins inconnus, sauvegarde atomique, récupération, interfaces IPv4, alias de subscription, namespace par défaut, presets synthétiques, sélection TX/RX, plages, conflits, rollback, persistance, matrice et détail machine. GitHub Actions les rejoue sur Windows."),
+            para("La suite V3.08 Beta exécute 86 tests Core et contrats Windows : identités techniques, chemins inconnus, sauvegarde atomique, récupération, interfaces IPv4, alias de subscription, namespace par défaut, presets synthétiques, sélection TX/RX, plages, conflits, rollback, persistance, matrice, Easy patch et détail machine. GitHub Actions les rejoue sur Windows."),
             para("14. Limites connues", "h1"),
             *bullets([
                 "Aucun pilotage en temps réel et aucune communication avec les appareils.",
@@ -444,7 +445,7 @@ def full_guide(language: str) -> None:
                 "L'historique d'annulation conserve au maximum 10 états pour limiter la mémoire.",
                 "La matrice affiche uniquement les deux machines choisies pour préserver les performances sur les gros presets.",
                 "La V3.08 Beta est uniquement distribuée sur Windows ; la version Mac reste la V3.07 stable.",
-                "Des noms TX dupliqués sont ambigus dans les subscriptions Dante et doivent être renommés avant le patch visuel.",
+                "Des noms TX dupliqués sont ambigus dans les subscriptions Dante et doivent être renommés avant Easy patch.",
             ]),
             para("15. Aide et informations", "h1"),
             para("Quick start et Notice complète ouvrent automatiquement le PDF français ou anglais selon la langue active."),
@@ -534,13 +535,14 @@ def full_guide(language: str) -> None:
                 "TX/RX channels can be renamed individually or by range with {00}, {000}, {n}, and {device}.",
                 "Renaming a Tx channel updates every recognized subscription alias in the project.",
                 "Dante IDs are not renumbered. The local subscribed_device=\".\" marker is preserved.",
-                "Visual patch / matrix opens a workspace filtered to one Tx device and one Rx device without relying on drag and drop.",
+                "The Easy patch tab shows Rx channels on the left and Tx channels on the right. Menus and arrows switch devices quickly without relying on drag and drop.",
                 "Select equal Tx and Rx counts for one-to-one mapping, or one Tx to feed several Rx channels.",
                 "Several Tx channels to one Rx and unequal multiple selections are blocked.",
                 "Range patching requires a first Tx, first Rx, and exact count; an incomplete range is blocked as a whole.",
                 "The preview classifies rows as create, replace, or unchanged. For conflicts, choose cancel, skip, or replace.",
                 "In the matrix, Rx channels are rows and Tx channels are columns. Clicking a cell assigns its source; clicking the active cell stages a disconnection.",
-                "Changes remain pending until Apply to project. They are then executed as one batch and one undo step.",
+                "Changes remain pending until Apply to configuration. They are then executed as one batch and one undo step.",
+                "In Device details, the top menu switches devices and protects unapplied changes.",
             ]),
             para("9. Add XML to project", "h1"),
             *bullets([
@@ -577,7 +579,7 @@ def full_guide(language: str) -> None:
                 [48, 122],
             ),
             para("13. Regression tests", "h1"),
-            para("The V3.08 Beta suite runs 84 Core and Windows contract tests covering technical identities, unknown paths, atomic save, recovery, IPv4 interfaces, subscription aliases, default namespaces, synthetic presets, Tx/Rx selection, ranges, conflicts, rollback, persistence, matrix actions, and Device details integration. GitHub Actions reruns them on Windows."),
+            para("The V3.08 Beta suite runs 86 Core and Windows contract tests covering technical identities, unknown paths, atomic save, recovery, IPv4 interfaces, subscription aliases, default namespaces, synthetic presets, Tx/Rx selection, ranges, conflicts, rollback, persistence, matrix actions, Easy patch, and Device details integration. GitHub Actions reruns them on Windows."),
             para("14. Known limitations", "h1"),
             *bullets([
                 "No real-time Dante control and no communication with devices.",
@@ -586,7 +588,7 @@ def full_guide(language: str) -> None:
                 "Undo keeps at most 10 states to limit memory use.",
                 "The matrix displays only the two selected devices to preserve performance on large presets.",
                 "V3.08 Beta is distributed only on Windows; the Mac version remains stable V3.07.",
-                "Duplicate Tx names are ambiguous in Dante subscriptions and must be renamed before visual patching.",
+                "Duplicate Tx names are ambiguous in Dante subscriptions and must be renamed before using Easy patch.",
             ]),
             para("15. Help and information", "h1"),
             para("Quick start and Full guide automatically open the French or English PDF for the active language."),

@@ -6,8 +6,12 @@ Version bêta Windows en cours de développement. Il s'agit d'un outil tiers non
 
 La V3.07 reste la Release stable recommandée pour Windows et macOS. Travaillez toujours sur une copie de vos fichiers XML Dante et validez le résultat dans les outils Dante officiels avant toute utilisation réelle.
 
-## Nouvel atelier de patch TX vers RX
+## Nouvel onglet Easy patch
 
+- L'onglet classique `Patch` reste disponible sans changement de principe.
+- `Easy patch` est intégré directement comme nouvel onglet principal sous Windows.
+- Les machines et canaux RX sont à gauche ; les machines et canaux TX sont à droite.
+- Chaque côté possède un menu et des flèches précédent/suivant pour changer rapidement de machine.
 - Sélection multiple indépendante des canaux TX et RX avec `Ctrl` ou `Maj`.
 - Boutons `Tout sélectionner` pour les listes TX et RX.
 - Appariement un-à-un lorsque le nombre de TX et de RX est identique.
@@ -20,12 +24,14 @@ La V3.07 reste la Release stable recommandée pour Windows et macOS. Travaillez 
 - Pour un RX déjà patché : annuler le lot, ignorer les conflits ou remplacer les subscriptions.
 - Déconnexion groupée des RX sélectionnés.
 - Grille TX/RX conservée pour affecter ou retirer un patch unitaire.
-- Les changements restent en mémoire jusqu'à `Appliquer au projet`.
+- Les changements restent en mémoire jusqu'à `Appliquer à la configuration`.
 - L'application finale utilise un seul lot et une seule étape d'annulation.
 
 ## Détail machine
 
 - Nouvel onglet `Patch RX` dans la fenêtre ouverte au double-clic sur une machine.
+- Un menu en haut permet de passer à une autre machine sans revenir à la fenêtre principale.
+- Si des réglages sont en attente, le choix appliquer/abandonner/annuler évite toute perte silencieuse.
 - La machine RX reste verrouillée sur celle dont le détail est affiché.
 - Toutes les machines TX compatibles du preset restent disponibles comme sources.
 - Les changements de patch sont validés avec le nom, les formats, l'IP et les noms de canaux.
@@ -52,7 +58,7 @@ La V3.07 reste la Release stable recommandée pour Windows et macOS. Travaillez 
 
 ## Validation automatisée
 
-- 84 tests Core et contrats Windows réussissent localement.
+- 86 tests Core et contrats Windows réussissent localement.
 - Le build WPF Release réussit sans warning.
 - Les tests couvrent la sélection, les plages, les conflits, le remplacement, l'annulation, le rollback, la persistance, la matrice et l'intégration au détail machine.
 - Le garde-fou XML, les sauvegardes atomiques, les namespaces, les interfaces réseau et les presets synthétiques restent couverts.
