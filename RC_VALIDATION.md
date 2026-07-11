@@ -14,7 +14,7 @@ Un résultat automatisé réussi ne prouve pas la compatibilité avec Dante Cont
 - tag de sécurité avant promotion officielle : `safety-v3.07-beta-before-official-20260711` ;
 - tag de sécurité avant travaux : `safety-v3.07-before-validation-20260711` ;
 - système de validation locale : Windows x64, .NET 8 ;
-- commit fonctionnel validé : `840566b5451d7ddd3985cc1abdc82277a6efa986` ;
+- commit fonctionnel validé : `bdb1de9ae7b6b80342e18d1f2172d83e74b7bc43` ;
 - date de validation locale : 2026-07-11.
 
 ## Contrôles automatisés
@@ -22,17 +22,17 @@ Un résultat automatisé réussi ne prouve pas la compatibilité avec Dante Cont
 | Contrôle | État | Preuve attendue |
 |---|---|---|
 | Restore application et projets de tests | Réussi localement | trois restores, code retour 0 |
-| Tests Core en Release | Réussi localement | 63 réussis, 0 échec, 0 ignoré |
+| Tests Core en Release | Réussi localement | 67 réussis, 0 échec, 0 ignoré |
 | Tests UI Mac headless en Release | Réussi localement | 7 réussis, 0 échec, 0 ignoré |
 | Build Windows en Release | Réussi localement | 0 warning, 0 erreur |
 | Build interface Mac en Release | Réussi localement | 0 warning, 0 erreur |
 | Publish Windows `win-x64` et autonome installateur | Réussi localement | publication framework-dependent et mono-fichier autonome produites |
 | Publish Mac autonome `osx-arm64` et `osx-x64` | Réussi localement | deux publications produites ; DMG réservé au runner macOS |
-| Construction installateur Inno Setup | Réussi localement | 66 842 463 octets, SHA-256 dans `TESTING.md` |
+| Construction installateur Inno Setup | Réussi localement | 66 840 678 octets, SHA-256 dans `TESTING.md` |
 | Installation de remplacement sur ce PC | Réussi localement | deux passes, une entrée, Program Files, notices, raccourci et démarrage vérifiés |
-| GitHub Actions Windows et macOS | Réussi sur le commit de livraison | runs `29167796316` et `29167796298` |
-| Scan NuGet vulnérable | Réussi localement | aucun package vulnérable signalé dans quatre projets |
-| Publication GitHub | Réussie | `main`, tag de sécurité, tag et Release `v3.07-beta` publiés |
+| GitHub Actions Windows et macOS | En attente de publication | à renseigner avec les runs du commit officiel |
+| Scan NuGet vulnérable | Réussi localement | aucun package vulnérable signalé dans les sept projets |
+| Publication GitHub | En attente | publier `main`, le tag de sécurité, le tag et la Release stable `v3.07` |
 | État Git final | À contrôler après le dernier push documentaire | branche `main` propre |
 
 ## Contrôles fonctionnels locaux déjà couverts
@@ -64,8 +64,8 @@ Aucune case d'import ne doit être marquée comme réussie sans preuve obtenue d
 - [x] l'installateur de remplacement est construit et vérifié ;
 - [x] l'application installée démarre depuis Program Files ;
 - [x] les notices et raccourcis installés sont présents ;
-- [x] le push `main` et le tag de sécurité sont publiés ;
-- [x] les workflows GitHub Actions du commit de livraison sont verts ;
+- [ ] le push `main` et le tag de sécurité sont publiés ;
+- [ ] les workflows GitHub Actions du commit de livraison sont verts ;
 - [x] les limites restantes sont cohérentes avec `KNOWN_LIMITATIONS.md` ;
 - [x] aucune donnée XML de production n'est suivie dans Git.
 

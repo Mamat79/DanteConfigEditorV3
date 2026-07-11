@@ -2,7 +2,50 @@
 
 ## Validation V3.07 officielle
 
-La validation complète de la publication stable sera consignée ici après reconstruction de l'installateur et contrôle de l'application installée.
+Source fonctionnelle testée :
+
+- branche : `main` ;
+- commit : `bdb1de9ae7b6b80342e18d1f2172d83e74b7bc43` ;
+- système : Windows `10.0.26200`, `win-x64` ;
+- .NET SDK `8.0.422`, MSBuild `17.11.48` ;
+- Inno Setup `6.7.3`.
+
+| Étape | Temps | Code retour | Résultat |
+|---|---:|---:|---|
+| Restore application Windows | 1,361 s | 0 | réussi |
+| Restore tests Core | 1,227 s | 0 | réussi |
+| Restore tests UI Mac | 1,288 s | 0 | réussi |
+| Tests Core Release | 13,112 s | 0 | 67 réussis, 0 échec, 0 ignoré |
+| Tests UI Mac Release | 17,712 s | 0 | 7 réussis, 0 échec, 0 ignoré |
+| Build Windows Release | 3,151 s | 0 | 0 warning, 0 erreur |
+| Build interface Mac Release | 1,673 s | 0 | 0 warning, 0 erreur |
+| Publish Windows `win-x64` framework-dependent | 4,366 s | 0 | réussi |
+| Publish Mac autonome `osx-arm64` | 8,217 s | 0 | réussi |
+| Publish Mac autonome `osx-x64` | 7,953 s | 0 | réussi |
+| Installateur Windows autonome | 71,965 s | 0 | réussi, 0 erreur Inno Setup |
+| Installation puis mise à niveau de contrôle | 18,732 s | 0 | deux passages, une seule installation conservée |
+
+Installateur validé :
+
+- fichier : `dist/DanteConfigEditorV3_Installer.exe` ;
+- version : `3.07` ;
+- taille : `66 840 678` octets ;
+- SHA-256 : `9F052C09391A274A044B44336C86893967FA64F10C8867266353A3E0AA352CCF` ;
+- signature Authenticode : absente (`NotSigned`).
+
+Installation vérifiée :
+
+- dossier : `C:\Program Files\Dante Config Editor V3\` ;
+- entrée de désinstallation : `Dante Config Editor V3.07 version 3.07` ;
+- version de fichier : `3.7.0.0` ;
+- SHA-256 de l'exécutable installé : `13B8FD4F6C2CF489C9A05FC78F885E36EB5C9F9F3C0867E12A516BA9C164A324` ;
+- deux passages de l'installateur conservent une seule installation V3 ;
+- démarrage réel réussi, titre `Dante Config Editor V3.07` ;
+- fixture anonymisée ouverte : 3 devices, 3 TX, 4 RX, 3 patchs actifs ;
+- modes Simple et Expert contrôlés : le mode Expert affiche bien les colonnes techniques supplémentaires ;
+- fermeture propre après le contrôle.
+
+Le scan `dotnet list package --vulnerable --include-transitive`, rejoué après restauration sur les sept projets du dépôt, ne signale aucun package vulnérable avec les sources NuGet du 2026-07-11. Les workflows GitHub Actions de cette publication sont contrôlés séparément avant la création de la Release stable. Aucun import Dante Controller n'a été exécuté pendant cette validation.
 
 ## Validation de la V3.07 Beta du 2026-07-11
 
