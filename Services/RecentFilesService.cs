@@ -6,8 +6,8 @@ public static class RecentFilesService
 {
     private const int MaxRecentFiles = 8;
 
-    // Stockage volontairement simple : un fichier texte dans le profil Windows
-    // de l'utilisateur, pas dans le dossier d'installation.
+    // Stockage volontairement simple : un fichier texte dans le profil local
+    // de l'utilisateur, jamais dans le dossier d'installation de l'application.
     private static readonly string RecentFilesPath = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
         "DanteConfigEditorV3",

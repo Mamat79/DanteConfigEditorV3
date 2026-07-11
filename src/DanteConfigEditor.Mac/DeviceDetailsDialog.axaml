@@ -1,0 +1,74 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="DanteConfigEditor.Mac.DeviceDetailsDialog"
+        Width="920"
+        Height="720"
+        MinWidth="760"
+        MinHeight="580"
+        ShowInTaskbar="False"
+        WindowStartupLocation="CenterOwner"
+        Background="{DynamicResource AppBackgroundBrush}">
+    <Grid RowDefinitions="Auto,Auto,*,Auto" Margin="18" RowSpacing="12">
+        <TextBlock x:Name="DeviceTitleText" FontSize="21" FontWeight="Bold" />
+
+        <Border Grid.Row="1" Classes="panel">
+            <Grid ColumnDefinitions="1.2*,*,*,*" RowDefinitions="Auto,Auto,Auto" ColumnSpacing="10" RowSpacing="8">
+                <StackPanel Grid.Row="0" Grid.Column="0" Spacing="3">
+                    <TextBlock x:Name="NameLabel" Text="Nom machine" Classes="muted" />
+                    <TextBox x:Name="NameTextBox" />
+                </StackPanel>
+                <StackPanel Grid.Row="0" Grid.Column="1" Spacing="3">
+                    <TextBlock x:Name="NetworkLabel" Text="Mode réseau" Classes="muted" />
+                    <ComboBox x:Name="NetworkCombo" />
+                </StackPanel>
+                <StackPanel Grid.Row="0" Grid.Column="2" Spacing="3">
+                    <TextBlock x:Name="LatencyLabel" Text="Latence unicast" Classes="muted" />
+                    <ComboBox x:Name="LatencyCombo" />
+                </StackPanel>
+                <CheckBox x:Name="PreferredCheckBox" Grid.Row="0" Grid.Column="3" Content="Preferred master" VerticalAlignment="Bottom" Margin="0,0,0,6" />
+
+                <StackPanel Grid.Row="1" Grid.Column="0" Spacing="3">
+                    <TextBlock x:Name="SampleRateLabel" Text="Sample rate" Classes="muted" />
+                    <ComboBox x:Name="SampleRateCombo" />
+                </StackPanel>
+                <StackPanel Grid.Row="1" Grid.Column="1" Spacing="3">
+                    <TextBlock x:Name="BitsLabel" Text="Bits par échantillon" Classes="muted" />
+                    <ComboBox x:Name="BitsCombo" />
+                </StackPanel>
+                <StackPanel Grid.Row="1" Grid.Column="2" Spacing="3">
+                    <TextBlock x:Name="IpModeLabel" Text="Mode IP" Classes="muted" />
+                    <ComboBox x:Name="IpModeCombo" SelectionChanged="IpModeCombo_SelectionChanged" />
+                </StackPanel>
+
+                <TextBox x:Name="IpAddressTextBox" Grid.Row="2" Grid.Column="0" Watermark="Adresse IP" />
+                <TextBox x:Name="NetmaskTextBox" Grid.Row="2" Grid.Column="1" Watermark="Masque" />
+                <TextBox x:Name="GatewayTextBox" Grid.Row="2" Grid.Column="2" Watermark="Passerelle" />
+            </Grid>
+        </Border>
+
+        <TabControl Grid.Row="2">
+            <TabItem x:Name="TxTab" Header="TX">
+                <DataGrid x:Name="TxGrid" AutoGenerateColumns="False" IsReadOnly="False">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="#" Binding="{Binding DanteId}" IsReadOnly="True" Width="100" />
+                        <DataGridTextColumn Header="Nom" Binding="{Binding Name, Mode=TwoWay}" Width="*" />
+                    </DataGrid.Columns>
+                </DataGrid>
+            </TabItem>
+            <TabItem x:Name="RxTab" Header="RX">
+                <DataGrid x:Name="RxGrid" AutoGenerateColumns="False" IsReadOnly="False">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="#" Binding="{Binding DanteId}" IsReadOnly="True" Width="100" />
+                        <DataGridTextColumn Header="Nom" Binding="{Binding Name, Mode=TwoWay}" Width="*" />
+                    </DataGrid.Columns>
+                </DataGrid>
+            </TabItem>
+        </TabControl>
+
+        <Grid Grid.Row="3" ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8">
+            <TextBlock x:Name="HintText" Classes="muted" VerticalAlignment="Center" Text="Les changements seront appliqués au XML après validation." />
+            <Button x:Name="CancelButton" Grid.Column="1" MinWidth="100" Click="CancelButton_Click">Annuler</Button>
+            <Button x:Name="ApplyButton" Grid.Column="2" Classes="primary" MinWidth="100" Click="ApplyButton_Click">Appliquer</Button>
+        </Grid>
+    </Grid>
+</Window>

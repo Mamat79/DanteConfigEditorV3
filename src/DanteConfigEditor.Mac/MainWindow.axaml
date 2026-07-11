@@ -1,0 +1,355 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        d:DesignWidth="1500"
+        d:DesignHeight="930"
+        x:Class="DanteConfigEditor.Mac.MainWindow"
+        Title="Dante Config Editor V3.06 Beta - macOS"
+        Width="1500"
+        Height="930"
+        MinWidth="1120"
+        MinHeight="720"
+        WindowStartupLocation="CenterScreen">
+    <Grid RowDefinitions="Auto,*,Auto">
+        <Border Background="{DynamicResource PanelBrush}"
+                BorderBrush="{DynamicResource PanelBorderBrush}"
+                BorderThickness="0,0,0,1"
+                Padding="14,10">
+            <Grid RowDefinitions="Auto,Auto" RowSpacing="8">
+                <Grid Grid.Row="0" ColumnDefinitions="*,Auto,Auto,120,Auto" ColumnSpacing="10">
+                    <StackPanel VerticalAlignment="Center">
+                    <TextBlock Text="Dante Config Editor V3.06 Beta" FontSize="20" FontWeight="Bold" />
+                    <TextBlock x:Name="FilePathText" Classes="muted" Text="Aucun fichier ouvert" TextTrimming="CharacterEllipsis" />
+                    </StackPanel>
+                    <TextBlock x:Name="DirtyStateText" Grid.Column="1" VerticalAlignment="Center" Foreground="{DynamicResource MutedTextBrush}" Text="Non modifié" />
+                    <TextBlock Grid.Column="2" VerticalAlignment="Center" Text="Langue" Classes="muted" />
+                    <ComboBox x:Name="LanguageCombo" Grid.Column="3" SelectionChanged="LanguageCombo_SelectionChanged">
+                        <ComboBoxItem Tag="fr">Français</ComboBoxItem>
+                        <ComboBoxItem Tag="en">English</ComboBoxItem>
+                    </ComboBox>
+                    <Button x:Name="ThemeButton" Grid.Column="4" Click="ThemeButton_Click">Thème clair</Button>
+                </Grid>
+
+                <Grid Grid.Row="1" ColumnDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,240,Auto,*" ColumnSpacing="8">
+                    <Button x:Name="OpenButton" Grid.Column="0" Classes="primary" Click="OpenButton_Click" ToolTip.Tip="Charge un export XML Dante Controller.">Ouvrir XML</Button>
+                    <Button x:Name="MergeButton" Grid.Column="1" Click="MergeButton_Click" ToolTip.Tip="Ajoute les machines d'un autre XML au projet ouvert.">Ajouter XML</Button>
+                    <Button x:Name="SaveButton" Grid.Column="2" Classes="primary" Click="SaveButton_Click">Enregistrer sous</Button>
+                    <Button x:Name="EditButton" Grid.Column="3" Click="EditButton_Click">Activer l'édition</Button>
+                    <Button x:Name="UndoButton" Grid.Column="4" Click="UndoButton_Click">Annuler action</Button>
+                    <Button x:Name="RevertButton" Grid.Column="5" Click="RevertButton_Click">Annuler les changements</Button>
+                    <ComboBox x:Name="RecentCombo" Grid.Column="6" PlaceholderText="Fichiers récents" />
+                    <Button x:Name="OpenRecentButton" Grid.Column="7" Click="OpenRecentButton_Click">Ouvrir récent</Button>
+                </Grid>
+            </Grid>
+        </Border>
+
+        <Grid Grid.Row="1" ColumnDefinitions="200,*">
+            <Border x:Name="ProjectSidebar"
+                    Grid.Column="0"
+                    Background="{DynamicResource PanelBrush}"
+                    BorderBrush="{DynamicResource PanelBorderBrush}"
+                    BorderThickness="0,0,1,0"
+                    Padding="14">
+                <Grid RowDefinitions="Auto,Auto,Auto,*,Auto">
+                    <StackPanel>
+                        <TextBlock Classes="section" Text="Projet" />
+                        <TextBlock x:Name="ProjectSummaryText" Classes="muted" Text="Chargez un XML pour commencer." TextWrapping="Wrap" />
+                    </StackPanel>
+
+                    <Border x:Name="WarningBorder"
+                            Grid.Row="1"
+                            Margin="0,14,0,0"
+                            Padding="10"
+                            CornerRadius="5"
+                            BorderBrush="{DynamicResource WarningBrush}"
+                            BorderThickness="1"
+                            IsVisible="False">
+                        <TextBlock x:Name="WarningText" TextWrapping="Wrap" />
+                    </Border>
+
+                    <StackPanel Grid.Row="2" Margin="0,16,0,0" Spacing="6">
+                        <TextBlock Text="Recherche" FontWeight="SemiBold" />
+                        <TextBox x:Name="SearchTextBox" Watermark="Machine ou canal" TextChanged="SearchTextBox_TextChanged" />
+                        <ComboBox x:Name="DeviceFilterCombo" SelectionChanged="DeviceFilterCombo_SelectionChanged">
+                            <ComboBoxItem Tag="all">Toutes</ComboBoxItem>
+                            <ComboBoxItem Tag="modified">Modifiées uniquement</ComboBoxItem>
+                            <ComboBoxItem Tag="static">IP fixes</ComboBoxItem>
+                            <ComboBoxItem Tag="preferred">Preferred masters</ComboBoxItem>
+                            <ComboBoxItem Tag="redundant">Redondantes</ComboBoxItem>
+                            <ComboBoxItem Tag="daisychain">Daisychain</ComboBoxItem>
+                        </ComboBox>
+                    </StackPanel>
+
+                    <Border Grid.Row="3" Classes="panel" Margin="0,16,0,0" VerticalAlignment="Top">
+                        <TextBlock Classes="muted"
+                                   Text="Mode hors ligne : l'application modifie uniquement les fichiers XML chargés. Elle ne se connecte pas au réseau Dante."
+                                   TextWrapping="Wrap"
+                                   LineHeight="19" />
+                    </Border>
+
+                    <TextBlock Grid.Row="4" Text="By Mamat" HorizontalAlignment="Center" Classes="muted" Margin="0,12,0,0" />
+                </Grid>
+            </Border>
+
+            <TabControl x:Name="MainTabs" Grid.Column="1" Margin="14">
+                <TabItem x:Name="ConfigurationTab" Header="Configuration">
+                    <Grid RowDefinitions="Auto,*" RowSpacing="12" Margin="0,12,0,0">
+                        <Grid Grid.Row="0" ColumnDefinitions="1.05*,1.05*,0.9*" ColumnSpacing="12" Height="385">
+                            <Border Grid.Column="0" Classes="panel">
+                                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                    <StackPanel Spacing="8">
+                                        <TextBlock Classes="section" Text="Machine sélectionnée" />
+                                        <TextBlock x:Name="SelectedDeviceNameText" FontSize="17" FontWeight="SemiBold" Text="-" />
+
+                                        <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto,Auto" ColumnSpacing="10" RowSpacing="8">
+                                            <StackPanel Grid.Row="0" Grid.Column="0" Spacing="3">
+                                                <TextBlock Text="Nouveau nom" Classes="muted" />
+                                                <TextBox x:Name="DeviceNameTextBox" />
+                                            </StackPanel>
+                                            <StackPanel Grid.Row="0" Grid.Column="1" Spacing="3">
+                                                <TextBlock Text="Mode réseau" Classes="muted" />
+                                                <ComboBox x:Name="NetworkModeCombo" />
+                                            </StackPanel>
+                                            <StackPanel Grid.Row="1" Grid.Column="0" Spacing="3">
+                                                <TextBlock Text="Latence unicast" Classes="muted" />
+                                                <ComboBox x:Name="LatencyCombo" />
+                                            </StackPanel>
+                                            <StackPanel Grid.Row="1" Grid.Column="1" Spacing="3">
+                                                <TextBlock Text="Sample rate" Classes="muted" />
+                                                <ComboBox x:Name="SampleRateCombo" />
+                                            </StackPanel>
+                                            <StackPanel Grid.Row="2" Grid.Column="0" Spacing="3">
+                                                <TextBlock Text="Bits par échantillon" Classes="muted" />
+                                                <ComboBox x:Name="BitsCombo" />
+                                            </StackPanel>
+                                            <CheckBox x:Name="PreferredCheckBox" Grid.Row="2" Grid.Column="1" Content="Preferred master" VerticalAlignment="Bottom" Margin="0,0,0,6" />
+                                            <StackPanel Grid.Row="3" Grid.Column="0" Spacing="3">
+                                                <TextBlock Text="Mode IP" Classes="muted" />
+                                                <ComboBox x:Name="IpModeCombo" SelectionChanged="IpModeCombo_SelectionChanged" />
+                                            </StackPanel>
+                                            <StackPanel Grid.Row="3" Grid.Column="1" Spacing="3">
+                                                <TextBlock Text="Adresse IP" Classes="muted" />
+                                                <TextBox x:Name="IpAddressTextBox" />
+                                            </StackPanel>
+                                        </Grid>
+
+                                        <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                                            <TextBox x:Name="NetmaskTextBox" Watermark="Masque" />
+                                            <TextBox x:Name="GatewayTextBox" Grid.Column="1" Watermark="Passerelle" />
+                                        </Grid>
+
+                                        <WrapPanel Orientation="Horizontal" HorizontalAlignment="Left">
+                                            <Button x:Name="ApplyDeviceButton" Classes="primary" Margin="0,0,8,8" Click="ApplyDeviceButton_Click">Appliquer les paramètres</Button>
+                                            <Button x:Name="DeviceDetailsButton" Margin="0,0,8,8" Click="DeviceDetailsButton_Click">Détail machine</Button>
+                                            <Button x:Name="ResetRxTxButton" Margin="0,0,8,8" Click="ResetRxTxButton_Click">Reset patch RX/TX</Button>
+                                            <Button x:Name="ResetRxButton" Margin="0,0,8,8" Click="ResetRxButton_Click">Reset RX</Button>
+                                            <Button x:Name="ResetTxButton" Margin="0,0,8,8" Click="ResetTxButton_Click">Reset TX</Button>
+                                            <Button x:Name="DeleteDeviceButton" Classes="danger" Margin="0,0,8,8" Click="DeleteDeviceButton_Click">Supprimer</Button>
+                                        </WrapPanel>
+                                    </StackPanel>
+                                </ScrollViewer>
+                            </Border>
+
+                            <Border Grid.Column="1" Classes="panel">
+                                <StackPanel Spacing="8">
+                                    <TextBlock Classes="section" Text="Canaux de la machine" />
+                                    <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
+                                        <ComboBox x:Name="ChannelKindCombo" SelectionChanged="ChannelKindCombo_SelectionChanged">
+                                            <ComboBoxItem Tag="tx">TX</ComboBoxItem>
+                                            <ComboBoxItem Tag="rx">RX</ComboBoxItem>
+                                        </ComboBox>
+                                        <ComboBox x:Name="ChannelCombo" Grid.Column="1" SelectionChanged="ChannelCombo_SelectionChanged" />
+                                    </Grid>
+                                    <TextBox x:Name="ChannelNameTextBox" Watermark="Nouveau nom de canal" />
+                                    <Button x:Name="RenameChannelButton" Classes="primary" HorizontalAlignment="Left" Click="RenameChannelButton_Click">Renommer le canal</Button>
+
+                                    <Border Height="1" Background="{DynamicResource PanelBorderBrush}" Margin="0,4" />
+                                    <TextBlock Text="Renommage en série" FontWeight="SemiBold" />
+                                    <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
+                                        <ComboBox x:Name="StartChannelCombo" PlaceholderText="Canal début" />
+                                        <ComboBox x:Name="EndChannelCombo" Grid.Column="1" PlaceholderText="Canal fin" />
+                                    </Grid>
+                                    <Grid ColumnDefinitions="*,90" ColumnSpacing="8">
+                                        <TextBox x:Name="BatchPrefixTextBox" Watermark="Préfixe ou modèle HF {00}" />
+                                        <TextBox x:Name="BatchNumberTextBox" Grid.Column="1" Text="1" Watermark="Numéro" />
+                                    </Grid>
+                                    <Button x:Name="BatchRenameButton" Classes="primary" Click="BatchRenameButton_Click">Renommer la série</Button>
+                                    <Button x:Name="ResetDeviceChannelsButton" Click="ResetDeviceChannelsButton_Click">Réinitialiser les canaux de la machine</Button>
+                                </StackPanel>
+                            </Border>
+
+                            <Border Grid.Column="2" Classes="panel">
+                                <StackPanel Spacing="8">
+                                    <TextBlock Classes="section" Text="Actions globales" />
+                                    <TabControl>
+                                        <TabItem Header="Réseau / audio">
+                                            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                                <StackPanel Spacing="7" Margin="0,8,0,0">
+                                                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                                                        <ComboBox x:Name="GlobalNetworkCombo" />
+                                                        <Button Grid.Column="1" Click="ApplyGlobalNetworkButton_Click">Appliquer</Button>
+                                                    </Grid>
+                                                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                                                        <ComboBox x:Name="GlobalLatencyCombo" />
+                                                        <Button Grid.Column="1" Click="ApplyGlobalLatencyButton_Click">Appliquer</Button>
+                                                    </Grid>
+                                                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                                                        <ComboBox x:Name="GlobalSampleRateCombo" />
+                                                        <Button Grid.Column="1" Click="ApplyGlobalSampleRateButton_Click">Appliquer</Button>
+                                                    </Grid>
+                                                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                                                        <ComboBox x:Name="GlobalBitsCombo" />
+                                                        <Button Grid.Column="1" Click="ApplyGlobalBitsButton_Click">Appliquer</Button>
+                                                    </Grid>
+                                                    <Button Click="ResetAllChannelsButton_Click">Réinitialiser tous les canaux</Button>
+                                                </StackPanel>
+                                            </ScrollViewer>
+                                        </TabItem>
+                                        <TabItem Header="IP">
+                                            <StackPanel Spacing="8" Margin="0,8,0,0">
+                                                <Button Click="GlobalIpAutoButton_Click">Mettre toutes les IP en automatique</Button>
+                                                <TextBox x:Name="GlobalIpPrefixTextBox" Text="192.168.1" Watermark="Préfixe IP" />
+                                                <TextBox x:Name="GlobalIpStartTextBox" Text="10" Watermark="Premier numéro" />
+                                                <TextBox x:Name="GlobalNetmaskTextBox" Text="255.255.255.0" Watermark="Masque" />
+                                                <TextBox x:Name="GlobalGatewayTextBox" Text="0.0.0.0" Watermark="Passerelle" />
+                                                <Button Classes="primary" Click="GlobalStaticIpButton_Click">Fixer les IP en série</Button>
+                                            </StackPanel>
+                                        </TabItem>
+                                        <TabItem Header="Profils">
+                                            <StackPanel Spacing="8" Margin="0,8,0,0">
+                                                <TextBlock Text="Profil rapide" Classes="muted" />
+                                                <ComboBox x:Name="ProfileCombo" />
+                                                <Button Classes="primary" Click="ApplyProfileButton_Click">Appliquer le profil à toutes</Button>
+                                            </StackPanel>
+                                        </TabItem>
+                                    </TabControl>
+                                </StackPanel>
+                            </Border>
+                        </Grid>
+
+                        <DataGrid x:Name="DeviceGrid"
+                                  Grid.Row="1"
+                                  AutoGenerateColumns="False"
+                                  IsReadOnly="True"
+                                  SelectionMode="Extended"
+                                  SelectionChanged="DeviceGrid_SelectionChanged"
+                                  DoubleTapped="DeviceGrid_DoubleTapped">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Machine" Binding="{Binding Name}" Width="1.5*" />
+                                <DataGridTextColumn Header="Friendly name" Binding="{Binding FriendlyName}" Width="1.5*" />
+                                <DataGridTextColumn Header="Réseau" Binding="{Binding Network}" Width="*" />
+                                <DataGridTextColumn Header="Latence" Binding="{Binding Latency}" Width="*" />
+                                <DataGridTextColumn Header="Sample rate" Binding="{Binding SampleRate}" Width="*" />
+                                <DataGridTextColumn Header="Bits" Binding="{Binding Bits}" Width="0.7*" />
+                                <DataGridTextColumn Header="IP" Binding="{Binding Ip}" Width="1.2*" />
+                                <DataGridCheckBoxColumn Header="Preferred" Binding="{Binding PreferredMaster}" Width="0.8*" />
+                                <DataGridTextColumn Header="TX" Binding="{Binding Tx}" Width="0.6*" />
+                                <DataGridTextColumn Header="RX" Binding="{Binding Rx}" Width="0.6*" />
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </Grid>
+                </TabItem>
+
+                <TabItem x:Name="PatchTab" Header="Patch">
+                    <Grid RowDefinitions="Auto,*" RowSpacing="12" Margin="0,12,0,0">
+                        <Border Classes="panel">
+                            <Grid ColumnDefinitions="220,180,*,*,Auto,Auto" ColumnSpacing="8">
+                                <TextBox x:Name="PatchSearchTextBox" Watermark="Recherche device ou canal" TextChanged="PatchSearchTextBox_TextChanged" />
+                                <ComboBox x:Name="PatchStatusCombo" Grid.Column="1" SelectionChanged="PatchStatusCombo_SelectionChanged">
+                                    <ComboBoxItem Tag="all">Tous les RX</ComboBoxItem>
+                                    <ComboBoxItem Tag="active">Patchs actifs</ComboBoxItem>
+                                    <ComboBoxItem Tag="free">RX libres</ComboBoxItem>
+                                    <ComboBoxItem Tag="warnings">Warnings / conflits</ComboBoxItem>
+                                </ComboBox>
+                                <ComboBox x:Name="SourceDeviceCombo" Grid.Column="2" PlaceholderText="Source TX à appliquer" SelectionChanged="SourceDeviceCombo_SelectionChanged" />
+                                <ComboBox x:Name="SourceChannelCombo" Grid.Column="3" PlaceholderText="Canal TX à appliquer" />
+                                <Button x:Name="ApplyPatchButton" Grid.Column="4" Classes="primary" Click="ApplyPatchButton_Click">Appliquer</Button>
+                                <Button x:Name="RemovePatchButton" Grid.Column="5" Click="RemovePatchButton_Click">Supprimer</Button>
+                            </Grid>
+                        </Border>
+
+                        <DataGrid x:Name="PatchGrid" Grid.Row="1" AutoGenerateColumns="False" IsReadOnly="True" SelectionMode="Single">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="RX device" Binding="{Binding RxDevice}" Width="1.2*" />
+                                <DataGridTextColumn Header="RX Dante Id" Binding="{Binding RxDanteId}" Width="0.7*" />
+                                <DataGridTextColumn Header="RX canal" Binding="{Binding RxChannel}" Width="1.2*" />
+                                <DataGridTextColumn Header="TX device" Binding="{Binding TxDevice}" Width="1.2*" />
+                                <DataGridTextColumn Header="TX canal" Binding="{Binding TxChannel}" Width="1.2*" />
+                                <DataGridTextColumn Header="Source complète" Binding="{Binding Source}" Width="1.5*" />
+                                <DataGridTextColumn Header="Type" Binding="{Binding Type}" Width="*" />
+                                <DataGridTextColumn Header="État" Binding="{Binding Status}" Width="*" />
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </Grid>
+                </TabItem>
+
+                <TabItem x:Name="HealthTab" Header="Santé du fichier">
+                    <Grid RowDefinitions="Auto,*" RowSpacing="12" Margin="0,12,0,0">
+                        <Border Classes="panel">
+                            <TextBlock x:Name="HealthSummaryText" Text="Aucun fichier chargé." TextWrapping="Wrap" />
+                        </Border>
+                        <DataGrid x:Name="HealthGrid" Grid.Row="1" AutoGenerateColumns="False" IsReadOnly="True">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Gravité" Binding="{Binding Severity}" Width="0.8*" />
+                                <DataGridTextColumn Header="Catégorie" Binding="{Binding Category}" Width="*" />
+                                <DataGridTextColumn Header="Machine" Binding="{Binding Device}" Width="1.1*" />
+                                <DataGridTextColumn Header="Canal" Binding="{Binding Channel}" Width="1.1*" />
+                                <DataGridTextColumn Header="Message" Binding="{Binding Message}" Width="3*" />
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </Grid>
+                </TabItem>
+
+                <TabItem x:Name="SafetyTab" Header="Sécurité et journal">
+                    <Grid RowDefinitions="Auto,*" RowSpacing="12" Margin="0,12,0,0">
+                        <Border Classes="panel">
+                            <WrapPanel Orientation="Horizontal">
+                                <Button Margin="0,0,8,8" Classes="primary" Click="ValidateButton_Click">Vérifier le fichier</Button>
+                                <Button Margin="0,0,8,8" Click="CompatibilityButton_Click">Rapport compatibilité Dante Controller</Button>
+                                <Button Margin="0,0,8,8" Click="FinalReportButton_Click">Rapport final avant Dante</Button>
+                                <Button Margin="0,0,8,8" Click="CompareButton_Click">Comparer XML</Button>
+                                <Button Margin="0,0,8,8" Click="ExportTxtButton_Click">Exporter TXT</Button>
+                                <Button Margin="0,0,8,8" Click="ExportPdfButton_Click">Exporter PDF</Button>
+                                <Button Margin="0,0,8,8" Click="PatchbookTxtButton_Click">Patchbook TXT</Button>
+                                <Button Margin="0,0,8,8" Click="PatchbookCsvButton_Click">Patchbook CSV</Button>
+                                <Button Margin="0,0,8,8" Click="TopologyButton_Click">Topologie simple</Button>
+                                <Button Margin="0,0,8,8" Click="QuickStartButton_Click">Quick start</Button>
+                                <Button Margin="0,0,8,8" Click="FullGuideButton_Click">Notice complète</Button>
+                            </WrapPanel>
+                        </Border>
+
+                        <Grid Grid.Row="1" ColumnDefinitions="2*,*" ColumnSpacing="12">
+                            <TextBox x:Name="ReportTextBox"
+                                     AcceptsReturn="True"
+                                     IsReadOnly="True"
+                                     TextWrapping="NoWrap"
+                                     FontFamily="Menlo,Consolas,monospace"
+                                     ScrollViewer.VerticalScrollBarVisibility="Auto"
+                                     ScrollViewer.HorizontalScrollBarVisibility="Auto" />
+                            <Border Grid.Column="1" Classes="panel">
+                                <Grid RowDefinitions="Auto,*">
+                                    <TextBlock Classes="section" Text="Journal" />
+                                    <ListBox x:Name="LogListBox" Grid.Row="1" />
+                                </Grid>
+                            </Border>
+                        </Grid>
+                    </Grid>
+                </TabItem>
+            </TabControl>
+        </Grid>
+
+        <Border Grid.Row="2"
+                Background="{DynamicResource PanelBrush}"
+                BorderBrush="{DynamicResource PanelBorderBrush}"
+                BorderThickness="0,1,0,0"
+                Padding="8,4">
+            <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="12">
+                <TextBlock x:Name="StatusText" Text="Prêt" />
+                <TextBlock x:Name="ModeText" Grid.Column="1" Text="Mode : Lecture seule" Classes="muted" />
+                <TextBlock x:Name="CountText" Grid.Column="2" Text="0 device - 0 TX - 0 RX" Classes="muted" />
+            </Grid>
+        </Border>
+    </Grid>
+</Window>

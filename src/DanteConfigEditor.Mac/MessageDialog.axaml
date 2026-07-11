@@ -1,0 +1,25 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="DanteConfigEditor.Mac.MessageDialog"
+        Width="560"
+        SizeToContent="Height"
+        MaxHeight="620"
+        CanResize="False"
+        ShowInTaskbar="False"
+        WindowStartupLocation="CenterOwner"
+        Background="{DynamicResource AppBackgroundBrush}">
+    <Grid RowDefinitions="Auto,Auto" Margin="18">
+        <Border Classes="panel">
+            <StackPanel Spacing="12">
+                <TextBlock x:Name="DialogTitleText" FontSize="18" FontWeight="SemiBold" />
+                <ScrollViewer MaxHeight="420" VerticalScrollBarVisibility="Auto">
+                    <TextBlock x:Name="DialogMessageText" TextWrapping="Wrap" LineHeight="21" />
+                </ScrollViewer>
+            </StackPanel>
+        </Border>
+        <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8" Margin="0,14,0,0">
+            <Button x:Name="SecondaryButton" MinWidth="110" Click="SecondaryButton_Click" />
+            <Button x:Name="PrimaryButton" Classes="primary" MinWidth="110" Click="PrimaryButton_Click" />
+        </StackPanel>
+    </Grid>
+</Window>

@@ -1,0 +1,39 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <AssemblyName>DanteConfigEditorV3.Mac</AssemblyName>
+    <RootNamespace>DanteConfigEditor.Mac</RootNamespace>
+    <Version>3.6.0</Version>
+    <AssemblyVersion>3.6.0.0</AssemblyVersion>
+    <FileVersion>3.6.0.0</FileVersion>
+    <InformationalVersion>3.06-beta-macos</InformationalVersion>
+    <RuntimeIdentifiers>osx-arm64;osx-x64;win-x64</RuntimeIdentifiers>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia" Version="11.3.13" />
+    <PackageReference Include="Avalonia.Controls.DataGrid" Version="11.3.13" />
+    <PackageReference Include="Avalonia.Desktop" Version="11.3.13" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="11.3.13" />
+    <PackageReference Include="Avalonia.Fonts.Inter" Version="11.3.13" />
+    <PackageReference Include="Avalonia.Diagnostics" Version="11.3.13">
+      <IncludeAssets Condition="'$(Configuration)' != 'Debug'">None</IncludeAssets>
+      <PrivateAssets Condition="'$(Configuration)' != 'Debug'">All</PrivateAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\DanteConfigEditor.Core\DanteConfigEditor.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\..\docs\QuickStart_DanteConfigEditorV3_FR.pdf" Link="Docs\QuickStart_DanteConfigEditorV3_FR.pdf" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\docs\QuickStart_DanteConfigEditorV3_EN.pdf" Link="Docs\QuickStart_DanteConfigEditorV3_EN.pdf" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\docs\Notice_DanteConfigEditorV3_FR.pdf" Link="Docs\Notice_DanteConfigEditorV3_FR.pdf" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\docs\Notice_DanteConfigEditorV3_EN.pdf" Link="Docs\Notice_DanteConfigEditorV3_EN.pdf" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>

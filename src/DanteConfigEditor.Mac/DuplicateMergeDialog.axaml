@@ -1,0 +1,37 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="DanteConfigEditor.Mac.DuplicateMergeDialog"
+        Width="760"
+        Height="540"
+        MinWidth="620"
+        MinHeight="420"
+        ShowInTaskbar="False"
+        WindowStartupLocation="CenterOwner"
+        Background="{DynamicResource AppBackgroundBrush}">
+    <Grid RowDefinitions="Auto,*,Auto" Margin="18">
+        <StackPanel Spacing="6" Margin="0,0,0,12">
+            <TextBlock x:Name="TitleText" FontSize="18" FontWeight="SemiBold" />
+            <TextBlock x:Name="IntroText" Classes="muted" TextWrapping="Wrap" />
+        </StackPanel>
+
+        <DataGrid x:Name="DuplicateGrid"
+                  Grid.Row="1"
+                  AutoGenerateColumns="False"
+                  CanUserResizeColumns="True"
+                  IsReadOnly="False">
+            <DataGrid.Columns>
+                <DataGridTextColumn Binding="{Binding OriginalName}" IsReadOnly="True" Width="*" />
+                <DataGridTextColumn Binding="{Binding NewName}" Width="*" />
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <Grid Grid.Row="2" ColumnDefinitions="*,Auto" Margin="0,14,0,0">
+            <Button x:Name="UniqueOnlyButton" HorizontalAlignment="Left" Click="UniqueOnlyButton_Click" />
+            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
+                <Button x:Name="CancelButton" MinWidth="95" Click="CancelButton_Click" />
+                <Button x:Name="AutoButton" MinWidth="130" Click="AutoButton_Click" />
+                <Button x:Name="ManualButton" Classes="primary" MinWidth="150" Click="ManualButton_Click" />
+            </StackPanel>
+        </Grid>
+    </Grid>
+</Window>
