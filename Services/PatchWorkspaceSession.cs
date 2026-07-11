@@ -12,18 +12,61 @@ public sealed record EffectivePatchAssignment(
     public bool IsActive => !string.IsNullOrWhiteSpace(TxDeviceName);
 }
 
+public enum PatchPreviewAction
+{
+    Create,
+    Replace,
+    Unchanged
+}
+
+public enum PatchConflictResolution
+{
+    Cancel,
+    Skip,
+    Replace
+}
+
+public sealed record PatchPreviewItem(
+    PlannedPatchAssignment Assignment,
+    EffectivePatchAssignment Current,
+    PatchPreviewAction Action);
+
+public sealed record PatchBatchPreview(IReadOnlyList<PatchPreviewItem> Items)
+{
+    public int CreateCount => Items.Count(item => item.Action == PatchPreviewAction.Create);
+
+    public int ReplaceCount => Items.Count(item => item.Action == PatchPreviewAction.Replace);
+
+    public int UnchangedCount => Items.Count(item => item.Action == PatchPreviewAction.Unchanged);
+
+    public bool HasConflicts => ReplaceCount > 0;
+}
+
+public sealed record PatchStageResult(
+    int StagedCount,
+    int SkippedConflictCount,
+    int UnchangedCount,
+    bool IsCancelled);
+
 public sealed class PatchWorkspaceSession
 {
     private readonly Dictionary<PatchTargetKey, PatchSourceValue> _originalAssignments;
     private readonly Dictionary<PatchTargetKey, PatchEditRequest> _pendingEdits = new();
 
-    public PatchWorkspaceSession(IEnumerable<DanteSubscription> subscriptions)
+    public PatchWorkspaceSession(
+        IEnumerable<DanteSubscription> subscriptions,
+        IEnumerable<PatchEditRequest>? initialEdits = null)
     {
         ArgumentNullException.ThrowIfNull(subscriptions);
 
         _originalAssignments = subscriptions.ToDictionary(
             subscription => PatchTargetKey.Create(subscription.RxDevice, subscription.RxDanteId),
             subscription => OriginalSource(subscription));
+
+        if (initialEdits is not null)
+        {
+            LoadInitialEdits(initialEdits);
+        }
     }
 
     public bool HasChanges => _pendingEdits.Count > 0;
@@ -68,6 +111,87 @@ public sealed class PatchWorkspaceSession
             assignment.Source.ChannelName);
     }
 
+    public PatchBatchPreview BuildPreview(IEnumerable<PlannedPatchAssignment> assignments)
+    {
+        ArgumentNullException.ThrowIfNull(assignments);
+        PlannedPatchAssignment[] requested = assignments.ToArray();
+        if (requested.Length == 0)
+        {
+            throw new InvalidOperationException("Aucune affectation à prévisualiser.");
+        }
+
+        PatchTargetKey[] keys = requested
+            .Select(assignment => RequireKnownTarget(assignment.Target))
+            .ToArray();
+        if (keys.Distinct().Count() != keys.Length)
+        {
+            throw new InvalidOperationException("Le même canal RX apparaît plusieurs fois dans le lot.");
+        }
+
+        PatchPreviewItem[] items = requested.Select(assignment =>
+        {
+            EffectivePatchAssignment current = GetEffectiveAssignment(assignment.Target);
+            PatchPreviewAction action = !current.IsActive
+                ? PatchPreviewAction.Create
+                : SameSource(
+                    new PatchSourceValue(current.TxDeviceName, current.TxChannelName),
+                    new PatchSourceValue(assignment.Source.DeviceName, assignment.Source.ChannelName))
+                    ? PatchPreviewAction.Unchanged
+                    : PatchPreviewAction.Replace;
+            return new PatchPreviewItem(assignment, current, action);
+        }).ToArray();
+
+        return new PatchBatchPreview(items);
+    }
+
+    public PatchStageResult StagePreview(PatchBatchPreview preview, PatchConflictResolution conflictResolution)
+    {
+        ArgumentNullException.ThrowIfNull(preview);
+
+        // La prévisualisation est recalculée pour éviter d'appliquer un aperçu
+        // devenu obsolète après une autre action dans la même fenêtre.
+        PatchBatchPreview currentPreview = BuildPreview(preview.Items.Select(item => item.Assignment));
+        if (currentPreview.HasConflicts && conflictResolution == PatchConflictResolution.Cancel)
+        {
+            return new PatchStageResult(0, 0, currentPreview.UnchangedCount, IsCancelled: true);
+        }
+
+        Dictionary<PatchTargetKey, PatchEditRequest> snapshot = new(_pendingEdits);
+        int staged = 0;
+        int skipped = 0;
+        try
+        {
+            foreach (PatchPreviewItem item in currentPreview.Items)
+            {
+                if (item.Action == PatchPreviewAction.Unchanged)
+                {
+                    continue;
+                }
+
+                if (item.Action == PatchPreviewAction.Replace && conflictResolution == PatchConflictResolution.Skip)
+                {
+                    skipped++;
+                    continue;
+                }
+
+                Assign(item.Assignment);
+                staged++;
+            }
+        }
+        catch
+        {
+            _pendingEdits.Clear();
+            foreach ((PatchTargetKey key, PatchEditRequest edit) in snapshot)
+            {
+                _pendingEdits[key] = edit;
+            }
+
+            throw;
+        }
+
+        return new PatchStageResult(staged, skipped, currentPreview.UnchangedCount, IsCancelled: false);
+    }
+
     public SequentialPatchPlan AssignSequential(
         IReadOnlyList<PatchSourceDescriptor> selectedSources,
         IReadOnlyList<PatchTargetDescriptor> availableTargets,
@@ -90,6 +214,45 @@ public sealed class PatchWorkspaceSession
     {
         ArgumentNullException.ThrowIfNull(target);
         SetDesiredSource(target, null, null);
+    }
+
+    public int RemoveMany(IEnumerable<PatchTargetDescriptor> targets)
+    {
+        ArgumentNullException.ThrowIfNull(targets);
+        PatchTargetDescriptor[] requested = targets
+            .GroupBy(target => PatchTargetKey.Create(target.DeviceName, target.DanteId))
+            .Select(group => group.First())
+            .ToArray();
+        if (requested.Length == 0)
+        {
+            throw new InvalidOperationException("Sélectionnez au moins un canal RX à déconnecter.");
+        }
+
+        foreach (PatchTargetDescriptor target in requested)
+        {
+            RequireKnownTarget(target);
+        }
+
+        Dictionary<PatchTargetKey, PatchEditRequest> snapshot = new(_pendingEdits);
+        try
+        {
+            foreach (PatchTargetDescriptor target in requested)
+            {
+                Remove(target);
+            }
+        }
+        catch
+        {
+            _pendingEdits.Clear();
+            foreach ((PatchTargetKey key, PatchEditRequest edit) in snapshot)
+            {
+                _pendingEdits[key] = edit;
+            }
+
+            throw;
+        }
+
+        return requested.Length;
     }
 
     public void Reset()
@@ -118,6 +281,15 @@ public sealed class PatchWorkspaceSession
                 target.DanteId,
                 desired.DeviceName,
                 desired.ChannelName);
+    }
+
+    private void LoadInitialEdits(IEnumerable<PatchEditRequest> initialEdits)
+    {
+        foreach (PatchEditRequest edit in initialEdits)
+        {
+            PatchTargetDescriptor target = new(edit.RxDeviceName, edit.RxDanteId, 0, string.Empty);
+            SetDesiredSource(target, edit.TxDeviceName, edit.TxChannelName);
+        }
     }
 
     private PatchTargetKey RequireKnownTarget(PatchTargetDescriptor target)

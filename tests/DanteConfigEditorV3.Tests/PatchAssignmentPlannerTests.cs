@@ -211,6 +211,205 @@ public sealed class PatchAssignmentPlannerTests
         Assert.Equal("PROGRAM L", subscriptions[1].TxChannelName);
     }
 
+    [Fact]
+    public void SelectionWithEqualCountsMapsOneToOneInSelectionOrder()
+    {
+        PatchSourceDescriptor[] sources = [Source(2, 2, "TX 2"), Source(1, 1, "TX 1")];
+        PatchTargetDescriptor[] targets = [Target(20, 2, "RX 20"), Target(10, 1, "RX 10")];
+
+        PatchAssignmentPlan plan = PatchAssignmentPlanner.PlanSelection(sources, targets);
+
+        Assert.Equal(2, plan.Assignments.Count);
+        Assert.Equal("TX 2", plan.Assignments[0].Source.ChannelName);
+        Assert.Equal(20, plan.Assignments[0].Target.DanteId);
+        Assert.Equal("TX 1", plan.Assignments[1].Source.ChannelName);
+        Assert.Equal(10, plan.Assignments[1].Target.DanteId);
+    }
+
+    [Fact]
+    public void OneTxCanFeedSeveralSelectedRxChannels()
+    {
+        PatchAssignmentPlan plan = PatchAssignmentPlanner.PlanSelection(
+            [Source(1, 1, "TX 1")],
+            [Target(10, 1, "RX 10"), Target(20, 2, "RX 20"), Target(30, 3, "RX 30")]);
+
+        Assert.Equal(3, plan.Assignments.Count);
+        Assert.All(plan.Assignments, assignment => Assert.Equal("TX 1", assignment.Source.ChannelName));
+    }
+
+    [Fact]
+    public void SeveralTxToOneRxIsBlockedWithoutPlan()
+    {
+        InvalidOperationException error = Assert.Throws<InvalidOperationException>(() =>
+            PatchAssignmentPlanner.PlanSelection(
+                [Source(1, 1, "TX 1"), Source(2, 2, "TX 2")],
+                [Target(10, 1, "RX 10")]));
+
+        Assert.Contains("Plusieurs TX", error.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void UnequalMultipleSelectionsAreBlockedWithoutPartialPlan()
+    {
+        Assert.Throws<InvalidOperationException>(() =>
+            PatchAssignmentPlanner.PlanSelection(
+                [Source(1, 1, "TX 1"), Source(2, 2, "TX 2")],
+                [Target(10, 1, "RX 10"), Target(20, 2, "RX 20"), Target(30, 3, "RX 30")]));
+    }
+
+    [Fact]
+    public void RangePlanIsStrictAndNeverReturnsAPartialResult()
+    {
+        PatchSourceDescriptor[] sources = [Source(1, 1, "TX 1"), Source(2, 2, "TX 2")];
+        PatchTargetDescriptor[] targets = [Target(10, 1, "RX 10"), Target(20, 2, "RX 20")];
+
+        PatchAssignmentPlan valid = PatchAssignmentPlanner.PlanRange(sources, sources[0], targets, targets[0], 2);
+        Assert.Equal(2, valid.Assignments.Count);
+
+        Assert.Throws<InvalidOperationException>(() =>
+            PatchAssignmentPlanner.PlanRange(sources, sources[0], targets, targets[0], 3));
+    }
+
+    [Fact]
+    public void PreviewClassifiesCreateReplaceAndUnchangedBeforeStaging()
+    {
+        using TestDirectory directory = new();
+        DanteProject project = DanteProject.Load(directory.CopyFixture("representative-preset.xml"));
+        DanteDevice txDevice = Assert.IsType<DanteDevice>(project.FindDevice("DEVICE-A"));
+        DanteDevice rxB = Assert.IsType<DanteDevice>(project.FindDevice("DEVICE-B"));
+        DanteDevice rxC = Assert.IsType<DanteDevice>(project.FindDevice("DEVICE-C"));
+        PatchWorkspaceSession workspace = new(project.PatchMatrix.Subscriptions);
+
+        PatchBatchPreview preview = workspace.BuildPreview(
+        [
+            new PlannedPatchAssignment(SourceFrom(txDevice.TxChannels[0]), TargetFrom(rxB.RxChannels[0])),
+            new PlannedPatchAssignment(SourceFrom(txDevice.TxChannels[0]), TargetFrom(rxB.RxChannels[1])),
+            new PlannedPatchAssignment(SourceFrom(txDevice.TxChannels[0]), TargetFrom(rxC.RxChannels[0]))
+        ]);
+
+        Assert.Equal(1, preview.UnchangedCount);
+        Assert.Equal(1, preview.ReplaceCount);
+        Assert.Equal(1, preview.CreateCount);
+        Assert.False(workspace.HasChanges);
+    }
+
+    [Theory]
+    [InlineData(PatchConflictResolution.Cancel, 0, 0, true)]
+    [InlineData(PatchConflictResolution.Skip, 1, 1, false)]
+    [InlineData(PatchConflictResolution.Replace, 2, 0, false)]
+    public void ConflictResolutionIsExplicitAndAtomic(
+        PatchConflictResolution resolution,
+        int expectedStaged,
+        int expectedSkipped,
+        bool expectedCancelled)
+    {
+        using TestDirectory directory = new();
+        DanteProject project = DanteProject.Load(directory.CopyFixture("representative-preset.xml"));
+        DanteDevice txDevice = Assert.IsType<DanteDevice>(project.FindDevice("DEVICE-A"));
+        DanteDevice rxB = Assert.IsType<DanteDevice>(project.FindDevice("DEVICE-B"));
+        DanteDevice rxC = Assert.IsType<DanteDevice>(project.FindDevice("DEVICE-C"));
+        PatchWorkspaceSession workspace = new(project.PatchMatrix.Subscriptions);
+        PatchBatchPreview preview = workspace.BuildPreview(
+        [
+            new PlannedPatchAssignment(SourceFrom(txDevice.TxChannels[1]), TargetFrom(rxB.RxChannels[0])),
+            new PlannedPatchAssignment(SourceFrom(txDevice.TxChannels[1]), TargetFrom(rxC.RxChannels[0]))
+        ]);
+
+        PatchStageResult result = workspace.StagePreview(preview, resolution);
+
+        Assert.Equal(expectedStaged, result.StagedCount);
+        Assert.Equal(expectedSkipped, result.SkippedConflictCount);
+        Assert.Equal(expectedCancelled, result.IsCancelled);
+        Assert.Equal(expectedStaged, workspace.PendingCount);
+    }
+
+    [Fact]
+    public void InvalidStalePreviewLeavesExistingPendingEditsIntact()
+    {
+        using TestDirectory directory = new();
+        DanteProject project = DanteProject.Load(directory.CopyFixture("representative-preset.xml"));
+        DanteDevice rxDevice = Assert.IsType<DanteDevice>(project.FindDevice("DEVICE-B"));
+        PatchWorkspaceSession workspace = new(project.PatchMatrix.Subscriptions);
+        PatchTargetDescriptor existingTarget = TargetFrom(rxDevice.RxChannels[0]);
+        workspace.Remove(existingTarget);
+        PatchBatchPreview invalidPreview = new(
+        [
+            new PatchPreviewItem(
+                new PlannedPatchAssignment(Source(1, 1, "TX"), new PatchTargetDescriptor("UNKNOWN", 999, 0, "RX")),
+                new EffectivePatchAssignment("UNKNOWN", 999, null, null, false),
+                PatchPreviewAction.Create)
+        ]);
+
+        Assert.Throws<InvalidOperationException>(() =>
+            workspace.StagePreview(invalidPreview, PatchConflictResolution.Replace));
+        PatchEditRequest remaining = Assert.Single(workspace.Edits);
+        Assert.Equal(existingTarget.DanteId, remaining.RxDanteId);
+        Assert.True(remaining.IsRemoval);
+    }
+
+    [Fact]
+    public void SeveralSelectedRxChannelsCanBeDisconnectedTogether()
+    {
+        using TestDirectory directory = new();
+        DanteProject project = DanteProject.Load(directory.CopyFixture("representative-preset.xml"));
+        DanteDevice rxDevice = Assert.IsType<DanteDevice>(project.FindDevice("DEVICE-B"));
+        PatchWorkspaceSession workspace = new(project.PatchMatrix.Subscriptions);
+
+        int removed = workspace.RemoveMany(rxDevice.RxChannels.Select(TargetFrom));
+
+        Assert.Equal(2, removed);
+        Assert.Equal(2, workspace.PendingCount);
+        Assert.All(workspace.Edits, edit => Assert.True(edit.IsRemoval));
+    }
+
+    [Fact]
+    public void PendingEditsCanBeReopenedAndPersistedAfterSave()
+    {
+        using TestDirectory directory = new();
+        string sourcePath = directory.CopyFixture("representative-preset.xml");
+        DanteProject project = DanteProject.Load(sourcePath);
+        DanteDevice txDevice = Assert.IsType<DanteDevice>(project.FindDevice("DEVICE-A"));
+        DanteDevice rxDevice = Assert.IsType<DanteDevice>(project.FindDevice("DEVICE-C"));
+        PatchTargetDescriptor target = TargetFrom(rxDevice.RxChannels[0]);
+        PatchEditRequest pending = new(
+            target.DeviceName,
+            target.DanteId,
+            txDevice.Name,
+            txDevice.TxChannels[1].DisplayName);
+        PatchWorkspaceSession reopened = new(project.PatchMatrix.Subscriptions, [pending]);
+
+        Assert.Equal(pending, Assert.Single(reopened.Edits));
+        ApplyEdits(project, reopened.Edits);
+        string destination = Path.Combine(directory.Root, "patched.xml");
+        project.SaveAs(destination);
+
+        DanteProject reloaded = DanteProject.Load(destination);
+        DanteSubscription saved = Assert.Single(
+            reloaded.PatchMatrix.Subscriptions,
+            subscription => subscription.RxDevice == target.DeviceName && subscription.RxDanteId == target.DanteId);
+        Assert.Equal("DEVICE-A", saved.ResolvedTxDeviceName);
+        Assert.Equal("PROGRAM R", saved.TxChannelName);
+        Assert.False(reloaded.ValidateXmlChangeGuard().HasErrors);
+    }
+
+    private static void ApplyEdits(DanteProject project, IEnumerable<PatchEditRequest> edits)
+    {
+        project.ApplyBatch(batch =>
+        {
+            foreach (PatchEditRequest edit in edits)
+            {
+                if (edit.IsRemoval)
+                {
+                    batch.RemovePatch(edit.RxDeviceName, edit.RxDanteId);
+                }
+                else
+                {
+                    batch.ApplyPatch(edit.RxDeviceName, edit.RxDanteId, edit.TxDeviceName!, edit.TxChannelName!);
+                }
+            }
+        });
+    }
+
     private static PatchSourceDescriptor Source(int danteId, int position, string name)
     {
         return new PatchSourceDescriptor("TX-DEVICE", danteId, position, name);
