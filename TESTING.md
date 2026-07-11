@@ -45,7 +45,20 @@ Installation vérifiée :
 - modes Simple et Expert contrôlés : le mode Expert affiche bien les colonnes techniques supplémentaires ;
 - fermeture propre après le contrôle.
 
-Le scan `dotnet list package --vulnerable --include-transitive`, rejoué après restauration sur les sept projets du dépôt, ne signale aucun package vulnérable avec les sources NuGet du 2026-07-11. Les workflows GitHub Actions de cette publication sont contrôlés séparément avant la création de la Release stable. Aucun import Dante Controller n'a été exécuté pendant cette validation.
+Le scan `dotnet list package --vulnerable --include-transitive`, rejoué après restauration sur les sept projets du dépôt, ne signale aucun package vulnérable avec les sources NuGet du 2026-07-11.
+
+CI distante du commit officiel `9ba35639e417cfb26e5249caa6375c94faf026a7` :
+
+- Windows CI, run `29168999560` : réussi, tests, build, publish et artifacts inclus ;
+- macOS CI, run `29168999565` : réussi, tests Core/UI et deux DMG inclus.
+
+Release publique stable : [`v3.07`](https://github.com/Mamat79/DanteConfigEditorV3/releases/tag/v3.07), publiée le 2026-07-11 avec six assets. Les digests GitHub concordent avec les fichiers vérifiés :
+
+- Windows : `9f052c09391a274a044b44336c86893967fa64f10c8867266353a3e0aa352ccf` ;
+- macOS Apple Silicon : `ea560fabe9a6d83da705d9529baa09c4eb74b5351dddc9407dbef40a146fb959` ;
+- macOS Intel : `f6be8875e152fe8b31656a6c679e526c0a09649b8c0bc51e92f3f79ebb44fcdd`.
+
+La Release est non brouillon, non prerelease et déclarée comme dernière version du dépôt. Aucun import Dante Controller n'a été exécuté pendant cette validation.
 
 ## Validation de la V3.07 Beta du 2026-07-11
 

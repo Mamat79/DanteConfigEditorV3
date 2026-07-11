@@ -30,10 +30,10 @@ Un résultat automatisé réussi ne prouve pas la compatibilité avec Dante Cont
 | Publish Mac autonome `osx-arm64` et `osx-x64` | Réussi localement | deux publications produites ; DMG réservé au runner macOS |
 | Construction installateur Inno Setup | Réussi localement | 66 840 678 octets, SHA-256 dans `TESTING.md` |
 | Installation de remplacement sur ce PC | Réussi localement | deux passes, une entrée, Program Files, notices, raccourci et démarrage vérifiés |
-| GitHub Actions Windows et macOS | En attente de publication | à renseigner avec les runs du commit officiel |
+| GitHub Actions Windows et macOS | Réussi sur le commit officiel | runs `29168999560` et `29168999565` |
 | Scan NuGet vulnérable | Réussi localement | aucun package vulnérable signalé dans les sept projets |
-| Publication GitHub | En attente | publier `main`, le tag de sécurité, le tag et la Release stable `v3.07` |
-| État Git final | À contrôler après le dernier push documentaire | branche `main` propre |
+| Publication GitHub | Réussie | `main`, tag de sécurité, tag et Release stable `v3.07` publiés |
+| État Git final | À contrôler après le dernier push documentaire | branche `main` propre attendue |
 
 ## Contrôles fonctionnels locaux déjà couverts
 
@@ -64,8 +64,8 @@ Aucune case d'import ne doit être marquée comme réussie sans preuve obtenue d
 - [x] l'installateur de remplacement est construit et vérifié ;
 - [x] l'application installée démarre depuis Program Files ;
 - [x] les notices et raccourcis installés sont présents ;
-- [ ] le push `main` et le tag de sécurité sont publiés ;
-- [ ] les workflows GitHub Actions du commit de livraison sont verts ;
+- [x] le push `main` et le tag de sécurité sont publiés ;
+- [x] les workflows GitHub Actions du commit de livraison sont verts ;
 - [x] les limites restantes sont cohérentes avec `KNOWN_LIMITATIONS.md` ;
 - [x] aucune donnée XML de production n'est suivie dans Git.
 
