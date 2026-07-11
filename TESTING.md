@@ -47,7 +47,18 @@ Installation vérifiée :
 
 Les quatre projets inspectés par `dotnet list package --vulnerable --include-transitive` ne signalent aucun package vulnérable avec les sources NuGet du jour. Les bundles Mac autonomes sont publiables depuis Windows, mais les DMG exigent macOS et sont construits par le workflow macOS.
 
-La CI distante reste à confirmer après le push. Aucun import Dante Controller n'a été exécuté pendant cette validation locale.
+CI distante du commit de livraison `a9fec0d76154d8a707fce3d8c484ff433f5f544f` :
+
+- Windows CI, run `29167796316` : réussi en 1 min 1 s, tests, build, publish et artifacts inclus ;
+- macOS CI, run `29167796298` : réussi, tests UI/Core et deux DMG inclus.
+
+Release publique : `v3.07-beta`, publiée le 2026-07-11 avec six assets. Les digests GitHub concordent avec les fichiers vérifiés localement :
+
+- Windows : `3d06b9ef344a2153afd67ce8296eeb1fa8edcb75710c2738bb46eef9db5c7fae` ;
+- macOS Apple Silicon : `1e02b6b8a52d919463240e28c1a87c53b4734023f2e3a278b115db2ccb5b6784` ;
+- macOS Intel : `626bd222470d31246ee2b5fe2aff3d2838ec71b10e9566e9c7105e0b9646f37b`.
+
+Aucun import Dante Controller n'a été exécuté pendant cette validation.
 
 ## Baseline historique du 2026-07-11
 
