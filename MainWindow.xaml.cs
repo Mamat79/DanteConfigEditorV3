@@ -1651,6 +1651,71 @@ public partial class MainWindow : Window
             T("Dialog.RemovePatchWarning"));
     }
 
+    private void OpenVisualPatchButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (!EnsureProjectLoaded())
+        {
+            return;
+        }
+
+        if (!_project!.Devices.Any(device => device.TxCount > 0)
+            || !_project.Devices.Any(device => device.RxCount > 0))
+        {
+            ShowError(
+                T("Dialog.ActionImpossibleTitle"),
+                _language == UiLanguage.English
+                    ? "The loaded preset must contain at least one Tx channel and one Rx channel."
+                    : "Le preset chargé doit contenir au moins un canal TX et un canal RX.");
+            return;
+        }
+
+        string? initialTxDevice = SourceDeviceComboBox.SelectedItem as string;
+        string? initialRxDevice = (PatchGrid.SelectedItem as DanteSubscription)?.RxDevice;
+        if (string.IsNullOrWhiteSpace(initialRxDevice)
+            && ReceiverDeviceList.SelectedItem is string receiverName
+            && _project.FindDevice(receiverName)?.RxCount > 0)
+        {
+            initialRxDevice = receiverName;
+        }
+
+        PatchWorkspaceWindow dialog = new(
+            _language,
+            _project,
+            ThemeToggleButton.IsChecked == true,
+            initialTxDevice,
+            initialRxDevice)
+        {
+            Owner = this
+        };
+
+        if (dialog.ShowDialog() != true || dialog.Edits.Count == 0)
+        {
+            return;
+        }
+
+        PatchEditRequest[] edits = dialog.Edits.ToArray();
+        RunProjectAction(
+            Tf("Action.VisualPatchesApplied", edits.Length),
+            () => _project.ApplyBatch(batch =>
+            {
+                foreach (PatchEditRequest edit in edits)
+                {
+                    if (edit.IsRemoval)
+                    {
+                        batch.RemovePatch(edit.RxDeviceName, edit.RxDanteId);
+                    }
+                    else
+                    {
+                        batch.ApplyPatch(
+                            edit.RxDeviceName,
+                            edit.RxDanteId,
+                            edit.TxDeviceName!,
+                            edit.TxChannelName ?? string.Empty);
+                    }
+                }
+            }));
+    }
+
     private void RenamePatchTxChannelButton_Click(object sender, RoutedEventArgs e)
     {
         // Renommer un TX depuis la page Patch passe par la même logique que la
@@ -2885,6 +2950,7 @@ public partial class MainWindow : Window
         yield return ResetAllChannelsButton;
         yield return ApplyPatchButton;
         yield return RemovePatchButton;
+        yield return OpenVisualPatchButton;
         yield return RenamePatchRxChannelButton;
         yield return RenamePatchTxChannelButton;
     }

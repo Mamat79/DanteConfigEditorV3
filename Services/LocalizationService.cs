@@ -104,6 +104,7 @@ public static class LocalizationService
         ["Action.AllChannelsReset"] = "Tous les canaux ont été réinitialisés.",
         ["Action.PatchApplied"] = "Patch appliqué.",
         ["Action.PatchRemoved"] = "Patch supprimé.",
+        ["Action.VisualPatchesApplied"] = "{0} changement(s) de patch visuel appliqué(s).",
         ["Action.TxChannelRenamed"] = "Canal TX renommé et patchs mis à jour.",
         ["Action.RxChannelRenamed"] = "Canal RX renommé.",
         ["Action.DeviceDeleted"] = "Machine supprimée.",
@@ -320,6 +321,7 @@ public static class LocalizationService
         ["Action.AllChannelsReset"] = "All channels have been reset.",
         ["Action.PatchApplied"] = "Subscription applied.",
         ["Action.PatchRemoved"] = "Subscription removed.",
+        ["Action.VisualPatchesApplied"] = "{0} visual subscription change(s) applied.",
         ["Action.TxChannelRenamed"] = "Tx channel renamed and subscriptions updated.",
         ["Action.RxChannelRenamed"] = "Rx channel renamed.",
         ["Action.DeviceDeleted"] = "Device deleted.",
@@ -583,6 +585,7 @@ public static class LocalizationService
         Add(map, "IP", "IP");
         Add(map, "Preferred", "Preferred");
         Add(map, "Patch", "Patch");
+        Add(map, "Patch visuel / grille", "Visual patch / matrix");
         Add(map, "Filtre émetteur TX", "Tx transmitter filter");
         Add(map, "Filtre récepteur RX", "Rx receiver filter");
         Add(map, "Recherche device ou canal", "Search device or channel");
@@ -669,6 +672,7 @@ public static class LocalizationService
         Add(map, "Affiche les panneaux de réglage de la configuration.", "Shows the configuration settings panels.");
         Add(map, "Affiche toutes les différences de machines, canaux et patchs depuis l'ouverture du XML.", "Shows all device, channel, and subscription differences since the XML was opened.");
         Add(map, "Applique en une seule action les formats audio, la latence, l'IP automatique et éventuellement le mode réseau du profil à la cible choisie.", "Applies the profile audio formats, latency, automatic IP, and optional network mode to the selected target in one operation.");
+        Add(map, "Ouvre une vue TX/RX avec glisser-déposer, affectation en série et grille de patch.", "Opens a Tx/Rx view with drag and drop, sequential assignment, and a patch matrix.");
 
         return map;
     }

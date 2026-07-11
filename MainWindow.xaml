@@ -890,6 +890,7 @@
                                     <RowDefinition Height="*" />
                                     <RowDefinition Height="Auto" />
                                     <RowDefinition Height="*" />
+                                    <RowDefinition Height="Auto" />
                                 </Grid.RowDefinitions>
 
                                 <TextBlock Text="Filtre émetteur TX" FontWeight="SemiBold" />
@@ -903,6 +904,12 @@
                                          Grid.Row="3"
                                          SelectionChanged="ReceiverDeviceList_SelectionChanged"
                                          Margin="0,8,0,0" />
+                                <Button x:Name="OpenVisualPatchButton"
+                                        Grid.Row="4"
+                                        Content="Patch visuel / grille"
+                                        Margin="0,12,0,0"
+                                        Click="OpenVisualPatchButton_Click"
+                                        ToolTip="Ouvre une vue TX/RX avec glisser-déposer, affectation en série et grille de patch." />
                             </Grid>
                         </Border>
 

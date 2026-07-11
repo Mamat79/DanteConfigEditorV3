@@ -69,19 +69,22 @@ public static class PatchAssignmentPlanner
             throw new InvalidOperationException("Sélectionnez au moins un canal TX.");
         }
 
-        // Le danteId n'est pas forcément contigu. L'ordre XML, conservé dans
-        // PositionIndex, détermine donc les RX qui suivent réellement.
-        PatchTargetDescriptor[] followingTargets = availableTargets
-            .Where(target => string.Equals(target.DeviceName, firstTarget.DeviceName, StringComparison.OrdinalIgnoreCase))
-            .Where(target => target.PositionIndex >= firstTarget.PositionIndex)
-            .OrderBy(target => target.PositionIndex)
-            .ToArray();
-
-        if (followingTargets.Length == 0
-            || !followingTargets.Any(target => target.DanteId == firstTarget.DanteId))
+        PatchTargetDescriptor? knownFirstTarget = availableTargets.FirstOrDefault(target =>
+            string.Equals(target.DeviceName, firstTarget.DeviceName, StringComparison.OrdinalIgnoreCase)
+            && target.DanteId == firstTarget.DanteId);
+        if (knownFirstTarget is null)
         {
             throw new InvalidOperationException("Le canal RX de départ n'appartient pas à la liste disponible.");
         }
+
+        // Le danteId n'est pas forcément contigu. L'ordre XML, conservé dans
+        // PositionIndex, détermine donc les RX qui suivent réellement. La
+        // position est reprise de la liste connue, jamais d'un objet appelant.
+        PatchTargetDescriptor[] followingTargets = availableTargets
+            .Where(target => string.Equals(target.DeviceName, firstTarget.DeviceName, StringComparison.OrdinalIgnoreCase))
+            .Where(target => target.PositionIndex >= knownFirstTarget.PositionIndex)
+            .OrderBy(target => target.PositionIndex)
+            .ToArray();
 
         int assignmentCount = Math.Min(selectedSources.Count, followingTargets.Length);
         List<PlannedPatchAssignment> assignments = new(assignmentCount);

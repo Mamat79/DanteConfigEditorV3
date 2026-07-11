@@ -99,6 +99,23 @@ public sealed class PatchAssignmentPlannerTests
     }
 
     [Fact]
+    public void PlannerUsesTheKnownXmlPositionForTheStartingRx()
+    {
+        PatchSourceDescriptor[] sources = [Source(1, 1, "TX")];
+        PatchTargetDescriptor[] targets =
+        [
+            Target(10, 1, "RX 10"),
+            Target(30, 2, "RX 30")
+        ];
+        PatchTargetDescriptor callerCopyWithWrongPosition = new("RX-DEVICE", 30, 0, "RX 30");
+
+        SequentialPatchPlan plan = PatchAssignmentPlanner.PlanSequential(sources, targets, callerCopyWithWrongPosition);
+
+        Assert.Single(plan.Assignments);
+        Assert.Equal(30, plan.Assignments[0].Target.DanteId);
+    }
+
+    [Fact]
     public void WorkspaceKeepsEditsPendingUntilTheyAreAppliedByTheCaller()
     {
         using TestDirectory directory = new();
@@ -154,6 +171,44 @@ public sealed class PatchAssignmentPlannerTests
 
         Assert.False(workspace.HasChanges);
         Assert.True(workspace.GetEffectiveAssignment(target).IsActive);
+    }
+
+    [Fact]
+    public void WorkspaceEditsApplyAsOneSafeProjectBatch()
+    {
+        using TestDirectory directory = new();
+        DanteProject project = DanteProject.Load(directory.CopyFixture("representative-preset.xml"));
+        DanteDevice txDevice = Assert.IsType<DanteDevice>(project.FindDevice("DEVICE-A"));
+        DanteDevice rxDevice = Assert.IsType<DanteDevice>(project.FindDevice("DEVICE-B"));
+        PatchWorkspaceSession workspace = new(project.PatchMatrix.Subscriptions);
+        PatchTargetDescriptor firstRx = TargetFrom(rxDevice.RxChannels[0]);
+        PatchTargetDescriptor secondRx = TargetFrom(rxDevice.RxChannels[1]);
+
+        workspace.Remove(firstRx);
+        workspace.Assign(new PlannedPatchAssignment(SourceFrom(txDevice.TxChannels[0]), secondRx));
+
+        project.ApplyBatch(batch =>
+        {
+            foreach (PatchEditRequest edit in workspace.Edits)
+            {
+                if (edit.IsRemoval)
+                {
+                    batch.RemovePatch(edit.RxDeviceName, edit.RxDanteId);
+                }
+                else
+                {
+                    batch.ApplyPatch(edit.RxDeviceName, edit.RxDanteId, edit.TxDeviceName!, edit.TxChannelName!);
+                }
+            }
+        });
+
+        Assert.False(project.ValidateXmlChangeGuard().HasErrors);
+        DanteSubscription[] subscriptions = project.PatchMatrix.Subscriptions
+            .Where(item => string.Equals(item.RxDevice, rxDevice.Name, StringComparison.OrdinalIgnoreCase))
+            .OrderBy(item => item.RxPositionIndex)
+            .ToArray();
+        Assert.False(subscriptions[0].IsActive);
+        Assert.Equal("PROGRAM L", subscriptions[1].TxChannelName);
     }
 
     private static PatchSourceDescriptor Source(int danteId, int position, string name)
