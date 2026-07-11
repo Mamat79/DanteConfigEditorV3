@@ -64,7 +64,12 @@ Documentation vérifiée :
 
 Le scan `dotnet list package --vulnerable --include-transitive` ne signale aucun package vulnérable dans l'application Windows, le Core, les tests Windows, ValidationPack et Benchmarks avec les sources NuGet du 2026-07-12.
 
-La CI distante doit encore être confirmée après le push de la branche. Aucun import dans Dante Controller et aucun test sur matériel Dante réel n'ont été exécutés pendant cette validation.
+CI distante du commit de validation `4b648e756fe78bfd7b7c5d4e5031ed43135266a9` :
+
+- Windows CI, run `29171972920` : réussi en 1 min 3 s ; restore, 86 tests, build, publish et artifacts inclus ;
+- aucun workflow macOS déclenché pour la branche `3.08-beta`.
+
+Aucun import dans Dante Controller et aucun test sur matériel Dante réel n'ont été exécutés pendant cette validation.
 
 ## Validation V3.07 officielle
 
