@@ -1,4 +1,4 @@
-# Version macOS - V3.06 Beta
+# Version macOS - V3.07 Beta
 
 La version macOS utilise Avalonia pour l'interface et compile exactement les mêmes classes métier et services XML que la version Windows.
 

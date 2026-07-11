@@ -8,10 +8,10 @@
     <AssemblyName>DanteConfigEditorV3</AssemblyName>
     <RootNamespace>DanteConfigEditor</RootNamespace>
     <ApplicationIcon>DanteEdit.ico</ApplicationIcon>
-    <Version>3.6.0</Version>
-    <AssemblyVersion>3.6.0.0</AssemblyVersion>
-    <FileVersion>3.6.0.0</FileVersion>
-    <InformationalVersion>3.06-beta</InformationalVersion>
+    <Version>3.7.0</Version>
+    <AssemblyVersion>3.7.0.0</AssemblyVersion>
+    <FileVersion>3.7.0.0</FileVersion>
+    <InformationalVersion>3.07-beta</InformationalVersion>
   </PropertyGroup>
 
   <ItemGroup>

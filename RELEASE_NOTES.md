@@ -1,4 +1,4 @@
-# Dante Config Editor V3.06 Beta
+# Dante Config Editor V3.07 Beta
 
 ## Statut
 
@@ -8,8 +8,9 @@ Travaillez toujours sur une copie de vos fichiers XML Dante et validez le result
 
 ## Nouveautes principales
 
-- Version 3.06 beta.
+- Version 3.07 beta.
 - Premiere version macOS, avec une interface Avalonia partageant le meme moteur XML que l'application Windows.
+- Deux tests d'interface macOS completent les 38 tests du moteur XML partage.
 - DMG autonomes Apple Silicon et Intel avec .NET 8 et notices FR/EN inclus.
 - Alertes importantes placees dans la colonne laterale sur macOS et Windows pour conserver la hauteur des tableaux.
 - Les DMG de cette beta utilisent une signature ad hoc et ne sont pas encore notaries par Apple ; le premier lancement se fait par clic droit puis `Ouvrir`.
@@ -72,7 +73,7 @@ Travaillez toujours sur une copie de vos fichiers XML Dante et validez le result
 - Page Sante enrichie et vue Topologie simple.
 - Script installateur plus portable.
 - Correction des accents dans l'export PDF.
-- Ajout de la mention `Fait avec le soft Dante Config Editor V3.06 - version 3.06-beta - By Mamat` dans les exports TXT/PDF.
+- Ajout de la mention `Fait avec le soft Dante Config Editor V3.07 - version 3.07-beta - By Mamat` dans les exports TXT/PDF.
 - Correction des boutons d'action après ouverture d'un XML : l'interface reste modifiable, mais l'enregistrement impose un nouveau nom de fichier.
 - Sélecteur Français / Anglais directement dans l'interface, modifiable à tout moment.
 - Suppression d'une machine avec nettoyage des subscriptions/patchs qui pointent vers elle.
@@ -149,4 +150,4 @@ Les quatre PDF francais/anglais sont installes et restent accessibles depuis l'a
 
 https://github.com/Mamat79/DanteConfigEditorV3
 
-Seule la publication V3.06 courante est conservee dans les Releases. L'historique des versions reste disponible dans Git et dans le changelog.
+Seule la publication V3.07 courante est conservee dans les Releases. L'historique des versions reste disponible dans Git et dans le changelog.

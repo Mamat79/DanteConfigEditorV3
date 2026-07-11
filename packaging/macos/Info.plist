@@ -5,7 +5,7 @@
     <key>CFBundleDevelopmentRegion</key>
     <string>fr</string>
     <key>CFBundleDisplayName</key>
-    <string>Dante Config Editor V3.06 Beta</string>
+    <string>Dante Config Editor V3.07 Beta</string>
     <key>CFBundleExecutable</key>
     <string>DanteConfigEditorV3.Mac</string>
     <key>CFBundleIconFile</key>
@@ -24,9 +24,9 @@
     <key>CFBundlePackageType</key>
     <string>APPL</string>
     <key>CFBundleShortVersionString</key>
-    <string>3.6.0</string>
+    <string>3.7.0</string>
     <key>CFBundleVersion</key>
-    <string>3.6.0</string>
+    <string>3.7.0</string>
     <key>LSApplicationCategoryType</key>
     <string>public.app-category.utilities</string>
     <key>LSMinimumSystemVersion</key>

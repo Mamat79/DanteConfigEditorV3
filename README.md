@@ -1,4 +1,4 @@
-# Dante Config Editor V3.06 Beta
+# Dante Config Editor V3.07 Beta
 
 Outil Windows et macOS pour éditer hors ligne des fichiers XML de configuration Dante.
 
@@ -94,12 +94,12 @@ Notices fournies :
 
 Dans l'application, les boutons d'aide ouvrent automatiquement les fichiers FR ou EN selon la langue active.
 
-Si une version est déjà installée, l'assistant le détecte et propose de remplacer / mettre à jour l'installation existante. La V3.06 n'installe pas de copie parallèle.
+Si une version est déjà installée, l'assistant le détecte et propose de remplacer / mettre à jour l'installation existante. La V3.07 n'installe pas de copie parallèle.
 
 ## Version distribuée
 
-- La V3.06 est la seule version binaire conservée dans les distributions locales et les Releases GitHub.
-- La publication courante porte le tag `v3.06-beta`.
+- La V3.07 est la seule version binaire conservée dans les distributions locales et les Releases GitHub.
+- La publication courante porte le tag `v3.07-beta`.
 - Les anciennes publications ont été retirées pour éviter de transmettre un installateur obsolète.
 - L'historique du projet reste consultable dans Git et dans `CHANGELOG_V3.md`.
 
@@ -115,7 +115,7 @@ Si une version est déjà installée, l'assistant le détecte et propose de remp
 8. Sauvegarder sous un nouveau nom.
 9. Valider le fichier généré dans l'outil Dante officiel approprié avant usage terrain.
 
-## Nouveautés V3.06
+## Nouveautés V3.07
 
 - Garde-fou XML associé aux machines par identité technique stable et non plus par leur nom visible.
 - Blocage par défaut des chemins et balises XML inconnus.
@@ -128,8 +128,9 @@ Si une version est déjà installée, l'assistant le détecte et propose de remp
 - Récupération automatique asynchrone et temporisée ; historique d'annulation limité à 10 états.
 - 38 tests de sécurité et de non-régression, dont les presets synthétiques de 10, 50 et 200 machines en 64 TX / 64 RX.
 - Workflow GitHub Actions sur Windows et script `build.ps1` qui vérifie chaque code de retour.
-- Installateur de mise à niveau unique : la V3.06 Beta remplace la version déjà installée sans proposer de copie parallèle.
+- Installateur de mise à niveau unique : la V3.07 Beta remplace la version déjà installée sans proposer de copie parallèle.
 - Nouvelle interface macOS via Avalonia, avec les alertes placées dans la colonne latérale pour préserver la hauteur des tableaux.
+- Deux tests d'interface sans écran vérifient la position latérale des alertes et leur apparition sur un preset aux formats audio mélangés.
 - DMG autonomes distincts Apple Silicon et Intel, incluant .NET 8 et les notices françaises/anglaises.
 - Les alertes importantes de la version Windows sont également déplacées dans la colonne latérale.
 

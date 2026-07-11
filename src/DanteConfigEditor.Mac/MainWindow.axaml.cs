@@ -907,7 +907,7 @@ public partial class MainWindow : Window
         if (path is null) return;
         try
         {
-            ReportExportService.ExportPdf(path, "Dante Config Editor V3.06", _project.BuildReportText());
+            ReportExportService.ExportPdf(path, "Dante Config Editor V3.07", _project.BuildReportText());
             SetStatus(LocalizationService.Text(_language, "Status.PdfExported"));
         }
         catch (Exception exception)
@@ -1445,7 +1445,7 @@ public partial class MainWindow : Window
             }
         }
 
-        Title = L("Dante Config Editor V3.06 Beta - macOS", "Dante Config Editor V3.06 Beta - macOS");
+        Title = L("Dante Config Editor V3.07 Beta - macOS", "Dante Config Editor V3.07 Beta - macOS");
         FindControl<Button>("ThemeButton")!.Content = _darkTheme ? L("Thème clair", "Light theme") : L("Thème sombre", "Dark theme");
     }
 

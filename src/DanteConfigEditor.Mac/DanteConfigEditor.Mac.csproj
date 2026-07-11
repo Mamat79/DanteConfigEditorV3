@@ -7,10 +7,10 @@
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <AssemblyName>DanteConfigEditorV3.Mac</AssemblyName>
     <RootNamespace>DanteConfigEditor.Mac</RootNamespace>
-    <Version>3.6.0</Version>
-    <AssemblyVersion>3.6.0.0</AssemblyVersion>
-    <FileVersion>3.6.0.0</FileVersion>
-    <InformationalVersion>3.06-beta-macos</InformationalVersion>
+    <Version>3.7.0</Version>
+    <AssemblyVersion>3.7.0.0</AssemblyVersion>
+    <FileVersion>3.7.0.0</FileVersion>
+    <InformationalVersion>3.07-beta-macos</InformationalVersion>
     <RuntimeIdentifiers>osx-arm64;osx-x64;win-x64</RuntimeIdentifiers>
   </PropertyGroup>
 

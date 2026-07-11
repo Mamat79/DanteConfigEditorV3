@@ -23,8 +23,8 @@ from reportlab.platypus import (
 ROOT = Path(__file__).resolve().parent
 # Les quatre PDF sont générés depuis une source unique pour garder les versions
 # française et anglaise synchronisées avec l'application et l'installateur.
-PRODUCT = "Dante Config Editor V3.06 Beta"
-VERSION = "3.06-beta"
+PRODUCT = "Dante Config Editor V3.07 Beta"
+VERSION = "3.07-beta"
 GITHUB = "github.com/Mamat79/DanteConfigEditorV3"
 
 INK = colors.HexColor("#172033")
@@ -314,10 +314,12 @@ def full_guide(language: str) -> None:
             para(f"Notice complète - version {VERSION}", "subtitle"),
             callout("<b>Important :</b> cette application est une bêta non officielle. Elle édite des XML hors ligne, sans connexion au réseau Dante ni API Audinate. Conservez l'original et validez le fichier généré dans Dante Controller avant toute utilisation en production."),
             para("1. Installation et démarrage", "h1"),
-            para("L'installateur autonome contient l'application et le runtime .NET 8 nécessaire. Windows x64 n'a normalement pas besoin d'installer .NET séparément."),
+            para("Les livrables autonomes contiennent l'application et le runtime .NET 8 nécessaire. Windows x64 et macOS n'ont normalement pas besoin d'installer .NET séparément."),
             *bullets([
                 "L'installation proposée par défaut se trouve dans Program Files et crée un raccourci dans le menu Démarrer.",
-                "Une version précédente est remplacée ou mise à jour. La V3.06 ne propose plus d'installation parallèle.",
+                "Sur Mac, choisissez le DMG Apple Silicon ou Intel, ouvrez-le, puis glissez Dante Config Editor dans Applications.",
+                "Cette bêta Mac n'est pas encore notariée : au premier lancement, faites un clic droit sur l'application, choisissez Ouvrir, puis confirmez.",
+                "Une version précédente est remplacée ou mise à jour. La V3.07 ne propose plus d'installation parallèle.",
                 "Les quatre notices PDF françaises et anglaises sont installées et restent accessibles depuis l'application.",
             ]),
             para("2. Principes de sécurité", "h1"),
@@ -426,7 +428,7 @@ def full_guide(language: str) -> None:
                 [48, 122],
             ),
             para("13. Tests de non-régression", "h1"),
-            para("La suite V3.06 exécute 38 tests : identités techniques, chemins inconnus, sauvegarde atomique, récupération, interfaces IPv4, alias de subscription, namespace par défaut et presets de 10, 50 et 200 machines avec 64 TX et 64 RX chacune. GitHub Actions les rejoue sur Windows."),
+            para("La suite V3.07 exécute 38 tests du moteur XML et 2 tests d'interface Mac : identités techniques, chemins inconnus, sauvegarde atomique, récupération, interfaces IPv4, alias de subscription, namespace par défaut, presets synthétiques et alertes latérales. GitHub Actions les rejoue sur Windows et macOS."),
             para("14. Limites connues", "h1"),
             *bullets([
                 "Aucun pilotage en temps réel et aucune communication avec les appareils.",
@@ -444,10 +446,12 @@ def full_guide(language: str) -> None:
             para(f"Full user guide - version {VERSION}", "subtitle"),
             callout("<b>Important:</b> this application is an unofficial beta. It edits XML files offline without connecting to a Dante network or using an Audinate API. Keep the original and validate the generated file in Dante Controller before production use."),
             para("1. Installation and startup", "h1"),
-            para("The self-contained installer includes the application and the required .NET 8 runtime. A Windows x64 computer normally does not need a separate .NET installation."),
+            para("The self-contained packages include the application and the required .NET 8 runtime. Windows x64 and macOS normally do not need a separate .NET installation."),
             *bullets([
                 "The default location is Program Files, with a Start menu shortcut.",
-                "A previous version is replaced or updated. V3.06 no longer offers a parallel installation.",
+                "On Mac, choose the Apple Silicon or Intel DMG, open it, then drag Dante Config Editor to Applications.",
+                "This Mac beta is not notarized yet. For the first launch, right-click the application, choose Open, then confirm.",
+                "A previous version is replaced or updated. V3.07 no longer offers a parallel installation.",
                 "All four French and English PDFs are installed and remain available from the application.",
             ]),
             para("2. Safety principles", "h1"),
@@ -556,7 +560,7 @@ def full_guide(language: str) -> None:
                 [48, 122],
             ),
             para("13. Regression tests", "h1"),
-            para("The V3.06 suite runs 38 tests covering technical identities, unknown paths, atomic save, recovery, IPv4 interfaces, subscription aliases, default namespaces, and 10/50/200-device presets with 64 TX and 64 RX per device. GitHub Actions reruns them on Windows."),
+            para("The V3.07 suite runs 38 shared XML engine tests and 2 Mac UI tests covering technical identities, unknown paths, atomic save, recovery, IPv4 interfaces, subscription aliases, default namespaces, synthetic presets, and side alerts. GitHub Actions reruns them on Windows and macOS."),
             para("14. Known limitations", "h1"),
             *bullets([
                 "No real-time Dante control and no communication with devices.",

@@ -1,4 +1,4 @@
-# Dante Config Editor V3.06 Beta
+# Dante Config Editor V3.07 Beta
 
 Application Windows WPF en version bêta pour éditer hors ligne des fichiers XML de configuration Dante reconnus par l'application.
 
@@ -30,7 +30,7 @@ La personne le lance, choisit le dossier d'installation si besoin, puis l'applic
 
 Si une version est déjà installée, l'assistant le signale et propose de remplacer / mettre à jour l'installation existante. Il ne crée pas de version parallèle.
 
-Cette version est publiée en mode `self-contained win-x64` : le runtime .NET nécessaire est inclus dans l'exécutable de l'application. La machine destinataire n'a pas besoin d'installer le SDK .NET ni le runtime .NET pour utiliser Dante Config Editor V3.06.
+Cette version est publiée en mode `self-contained win-x64` : le runtime .NET nécessaire est inclus dans l'exécutable de l'application. La machine destinataire n'a pas besoin d'installer le SDK .NET ni le runtime .NET pour utiliser Dante Config Editor V3.07.
 
 L'installateur ne déploie pas les sources du projet. Il installe uniquement l'application autonome et la documentation utilisateur.
 
@@ -55,7 +55,7 @@ Pour reconstruire l'installateur autonome :
 .\installer\build_installer.ps1
 ```
 
-## Nouveautés V3.06
+## Nouveautés V3.07
 
 - Identité technique stable pour comparer les machines même après renommage.
 - Refus par défaut de toute modification XML hors liste autorisée.
