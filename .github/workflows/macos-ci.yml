@@ -1,0 +1,92 @@
+name: macOS CI
+
+on:
+  push:
+    branches:
+      - main
+      - "agent/**"
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: macos-ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test-build-package:
+    name: Test and package macOS
+    runs-on: macos-latest
+    timeout-minutes: 35
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Install .NET 8 SDK
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Restore XML and UI tests
+        run: |
+          dotnet restore ./tests/DanteConfigEditorV3.Tests/DanteConfigEditorV3.Tests.csproj
+          dotnet restore ./tests/DanteConfigEditor.Mac.Tests/DanteConfigEditor.Mac.Tests.csproj
+
+      - name: Test shared XML engine
+        run: >-
+          dotnet test ./tests/DanteConfigEditorV3.Tests/DanteConfigEditorV3.Tests.csproj
+          -c Release
+          --no-restore
+          --logger "trx;LogFileName=core-tests.trx"
+          --results-directory ./TestResults
+
+      - name: Test macOS interface
+        run: >-
+          dotnet test ./tests/DanteConfigEditor.Mac.Tests/DanteConfigEditor.Mac.Tests.csproj
+          -c Release
+          --no-restore
+          --logger "trx;LogFileName=mac-ui-tests.trx"
+          --results-directory ./TestResults
+
+      - name: Build macOS interface
+        run: dotnet build ./src/DanteConfigEditor.Mac/DanteConfigEditor.Mac.csproj -c Release --no-restore
+
+      - name: Package Apple Silicon DMG
+        run: bash ./packaging/macos/build-macos.sh osx-arm64
+
+      - name: Package Intel DMG
+        run: bash ./packaging/macos/build-macos.sh osx-x64
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: test-results-macos
+          path: ./TestResults/*.trx
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Upload Apple Silicon DMG
+        uses: actions/upload-artifact@v7
+        with:
+          name: DanteConfigEditorV3-macOS-AppleSilicon
+          path: |
+            ./dist/macos/DanteConfigEditorV3_macOS_AppleSilicon.dmg
+            ./dist/macos/DanteConfigEditorV3_macOS_AppleSilicon.dmg.sha256
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Upload Intel DMG
+        uses: actions/upload-artifact@v7
+        with:
+          name: DanteConfigEditorV3-macOS-Intel
+          path: |
+            ./dist/macos/DanteConfigEditorV3_macOS_Intel.dmg
+            ./dist/macos/DanteConfigEditorV3_macOS_Intel.dmg.sha256
+          if-no-files-found: error
+          retention-days: 14
