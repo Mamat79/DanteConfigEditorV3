@@ -32,7 +32,9 @@ jobs:
           dotnet-version: 8.0.x
 
       - name: Restore application and tests
-        run: dotnet restore .\tests\DanteConfigEditorV3.Tests\DanteConfigEditorV3.Tests.csproj
+        run: |
+          dotnet restore .\DanteConfigEditorV3.csproj
+          dotnet restore .\tests\DanteConfigEditorV3.Tests\DanteConfigEditorV3.Tests.csproj
 
       - name: Test
         run: >-
