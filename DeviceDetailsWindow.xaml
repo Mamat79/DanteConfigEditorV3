@@ -161,6 +161,38 @@
                                 </DataGrid.Columns>
                             </DataGrid>
                         </TabItem>
+                        <TabItem x:Name="PatchTab" Header="Patch RX">
+                            <Grid Margin="16" MinHeight="220">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="*" />
+                                </Grid.RowDefinitions>
+                                <TextBlock x:Name="PatchDescriptionTextBlock"
+                                           Text="Affectez des canaux TX disponibles aux entrées RX de cette machine."
+                                           TextWrapping="Wrap" />
+                                <Button x:Name="OpenPatchWorkspaceButton"
+                                        Grid.Row="1"
+                                        Content="Ouvrir l'atelier de patch"
+                                        HorizontalAlignment="Left"
+                                        Margin="0,14,0,0"
+                                        Click="OpenPatchWorkspaceButton_Click" />
+                                <TextBlock x:Name="PatchSummaryTextBlock"
+                                           Grid.Row="2"
+                                           Text="Aucun changement de patch en attente."
+                                           Foreground="#64748B"
+                                           TextWrapping="Wrap"
+                                           Margin="0,14,0,0" />
+                                <TextBlock x:Name="PatchSafetyTextBlock"
+                                           Grid.Row="3"
+                                           Text="Les changements de patch seront appliqués avec les autres réglages de cette fenêtre."
+                                           Foreground="#64748B"
+                                           TextWrapping="Wrap"
+                                           VerticalAlignment="Bottom"
+                                           Margin="0,14,0,0" />
+                            </Grid>
+                        </TabItem>
                     </TabControl>
                 </GroupBox>
             </StackPanel>

@@ -392,6 +392,38 @@ public sealed class PatchAssignmentPlannerTests
         Assert.False(reloaded.ValidateXmlChangeGuard().HasErrors);
     }
 
+    [Fact]
+    public void DeviceDetailBatchPatchesBeforeRenamesAndUndoesAsOneAction()
+    {
+        using TestDirectory directory = new();
+        DanteProject project = DanteProject.Load(directory.CopyFixture("representative-preset.xml"));
+        DanteChannel sourceChannel = Assert.IsType<DanteDevice>(project.FindDevice("DEVICE-A")).TxChannels[0];
+        project.PushUndoSnapshot("device details");
+
+        project.ApplyBatch(batch =>
+        {
+            batch.ApplyPatch("DEVICE-C", 1, "DEVICE-A", sourceChannel.DisplayName);
+            batch.RenameDevice("DEVICE-A", "DEVICE-A-RENAMED");
+            batch.RenameChannel("DEVICE-A-RENAMED", DanteChannelKind.Tx, sourceChannel.Index, "PROGRAM NEW");
+        });
+
+        DanteSubscription changed = Assert.Single(
+            project.PatchMatrix.Subscriptions,
+            subscription => subscription.RxDevice == "DEVICE-C" && subscription.RxDanteId == 1);
+        Assert.Equal("DEVICE-A-RENAMED", changed.ResolvedTxDeviceName);
+        Assert.Equal("PROGRAM NEW", changed.TxChannelName);
+        Assert.False(project.ValidateXmlChangeGuard().HasErrors);
+
+        project.UndoLastChange();
+
+        DanteSubscription restored = Assert.Single(
+            project.PatchMatrix.Subscriptions,
+            subscription => subscription.RxDevice == "DEVICE-C" && subscription.RxDanteId == 1);
+        Assert.False(restored.IsActive);
+        Assert.NotNull(project.FindDevice("DEVICE-A"));
+        Assert.Null(project.FindDevice("DEVICE-A-RENAMED"));
+    }
+
     private static void ApplyEdits(DanteProject project, IEnumerable<PatchEditRequest> edits)
     {
         project.ApplyBatch(batch =>

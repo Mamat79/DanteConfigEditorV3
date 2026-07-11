@@ -9,8 +9,11 @@ namespace DanteConfigEditor;
 public partial class DeviceDetailsWindow : Window
 {
     private readonly UiLanguage _language;
+    private readonly DanteProject _project;
+    private readonly bool _useLightTheme;
     private readonly ObservableCollection<DeviceChannelEditItem> _txChannels;
     private readonly ObservableCollection<DeviceChannelEditItem> _rxChannels;
+    private readonly List<PatchEditRequest> _patchEdits = [];
 
     private readonly DeviceOption[] _latencies =
     [
@@ -37,10 +40,16 @@ public partial class DeviceDetailsWindow : Window
         new("32", "32 bit")
     ];
 
-    public DeviceDetailsWindow(UiLanguage language, DanteDevice device)
+    public DeviceDetailsWindow(
+        UiLanguage language,
+        DanteProject project,
+        DanteDevice device,
+        bool useLightTheme)
     {
         InitializeComponent();
         _language = language;
+        _project = project ?? throw new ArgumentNullException(nameof(project));
+        _useLightTheme = useLightTheme;
         OriginalDeviceName = device.Name;
         TitleTextBlock.Text = device.Name;
         DeviceNameTextBox.Text = device.Name;
@@ -70,6 +79,16 @@ public partial class DeviceDetailsWindow : Window
         RxChannelsGrid.ItemsSource = _rxChannels;
 
         TranslateDependencyObject(this, []);
+        PatchTab.Header = L("Patch RX", "Rx patch");
+        PatchDescriptionTextBlock.Text = L(
+            "Affectez des canaux TX disponibles aux entrées RX de cette machine.",
+            "Assign available Tx channels to this device's Rx inputs.");
+        OpenPatchWorkspaceButton.Content = L("Ouvrir l'atelier de patch", "Open patch workspace");
+        PatchSafetyTextBlock.Text = L(
+            "Les changements de patch seront appliqués avec les autres réglages de cette fenêtre.",
+            "Patch changes will be applied with the other settings in this window.");
+        OpenPatchWorkspaceButton.IsEnabled = device.RxCount > 0 && _project.Devices.Any(candidate => candidate.TxCount > 0);
+        UpdatePatchSummary();
     }
 
     public string OriginalDeviceName { get; }
@@ -90,7 +109,8 @@ public partial class DeviceDetailsWindow : Window
             IpNetmaskTextBox.Text.Trim(),
             IpGatewayTextBox.Text.Trim(),
             _txChannels.Select(channel => new DeviceChannelEdit(channel.Index, channel.Name.Trim())).ToArray(),
-            _rxChannels.Select(channel => new DeviceChannelEdit(channel.Index, channel.Name.Trim())).ToArray());
+            _rxChannels.Select(channel => new DeviceChannelEdit(channel.Index, channel.Name.Trim())).ToArray(),
+            _patchEdits.ToArray());
 
         DialogResult = true;
     }
@@ -98,6 +118,43 @@ public partial class DeviceDetailsWindow : Window
     private void CancelButton_Click(object sender, RoutedEventArgs e)
     {
         DialogResult = false;
+    }
+
+    private void OpenPatchWorkspaceButton_Click(object sender, RoutedEventArgs e)
+    {
+        string? initialTxDeviceName = _project.FindDevice(OriginalDeviceName)?.TxCount > 0
+            ? OriginalDeviceName
+            : _project.Devices.FirstOrDefault(device => device.TxCount > 0)?.Name;
+        PatchWorkspaceWindow window = new(
+            _language,
+            _project,
+            _useLightTheme,
+            initialTxDeviceName,
+            OriginalDeviceName,
+            _patchEdits,
+            returnEditsOnly: true,
+            lockRxDeviceSelection: true)
+        {
+            Owner = this
+        };
+
+        if (window.ShowDialog() != true)
+        {
+            return;
+        }
+
+        _patchEdits.Clear();
+        _patchEdits.AddRange(window.Edits);
+        UpdatePatchSummary();
+    }
+
+    private void UpdatePatchSummary()
+    {
+        PatchSummaryTextBlock.Text = _patchEdits.Count == 0
+            ? L("Aucun changement de patch en attente.", "No pending patch change.")
+            : L(
+                $"{_patchEdits.Count} changement(s) de patch en attente pour cette validation.",
+                $"{_patchEdits.Count} patch change(s) pending for this confirmation.");
     }
 
     private void IpModeRadioButton_Checked(object sender, RoutedEventArgs e)
@@ -126,6 +183,11 @@ public partial class DeviceDetailsWindow : Window
     private string LocalizeLiteral(string value)
     {
         return LocalizationService.TranslateLiteral(_language, value);
+    }
+
+    private string L(string french, string english)
+    {
+        return _language == UiLanguage.English ? english : french;
     }
 
     private void TranslateDependencyObject(DependencyObject dependencyObject, HashSet<DependencyObject> visited)
@@ -193,4 +255,5 @@ public sealed record DeviceDetailsResult(
     string StaticIpNetmask,
     string StaticIpGateway,
     IReadOnlyList<DeviceChannelEdit> TxChannels,
-    IReadOnlyList<DeviceChannelEdit> RxChannels);
+    IReadOnlyList<DeviceChannelEdit> RxChannels,
+    IReadOnlyList<PatchEditRequest> PatchEdits);

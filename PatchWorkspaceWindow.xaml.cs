@@ -14,6 +14,8 @@ public partial class PatchWorkspaceWindow : Window
     private readonly UiLanguage _language;
     private readonly DanteProject _project;
     private readonly PatchWorkspaceSession _session;
+    private readonly bool _returnEditsOnly;
+    private readonly bool _lockRxDeviceSelection;
     private readonly HashSet<string> _ambiguousSourceNames = new(StringComparer.OrdinalIgnoreCase);
     private IReadOnlyList<PatchSourceDescriptor> _visibleSources = [];
     private IReadOnlyList<PatchTargetDescriptor> _visibleTargets = [];
@@ -26,12 +28,16 @@ public partial class PatchWorkspaceWindow : Window
         bool useLightTheme,
         string? initialTxDeviceName = null,
         string? initialRxDeviceName = null,
-        IEnumerable<PatchEditRequest>? initialEdits = null)
+        IEnumerable<PatchEditRequest>? initialEdits = null,
+        bool returnEditsOnly = false,
+        bool lockRxDeviceSelection = false)
     {
         InitializeComponent();
         _language = language;
         _project = project ?? throw new ArgumentNullException(nameof(project));
         _session = new PatchWorkspaceSession(project.PatchMatrix.Subscriptions, initialEdits);
+        _returnEditsOnly = returnEditsOnly;
+        _lockRxDeviceSelection = lockRxDeviceSelection;
 
         ApplyTheme(useLightTheme);
         ApplyLanguage();
@@ -58,6 +64,7 @@ public partial class PatchWorkspaceWindow : Window
         RxDeviceComboBox.ItemsSource = rxDevices;
         TxDeviceComboBox.SelectedItem = FindDeviceName(txDevices, initialTxDeviceName) ?? txDevices.FirstOrDefault();
         RxDeviceComboBox.SelectedItem = FindDeviceName(rxDevices, initialRxDeviceName) ?? rxDevices.FirstOrDefault();
+        RxDeviceComboBox.IsEnabled = !_lockRxDeviceSelection;
     }
 
     private void TxDeviceComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -651,7 +658,9 @@ public partial class PatchWorkspaceWindow : Window
             "Rx channels are rows and Tx channels are columns. Click a cell to assign or remove a subscription.");
         ResetPendingButton.Content = L("Annuler les changements visuels", "Discard visual changes");
         CancelButton.Content = L("Fermer sans appliquer", "Close without applying");
-        ApplyButton.Content = L("Appliquer au projet", "Apply to project");
+        ApplyButton.Content = _returnEditsOnly
+            ? L("Valider dans le détail machine", "Return to device details")
+            : L("Appliquer au projet", "Apply to project");
 
         AutomationProperties.SetName(TxDeviceComboBox, TxDeviceLabel.Content.ToString()!);
         AutomationProperties.SetName(RxDeviceComboBox, RxDeviceLabel.Content.ToString()!);

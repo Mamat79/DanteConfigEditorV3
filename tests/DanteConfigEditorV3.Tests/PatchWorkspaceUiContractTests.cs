@@ -21,6 +21,23 @@ public sealed class PatchWorkspaceUiContractTests
         Assert.DoesNotContain("DragDrop.DoDragDrop", codeBehind, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void DeviceDetailsExposesRxPatchWorkspaceAndAppliesPatchesBeforeRenames()
+    {
+        string xaml = File.ReadAllText(RepositoryFile("DeviceDetailsWindow.xaml"));
+        string codeBehind = File.ReadAllText(RepositoryFile("DeviceDetailsWindow.xaml.cs"));
+        string mainWindow = File.ReadAllText(RepositoryFile("MainWindow.xaml.cs"));
+
+        Assert.Contains("x:Name=\"PatchTab\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("x:Name=\"OpenPatchWorkspaceButton\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("returnEditsOnly: true", codeBehind, StringComparison.Ordinal);
+        Assert.Contains("lockRxDeviceSelection: true", codeBehind, StringComparison.Ordinal);
+
+        int patchLoop = mainWindow.IndexOf("foreach (PatchEditRequest edit in result.PatchEdits)", StringComparison.Ordinal);
+        int rename = mainWindow.IndexOf("_project.RenameDevice(currentName, result.DeviceName)", StringComparison.Ordinal);
+        Assert.True(patchLoop >= 0 && rename > patchLoop, "Les patchs du détail machine doivent être appliqués avant les renommages.");
+    }
+
     private static int CountOccurrences(string value, string expected)
     {
         int count = 0;

@@ -1467,7 +1467,11 @@ public partial class MainWindow : Window
         }
 
         DanteDevice device = _project!.FindDevice(deviceName) ?? throw new InvalidOperationException("Device introuvable.");
-        DeviceDetailsWindow window = new(_language, device)
+        DeviceDetailsWindow window = new(
+            _language,
+            _project,
+            device,
+            ThemeToggleButton.IsChecked == true)
         {
             Owner = this
         };
@@ -1485,6 +1489,25 @@ public partial class MainWindow : Window
 
     private void ApplyDeviceDetails(string originalDeviceName, DeviceDetailsResult result)
     {
+        // Les patchs utilisent les noms actuels du XML. Ils sont donc appliqués
+        // avant les renommages ; les méthodes de renommage propagent ensuite les
+        // nouveaux noms dans toutes les subscriptions concernées.
+        foreach (PatchEditRequest edit in result.PatchEdits)
+        {
+            if (edit.IsRemoval)
+            {
+                _project!.RemovePatch(edit.RxDeviceName, edit.RxDanteId);
+            }
+            else
+            {
+                _project!.ApplyPatch(
+                    edit.RxDeviceName,
+                    edit.RxDanteId,
+                    edit.TxDeviceName!,
+                    edit.TxChannelName ?? string.Empty);
+            }
+        }
+
         DanteDevice originalDevice = _project!.FindDevice(originalDeviceName) ?? throw new InvalidOperationException("Device introuvable.");
         string currentName = originalDevice.Name;
 
