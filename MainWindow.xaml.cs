@@ -102,6 +102,8 @@ public partial class MainWindow : Window
         "Target.FilteredUnlocked"
     ];
     private DanteProject? _project;
+    private DanteProject? _easyPatchProject;
+    private PatchWorkspaceView? _easyPatchWorkspace;
     private UiLanguage _language = UiLanguage.French;
     private bool _editModeEnabled;
 
@@ -1466,25 +1468,43 @@ public partial class MainWindow : Window
             return;
         }
 
-        DanteDevice device = _project!.FindDevice(deviceName) ?? throw new InvalidOperationException("Device introuvable.");
-        DeviceDetailsWindow window = new(
-            _language,
-            _project,
-            device,
-            ThemeToggleButton.IsChecked == true)
+        string currentDeviceName = deviceName;
+        while (true)
         {
-            Owner = this
-        };
+            DanteDevice device = _project!.FindDevice(currentDeviceName)
+                ?? throw new InvalidOperationException("Device introuvable.");
+            DeviceDetailsWindow window = new(
+                _language,
+                _project,
+                device,
+                ThemeToggleButton.IsChecked == true)
+            {
+                Owner = this
+            };
 
-        if (window.ShowDialog() != true || window.Result is null)
-        {
-            return;
+            bool? accepted = window.ShowDialog();
+            if (accepted == true && window.Result is not null)
+            {
+                string? confirmationMessage = string.IsNullOrWhiteSpace(window.RequestedDeviceName)
+                    ? T("Dialog.DeviceDetailsWarning")
+                    : null;
+                bool applied = RunProjectAction(
+                    T("Action.DeviceDetailsUpdated"),
+                    () => _project!.ApplyBatch(_ => ApplyDeviceDetails(window.OriginalDeviceName, window.Result)),
+                    confirmationMessage);
+                if (!applied)
+                {
+                    return;
+                }
+            }
+
+            if (string.IsNullOrWhiteSpace(window.RequestedDeviceName))
+            {
+                return;
+            }
+
+            currentDeviceName = window.RequestedDeviceName;
         }
-
-        RunProjectAction(
-            T("Action.DeviceDetailsUpdated"),
-            () => _project!.ApplyBatch(_ => ApplyDeviceDetails(window.OriginalDeviceName, window.Result)),
-            T("Dialog.DeviceDetailsWarning"));
     }
 
     private void ApplyDeviceDetails(string originalDeviceName, DeviceDetailsResult result)
@@ -1692,8 +1712,67 @@ public partial class MainWindow : Window
             return;
         }
 
-        string? initialTxDevice = SourceDeviceComboBox.SelectedItem as string;
-        string? initialRxDevice = (PatchGrid.SelectedItem as DanteSubscription)?.RxDevice;
+        EasyPatchTab.IsSelected = true;
+        RefreshEasyPatchWorkspace();
+    }
+
+    private void MainTabs_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (MainTabs is not null
+            && EasyPatchTab is not null
+            && ReferenceEquals(e.OriginalSource, MainTabs)
+            && EasyPatchTab.IsSelected)
+        {
+            RefreshEasyPatchWorkspace();
+        }
+    }
+
+    private void RefreshEasyPatchWorkspace()
+    {
+        if (EasyPatchHost is null || EasyPatchTab is null)
+        {
+            return;
+        }
+
+        if (_project is null)
+        {
+            _easyPatchProject = null;
+            _easyPatchWorkspace = null;
+            ShowEasyPatchPlaceholder(
+                _language == UiLanguage.English
+                    ? "Load an XML file to use Easy patch."
+                    : "Chargez un XML pour utiliser Easy patch.");
+            return;
+        }
+
+        if (!EasyPatchTab.IsSelected && _easyPatchWorkspace is null)
+        {
+            return;
+        }
+
+        if (!_project.Devices.Any(device => device.TxCount > 0)
+            || !_project.Devices.Any(device => device.RxCount > 0))
+        {
+            _easyPatchProject = _project;
+            _easyPatchWorkspace = null;
+            ShowEasyPatchPlaceholder(
+                _language == UiLanguage.English
+                    ? "Easy patch requires at least one Tx channel and one Rx channel."
+                    : "Easy patch nécessite au moins un canal TX et un canal RX.");
+            return;
+        }
+
+        bool sameProject = ReferenceEquals(_easyPatchProject, _project);
+        PatchEditRequest[] pendingEdits = sameProject
+            ? _easyPatchWorkspace?.Edits.ToArray() ?? []
+            : [];
+        string? initialTxDevice = sameProject
+            ? _easyPatchWorkspace?.SelectedTxDeviceName
+            : SourceDeviceComboBox.SelectedItem as string;
+        string? initialRxDevice = sameProject
+            ? _easyPatchWorkspace?.SelectedRxDeviceName
+            : (PatchGrid.SelectedItem as DanteSubscription)?.RxDevice;
+
         if (string.IsNullOrWhiteSpace(initialRxDevice)
             && ReceiverDeviceList.SelectedItem is string receiverName
             && _project.FindDevice(receiverName)?.RxCount > 0)
@@ -1701,42 +1780,77 @@ public partial class MainWindow : Window
             initialRxDevice = receiverName;
         }
 
-        PatchWorkspaceWindow dialog = new(
-            _language,
-            _project,
-            ThemeToggleButton.IsChecked == true,
-            initialTxDevice,
-            initialRxDevice)
+        try
         {
-            Owner = this
-        };
+            PatchWorkspaceView workspace = new(
+                _language,
+                _project,
+                ThemeToggleButton.IsChecked == true,
+                initialTxDevice,
+                initialRxDevice,
+                pendingEdits,
+                embedded: true);
+            workspace.ApplyRequested += EasyPatchWorkspace_ApplyRequested;
+            _easyPatchProject = _project;
+            _easyPatchWorkspace = workspace;
+            EasyPatchHost.Content = workspace;
+        }
+        catch (Exception exception)
+        {
+            _easyPatchWorkspace = null;
+            ShowEasyPatchPlaceholder(exception.Message);
+        }
+    }
 
-        if (dialog.ShowDialog() != true || dialog.Edits.Count == 0)
+    private void EasyPatchWorkspace_ApplyRequested(object? sender, EventArgs e)
+    {
+        if (sender is not PatchWorkspaceView workspace || workspace.Edits.Count == 0)
         {
             return;
         }
 
-        PatchEditRequest[] edits = dialog.Edits.ToArray();
-        RunProjectAction(
+        PatchEditRequest[] edits = workspace.Edits.ToArray();
+        bool applied = RunProjectAction(
             Tf("Action.VisualPatchesApplied", edits.Length),
-            () => _project.ApplyBatch(batch =>
+            () => ApplyPatchEdits(edits));
+        if (applied)
+        {
+            _easyPatchWorkspace?.ResetPendingChanges();
+            RefreshEasyPatchWorkspace();
+        }
+    }
+
+    private void ApplyPatchEdits(IEnumerable<PatchEditRequest> edits)
+    {
+        _project!.ApplyBatch(batch =>
+        {
+            foreach (PatchEditRequest edit in edits)
             {
-                foreach (PatchEditRequest edit in edits)
+                if (edit.IsRemoval)
                 {
-                    if (edit.IsRemoval)
-                    {
-                        batch.RemovePatch(edit.RxDeviceName, edit.RxDanteId);
-                    }
-                    else
-                    {
-                        batch.ApplyPatch(
-                            edit.RxDeviceName,
-                            edit.RxDanteId,
-                            edit.TxDeviceName!,
-                            edit.TxChannelName ?? string.Empty);
-                    }
+                    batch.RemovePatch(edit.RxDeviceName, edit.RxDanteId);
                 }
-            }));
+                else
+                {
+                    batch.ApplyPatch(
+                        edit.RxDeviceName,
+                        edit.RxDanteId,
+                        edit.TxDeviceName!,
+                        edit.TxChannelName ?? string.Empty);
+                }
+            }
+        });
+    }
+
+    private void ShowEasyPatchPlaceholder(string message)
+    {
+        EasyPatchHost.Content = new TextBlock
+        {
+            Text = message,
+            Foreground = Resources["MutedTextBrush"] as Brush,
+            Margin = new Thickness(20),
+            TextWrapping = TextWrapping.Wrap
+        };
     }
 
     private void RenamePatchTxChannelButton_Click(object sender, RoutedEventArgs e)
@@ -2192,12 +2306,14 @@ public partial class MainWindow : Window
     {
         SetTheme(useLightTheme: true);
         ThemeToggleButton.Content = LocalizeLiteral("Thème sombre");
+        RefreshEasyPatchWorkspace();
     }
 
     private void ThemeToggleButton_Unchecked(object sender, RoutedEventArgs e)
     {
         SetTheme(useLightTheme: false);
         ThemeToggleButton.Content = LocalizeLiteral("Thème clair");
+        RefreshEasyPatchWorkspace();
     }
 
     private void RefreshAll()
@@ -2231,6 +2347,7 @@ public partial class MainWindow : Window
                 UpdateGlobalSearchHint(T("Search.NoFileLoaded"));
                 _patchRows.Clear();
                 _healthIssues.Clear();
+                RefreshEasyPatchWorkspace();
                 UpdateCommandState();
                 return;
             }
@@ -2333,6 +2450,7 @@ public partial class MainWindow : Window
         RefreshChannelSelector();
         RefreshPatchRows();
         ApplyPatchViewMode();
+        RefreshEasyPatchWorkspace();
         UpdateCommandState();
     }
 
@@ -3006,18 +3124,18 @@ public partial class MainWindow : Window
             : $"XML ajouté : {result.ImportedDeviceCount} importée(s), {result.RenamedDeviceCount} renommée(s), {result.SkippedDuplicateDeviceCount} ignorée(s).";
     }
 
-    private void RunProjectAction(string successMessage, Action action, string? confirmationMessage = null)
+    private bool RunProjectAction(string successMessage, Action action, string? confirmationMessage = null)
     {
         // Toutes les actions qui modifient le XML passent ici : confirmation,
         // copie d'annulation, exécution, rafraîchissement et retour arrière si erreur.
         if (!EnsureProjectLoaded())
         {
-            return;
+            return false;
         }
 
         if (!EnsureEditMode())
         {
-            return;
+            return false;
         }
 
         if (!string.IsNullOrWhiteSpace(confirmationMessage))
@@ -3025,7 +3143,7 @@ public partial class MainWindow : Window
             MessageBoxResult confirm = MessageBox.Show(this, confirmationMessage, T("Dialog.ConfirmTitle"), MessageBoxButton.YesNo, MessageBoxImage.Warning);
             if (confirm != MessageBoxResult.Yes)
             {
-                return;
+                return false;
             }
         }
 
@@ -3037,6 +3155,7 @@ public partial class MainWindow : Window
             RefreshAll();
             ScheduleRecoverySnapshot();
             SetStatus(successMessage);
+            return true;
         }
         catch (Exception ex)
         {
@@ -3044,6 +3163,7 @@ public partial class MainWindow : Window
             RefreshAll();
             ScheduleRecoverySnapshot();
             ShowError("Action impossible", ex.Message);
+            return false;
         }
     }
 

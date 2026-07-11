@@ -14,6 +14,8 @@ public partial class DeviceDetailsWindow : Window
     private readonly ObservableCollection<DeviceChannelEditItem> _txChannels;
     private readonly ObservableCollection<DeviceChannelEditItem> _rxChannels;
     private readonly List<PatchEditRequest> _patchEdits = [];
+    private readonly DeviceDetailsResult _initialState;
+    private bool _updatingDeviceSelector;
 
     private readonly DeviceOption[] _latencies =
     [
@@ -51,7 +53,8 @@ public partial class DeviceDetailsWindow : Window
         _project = project ?? throw new ArgumentNullException(nameof(project));
         _useLightTheme = useLightTheme;
         OriginalDeviceName = device.Name;
-        TitleTextBlock.Text = device.Name;
+        Title = L("Détail machine", "Device details");
+        TitleTextBlock.Text = Title;
         DeviceNameTextBox.Text = device.Name;
         RedundantRadioButton.IsChecked = device.IsRedundant;
         DaisychainRadioButton.IsChecked = !device.IsRedundant;
@@ -83,21 +86,38 @@ public partial class DeviceDetailsWindow : Window
         PatchDescriptionTextBlock.Text = L(
             "Affectez des canaux TX disponibles aux entrées RX de cette machine.",
             "Assign available Tx channels to this device's Rx inputs.");
-        OpenPatchWorkspaceButton.Content = L("Ouvrir l'atelier de patch", "Open patch workspace");
+        OpenPatchWorkspaceButton.Content = L("Ouvrir Easy patch", "Open Easy patch");
         PatchSafetyTextBlock.Text = L(
             "Les changements de patch seront appliqués avec les autres réglages de cette fenêtre.",
             "Patch changes will be applied with the other settings in this window.");
         OpenPatchWorkspaceButton.IsEnabled = device.RxCount > 0 && _project.Devices.Any(candidate => candidate.TxCount > 0);
         UpdatePatchSummary();
+
+        _updatingDeviceSelector = true;
+        DeviceSelectorComboBox.ItemsSource = _project.Devices.Select(candidate => candidate.Name).ToArray();
+        DeviceSelectorComboBox.SelectedItem = device.Name;
+        _updatingDeviceSelector = false;
+        DeviceSelectorLabel.Content = L("Machine", "Device");
+        _initialState = BuildResult();
     }
 
     public string OriginalDeviceName { get; }
 
     public DeviceDetailsResult? Result { get; private set; }
 
+    public string? RequestedDeviceName { get; private set; }
+
     private void ApplyButton_Click(object sender, RoutedEventArgs e)
     {
-        Result = new DeviceDetailsResult(
+        CommitChannelEdits();
+        RequestedDeviceName = null;
+        Result = BuildResult();
+        DialogResult = true;
+    }
+
+    private DeviceDetailsResult BuildResult()
+    {
+        return new DeviceDetailsResult(
             DeviceNameTextBox.Text.Trim(),
             RedundantRadioButton.IsChecked == true,
             SelectedValue(LatencyComboBox),
@@ -111,13 +131,73 @@ public partial class DeviceDetailsWindow : Window
             _txChannels.Select(channel => new DeviceChannelEdit(channel.Index, channel.Name.Trim())).ToArray(),
             _rxChannels.Select(channel => new DeviceChannelEdit(channel.Index, channel.Name.Trim())).ToArray(),
             _patchEdits.ToArray());
-
-        DialogResult = true;
     }
 
     private void CancelButton_Click(object sender, RoutedEventArgs e)
     {
+        RequestedDeviceName = null;
         DialogResult = false;
+    }
+
+    private void DeviceSelectorComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (_updatingDeviceSelector
+            || DeviceSelectorComboBox.SelectedItem is not string requestedName
+            || string.Equals(requestedName, OriginalDeviceName, StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        CommitChannelEdits();
+        MessageBoxResult choice = MessageBoxResult.No;
+        if (HasPendingChanges())
+        {
+            choice = MessageBox.Show(
+                this,
+                L(
+                    "Cette machine contient des changements non appliqués. Oui = appliquer puis changer de machine, Non = abandonner ces changements, Annuler = rester sur cette machine.",
+                    "This device has unapplied changes. Yes = apply and switch device, No = discard these changes, Cancel = stay on this device."),
+                L("Changer de machine", "Switch device"),
+                MessageBoxButton.YesNoCancel,
+                MessageBoxImage.Question);
+            if (choice == MessageBoxResult.Cancel)
+            {
+                _updatingDeviceSelector = true;
+                DeviceSelectorComboBox.SelectedItem = OriginalDeviceName;
+                _updatingDeviceSelector = false;
+                return;
+            }
+        }
+
+        RequestedDeviceName = requestedName;
+        Result = choice == MessageBoxResult.Yes ? BuildResult() : null;
+        DialogResult = choice == MessageBoxResult.Yes;
+    }
+
+    private bool HasPendingChanges()
+    {
+        DeviceDetailsResult current = BuildResult();
+        return !string.Equals(current.DeviceName, _initialState.DeviceName, StringComparison.Ordinal)
+            || current.IsRedundant != _initialState.IsRedundant
+            || !string.Equals(current.Latency, _initialState.Latency, StringComparison.Ordinal)
+            || !string.Equals(current.Samplerate, _initialState.Samplerate, StringComparison.Ordinal)
+            || !string.Equals(current.Encoding, _initialState.Encoding, StringComparison.Ordinal)
+            || current.PreferredMaster != _initialState.PreferredMaster
+            || current.UsesStaticIp != _initialState.UsesStaticIp
+            || !string.Equals(current.StaticIpAddress, _initialState.StaticIpAddress, StringComparison.Ordinal)
+            || !string.Equals(current.StaticIpNetmask, _initialState.StaticIpNetmask, StringComparison.Ordinal)
+            || !string.Equals(current.StaticIpGateway, _initialState.StaticIpGateway, StringComparison.Ordinal)
+            || !current.TxChannels.SequenceEqual(_initialState.TxChannels)
+            || !current.RxChannels.SequenceEqual(_initialState.RxChannels)
+            || !current.PatchEdits.SequenceEqual(_initialState.PatchEdits);
+    }
+
+    private void CommitChannelEdits()
+    {
+        TxChannelsGrid.CommitEdit(DataGridEditingUnit.Cell, true);
+        TxChannelsGrid.CommitEdit(DataGridEditingUnit.Row, true);
+        RxChannelsGrid.CommitEdit(DataGridEditingUnit.Cell, true);
+        RxChannelsGrid.CommitEdit(DataGridEditingUnit.Row, true);
     }
 
     private void OpenPatchWorkspaceButton_Click(object sender, RoutedEventArgs e)

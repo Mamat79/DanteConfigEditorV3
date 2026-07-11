@@ -1,3 +1,5 @@
+using System.Xml.Linq;
+
 namespace DanteConfigEditorV3.Tests;
 
 public sealed class PatchWorkspaceUiContractTests
@@ -5,8 +7,8 @@ public sealed class PatchWorkspaceUiContractTests
     [Fact]
     public void WindowsPatchWorkspaceUsesSelectionPreviewAndRangeControls()
     {
-        string xaml = File.ReadAllText(RepositoryFile("PatchWorkspaceWindow.xaml"));
-        string codeBehind = File.ReadAllText(RepositoryFile("PatchWorkspaceWindow.xaml.cs"));
+        string xaml = File.ReadAllText(RepositoryFile("PatchWorkspaceView.xaml"));
+        string codeBehind = File.ReadAllText(RepositoryFile("PatchWorkspaceView.xaml.cs"));
 
         Assert.Contains("x:Name=\"TxChannelListBox\"", xaml, StringComparison.Ordinal);
         Assert.Contains("x:Name=\"RxChannelListBox\"", xaml, StringComparison.Ordinal);
@@ -19,6 +21,10 @@ public sealed class PatchWorkspaceUiContractTests
         Assert.Contains("x:Name=\"MatrixGrid\"", xaml, StringComparison.Ordinal);
         Assert.Contains("<Trigger Property=\"IsSelected\" Value=\"True\">", xaml, StringComparison.Ordinal);
         Assert.Contains("<TextBlock Text=\"{Binding Display}\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("x:Name=\"PreviousRxDeviceButton\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("x:Name=\"NextRxDeviceButton\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("x:Name=\"PreviousTxDeviceButton\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("x:Name=\"NextTxDeviceButton\"", xaml, StringComparison.Ordinal);
         Assert.DoesNotContain("AllowDrop=", xaml, StringComparison.Ordinal);
         Assert.DoesNotContain("DragDrop.DoDragDrop", codeBehind, StringComparison.Ordinal);
         Assert.DoesNotContain("glisser-déposer", xaml, StringComparison.OrdinalIgnoreCase);
@@ -26,6 +32,38 @@ public sealed class PatchWorkspaceUiContractTests
 
         string mainWindowXaml = File.ReadAllText(RepositoryFile("MainWindow.xaml"));
         Assert.DoesNotContain("glisser-déposer", mainWindowXaml, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void WindowsPatchWorkspacePlacesRxOnTheLeftAndTxOnTheRight()
+    {
+        string xaml = File.ReadAllText(RepositoryFile("PatchWorkspaceView.xaml"));
+        XDocument document = XDocument.Parse(xaml);
+        XNamespace xamlNamespace = "http://schemas.microsoft.com/winfx/2006/xaml";
+
+        XElement rxPanel = NamedElement(document, xamlNamespace, "RxDevicePanel");
+        XElement txPanel = NamedElement(document, xamlNamespace, "TxDevicePanel");
+        XElement rxList = NamedElement(document, xamlNamespace, "RxChannelListBox");
+        XElement txList = NamedElement(document, xamlNamespace, "TxChannelListBox");
+
+        Assert.Equal("0", rxPanel.Attribute("Grid.Column")?.Value);
+        Assert.Equal("2", txPanel.Attribute("Grid.Column")?.Value);
+        Assert.Equal("0", rxList.Attribute("Grid.Column")?.Value);
+        Assert.Equal("2", txList.Attribute("Grid.Column")?.Value);
+    }
+
+    [Fact]
+    public void MainWindowKeepsPatchAndAddsEmbeddedEasyPatchTab()
+    {
+        string xaml = File.ReadAllText(RepositoryFile("MainWindow.xaml"));
+        string codeBehind = File.ReadAllText(RepositoryFile("MainWindow.xaml.cs"));
+
+        Assert.Contains("x:Name=\"ClassicPatchTab\" Header=\"Patch\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("x:Name=\"EasyPatchTab\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("Header=\"Easy patch\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("x:Name=\"EasyPatchHost\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("embedded: true", codeBehind, StringComparison.Ordinal);
+        Assert.Contains("EasyPatchWorkspace_ApplyRequested", codeBehind, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -37,8 +75,10 @@ public sealed class PatchWorkspaceUiContractTests
 
         Assert.Contains("x:Name=\"PatchTab\"", xaml, StringComparison.Ordinal);
         Assert.Contains("x:Name=\"OpenPatchWorkspaceButton\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("x:Name=\"DeviceSelectorComboBox\"", xaml, StringComparison.Ordinal);
         Assert.Contains("returnEditsOnly: true", codeBehind, StringComparison.Ordinal);
         Assert.Contains("lockRxDeviceSelection: true", codeBehind, StringComparison.Ordinal);
+        Assert.Contains("RequestedDeviceName", codeBehind, StringComparison.Ordinal);
 
         int patchLoop = mainWindow.IndexOf("foreach (PatchEditRequest edit in result.PatchEdits)", StringComparison.Ordinal);
         int rename = mainWindow.IndexOf("_project.RenameDevice(currentName, result.DeviceName)", StringComparison.Ordinal);
@@ -56,6 +96,12 @@ public sealed class PatchWorkspaceUiContractTests
         }
 
         return count;
+    }
+
+    private static XElement NamedElement(XDocument document, XNamespace xamlNamespace, string name)
+    {
+        return document.Descendants()
+            .Single(element => string.Equals((string?)element.Attribute(xamlNamespace + "Name"), name, StringComparison.Ordinal));
     }
 
     private static string RepositoryFile(params string[] relativeParts)

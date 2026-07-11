@@ -31,11 +31,27 @@
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <TextBlock x:Name="TitleTextBlock"
-                   Text="Détail machine"
-                   FontSize="20"
-                   FontWeight="SemiBold"
-                   Margin="0,0,0,12" />
+        <Grid Margin="0,0,0,12">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <TextBlock x:Name="TitleTextBlock"
+                       Text="Détail machine"
+                       FontSize="20"
+                       FontWeight="SemiBold"
+                       VerticalAlignment="Center" />
+            <StackPanel Grid.Column="1" Orientation="Horizontal">
+                <Label x:Name="DeviceSelectorLabel"
+                       Content="Machine"
+                       VerticalAlignment="Center"
+                       Padding="0,0,8,0" />
+                <ComboBox x:Name="DeviceSelectorComboBox"
+                          Width="300"
+                          VerticalAlignment="Center"
+                          SelectionChanged="DeviceSelectorComboBox_SelectionChanged" />
+            </StackPanel>
+        </Grid>
 
         <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
             <StackPanel>
@@ -174,7 +190,7 @@
                                            TextWrapping="Wrap" />
                                 <Button x:Name="OpenPatchWorkspaceButton"
                                         Grid.Row="1"
-                                        Content="Ouvrir l'atelier de patch"
+                                        Content="Ouvrir Easy patch"
                                         HorizontalAlignment="Left"
                                         Margin="0,14,0,0"
                                         Click="OpenPatchWorkspaceButton_Click" />
