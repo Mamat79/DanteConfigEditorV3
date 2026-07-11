@@ -10,7 +10,7 @@ Travaillez toujours sur une copie de vos fichiers XML Dante et validez le result
 
 - Version 3.07 beta.
 - Premiere version macOS, avec une interface Avalonia partageant le meme moteur XML que l'application Windows.
-- Sept tests d'interface macOS completent les 62 tests du moteur XML partage.
+- Sept tests d'interface macOS completent les 63 tests du moteur XML partage.
 - DMG autonomes Apple Silicon et Intel avec .NET 8 et notices FR/EN inclus.
 - Alertes importantes placees dans la colonne laterale sur macOS et Windows pour conserver la hauteur des tableaux.
 - Les DMG de cette beta utilisent une signature ad hoc et ne sont pas encore notaries par Apple ; le premier lancement se fait par clic droit puis `Ouvrir`.
@@ -20,7 +20,7 @@ Travaillez toujours sur une copie de vos fichiers XML Dante et validez le result
 - La nouvelle destination devient la référence de la session et de la récupération automatique.
 - Ciblage de l'interface IPv4 principale sans modification implicite du DNS ou de l'interface secondaire.
 - API de modification groupée, récupération asynchrone temporisée et historique d'annulation limité à 10 états.
-- 62 tests Core et 7 tests UI Mac, avec presets synthétiques 10/50/200 machines en 64 TX / 64 RX.
+- 63 tests Core et 7 tests UI Mac, avec presets synthétiques 10/50/200 machines en 64 TX / 64 RX.
 - Atelier de patch visuel Windows/macOS : sélection TX multiple, affectation séquentielle, glisser-déposer, matrice filtrée et application en un lot annulable.
 - Les changements du patch visuel restent en attente jusqu'à validation explicite et sont abandonnés si la fenêtre est fermée sans appliquer.
 - En-tête et panneaux rendus plus compacts ; le reset global des canaux est placé sous la latence globale.

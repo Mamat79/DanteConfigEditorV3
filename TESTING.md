@@ -4,7 +4,7 @@
 
 État vérifié après l'ajout de l'atelier de patch visuel et avant la reconstruction finale de l'installateur :
 
-- 62 tests Core réussis, 0 échec ;
+- 63 tests Core réussis, 0 échec ;
 - 7 tests d'interface Mac headless réussis, 0 échec ;
 - build Windows Release : 0 warning, 0 erreur ;
 - build Mac Release : 0 warning, 0 erreur ;

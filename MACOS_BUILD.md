@@ -46,4 +46,4 @@ La version Mac inclut l'atelier de patch visuel partagé avec Windows : sélecti
 
 Pour garder la matrice utilisable sur de gros presets, elle affiche un couple de devices à la fois et limite la vue Mac aux 128 premiers TX et RX. Les listes de canaux conservent tous les éléments.
 
-La suite courante comprend 62 tests du moteur partagé et 7 tests Avalonia headless. Ces derniers couvrent notamment les alertes latérales, la navigation au clavier, les dimensions compactes et le patch visuel ; ils ne remplacent pas un contrôle VoiceOver sur un Mac réel.
+La suite courante comprend 63 tests du moteur partagé et 7 tests Avalonia headless. Ces derniers couvrent notamment les alertes latérales, la navigation au clavier, les dimensions compactes et le patch visuel ; ils ne remplacent pas un contrôle VoiceOver sur un Mac réel.

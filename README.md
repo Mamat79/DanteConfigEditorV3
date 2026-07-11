@@ -128,7 +128,7 @@ Si une version est déjà installée, l'assistant le détecte et propose de remp
 - Les changements IPv4 ciblent uniquement l'interface principale et ne réécrivent plus implicitement le DNS ou une interface secondaire.
 - Mutations groupées avec une seule reconstruction du modèle pour les réglages de détail et les actions globales.
 - Récupération automatique asynchrone et temporisée ; historique d'annulation limité à 10 états.
-- 62 tests de sécurité et de non-régression, dont les presets synthétiques de 10, 50 et 200 machines en 64 TX / 64 RX.
+- 63 tests de sécurité et de non-régression, dont les presets synthétiques de 10, 50 et 200 machines en 64 TX / 64 RX.
 - Workflow GitHub Actions sur Windows et script `build.ps1` qui vérifie chaque code de retour.
 - Installateur de mise à niveau unique : la V3.07 Beta remplace la version déjà installée sans proposer de copie parallèle.
 - Nouvelle interface macOS via Avalonia, avec les alertes placées dans la colonne latérale pour préserver la hauteur des tableaux.

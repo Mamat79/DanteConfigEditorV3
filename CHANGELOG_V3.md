@@ -13,7 +13,7 @@
 - Les changements du patch visuel sont préparés sans toucher au projet, puis appliqués en un lot unique et une seule étape d'annulation.
 - Refus des affectations visuelles ambiguës quand plusieurs TX d'un même device portent le même nom.
 - Réorganisation compacte de l'en-tête et des panneaux ; le reset global des canaux est déplacé sous la latence globale.
-- Extension de la suite à 62 tests Core et 7 tests d'interface Mac headless.
+- Extension de la suite à 63 tests Core et 7 tests d'interface Mac headless.
 - Ajout du pack de validation non destructif, de la matrice de compatibilité et des documents de validation, accessibilité, architecture et limites connues.
 
 ## 2026-07-10 - Version 3.06 Beta

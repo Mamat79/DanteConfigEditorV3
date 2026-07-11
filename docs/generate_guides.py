@@ -432,7 +432,7 @@ def full_guide(language: str) -> None:
                 [48, 122],
             ),
             para("13. Tests de non-régression", "h1"),
-            para("La suite V3.07 exécute 62 tests du moteur XML et 7 tests d'interface Mac : identités techniques, chemins inconnus, sauvegarde atomique, récupération, interfaces IPv4, alias de subscription, namespace par défaut, presets synthétiques, alertes latérales et atelier de patch visuel. GitHub Actions les rejoue sur Windows et macOS."),
+            para("La suite V3.07 exécute 63 tests du moteur XML et 7 tests d'interface Mac : identités techniques, chemins inconnus, sauvegarde atomique, récupération, interfaces IPv4, alias de subscription, namespace par défaut, presets synthétiques, alertes latérales et atelier de patch visuel. GitHub Actions les rejoue sur Windows et macOS."),
             para("14. Limites connues", "h1"),
             *bullets([
                 "Aucun pilotage en temps réel et aucune communication avec les appareils.",
@@ -570,7 +570,7 @@ def full_guide(language: str) -> None:
                 [48, 122],
             ),
             para("13. Regression tests", "h1"),
-            para("The V3.07 suite runs 62 shared XML engine tests and 7 Mac UI tests covering technical identities, unknown paths, atomic save, recovery, IPv4 interfaces, subscription aliases, default namespaces, synthetic presets, side alerts, and the visual patch workspace. GitHub Actions reruns them on Windows and macOS."),
+            para("The V3.07 suite runs 63 shared XML engine tests and 7 Mac UI tests covering technical identities, unknown paths, atomic save, recovery, IPv4 interfaces, subscription aliases, default namespaces, synthetic presets, side alerts, and the visual patch workspace. GitHub Actions reruns them on Windows and macOS."),
             para("14. Known limitations", "h1"),
             *bullets([
                 "No real-time Dante control and no communication with devices.",
