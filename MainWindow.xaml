@@ -7,6 +7,7 @@
         MinWidth="1120"
         MinHeight="720"
         WindowState="Maximized"
+        SizeChanged="Window_SizeChanged"
         Loaded="Window_Loaded">
     <Window.Resources>
         <SolidColorBrush x:Key="WindowBackgroundBrush" Color="#10141F" />
@@ -319,13 +320,62 @@
                 BorderThickness="0,0,0,1"
                 Padding="16,12">
             <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
 
-                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                <!-- Le titre et l'état restent sur une ligne bornée. Le chemin est
+                     tronqué plutôt que replié, afin de ne jamais agrandir la barre. -->
+                <Grid Grid.Row="0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Margin="0,0,18,0" VerticalAlignment="Center">
+                        <TextBlock Text="Dante Config Editor V3.07 Beta"
+                                   FontSize="20"
+                                   FontWeight="SemiBold"
+                                   TextWrapping="NoWrap" />
+                        <TextBlock x:Name="FilePathTextBlock"
+                                   Text="Aucun fichier ouvert"
+                                   Foreground="{DynamicResource MutedTextBrush}"
+                                   FontSize="12"
+                                   TextWrapping="NoWrap"
+                                   TextTrimming="CharacterEllipsis"
+                                   ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}" />
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                        <TextBlock x:Name="DirtyStateTextBlock"
+                                   Text="Non modifié"
+                                   TextWrapping="NoWrap"
+                                   Margin="0,0,14,8"
+                                   VerticalAlignment="Center"
+                                   Foreground="{DynamicResource MutedTextBrush}" />
+                        <TextBlock x:Name="LanguageLabelTextBlock"
+                                   Text="Langue"
+                                   TextWrapping="NoWrap"
+                                   Margin="0,0,8,8"
+                                   VerticalAlignment="Center"
+                                   Foreground="{DynamicResource MutedTextBrush}" />
+                        <ComboBox x:Name="LanguageComboBox"
+                                  Width="105"
+                                  Margin="0,0,8,8"
+                                  AutomationProperties.Name="Langue de l'interface"
+                                  SelectionChanged="LanguageComboBox_SelectionChanged" />
+                        <ToggleButton x:Name="ThemeToggleButton"
+                                      Content="Thème clair"
+                                      AutomationProperties.Name="Changer le thème"
+                                      Checked="ThemeToggleButton_Checked"
+                                      Unchecked="ThemeToggleButton_Unchecked" />
+                    </StackPanel>
+                </Grid>
+
+                <!-- Les commandes passent sur une seconde ligne si la fenêtre est
+                     étroite, sans masquer les onglets ni le tableau des machines. -->
+                <WrapPanel Grid.Row="1" Margin="0,10,0,0" VerticalAlignment="Center">
                     <Button Content="Ouvrir XML" Click="OpenButton_Click" ToolTip="Charge un export XML Dante Controller." />
                     <Button x:Name="MergeXmlButton" Content="Ajouter XML au projet" Style="{StaticResource SecondaryButtonStyle}" Click="MergeXmlButton_Click" ToolTip="Ajoute les machines d'un autre XML au projet ouvert. Les doublons peuvent être renommés." />
                     <Button x:Name="SaveAsButton" Content="Enregistrer sous" Click="SaveAsButton_Click" ToolTip="Enregistre un nouveau XML et crée un backup de sécurité." />
@@ -335,38 +385,10 @@
                     <ComboBox x:Name="RecentFilesComboBox"
                               Width="230"
                               Margin="0,0,8,8"
+                              AutomationProperties.Name="Fichiers XML récents"
                               ToolTip="Liste les derniers XML ouverts." />
                     <Button Content="Ouvrir récent" Style="{StaticResource SecondaryButtonStyle}" Click="OpenRecentButton_Click" ToolTip="Ouvre le fichier sélectionné dans la liste récente." />
-                </StackPanel>
-
-                <StackPanel Grid.Column="1" Margin="18,0,18,0" VerticalAlignment="Center">
-                    <TextBlock Text="Dante Config Editor V3.07 Beta" FontSize="20" FontWeight="SemiBold" />
-                    <TextBlock x:Name="FilePathTextBlock"
-                               Text="Aucun fichier ouvert"
-                               Foreground="{DynamicResource MutedTextBrush}"
-                               FontSize="12" />
-                </StackPanel>
-
-                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
-                    <TextBlock x:Name="DirtyStateTextBlock"
-                               Text="Non modifié"
-                               Margin="0,0,14,8"
-                               VerticalAlignment="Center"
-                               Foreground="{DynamicResource MutedTextBrush}" />
-                    <TextBlock x:Name="LanguageLabelTextBlock"
-                               Text="Langue"
-                               Margin="0,0,8,8"
-                               VerticalAlignment="Center"
-                               Foreground="{DynamicResource MutedTextBrush}" />
-                    <ComboBox x:Name="LanguageComboBox"
-                              Width="105"
-                              Margin="0,0,8,8"
-                              SelectionChanged="LanguageComboBox_SelectionChanged" />
-                    <ToggleButton x:Name="ThemeToggleButton"
-                                  Content="Thème clair"
-                                  Checked="ThemeToggleButton_Checked"
-                                  Unchecked="ThemeToggleButton_Unchecked" />
-                </StackPanel>
+                </WrapPanel>
             </Grid>
         </Border>
 
@@ -662,6 +684,7 @@
                                                         <Label Content="Latence globale" />
                                                         <ComboBox x:Name="GlobalLatencyComboBox" ToolTip="La valeur affichée est en ms. Le XML conserve la valeur brute Dante." />
                                                         <Button x:Name="ApplyAllLatencyButton" Content="Appliquer la latence à tous" Click="ApplyAllLatencyButton_Click" ToolTip="Applique la latence à la cible choisie après prévisualisation." />
+                                                        <Button x:Name="ResetAllChannelsButton" Content="Réinitialiser tous les canaux" Style="{StaticResource SecondaryButtonStyle}" Click="ResetAllChannelsButton_Click" ToolTip="Réinitialise les noms de canaux TX/RX de la cible choisie, en respectant les verrous." />
                                                     </StackPanel>
 
                                                     <StackPanel Grid.Column="1">
@@ -672,8 +695,6 @@
                                                         <Label Content="Bits par échantillon globaux" />
                                                         <ComboBox x:Name="GlobalEncodingComboBox" IsEditable="True" />
                                                         <Button x:Name="ApplyAllEncodingButton" Content="Appliquer les bits à tous" Click="ApplyAllEncodingButton_Click" ToolTip="Applique les bits par échantillon à la cible choisie." />
-
-                                                        <Button x:Name="ResetAllChannelsButton" Content="Réinitialiser tous les canaux" Style="{StaticResource SecondaryButtonStyle}" Click="ResetAllChannelsButton_Click" ToolTip="Réinitialise les noms de canaux TX/RX de la cible choisie, en respectant les verrous." />
                                                     </StackPanel>
                                                 </Grid>
                                             </TabItem>

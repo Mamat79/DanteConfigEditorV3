@@ -108,6 +108,8 @@ public partial class MainWindow : Window
     // Évite que les changements de sélection déclenchés par RefreshAll relancent
     // eux-mêmes des actions utilisateur.
     private bool _refreshingUi;
+    private bool _compactConfigurationLayout;
+    private bool _configurationEditorsAutoCollapsed;
 
     private sealed record ChannelChoice(DanteChannelKind Kind, int Index, string Name)
     {
@@ -253,6 +255,7 @@ public partial class MainWindow : Window
         ApplyLanguageToInterface();
         RefreshRecentFiles();
         RefreshAll();
+        UpdateResponsiveConfigurationLayout(ActualWidth, ActualHeight);
     }
 
     private void OpenButton_Click(object sender, RoutedEventArgs e)
@@ -1180,6 +1183,40 @@ public partial class MainWindow : Window
         ConfigurationEditorsGrid.Visibility = ConfigurationEditorsGrid.Visibility == Visibility.Visible
             ? Visibility.Collapsed
             : Visibility.Visible;
+        _configurationEditorsAutoCollapsed = false;
+        UpdateConfigurationEditorsToggleText();
+    }
+
+    private void Window_SizeChanged(object sender, SizeChangedEventArgs e)
+    {
+        if (!IsLoaded)
+        {
+            return;
+        }
+
+        UpdateResponsiveConfigurationLayout(e.NewSize.Width, e.NewSize.Height);
+    }
+
+    private void UpdateResponsiveConfigurationLayout(double width, double height)
+    {
+        bool compact = width < 1500 || height < 900;
+        if (compact == _compactConfigurationLayout)
+        {
+            return;
+        }
+
+        _compactConfigurationLayout = compact;
+        if (compact && ConfigurationEditorsGrid.Visibility == Visibility.Visible)
+        {
+            ConfigurationEditorsGrid.Visibility = Visibility.Collapsed;
+            _configurationEditorsAutoCollapsed = true;
+        }
+        else if (!compact && _configurationEditorsAutoCollapsed)
+        {
+            ConfigurationEditorsGrid.Visibility = Visibility.Visible;
+            _configurationEditorsAutoCollapsed = false;
+        }
+
         UpdateConfigurationEditorsToggleText();
     }
 

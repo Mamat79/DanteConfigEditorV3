@@ -1,5 +1,8 @@
+using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Headless;
 using Avalonia.Headless.XUnit;
+using Avalonia.Input;
 using Avalonia.LogicalTree;
 using DanteConfigEditor.Services;
 
@@ -58,5 +61,84 @@ public sealed class MainWindowTests
             SessionRecoveryService.Delete(temporaryXml);
             File.Delete(temporaryXml);
         }
+    }
+
+    [AvaloniaFact]
+    public async Task Compact1366By768LayoutKeepsPrimaryAreasInsideTheWindow()
+    {
+        await AssertPrimaryAreasFitAsync(1366, 768);
+    }
+
+    [AvaloniaFact]
+    public async Task FullHdLayoutKeepsPrimaryAreasInsideTheWindow()
+    {
+        await AssertPrimaryAreasFitAsync(1920, 1080);
+    }
+
+    [AvaloniaFact]
+    public async Task TabKeyMovesFocusFromOpenToMergeAfterProjectLoad()
+    {
+        string source = Path.Combine(AppContext.BaseDirectory, "Fixtures", "representative-preset.xml");
+        string temporaryXml = Path.Combine(Path.GetTempPath(), $"dante-mac-keyboard-{Guid.NewGuid():N}.xml");
+        File.Copy(source, temporaryXml);
+
+        MainWindow window = new() { Width = 1366, Height = 768 };
+        window.Show();
+        try
+        {
+            await window.OpenStartupFileAsync(temporaryXml);
+            Button open = window.FindControl<Button>("OpenButton")!;
+            Button merge = window.FindControl<Button>("MergeButton")!;
+
+            Assert.True(open.Focus());
+            Assert.True(open.IsFocused);
+            window.KeyPressQwerty(PhysicalKey.Tab, RawInputModifiers.None);
+            window.KeyReleaseQwerty(PhysicalKey.Tab, RawInputModifiers.None);
+
+            Assert.True(merge.IsFocused);
+        }
+        finally
+        {
+            window.Close();
+            SessionRecoveryService.Delete(temporaryXml);
+            File.Delete(temporaryXml);
+        }
+    }
+
+    private static async Task AssertPrimaryAreasFitAsync(double width, double height)
+    {
+        string source = Path.Combine(AppContext.BaseDirectory, "Fixtures", "representative-preset.xml");
+        string temporaryXml = Path.Combine(Path.GetTempPath(), $"dante-mac-layout-{Guid.NewGuid():N}.xml");
+        File.Copy(source, temporaryXml);
+
+        MainWindow window = new() { Width = width, Height = height };
+        window.Show();
+        try
+        {
+            await window.OpenStartupFileAsync(temporaryXml);
+
+            AssertControlFits(window, window.FindControl<Border>("ProjectSidebar")!);
+            AssertControlFits(window, window.FindControl<TabControl>("MainTabs")!);
+            AssertControlFits(window, window.FindControl<DataGrid>("DeviceGrid")!);
+        }
+        finally
+        {
+            window.Close();
+            SessionRecoveryService.Delete(temporaryXml);
+            File.Delete(temporaryXml);
+        }
+    }
+
+    private static void AssertControlFits(Window window, Control control)
+    {
+        Point? origin = control.TranslatePoint(default, window);
+        Assert.NotNull(origin);
+        Assert.True(control.IsEffectivelyVisible, $"{control.Name} devrait être visible.");
+        Assert.True(control.Bounds.Width > 0, $"{control.Name} devrait avoir une largeur positive.");
+        Assert.True(control.Bounds.Height > 0, $"{control.Name} devrait avoir une hauteur positive.");
+        Assert.InRange(origin.Value.X, -0.5, window.ClientSize.Width + 0.5);
+        Assert.InRange(origin.Value.Y, -0.5, window.ClientSize.Height + 0.5);
+        Assert.True(origin.Value.X + control.Bounds.Width <= window.ClientSize.Width + 0.5, $"{control.Name} dépasse horizontalement.");
+        Assert.True(origin.Value.Y + control.Bounds.Height <= window.ClientSize.Height + 0.5, $"{control.Name} dépasse verticalement.");
     }
 }

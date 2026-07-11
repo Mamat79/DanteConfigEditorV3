@@ -195,6 +195,7 @@
                                                         <ComboBox x:Name="GlobalLatencyCombo" />
                                                         <Button Grid.Column="1" Click="ApplyGlobalLatencyButton_Click">Appliquer</Button>
                                                     </Grid>
+                                                    <Button Click="ResetAllChannelsButton_Click">Réinitialiser tous les canaux</Button>
                                                     <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
                                                         <ComboBox x:Name="GlobalSampleRateCombo" />
                                                         <Button Grid.Column="1" Click="ApplyGlobalSampleRateButton_Click">Appliquer</Button>
@@ -203,7 +204,6 @@
                                                         <ComboBox x:Name="GlobalBitsCombo" />
                                                         <Button Grid.Column="1" Click="ApplyGlobalBitsButton_Click">Appliquer</Button>
                                                     </Grid>
-                                                    <Button Click="ResetAllChannelsButton_Click">Réinitialiser tous les canaux</Button>
                                                 </StackPanel>
                                             </ScrollViewer>
                                         </TabItem>
