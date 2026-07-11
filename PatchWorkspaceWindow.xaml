@@ -96,7 +96,40 @@
         <Style TargetType="{x:Type TabItem}">
             <Setter Property="Background" Value="{DynamicResource SurfaceAltBrush}" />
             <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderLineBrush}" />
             <Setter Property="Padding" Value="12,7" />
+            <Setter Property="Margin" Value="0,0,3,0" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type TabItem}">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="1,1,1,0"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter ContentSource="Header"
+                                              TextElement.Foreground="{TemplateBinding Foreground}"
+                                              HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"
+                                              RecognizesAccessKey="True" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
+                            </Trigger>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter Property="Panel.ZIndex" Value="10" />
+                                <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
+                                <Setter Property="Foreground" Value="White" />
+                                <Setter Property="BorderBrush" Value="{DynamicResource AccentDarkBrush}" />
+                                <Setter Property="FontWeight" Value="SemiBold" />
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.45" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
         </Style>
         <Style TargetType="{x:Type DataGrid}">
             <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
@@ -350,7 +383,14 @@
                                            Padding="0,0,6,8" />
                                     <ComboBox x:Name="ConflictResolutionComboBox"
                                               Width="165"
-                                              Margin="0,0,8,8" />
+                                              Margin="0,0,8,8">
+                                        <ComboBox.ItemTemplate>
+                                            <DataTemplate>
+                                                <TextBlock Text="{Binding Display}"
+                                                           Foreground="#111827" />
+                                            </DataTemplate>
+                                        </ComboBox.ItemTemplate>
+                                    </ComboBox>
                                     <Button x:Name="StagePreviewButton"
                                             Content="Préparer ces changements"
                                             Click="StagePreviewButton_Click" />

@@ -17,8 +17,15 @@ public sealed class PatchWorkspaceUiContractTests
         Assert.Contains("x:Name=\"RangeStartRxComboBox\"", xaml, StringComparison.Ordinal);
         Assert.Contains("x:Name=\"RangeCountTextBox\"", xaml, StringComparison.Ordinal);
         Assert.Contains("x:Name=\"MatrixGrid\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("<Trigger Property=\"IsSelected\" Value=\"True\">", xaml, StringComparison.Ordinal);
+        Assert.Contains("<TextBlock Text=\"{Binding Display}\"", xaml, StringComparison.Ordinal);
         Assert.DoesNotContain("AllowDrop=", xaml, StringComparison.Ordinal);
         Assert.DoesNotContain("DragDrop.DoDragDrop", codeBehind, StringComparison.Ordinal);
+        Assert.DoesNotContain("glisser-déposer", xaml, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("glisser-déposer", codeBehind, StringComparison.OrdinalIgnoreCase);
+
+        string mainWindowXaml = File.ReadAllText(RepositoryFile("MainWindow.xaml"));
+        Assert.DoesNotContain("glisser-déposer", mainWindowXaml, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]

@@ -135,8 +135,8 @@ public partial class PatchWorkspaceWindow : Window
         else
         {
             SetInfo(L(
-                "Sélectionnez plusieurs TX avec Ctrl ou Maj, puis choisissez le premier RX.",
-                "Select multiple Tx channels with Ctrl or Shift, then choose the first Rx."));
+                "Sélectionnez les TX et les RX, puis prévisualisez la sélection ou une plage.",
+                "Select the Tx and Rx channels, then preview the selection or a range."));
         }
     }
 

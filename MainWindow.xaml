@@ -909,7 +909,7 @@
                                         Content="Patch visuel / grille"
                                         Margin="0,12,0,0"
                                         Click="OpenVisualPatchButton_Click"
-                                        ToolTip="Ouvre une vue TX/RX avec glisser-déposer, affectation en série et grille de patch." />
+                                        ToolTip="Ouvre la sélection TX/RX, la prévisualisation par plage et la grille de patch." />
                             </Grid>
                         </Border>
 
