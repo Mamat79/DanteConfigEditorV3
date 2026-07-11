@@ -6,6 +6,8 @@ public sealed class DanteXmlCompatibilityProfile
 {
     public string RootName { get; init; } = string.Empty;
 
+    public string RootNamespace { get; init; } = string.Empty;
+
     public string? PresetVersion { get; init; }
 
     public string? DeclarationVersion { get; init; }
@@ -69,13 +71,14 @@ public static class DanteXmlCompatibilityService
         return new DanteXmlCompatibilityProfile
         {
             RootName = root?.Name.LocalName ?? string.Empty,
+            RootNamespace = root?.Name.NamespaceName ?? string.Empty,
             PresetVersion = root?.Attribute("version")?.Value,
             DeclarationVersion = document.Declaration?.Version,
             DeclarationEncoding = document.Declaration?.Encoding,
             DeclarationStandalone = document.Declaration?.Standalone,
-            Devices = root?.Elements("device")
+            Devices = root.Children("device")
                 .Select((device, index) => CaptureDevice(device, index + 1))
-                .ToArray() ?? []
+                .ToArray()
         };
     }
 
@@ -94,6 +97,11 @@ public static class DanteXmlCompatibilityService
             result.AddError(DanteIssueCategory.XmlCompatibility, "La racine XML doit rester <preset> pour un preset Dante Controller.");
         }
 
+        if (!string.Equals(root.Name.NamespaceName, originalProfile.RootNamespace, StringComparison.Ordinal))
+        {
+            result.AddError(DanteIssueCategory.XmlCompatibility, "Le namespace XML du preset a été modifié.");
+        }
+
         if (!string.IsNullOrWhiteSpace(originalProfile.PresetVersion)
             && !string.Equals(root.Attribute("version")?.Value, originalProfile.PresetVersion, StringComparison.OrdinalIgnoreCase))
         {
@@ -102,7 +110,7 @@ public static class DanteXmlCompatibilityService
 
         ValidateDeclaration(document, originalProfile, result);
 
-        XElement[] currentDevices = root.Elements("device").ToArray();
+        XElement[] currentDevices = root.Children("device").ToArray();
         if (currentDevices.Length == 0)
         {
             result.AddError(DanteIssueCategory.XmlCompatibility, "Aucun device Dante n'est présent dans le XML.");
@@ -152,15 +160,15 @@ public static class DanteXmlCompatibilityService
         return new DanteDeviceXmlSignature
         {
             Position = position,
-            Name = device.Element("name")?.Value.Trim() ?? $"Device {position}",
+            Name = device.Child("name")?.Value.Trim() ?? $"Device {position}",
             TechnicalElements = device.Elements()
                 .Select(element => element.Name.LocalName)
                 .Where(name => TechnicalDeviceElements.Contains(name, StringComparer.OrdinalIgnoreCase))
                 .ToHashSet(StringComparer.OrdinalIgnoreCase),
-            TxChannels = device.Elements("txchannel")
+            TxChannels = device.Children("txchannel")
                 .Select((channel, index) => CaptureChannel(channel, index + 1))
                 .ToArray(),
-            RxChannels = device.Elements("rxchannel")
+            RxChannels = device.Children("rxchannel")
                 .Select((channel, index) => CaptureChannel(channel, index + 1))
                 .ToArray()
         };
@@ -246,7 +254,7 @@ public static class DanteXmlCompatibilityService
         string currentName = ReadDeviceName(currentDevice, originalDevice.Name);
         foreach (string technicalElement in originalDevice.TechnicalElements)
         {
-            if (currentDevice.Element(technicalElement) is null)
+            if (currentDevice.Child(technicalElement) is null)
             {
                 result.AddError(DanteIssueCategory.XmlCompatibility, $"Balise technique supprimée : <{technicalElement}>.", currentName);
             }
@@ -273,7 +281,7 @@ public static class DanteXmlCompatibilityService
         DanteValidationResult result)
     {
         HashSet<string> seenDanteIds = new(StringComparer.OrdinalIgnoreCase);
-        foreach (XElement channel in device.Elements(elementName))
+        foreach (XElement channel in device.Children(elementName))
         {
             string? danteId = channel.Attribute("danteId")?.Value;
             if (!string.IsNullOrWhiteSpace(danteId) && !seenDanteIds.Add(danteId))
@@ -291,7 +299,7 @@ public static class DanteXmlCompatibilityService
         string channelKind,
         DanteValidationResult result)
     {
-        XElement[] currentChannels = device.Elements(elementName).ToArray();
+        XElement[] currentChannels = device.Children(elementName).ToArray();
         if (currentChannels.Length != originalChannels.Count)
         {
             result.AddError(DanteIssueCategory.XmlCompatibility, $"{deviceName} : nombre de canaux {channelKind} modifié ({originalChannels.Count} attendu(s), {currentChannels.Length} trouvé(s)).", deviceName);
@@ -331,10 +339,10 @@ public static class DanteXmlCompatibilityService
 
     private static void ValidatePatchPairs(XElement device, string deviceName, DanteValidationResult result)
     {
-        foreach (XElement rxChannel in device.Elements("rxchannel"))
+        foreach (XElement rxChannel in device.Children("rxchannel"))
         {
-            XElement? subscribedChannel = rxChannel.Element("subscribed_channel");
-            XElement? subscribedDevice = rxChannel.Element("subscribed_device");
+            XElement? subscribedChannel = rxChannel.Child("subscribed_channel");
+            XElement? subscribedDevice = rxChannel.Child("subscribed_device");
             bool hasChannel = !string.IsNullOrWhiteSpace(subscribedChannel?.Value);
             bool hasDevice = !string.IsNullOrWhiteSpace(subscribedDevice?.Value);
             int? danteId = ParseDanteId(rxChannel.Attribute("danteId")?.Value);
@@ -353,7 +361,7 @@ public static class DanteXmlCompatibilityService
 
     private static string ReadDeviceName(XElement device, string fallback)
     {
-        string name = device.Element("name")?.Value.Trim() ?? string.Empty;
+        string name = device.Child("name")?.Value.Trim() ?? string.Empty;
         return string.IsNullOrWhiteSpace(name) ? fallback : name;
     }
 

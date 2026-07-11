@@ -1,9 +1,8 @@
-#define MyAppName "Dante Config Editor V3.05 Beta"
-#define MyAppVersion "3.05-beta"
+#define MyAppName "Dante Config Editor V3.06 Beta"
+#define MyAppVersion "3.06-beta"
 #define MyAppPublisher "Mamat"
 #define MyAppExeName "DanteConfigEditorV3.exe"
 #define MyAppShortcutName "Dante Config Editor V3"
-#define MyAppSideBySideName "Dante Config Editor V3 3.05-beta"
 #define SourceRoot ".."
 
 [Setup]
@@ -25,11 +24,15 @@ ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
 PrivilegesRequired=admin
 UninstallDisplayIcon={app}\{#MyAppExeName}
-VersionInfoVersion=3.5.0
+VersionInfoVersion=3.6.0
 VersionInfoCompany={#MyAppPublisher}
 VersionInfoDescription=Dante Config Editor V3 installer
 VersionInfoProductName={#MyAppName}
 SetupLogging=yes
+CloseApplications=yes
+RestartApplications=no
+UsePreviousAppDir=yes
+UsePreviousGroup=yes
 
 [Languages]
 Name: "french"; MessagesFile: "compiler:Languages\French.isl"
@@ -81,18 +84,10 @@ var
   GithubLabel: TNewStaticText;
   ExistingInstallDir: String;
   ExistingInstallVersion: String;
-  InstallAlongside: Boolean;
 
 function GetShortcutAppName(Param: String): String;
 begin
-  if InstallAlongside then
-  begin
-    Result := '{#MyAppSideBySideName}';
-  end
-  else
-  begin
-    Result := '{#MyAppShortcutName}';
-  end;
+  Result := '{#MyAppShortcutName}';
 end;
 
 function IsFrenchLanguage(): Boolean;
@@ -137,11 +132,6 @@ begin
   end;
 end;
 
-function NormalizeDir(Value: String): String;
-begin
-  Result := Lowercase(RemoveBackslashUnlessRoot(Value));
-end;
-
 function ExistingInstallPromptText(): String;
 begin
   if ActiveLanguage = 'english' then
@@ -150,9 +140,8 @@ begin
       'A previous installation of Dante Config Editor was found.' + #13#10#13#10 +
       'Detected version: ' + ExistingInstallVersion + #13#10 +
       'Folder: ' + ExistingInstallDir + #13#10#13#10 +
-      'Yes = replace/update this installation (recommended).' + #13#10 +
-      'No = install an additional copy in another folder.' + #13#10 +
-      'Cancel = close the installer.';
+      'Yes = replace/update this installation.' + #13#10 +
+      'No = close the installer without changing the installed version.';
   end
   else
   begin
@@ -160,20 +149,14 @@ begin
       'Une version précédente de Dante Config Editor est déjà installée.' + #13#10#13#10 +
       'Version détectée : ' + ExistingInstallVersion + #13#10 +
       'Dossier : ' + ExistingInstallDir + #13#10#13#10 +
-      'Oui = remplacer / mettre à jour cette installation (recommandé).' + #13#10 +
-      'Non = installer en plus dans un autre dossier.' + #13#10 +
-      'Annuler = quitter l''installateur.';
+      'Oui = remplacer / mettre à jour cette installation.' + #13#10 +
+      'Non = quitter sans modifier la version installée.';
   end;
 end;
 
 procedure InitializeWizard();
 begin
-  if InstallAlongside then
-  begin
-    WizardForm.DirEdit.Text := ExpandConstant('{autopf}\{#MyAppSideBySideName}');
-    WizardForm.GroupEdit.Text := '{#MyAppSideBySideName}';
-  end
-  else if ExistingInstallDir <> '' then
+  if ExistingInstallDir <> '' then
   begin
     WizardForm.DirEdit.Text := ExistingInstallDir;
   end;
@@ -201,44 +184,21 @@ var
   Choice: Integer;
 begin
   Result := True;
-  InstallAlongside := False;
+
+  DetectExistingInstall();
 
   if WizardSilent then
   begin
     Exit;
   end;
 
-  if DetectExistingInstall() then
+  if ExistingInstallDir <> '' then
   begin
-    Choice := MsgBox(ExistingInstallPromptText(), mbConfirmation, MB_YESNOCANCEL);
-    if Choice = IDCANCEL then
+    Choice := MsgBox(ExistingInstallPromptText(), mbConfirmation, MB_YESNO);
+    if Choice <> IDYES then
     begin
       Result := False;
       Exit;
-    end;
-
-    InstallAlongside := Choice = IDNO;
-  end;
-end;
-
-function NextButtonClick(CurPageID: Integer): Boolean;
-begin
-  Result := True;
-
-  if InstallAlongside and (CurPageID = wpSelectDir) and (ExistingInstallDir <> '') then
-  begin
-    if CompareText(NormalizeDir(WizardDirValue), NormalizeDir(ExistingInstallDir)) = 0 then
-    begin
-      if ActiveLanguage = 'english' then
-      begin
-        MsgBox('For an additional installation, choose a different destination folder.', mbError, MB_OK);
-      end
-      else
-      begin
-        MsgBox('Pour installer en plus, choisissez un dossier de destination différent.', mbError, MB_OK);
-      end;
-
-      Result := False;
     end;
   end;
 end;

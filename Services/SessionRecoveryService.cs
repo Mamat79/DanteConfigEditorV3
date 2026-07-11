@@ -9,6 +9,7 @@ namespace DanteConfigEditor.Services;
 
 public static class SessionRecoveryService
 {
+    private static readonly SemaphoreSlim WriteGate = new(1, 1);
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
         WriteIndented = true
@@ -17,32 +18,78 @@ public static class SessionRecoveryService
     public static void Save(DanteProject project, string? recoveryDirectory = null)
     {
         ArgumentNullException.ThrowIfNull(project);
+        XDocument snapshot = new(project.Document);
+        string sourcePath = project.OriginalFilePath;
+        WriteGate.Wait();
+        try
+        {
+            SaveSnapshot(snapshot, sourcePath, recoveryDirectory, CancellationToken.None);
+        }
+        finally
+        {
+            WriteGate.Release();
+        }
+    }
+
+    public static async Task SaveAsync(
+        DanteProject project,
+        string? recoveryDirectory = null,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(project);
+        // La copie fige l'état XML sur le thread appelant. Les accès disque et
+        // la relecture de contrôle s'exécutent ensuite hors du thread WPF.
+        XDocument snapshot = new(project.Document);
+        string sourcePath = project.OriginalFilePath;
+        await WriteGate.WaitAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
+            await Task.Run(
+                () => SaveSnapshot(snapshot, sourcePath, recoveryDirectory, cancellationToken),
+                cancellationToken).ConfigureAwait(false);
+        }
+        finally
+        {
+            WriteGate.Release();
+        }
+    }
+
+    private static void SaveSnapshot(
+        XDocument document,
+        string sourcePath,
+        string? recoveryDirectory,
+        CancellationToken cancellationToken)
+    {
         string directory = ResolveRecoveryDirectory(recoveryDirectory);
         Directory.CreateDirectory(directory);
-        string identifier = BuildIdentifier(project.OriginalFilePath);
+        string identifier = BuildIdentifier(sourcePath);
         string xmlPath = Path.Combine(directory, identifier + ".xml");
         string metadataPath = Path.Combine(directory, identifier + ".json");
         string xmlTemporaryPath = xmlPath + ".tmp";
         string metadataTemporaryPath = metadataPath + ".tmp";
-        FileInfo source = new(project.OriginalFilePath);
+        FileInfo source = new(sourcePath);
 
         try
         {
-            project.Document.Save(xmlTemporaryPath, SaveOptions.DisableFormatting);
+            cancellationToken.ThrowIfCancellationRequested();
+            document.Save(xmlTemporaryPath, SaveOptions.DisableFormatting);
+            cancellationToken.ThrowIfCancellationRequested();
             XDocument verification = XDocument.Load(xmlTemporaryPath, LoadOptions.PreserveWhitespace);
-            if (verification.Root is null || !verification.Root.Elements("device").Any())
+            if (verification.Root is null || !verification.Root.Children("device").Any())
             {
                 throw new InvalidOperationException("La copie de récupération XML n'est pas exploitable.");
             }
 
+            cancellationToken.ThrowIfCancellationRequested();
             File.Move(xmlTemporaryPath, xmlPath, true);
             RecoveryMetadata metadata = new(
-                Path.GetFullPath(project.OriginalFilePath),
+                Path.GetFullPath(sourcePath),
                 source.Exists ? source.LastWriteTimeUtc : DateTime.MinValue,
                 source.Exists ? source.Length : 0,
                 DateTime.UtcNow,
                 Path.GetFileName(xmlPath));
             File.WriteAllText(metadataTemporaryPath, JsonSerializer.Serialize(metadata, JsonOptions), new UTF8Encoding(false));
+            cancellationToken.ThrowIfCancellationRequested();
             File.Move(metadataTemporaryPath, metadataPath, true);
         }
         finally
@@ -92,6 +139,35 @@ public static class SessionRecoveryService
     }
 
     public static void Delete(string originalFilePath, string? recoveryDirectory = null)
+    {
+        WriteGate.Wait();
+        try
+        {
+            DeleteCore(originalFilePath, recoveryDirectory);
+        }
+        finally
+        {
+            WriteGate.Release();
+        }
+    }
+
+    public static async Task DeleteAsync(
+        string originalFilePath,
+        string? recoveryDirectory = null,
+        CancellationToken cancellationToken = default)
+    {
+        await WriteGate.WaitAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
+            DeleteCore(originalFilePath, recoveryDirectory);
+        }
+        finally
+        {
+            WriteGate.Release();
+        }
+    }
+
+    private static void DeleteCore(string originalFilePath, string? recoveryDirectory)
     {
         string directory = ResolveRecoveryDirectory(recoveryDirectory);
         string identifier = BuildIdentifier(originalFilePath);

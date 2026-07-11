@@ -1,5 +1,22 @@
 # Changelog V3
 
+## 2026-07-10 - Version 3.06 Beta
+
+- Remplacement de l'identité XML basée sur le nom par une association stable utilisant en priorité `instance_id/device_id`, puis les identifiants techniques de repli.
+- Blocage par défaut des chemins XML inconnus et maintien du blocage des attributs techniques `danteId`, `mediaType` et identifiants de machine.
+- Comparaison des balises par contenu et identité plutôt que par position, afin de tolérer leur simple réordonnancement.
+- Prise en charge des XML utilisant un namespace par défaut, sans création de balises hors namespace pendant les modifications.
+- `SaveAs` rendu atomique avec fichier temporaire unique, backup de la destination remplacée et injection d'erreur testée avant validation finale.
+- La destination sauvegardée devient la nouvelle référence de la session et de la récupération automatique.
+- Ciblage exclusif de l'interface IPv4 principale ; conservation du DNS, de la passerelle non demandée et des interfaces secondaires.
+- Ajout d'une API de mutations groupées avec un seul `ReloadModel` pour les réglages machine et les actions globales.
+- Récupération automatique déplacée hors du thread UI après une temporisation de 750 ms.
+- Limitation de la pile d'annulation à 10 snapshots XML.
+- Ajout d'un workflow GitHub Actions `windows-latest` et vérification stricte des codes retour dans `build.ps1`.
+- Passage de l'application, des exports et de l'installateur en V3.06 Beta.
+- Suppression de l'option d'installation parallèle : l'installateur V3.06 remplace la version existante avec le même AppId et le même dossier par défaut.
+- Extension de la suite à 38 tests, incluant les garde-fous, l'atomicité, la récupération, les alias de subscription, les namespaces, les deux interfaces IPv4 et les presets 10/50/200 en 64x64.
+
 ## 2026-07-10 - Version 3.05 - mise à jour
 
 - Passage du statut public et des métadonnées de `dev` à `beta`, sans changer le numéro V3.05.

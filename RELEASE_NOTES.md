@@ -1,4 +1,4 @@
-# Dante Config Editor V3.05 Beta
+# Dante Config Editor V3.06 Beta
 
 ## Statut
 
@@ -8,7 +8,14 @@ Travaillez toujours sur une copie de vos fichiers XML Dante et validez le result
 
 ## Nouveautes principales
 
-- Version 3.05 beta.
+- Version 3.06 beta.
+- Garde-fou XML durci : identité stable des machines, chemins inconnus bloqués par défaut et absence de faux positif lors d'un simple réordonnancement de balises.
+- Prise en charge des XML avec namespace par défaut.
+- Sauvegarde atomique avec conservation de l'ancienne destination en cas d'erreur et backup de la destination remplacée.
+- La nouvelle destination devient la référence de la session et de la récupération automatique.
+- Ciblage de l'interface IPv4 principale sans modification implicite du DNS ou de l'interface secondaire.
+- API de modification groupée, récupération asynchrone temporisée et historique d'annulation limité à 10 états.
+- 38 tests verts, presets synthétiques 10/50/200 machines en 64 TX / 64 RX, et CI Windows.
 - Les alertes `Points a verifier` sont navigables : elles affichent et filtrent les machines concernees.
 - Nouveau filtre `Modifiees uniquement` et comparaison detaillee `Avant / apres` des machines, canaux et patchs.
 - Alertes dynamiques et comparaison avant/apres traduites en francais et en anglais.
@@ -49,7 +56,7 @@ Travaillez toujours sur une copie de vos fichiers XML Dante et validez le result
 - Comparaison XML en tableau, en plus du resume texte.
 - Notices rapide et complete en francais/anglais, ouvertes automatiquement selon la langue active et integrees a l'installateur.
 - Info-bulles ajoutees sur les principales commandes.
-- L'installateur detecte une version deja installee et propose de remplacer l'installation existante ou d'installer une copie supplementaire dans un autre dossier.
+- L'installateur detecte une version deja installee et propose de la remplacer / mettre a jour, sans copie parallele.
 - Garde-fou de modifications XML : la sauvegarde est bloquee si une zone technique Dante sensible change par accident.
 - Rapport compatibilite Dante Controller.
 - Mode Lecture seule par defaut apres ouverture du XML, avec bouton Activer l'edition.
@@ -61,7 +68,7 @@ Travaillez toujours sur une copie de vos fichiers XML Dante et validez le result
 - Page Sante enrichie et vue Topologie simple.
 - Script installateur plus portable.
 - Correction des accents dans l'export PDF.
-- Ajout de la mention `Fait avec le soft Dante Config Editor V3.05 - version 3.05-beta - By Mamat` dans les exports TXT/PDF.
+- Ajout de la mention `Fait avec le soft Dante Config Editor V3.06 - version 3.06-beta - By Mamat` dans les exports TXT/PDF.
 - Correction des boutons d'action après ouverture d'un XML : l'interface reste modifiable, mais l'enregistrement impose un nouveau nom de fichier.
 - Sélecteur Français / Anglais directement dans l'interface, modifiable à tout moment.
 - Suppression d'une machine avec nettoyage des subscriptions/patchs qui pointent vers elle.
@@ -111,10 +118,7 @@ DanteConfigEditorV3_Installer.exe
 
 L'installateur inclut le runtime .NET necessaire. Il n'est normalement pas necessaire d'installer .NET separement sur une machine Windows x64.
 
-Si une version de Dante Config Editor est deja installee, l'assistant le signale au demarrage et propose :
-
-- de remplacer / mettre a jour l'installation existante ;
-- ou d'installer une copie supplementaire dans un autre dossier.
+Si une version de Dante Config Editor est deja installee, l'assistant le signale au demarrage et propose de remplacer / mettre a jour l'installation existante. Refuser ferme l'installateur sans creer de version parallele.
 
 En fin d'installation, l'assistant peut ouvrir :
 
@@ -141,4 +145,4 @@ Les quatre PDF francais/anglais sont installes et restent accessibles depuis l'a
 
 https://github.com/Mamat79/DanteConfigEditorV3
 
-Seule la publication V3.05 courante est conservee dans les Releases. L'historique des versions reste disponible dans Git et dans le changelog.
+Seule la publication V3.06 courante est conservee dans les Releases. L'historique des versions reste disponible dans Git et dans le changelog.

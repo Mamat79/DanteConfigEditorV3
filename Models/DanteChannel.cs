@@ -1,4 +1,5 @@
 using System.Xml.Linq;
+using DanteConfigEditor.Services;
 
 namespace DanteConfigEditor.Models;
 
@@ -67,7 +68,7 @@ public sealed class DanteChannel
 
         foreach (string name in preferredNames)
         {
-            string? value = element.Element(name)?.Value;
+            string? value = element.Child(name)?.Value;
             if (!string.IsNullOrWhiteSpace(value))
             {
                 return new ChannelNameReadResult(value.Trim(), name, false);
