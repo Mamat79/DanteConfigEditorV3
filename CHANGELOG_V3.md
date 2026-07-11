@@ -9,6 +9,12 @@
 - Ajout de bundles `.app` et de DMG autonomes Apple Silicon / Intel, avec runtime .NET 8 et documentation FR/EN inclus.
 - Ajout d'une signature ad hoc pour vérifier l'intégrité locale ; la notarisation Apple reste une limite connue de cette bêta.
 - Promotion de l'unique version Windows/macOS en V3.07 Beta, sans branche de version parallèle.
+- Ajout d'un atelier de patch visuel Windows/macOS avec filtres par device, sélection TX multiple, affectation séquentielle, glisser-déposer et matrice TX vers RX.
+- Les changements du patch visuel sont préparés sans toucher au projet, puis appliqués en un lot unique et une seule étape d'annulation.
+- Refus des affectations visuelles ambiguës quand plusieurs TX d'un même device portent le même nom.
+- Réorganisation compacte de l'en-tête et des panneaux ; le reset global des canaux est déplacé sous la latence globale.
+- Extension de la suite à 62 tests Core et 7 tests d'interface Mac headless.
+- Ajout du pack de validation non destructif, de la matrice de compatibilité et des documents de validation, accessibilité, architecture et limites connues.
 
 ## 2026-07-10 - Version 3.06 Beta
 

@@ -18,6 +18,7 @@ Outil Windows et macOS pour éditer hors ligne des fichiers XML de configuration
 - Réinitialise les noms de canaux.
 - Modifie les paramètres réseau et audio exposés par les fichiers XML reconnus.
 - Affiche une page Patch pour visualiser et modifier les abonnements RX vers TX lorsque le format XML le permet.
+- Ouvre un atelier de patch visuel filtré par machines TX/RX, avec sélection multiple, affectation séquentielle, glisser-déposer et matrice interactive.
 - Met à jour les patchs RX quand un canal TX utilisé est renommé.
 - Crée une sauvegarde du fichier source et de toute destination existante avant sauvegarde.
 - Sauvegarde via un fichier temporaire relu puis un remplacement atomique de la destination.
@@ -98,10 +99,10 @@ Si une version est déjà installée, l'assistant le détecte et propose de remp
 
 ## Version distribuée
 
-- La V3.07 est la seule version binaire conservée dans les distributions locales et les Releases GitHub.
+- La V3.07 Beta est la seule version actuellement maintenue et recommandée.
 - La publication courante porte le tag `v3.07-beta`.
-- Les anciennes publications ont été retirées pour éviter de transmettre un installateur obsolète.
-- L'historique du projet reste consultable dans Git et dans `CHANGELOG_V3.md`.
+- Les anciens tags et Releases restent de l'historique ; ils ne doivent pas être utilisés à la place de la publication courante.
+- L'historique fonctionnel reste consultable dans Git et dans `CHANGELOG_V3.md`.
 
 ## Utilisation rapide
 
@@ -110,10 +111,11 @@ Si une version est déjà installée, l'assistant le détecte et propose de remp
 3. Sélectionner une copie du fichier de configuration Dante.
 4. Vérifier les devices et paramètres détectés.
 5. Modifier les champs souhaités.
-6. Utiliser la page `Patch` pour consulter ou modifier les subscriptions reconnues.
-7. Si besoin, utiliser `Ajouter XML au projet` pour importer les devices d'un autre export XML.
-8. Sauvegarder sous un nouveau nom.
-9. Valider le fichier généré dans l'outil Dante officiel approprié avant usage terrain.
+6. Utiliser la page `Patch` ou `Patch visuel / grille` pour consulter ou préparer les subscriptions reconnues.
+7. Dans le patch visuel, contrôler la liste des changements en attente puis cliquer sur `Appliquer au projet`.
+8. Si besoin, utiliser `Ajouter XML au projet` pour importer les devices d'un autre export XML.
+9. Sauvegarder sous un nouveau nom.
+10. Valider le fichier généré dans l'outil Dante officiel approprié avant usage terrain.
 
 ## Nouveautés V3.07
 
@@ -126,13 +128,25 @@ Si une version est déjà installée, l'assistant le détecte et propose de remp
 - Les changements IPv4 ciblent uniquement l'interface principale et ne réécrivent plus implicitement le DNS ou une interface secondaire.
 - Mutations groupées avec une seule reconstruction du modèle pour les réglages de détail et les actions globales.
 - Récupération automatique asynchrone et temporisée ; historique d'annulation limité à 10 états.
-- 38 tests de sécurité et de non-régression, dont les presets synthétiques de 10, 50 et 200 machines en 64 TX / 64 RX.
+- 62 tests de sécurité et de non-régression, dont les presets synthétiques de 10, 50 et 200 machines en 64 TX / 64 RX.
 - Workflow GitHub Actions sur Windows et script `build.ps1` qui vérifie chaque code de retour.
 - Installateur de mise à niveau unique : la V3.07 Beta remplace la version déjà installée sans proposer de copie parallèle.
 - Nouvelle interface macOS via Avalonia, avec les alertes placées dans la colonne latérale pour préserver la hauteur des tableaux.
-- Deux tests d'interface sans écran vérifient la position latérale des alertes et leur apparition sur un preset aux formats audio mélangés.
+- Sept tests d'interface sans écran vérifient la disposition, la navigation clavier, les tailles compactes et l'atelier de patch sur Mac.
 - DMG autonomes distincts Apple Silicon et Intel, incluant .NET 8 et les notices françaises/anglaises.
 - Les alertes importantes de la version Windows sont également déplacées dans la colonne latérale.
+- Atelier de patch visuel partagé : sélection de plusieurs TX, affectation aux RX suivants, glisser-déposer, matrice et application en un seul lot annulable.
+- Interface principale plus compacte ; le reset global des canaux est placé sous la latence globale pour réduire la hauteur du panneau.
+
+## Validation et maintenance
+
+- `TESTING.md` : commandes, résultats et mesures synthétiques ;
+- `COMPATIBILITY_MATRIX.md` : niveau de preuve par structure XML ;
+- `MANUAL_DANTE_CONTROLLER_TESTS.md` : checklist d'import réel ;
+- `RC_VALIDATION.md` : état de préparation de la V3.07 Beta, sans promotion automatique en RC ;
+- `ACCESSIBILITY.md` : contrôles effectués et tests manuels restants ;
+- `KNOWN_LIMITATIONS.md` : limites techniques et de distribution ;
+- `ARCHITECTURE_REFACTORING.md` : extractions réalisées et suite prudente.
 
 ## Nouveautés V3.05
 

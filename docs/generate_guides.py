@@ -230,7 +230,7 @@ def quick_start(language: str) -> None:
         [
             ("Ouvrir XML", "Choisissez un export Dante. L'application travaille hors ligne et n'accède pas au réseau."),
             ("Contrôler les alertes", "Affichez les machines concernées et vérifiez chaque point signalé."),
-            ("Modifier", "Utilisez Détail machine, Patch ou les actions globales. Verrouillez les machines à exclure."),
+            ("Modifier", "Utilisez Détail machine, Patch visuel ou les actions globales. Verrouillez les machines à exclure."),
             ("Vérifier", "Utilisez Modifiées uniquement puis Avant / après. Les changements techniques inconnus sont bloqués."),
             ("Enregistrer sous", "Choisissez un nouveau nom. La destination est remplacée atomiquement et sauvegardée si elle existait."),
             ("Tester l'import", "Importez le résultat dans Dante Controller sur une copie de travail avant toute intervention terrain."),
@@ -239,7 +239,7 @@ def quick_start(language: str) -> None:
         else [
             ("Open XML", "Choose a Dante export. The application works offline and does not access the network."),
             ("Review alerts", "Show affected devices and verify every reported item."),
-            ("Edit", "Use Device details, Patch, or global actions. Lock devices that must be excluded."),
+            ("Edit", "Use Device details, Visual patch, or global actions. Lock devices that must be excluded."),
             ("Review", "Use Modified only and Before / after. Unknown technical changes are blocked."),
             ("Save as", "Choose a new name. The destination is replaced atomically and backed up when it already exists."),
             ("Test the import", "Import the result into Dante Controller on a working copy before any field operation."),
@@ -247,17 +247,17 @@ def quick_start(language: str) -> None:
     )
     features = (
         [
+            ("Patch visuel", "Sélectionnez plusieurs TX puis affectez-les aux RX suivants par bouton ou glisser-déposer. La grille reste limitée aux deux machines choisies."),
             ("Récupération", "Une copie est écrite en arrière-plan après un court délai. La nouvelle destination devient la référence après Enregistrer sous."),
             ("Sous-projet", "Ajouter XML au projet importe les machines uniques et ne propose un renommage que pour les doublons."),
             ("IPv4", "Seule l'interface principale est ciblée. DNS et interface secondaire ne sont pas réécrits implicitement."),
-            ("Aide bilingue", "Les boutons ouvrent automatiquement le PDF français ou anglais selon la langue active."),
         ]
         if french
         else [
+            ("Visual patch", "Select several Tx channels, then assign them to following Rx channels by button or drag and drop. The matrix stays limited to the two selected devices."),
             ("Recovery", "A copy is written in the background after a short delay. Save as makes the new destination the session reference."),
             ("Sub-project", "Add XML to project imports unique devices and only asks about conflicting names."),
             ("IPv4", "Only the primary interface is targeted. DNS and the secondary interface are not rewritten implicitly."),
-            ("Bilingual help", "Buttons automatically open the French or English PDF for the active language."),
         ]
     )
 
@@ -392,6 +392,10 @@ def full_guide(language: str) -> None:
                 "Les canaux TX/RX peuvent être renommés individuellement ou par plage avec {00}, {000}, {n} et {device}.",
                 "Le renommage d'un TX met à jour tous les alias de subscription reconnus dans le projet.",
                 "Les Dante Id ne sont pas renumérotés. Le marqueur local subscribed_device=\".\" est conservé.",
+                "Patch visuel / grille ouvre un atelier filtré sur une machine TX et une machine RX.",
+                "Sélectionnez plusieurs TX puis déposez-les sur le premier RX, ou utilisez le bouton d'affectation : les RX suivants sont remplis dans l'ordre réel du XML.",
+                "Dans la grille, les RX sont en lignes et les TX en colonnes. Cliquer une cellule affecte la source ; cliquer la cellule active prépare sa déconnexion.",
+                "Les changements restent en attente jusqu'à Appliquer au projet. Ils sont alors exécutés en un seul lot et une seule étape d'annulation.",
             ]),
             para("9. Ajouter un XML au projet", "h1"),
             *bullets([
@@ -428,13 +432,15 @@ def full_guide(language: str) -> None:
                 [48, 122],
             ),
             para("13. Tests de non-régression", "h1"),
-            para("La suite V3.07 exécute 38 tests du moteur XML et 2 tests d'interface Mac : identités techniques, chemins inconnus, sauvegarde atomique, récupération, interfaces IPv4, alias de subscription, namespace par défaut, presets synthétiques et alertes latérales. GitHub Actions les rejoue sur Windows et macOS."),
+            para("La suite V3.07 exécute 62 tests du moteur XML et 7 tests d'interface Mac : identités techniques, chemins inconnus, sauvegarde atomique, récupération, interfaces IPv4, alias de subscription, namespace par défaut, presets synthétiques, alertes latérales et atelier de patch visuel. GitHub Actions les rejoue sur Windows et macOS."),
             para("14. Limites connues", "h1"),
             *bullets([
                 "Aucun pilotage en temps réel et aucune communication avec les appareils.",
                 "Aucun SDK/API Audinate et aucun contournement de protocole propriétaire.",
                 "La compatibilité dépend de la structure du XML ; seul l'import officiel confirme le fichier final.",
                 "L'historique d'annulation conserve au maximum 10 états pour limiter la mémoire.",
+                "La matrice affiche uniquement les deux machines choisies. Sur Mac, elle est limitée aux 128 premiers TX et RX ; les listes conservent tous les canaux.",
+                "Des noms TX dupliqués sont ambigus dans les subscriptions Dante et doivent être renommés avant le patch visuel.",
             ]),
             para("15. Aide et informations", "h1"),
             para("Quick start et Notice complète ouvrent automatiquement le PDF français ou anglais selon la langue active."),
@@ -524,6 +530,10 @@ def full_guide(language: str) -> None:
                 "TX/RX channels can be renamed individually or by range with {00}, {000}, {n}, and {device}.",
                 "Renaming a Tx channel updates every recognized subscription alias in the project.",
                 "Dante IDs are not renumbered. The local subscribed_device=\".\" marker is preserved.",
+                "Visual patch / matrix opens a workspace filtered to one Tx device and one Rx device.",
+                "Select several Tx channels and drop them on the first Rx, or use the assignment button: following Rx channels are filled in the actual XML order.",
+                "In the matrix, Rx channels are rows and Tx channels are columns. Clicking a cell assigns its source; clicking the active cell stages a disconnection.",
+                "Changes remain pending until Apply to project. They are then executed as one batch and one undo step.",
             ]),
             para("9. Add XML to project", "h1"),
             *bullets([
@@ -560,13 +570,15 @@ def full_guide(language: str) -> None:
                 [48, 122],
             ),
             para("13. Regression tests", "h1"),
-            para("The V3.07 suite runs 38 shared XML engine tests and 2 Mac UI tests covering technical identities, unknown paths, atomic save, recovery, IPv4 interfaces, subscription aliases, default namespaces, synthetic presets, and side alerts. GitHub Actions reruns them on Windows and macOS."),
+            para("The V3.07 suite runs 62 shared XML engine tests and 7 Mac UI tests covering technical identities, unknown paths, atomic save, recovery, IPv4 interfaces, subscription aliases, default namespaces, synthetic presets, side alerts, and the visual patch workspace. GitHub Actions reruns them on Windows and macOS."),
             para("14. Known limitations", "h1"),
             *bullets([
                 "No real-time Dante control and no communication with devices.",
                 "No Audinate SDK/API and no proprietary protocol bypass.",
                 "Compatibility depends on the XML structure; only an official import confirms the final file.",
                 "Undo keeps at most 10 states to limit memory use.",
+                "The matrix displays only the two selected devices. On Mac, it is limited to the first 128 Tx and Rx channels; the lists retain every channel.",
+                "Duplicate Tx names are ambiguous in Dante subscriptions and must be renamed before visual patching.",
             ]),
             para("15. Help and information", "h1"),
             para("Quick start and Full guide automatically open the French or English PDF for the active language."),

@@ -1,6 +1,18 @@
 # Tests et baseline V3.07 Beta
 
-## Baseline du 2026-07-11
+## État courant avant emballage final
+
+État vérifié après l'ajout de l'atelier de patch visuel et avant la reconstruction finale de l'installateur :
+
+- 62 tests Core réussis, 0 échec ;
+- 7 tests d'interface Mac headless réussis, 0 échec ;
+- build Windows Release : 0 warning, 0 erreur ;
+- build Mac Release : 0 warning, 0 erreur ;
+- interface compacte et patch visuel couverts par les tests Avalonia et un contrôle fonctionnel Windows via l'arbre d'accessibilité.
+
+La validation finale rejoue toutes ces étapes à partir de l'état committé, puis ajoute le publish autonome, l'installateur, le remplacement de la version installée et les workflows GitHub Actions. Ses hashes et temps exacts seront consignés ci-dessous avant publication.
+
+## Baseline historique du 2026-07-11
 
 Source testée :
 
@@ -36,6 +48,26 @@ Installateur de baseline :
 
 L'installateur est une sortie locale régénérable et n'est pas suivi dans Git.
 
+## Benchmarks V3.07 après patch visuel
+
+Mesures locales du 2026-07-11 au commit fonctionnel `ff704bf`, trois exécutions par taille et médiane retenue. Chaque device synthétique possède 64 TX et 64 RX. Les allocations sont celles du thread mesuré par le banc ; la mémoire de travail est celle du processus après le scénario. Ces valeurs sont des observations, pas des seuils contractuels.
+
+| Devices | XML | Chargement | Allocation chargement | Édition groupée | Allocation édition | Garde-fou | Sauvegarde | Mémoire de travail |
+|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| 10 | 0,156 Mio | 32,210 ms | 2,783 Mio | 34,855 ms | 20,075 Mio | 6,064 ms | 71,934 ms | 49,410 Mio |
+| 50 | 0,780 Mio | 73,121 ms | 13,735 Mio | 157,599 ms | 97,378 Mio | 31,875 ms | 283,507 ms | 85,945 Mio |
+| 200 | 3,122 Mio | 207,301 ms | 54,822 Mio | 269,810 ms | 387,250 Mio | 50,649 ms | 641,289 ms | 179,512 Mio |
+
+Le garde-fou n'a signalé aucune erreur inattendue sur ces trois scénarios. L'allocation de l'édition et de la sauvegarde croît avec le nombre de canaux ; les gros presets restent donc un point de surveillance, même si le scénario de 200 devices termine correctement.
+
+Commande reproductible :
+
+```powershell
+dotnet run --project .\benchmarks\DanteConfigEditorV3.Benchmarks\DanteConfigEditorV3.Benchmarks.csproj -c Release -- --phase v3.07-final --commit ff704bf --output .\tmp\benchmarks\v3.07-final-ff704bf.json
+```
+
+Le JSON brut est une sortie locale régénérable ignorée par Git.
+
 ## Commandes de référence
 
 ```powershell
@@ -52,6 +84,8 @@ dotnet build .\src\DanteConfigEditor.Mac\DanteConfigEditor.Mac.csproj -c Release
 dotnet publish .\DanteConfigEditorV3.csproj -c Release -r win-x64 --self-contained false
 .\installer\build_installer.ps1
 ```
+
+L'installateur utilise un second publish `win-x64` autonome, mono-fichier et compressé. Le publish framework-dependent ci-dessus reste utile pour contrôler séparément la compilation de publication.
 
 ## État CI au début de la baseline
 
@@ -110,3 +144,20 @@ xUnit v2 est désormais une ligne de maintenance dépréciée au profit de xUnit
 - le publish Windows framework-dependent n'est pas le paquet transmis aux utilisateurs ; l'installateur final utilise un publish self-contained ;
 - les DMG du run macOS sont signés ad hoc, pas notariés par Apple ;
 - les tests d'accessibilité et d'échelle d'affichage sont documentés séparément.
+
+## Couverture fonctionnelle actuelle
+
+La suite Core couvre notamment :
+
+- tous les aliases de subscription reconnus par l'application ;
+- patch local `.`, TX absent, canal absent et presets partiels ;
+- machines sans TX ou sans RX ;
+- plusieurs interfaces IPv4 et conservation de l'interface secondaire ;
+- zéro, un ou plusieurs preferred masters ;
+- namespace par défaut, réordonnancement de balises et valeurs inconnues préservées ;
+- Unicode, noms longs, sauvegardes successives, fusion et récupération ;
+- presets synthétiques 10/50/200 en 64 TX / 64 RX ;
+- contrat de mise à niveau de l'installateur ;
+- planification séquentielle et session en attente du patch visuel.
+
+Les tests Mac couvrent la structure du rail latéral, les alertes, le focus initial, les dimensions `1366 x 768` et `1920 x 1080`, ainsi que l'ouverture et l'utilisation minimale de l'atelier de patch. Les contrôles matériels et lecteurs d'écran restants sont détaillés dans `ACCESSIBILITY.md`.

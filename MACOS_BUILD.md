@@ -39,3 +39,11 @@ Les DMG et leurs sommes SHA-256 sont créés dans `dist/macos`.
 Le script actuel utilise `codesign --sign -`, c'est-à-dire une signature ad hoc. Pour une publication officielle, remplacer cette étape par une signature Developer ID avec hardened runtime, envoyer le DMG au service notarial Apple, attendre son acceptation, puis agrafer le ticket de notarisation au DMG.
 
 Le moteur XML reste protégé par les mêmes tests de non-régression que sous Windows. La validation finale d'un fichier exporté doit néanmoins toujours être faite dans l'outil Dante officiel approprié avant une utilisation terrain.
+
+## Interface et patch visuel
+
+La version Mac inclut l'atelier de patch visuel partagé avec Windows : sélection de plusieurs TX, affectation séquentielle, glisser-déposer et matrice interactive. Les changements restent en attente jusqu'à `Appliquer au projet`.
+
+Pour garder la matrice utilisable sur de gros presets, elle affiche un couple de devices à la fois et limite la vue Mac aux 128 premiers TX et RX. Les listes de canaux conservent tous les éléments.
+
+La suite courante comprend 62 tests du moteur partagé et 7 tests Avalonia headless. Ces derniers couvrent notamment les alertes latérales, la navigation au clavier, les dimensions compactes et le patch visuel ; ils ne remplacent pas un contrôle VoiceOver sur un Mac réel.

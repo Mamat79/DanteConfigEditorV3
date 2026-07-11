@@ -10,7 +10,7 @@ Travaillez toujours sur une copie de vos fichiers XML Dante et validez le result
 
 - Version 3.07 beta.
 - Premiere version macOS, avec une interface Avalonia partageant le meme moteur XML que l'application Windows.
-- Deux tests d'interface macOS completent les 38 tests du moteur XML partage.
+- Sept tests d'interface macOS completent les 62 tests du moteur XML partage.
 - DMG autonomes Apple Silicon et Intel avec .NET 8 et notices FR/EN inclus.
 - Alertes importantes placees dans la colonne laterale sur macOS et Windows pour conserver la hauteur des tableaux.
 - Les DMG de cette beta utilisent une signature ad hoc et ne sont pas encore notaries par Apple ; le premier lancement se fait par clic droit puis `Ouvrir`.
@@ -20,7 +20,10 @@ Travaillez toujours sur une copie de vos fichiers XML Dante et validez le result
 - La nouvelle destination devient la référence de la session et de la récupération automatique.
 - Ciblage de l'interface IPv4 principale sans modification implicite du DNS ou de l'interface secondaire.
 - API de modification groupée, récupération asynchrone temporisée et historique d'annulation limité à 10 états.
-- 38 tests verts, presets synthétiques 10/50/200 machines en 64 TX / 64 RX, et CI Windows.
+- 62 tests Core et 7 tests UI Mac, avec presets synthétiques 10/50/200 machines en 64 TX / 64 RX.
+- Atelier de patch visuel Windows/macOS : sélection TX multiple, affectation séquentielle, glisser-déposer, matrice filtrée et application en un lot annulable.
+- Les changements du patch visuel restent en attente jusqu'à validation explicite et sont abandonnés si la fenêtre est fermée sans appliquer.
+- En-tête et panneaux rendus plus compacts ; le reset global des canaux est placé sous la latence globale.
 - Les alertes `Points a verifier` sont navigables : elles affichent et filtrent les machines concernees.
 - Nouveau filtre `Modifiees uniquement` et comparaison detaillee `Avant / apres` des machines, canaux et patchs.
 - Alertes dynamiques et comparaison avant/apres traduites en francais et en anglais.
@@ -145,6 +148,9 @@ Les quatre PDF francais/anglais sont installes et restent accessibles depuis l'a
 - L'application demarre en lecture seule pour eviter les modifications accidentelles.
 - Certains formats XML Dante peuvent ne pas etre totalement reconnus.
 - La page Patch depend des champs d'abonnement presents dans le fichier.
+- Les noms TX dupliques sur un même device sont ambigus et doivent être corrigés avant une affectation dans le patch visuel.
+- La matrice affiche un couple de devices à la fois ; sur Mac, elle est limitée aux 128 premiers TX et RX du couple choisi.
+- Les tests automatisés ne remplacent pas un import réel dans Dante Controller.
 
 ## Depot GitHub
 

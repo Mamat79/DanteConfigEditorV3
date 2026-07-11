@@ -79,10 +79,10 @@ Les classes volumineuses restent :
 
 | Fichier | Lignes avant nettoyage | Observation |
 |---|---:|---|
-| `MainWindow.xaml.cs` | 2 862 | orchestration UI Windows encore trop large |
-| `Models/DanteProject.cs` | 2 449 | sauvegarde, import, rapports et mutations encore regroupés |
-| `src/DanteConfigEditor.Mac/MainWindow.axaml.cs` | 1 439 | orchestration UI Mac à surveiller |
-| `Services/LocalizationService.cs` | 655 | dictionnaire bilingue centralisé |
+| `MainWindow.xaml.cs` | 3 284 | orchestration UI Windows encore trop large, atelier de patch inclus |
+| `Models/DanteProject.cs` | 1 673 | chargement et mutations unitaires encore regroupés après extractions |
+| `src/DanteConfigEditor.Mac/MainWindow.axaml.cs` | 1 680 | orchestration UI Mac à surveiller |
+| `Services/LocalizationService.cs` | 695 | dictionnaire bilingue centralisé |
 
 Leur réduction fonctionnelle sera progressive et testée ; aucune réécriture générale n'est prévue.
 
@@ -91,12 +91,13 @@ Leur réduction fonctionnelle sera progressive et testée ; aucune réécriture 
 Versions observées :
 
 - .NET 8 ;
-- Avalonia `11.3.13` ;
-- xUnit `2.5.3` ;
-- Microsoft.NET.Test.Sdk `17.8.0` ;
-- coverlet.collector `6.0.0`.
+- Avalonia `11.3.18` et Avalonia Headless `11.3.18` ;
+- Avalonia DataGrid `11.3.13` ;
+- xUnit `2.9.3`, runner Visual Studio `3.1.5` ;
+- Microsoft.NET.Test.Sdk `18.7.0` ;
+- coverlet.collector `10.0.1`.
 
-NuGet propose des versions majeures plus récentes, notamment Avalonia 12 et Microsoft.NET.Test.Sdk 18. Elles ne sont pas appliquées pendant le nettoyage, car elles changent les contraintes de compilation et le framework de tests. Une mise à niveau séparée devra être validée sur Windows et macOS.
+Le scan de vulnérabilités doit être rejoué pendant la validation finale. Avalonia 12 et la migration xUnit v3 ne sont pas mélangés à ce durcissement, car ils changent les contraintes d'interface et de tests ; ils devront faire l'objet d'un chantier séparé validé sur Windows et macOS.
 
 ## `.gitignore`
 
