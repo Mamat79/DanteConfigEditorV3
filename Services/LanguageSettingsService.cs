@@ -4,10 +4,7 @@ namespace DanteConfigEditor.Services;
 
 public static class LanguageSettingsService
 {
-    private static readonly string SettingsPath = Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-        "DanteConfigEditorV3",
-        "language.txt");
+    private static readonly string SettingsPath = ApplicationStoragePaths.Resolve("language.txt");
 
     public static UiLanguage Load()
     {

@@ -1,14 +1,19 @@
+using DanteConfigEditor.Services;
+
 namespace DanteConfigEditorV3.Tests;
 
 public sealed class InstallerContractTests
 {
     [Fact]
-    public void InstallerKeepsStableUpgradeIdentityAndPreviousDestination()
+    public void InstallerKeepsV308UpgradeIdentitySeparateFromStableV307()
     {
         string script = File.ReadAllText(RepositoryFile("installer", "DanteConfigEditorV3.iss"));
 
-        Assert.Contains("AppId={{D9A22EA8-8370-4C6D-9E7C-DBC5A59F53A1}", script, StringComparison.Ordinal);
-        Assert.Contains("DefaultDirName={autopf}\\Dante Config Editor V3", script, StringComparison.Ordinal);
+        Assert.Contains("AppId={{23FF6543-561B-4C55-B733-817C9F92F5AA}", script, StringComparison.Ordinal);
+        Assert.DoesNotContain("AppId={{D9A22EA8-8370-4C6D-9E7C-DBC5A59F53A1}", script, StringComparison.Ordinal);
+        Assert.Contains("DefaultDirName={autopf}\\Dante Config Editor V3.08", script, StringComparison.Ordinal);
+        Assert.Contains("DefaultGroupName=Dante Config Editor V3.08", script, StringComparison.Ordinal);
+        Assert.Contains("OutputBaseFilename=DanteConfigEditorV3_08_Beta_Installer", script, StringComparison.Ordinal);
         Assert.Contains("UsePreviousAppDir=yes", script, StringComparison.Ordinal);
         Assert.Contains("DetectExistingInstall", script, StringComparison.Ordinal);
         Assert.Contains("remplacer / mettre à jour", script, StringComparison.Ordinal);
@@ -34,6 +39,8 @@ public sealed class InstallerContractTests
         Assert.Contains("By Mamat", installerScript, StringComparison.Ordinal);
         Assert.Contains("Assert-RepositoryPath", buildScript, StringComparison.Ordinal);
         Assert.Contains("Remove-GeneratedPath", buildScript, StringComparison.Ordinal);
+        Assert.Contains("Get-FileHash", buildScript, StringComparison.Ordinal);
+        Assert.Contains("DanteConfigEditorV3_08_Beta_Installer.exe", buildScript, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -50,7 +57,17 @@ public sealed class InstallerContractTests
         Assert.Contains("Invoke-InstallerPass", upgradeScript, StringComparison.Ordinal);
         Assert.Contains("Mise à niveau de contrôle", upgradeScript, StringComparison.Ordinal);
         Assert.Contains("StableInstallRecords", upgradeScript, StringComparison.Ordinal);
+        Assert.Contains("TargetInstallRecords", upgradeScript, StringComparison.Ordinal);
         Assert.Contains("V3InstallRecords", upgradeScript, StringComparison.Ordinal);
+        Assert.Contains("23FF6543-561B-4C55-B733-817C9F92F5AA", upgradeScript, StringComparison.Ordinal);
+        Assert.Contains("D9A22EA8-8370-4C6D-9E7C-DBC5A59F53A1", upgradeScript, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void BetaUsesSeparateLocalApplicationDataFolder()
+    {
+        Assert.Equal("DanteConfigEditorV3.08", ApplicationStoragePaths.RootFolderName);
+        Assert.DoesNotContain("DanteConfigEditorV3\\Recovery", ApplicationStoragePaths.Resolve("Recovery"), StringComparison.OrdinalIgnoreCase);
     }
 
     private static string RepositoryFile(params string[] relativeParts)

@@ -196,7 +196,7 @@ public static class SessionRecoveryService
     private static string ResolveRecoveryDirectory(string? recoveryDirectory)
     {
         return string.IsNullOrWhiteSpace(recoveryDirectory)
-            ? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "DanteConfigEditorV3", "Recovery")
+            ? ApplicationStoragePaths.Resolve("Recovery")
             : Path.GetFullPath(recoveryDirectory);
     }
 

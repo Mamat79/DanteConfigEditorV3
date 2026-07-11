@@ -8,10 +8,7 @@ public static class RecentFilesService
 
     // Stockage volontairement simple : un fichier texte dans le profil local
     // de l'utilisateur, jamais dans le dossier d'installation de l'application.
-    private static readonly string RecentFilesPath = Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-        "DanteConfigEditorV3",
-        "recent-files.txt");
+    private static readonly string RecentFilesPath = ApplicationStoragePaths.Resolve("recent-files.txt");
 
     public static IReadOnlyList<string> Load()
     {

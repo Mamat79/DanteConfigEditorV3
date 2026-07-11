@@ -1,6 +1,7 @@
 using System.IO;
 using System.Windows;
 using System.Windows.Threading;
+using DanteConfigEditor.Services;
 
 namespace DanteConfigEditor;
 
@@ -9,7 +10,7 @@ public partial class App : Application
     protected override void OnStartup(StartupEventArgs e)
     {
         // Ces gestionnaires évitent qu'une erreur UI ferme brutalement l'application.
-        // Le détail est écrit dans %LOCALAPPDATA%\DanteConfigEditorV3\Logs.
+        // Le détail est écrit dans l'espace local propre à la V3.08.
         DispatcherUnhandledException += HandleDispatcherUnhandledException;
         AppDomain.CurrentDomain.UnhandledException += HandleUnhandledException;
         TaskScheduler.UnobservedTaskException += HandleUnobservedTaskException;
@@ -61,10 +62,7 @@ public partial class App : Application
     {
         try
         {
-            string directory = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                "DanteConfigEditorV3",
-                "Logs");
+            string directory = ApplicationStoragePaths.Resolve("Logs");
             Directory.CreateDirectory(directory);
             string path = Path.Combine(directory, $"crash_{DateTime.Now:yyyyMMdd_HHmmss}.log");
             File.WriteAllText(path, exception.ToString());

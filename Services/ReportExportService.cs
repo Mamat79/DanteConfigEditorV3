@@ -176,7 +176,7 @@ public static class ReportExportService
             version = version[..metadataIndex];
         }
 
-        return $"Fait avec le soft Dante Config Editor V3.07 - version {version} - By Mamat";
+        return $"Fait avec le soft Dante Config Editor V3.08 Beta - version {version} - By Mamat";
     }
 
     private static byte[] Ascii(string value)

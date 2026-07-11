@@ -1,7 +1,7 @@
 <Window x:Class="DanteConfigEditor.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Dante Config Editor V3.07"
+        Title="Dante Config Editor V3.08 Beta"
         Width="1280"
         Height="820"
         MinWidth="1120"
@@ -334,7 +334,7 @@
                     </Grid.ColumnDefinitions>
 
                     <StackPanel Margin="0,0,18,0" VerticalAlignment="Center">
-                        <TextBlock Text="Dante Config Editor V3.07"
+                        <TextBlock Text="Dante Config Editor V3.08 Beta"
                                    FontSize="20"
                                    FontWeight="SemiBold"
                                    TextWrapping="NoWrap" />

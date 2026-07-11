@@ -41,7 +41,8 @@ function Remove-GeneratedPath {
 $project = Join-Path $root "DanteConfigEditorV3.csproj"
 $dist = Join-Path $root "dist"
 $payload = Join-Path $dist "installer_payload"
-$installer = Join-Path $dist "DanteConfigEditorV3_Installer.exe"
+$installer = Join-Path $dist "DanteConfigEditorV3_08_Beta_Installer.exe"
+$installerChecksum = "$installer.sha256"
 $script = Join-Path $PSScriptRoot "DanteConfigEditorV3.iss"
 $isccCandidates = @(
     $env:ISCC_PATH,
@@ -113,8 +114,14 @@ if (-not (Test-Path $installer)) {
     throw "L'installateur final est introuvable : $installer"
 }
 
+# La somme est recréée à chaque build pour ne jamais publier celle d'un ancien paquet.
+$installerHash = (Get-FileHash -LiteralPath $installer -Algorithm SHA256).Hash.ToLowerInvariant()
+$checksumLine = "$installerHash  $([System.IO.Path]::GetFileName($installer))`n"
+[System.IO.File]::WriteAllText($installerChecksum, $checksumLine, [System.Text.UTF8Encoding]::new($false))
+
 Remove-GeneratedPath -Path $payload -Recurse
 Remove-GeneratedPath -Path (Join-Path $root "bin") -Recurse
 Remove-GeneratedPath -Path (Join-Path $root "obj") -Recurse
 
 Write-Host "Installateur professionnel créé : $installer"
+Write-Host "Somme SHA-256 créée : $installerChecksum"
