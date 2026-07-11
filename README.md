@@ -1,9 +1,9 @@
-# Dante Config Editor V3.07 Beta
+# Dante Config Editor V3.07
 
 Outil Windows et macOS pour éditer hors ligne des fichiers XML de configuration Dante.
 
-> **Statut du projet : version bêta en développement.**
-> Cette application est fournie comme outil de travail en cours. Elle n'est pas exempte de bugs, peut encore mal interpréter certains fichiers XML Dante, et ne doit pas être utilisée directement sur des fichiers critiques sans sauvegarde et validation dans les outils Dante officiels.
+> **Statut du projet : V3.07 stable. Outil tiers non officiel Audinate.**
+> Cette version est la publication officielle stable du projet Dante Config Editor. Elle n'est pas un produit Audinate, peut encore contenir des bugs ou mal interpréter certaines structures XML, et ne doit jamais être utilisée sur un fichier critique sans sauvegarde et validation dans les outils Dante officiels.
 
 ## Ce que fait l'application
 
@@ -82,7 +82,7 @@ La Release GitHub fournit deux DMG autonomes :
 
 Ouvrir le DMG, puis glisser `Dante Config Editor` dans `Applications`. Le runtime .NET 8 et les notices FR/EN sont inclus.
 
-Cette première bêta Mac n'est pas encore notariée avec un compte Apple Developer. Au premier lancement, faire un clic droit sur l'application dans `Applications`, choisir `Ouvrir`, puis confirmer l'ouverture. Les détails de compilation, signature et notarisation sont documentés dans `MACOS_BUILD.md`.
+La distribution Mac n'est pas encore notariée avec un compte Apple Developer. Au premier lancement, faire un clic droit sur l'application dans `Applications`, choisir `Ouvrir`, puis confirmer l'ouverture. Les détails de compilation, signature et notarisation sont documentés dans `MACOS_BUILD.md`.
 
 L'installateur contient uniquement l'application autonome et la documentation utilisateur. Les sources du projet ne sont pas installees sur la machine de l'utilisateur.
 
@@ -99,8 +99,8 @@ Si une version est déjà installée, l'assistant le détecte et propose de remp
 
 ## Version distribuée
 
-- La V3.07 Beta est la seule version actuellement maintenue et recommandée.
-- La publication courante porte le tag `v3.07-beta`.
+- La V3.07 est la version stable actuellement maintenue et recommandée.
+- La publication officielle courante porte le tag `v3.07`.
 - Les anciens tags et Releases restent de l'historique ; ils ne doivent pas être utilisés à la place de la publication courante.
 - L'historique fonctionnel reste consultable dans Git et dans `CHANGELOG_V3.md`.
 
@@ -128,9 +128,9 @@ Si une version est déjà installée, l'assistant le détecte et propose de remp
 - Les changements IPv4 ciblent uniquement l'interface principale et ne réécrivent plus implicitement le DNS ou une interface secondaire.
 - Mutations groupées avec une seule reconstruction du modèle pour les réglages de détail et les actions globales.
 - Récupération automatique asynchrone et temporisée ; historique d'annulation limité à 10 états.
-- 63 tests de sécurité et de non-régression, dont les presets synthétiques de 10, 50 et 200 machines en 64 TX / 64 RX.
+- 67 tests de sécurité et de non-régression, dont les presets synthétiques de 10, 50 et 200 machines en 64 TX / 64 RX.
 - Workflow GitHub Actions sur Windows et script `build.ps1` qui vérifie chaque code de retour.
-- Installateur de mise à niveau unique : la V3.07 Beta remplace la version déjà installée sans proposer de copie parallèle.
+- Installateur de mise à niveau unique : la V3.07 remplace la version déjà installée sans proposer de copie parallèle.
 - Nouvelle interface macOS via Avalonia, avec les alertes placées dans la colonne latérale pour préserver la hauteur des tableaux.
 - Sept tests d'interface sans écran vérifient la disposition, la navigation clavier, les tailles compactes et l'atelier de patch sur Mac.
 - DMG autonomes distincts Apple Silicon et Intel, incluant .NET 8 et les notices françaises/anglaises.
@@ -143,7 +143,7 @@ Si une version est déjà installée, l'assistant le détecte et propose de remp
 - `TESTING.md` : commandes, résultats et mesures synthétiques ;
 - `COMPATIBILITY_MATRIX.md` : niveau de preuve par structure XML ;
 - `MANUAL_DANTE_CONTROLLER_TESTS.md` : checklist d'import réel ;
-- `RC_VALIDATION.md` : état de préparation de la V3.07 Beta, sans promotion automatique en RC ;
+- `RC_VALIDATION.md` : preuves de validation et limites de la publication V3.07 ;
 - `ACCESSIBILITY.md` : contrôles effectués et tests manuels restants ;
 - `KNOWN_LIMITATIONS.md` : limites techniques et de distribution ;
 - `ARCHITECTURE_REFACTORING.md` : extractions réalisées et suite prudente.

@@ -1,26 +1,26 @@
-# Dante Config Editor V3.07 Beta
+# Dante Config Editor V3.07
 
 ## Statut
 
-Version beta en developpement. Cette application n'est pas exempte de bugs.
+Version stable officielle du projet Dante Config Editor. Il s'agit d'un outil tiers non officiel Audinate et cette application n'est pas exempte de bugs.
 
 Travaillez toujours sur une copie de vos fichiers XML Dante et validez le resultat dans les outils Dante officiels avant utilisation sur une installation reelle.
 
 ## Nouveautes principales
 
-- Version 3.07 beta.
+- Version 3.07 stable.
 - Premiere version macOS, avec une interface Avalonia partageant le meme moteur XML que l'application Windows.
-- Sept tests d'interface macOS completent les 63 tests du moteur XML partage.
+- Sept tests d'interface macOS completent les 67 tests du moteur XML partage.
 - DMG autonomes Apple Silicon et Intel avec .NET 8 et notices FR/EN inclus.
 - Alertes importantes placees dans la colonne laterale sur macOS et Windows pour conserver la hauteur des tableaux.
-- Les DMG de cette beta utilisent une signature ad hoc et ne sont pas encore notaries par Apple ; le premier lancement se fait par clic droit puis `Ouvrir`.
+- Les DMG utilisent une signature ad hoc et ne sont pas encore notaries par Apple ; le premier lancement se fait par clic droit puis `Ouvrir`.
 - Garde-fou XML durci : identité stable des machines, chemins inconnus bloqués par défaut et absence de faux positif lors d'un simple réordonnancement de balises.
 - Prise en charge des XML avec namespace par défaut.
 - Sauvegarde atomique avec conservation de l'ancienne destination en cas d'erreur et backup de la destination remplacée.
 - La nouvelle destination devient la référence de la session et de la récupération automatique.
 - Ciblage de l'interface IPv4 principale sans modification implicite du DNS ou de l'interface secondaire.
 - API de modification groupée, récupération asynchrone temporisée et historique d'annulation limité à 10 états.
-- 63 tests Core et 7 tests UI Mac, avec presets synthétiques 10/50/200 machines en 64 TX / 64 RX.
+- 67 tests Core et 7 tests UI Mac, avec presets synthétiques 10/50/200 machines en 64 TX / 64 RX.
 - Atelier de patch visuel Windows/macOS : sélection TX multiple, affectation séquentielle, glisser-déposer, matrice filtrée et application en un lot annulable.
 - Les changements du patch visuel restent en attente jusqu'à validation explicite et sont abandonnés si la fenêtre est fermée sans appliquer.
 - En-tête et panneaux rendus plus compacts ; le reset global des canaux est placé sous la latence globale.
@@ -76,7 +76,7 @@ Travaillez toujours sur une copie de vos fichiers XML Dante et validez le result
 - Page Sante enrichie et vue Topologie simple.
 - Script installateur plus portable.
 - Correction des accents dans l'export PDF.
-- Ajout de la mention `Fait avec le soft Dante Config Editor V3.07 - version 3.07-beta - By Mamat` dans les exports TXT/PDF.
+- Ajout de la mention `Fait avec le soft Dante Config Editor V3.07 - version 3.07 - By Mamat` dans les exports TXT/PDF.
 - Correction des boutons d'action après ouverture d'un XML : l'interface reste modifiable, mais l'enregistrement impose un nouveau nom de fichier.
 - Sélecteur Français / Anglais directement dans l'interface, modifiable à tout moment.
 - Suppression d'une machine avec nettoyage des subscriptions/patchs qui pointent vers elle.

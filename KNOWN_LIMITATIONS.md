@@ -1,4 +1,4 @@
-# Limites connues - V3.07 Beta
+# Limites connues - V3.07
 
 ## Compatibilité Dante
 
@@ -36,11 +36,11 @@
 ## Plateformes et distribution
 
 - L'installateur Windows est autonome pour Windows x64 et inclut .NET 8. Les architectures Windows ARM64 et x86 ne sont pas distribuées.
-- L'installateur Windows de cette bêta n'est pas signé avec un certificat Authenticode public. Vérifier le SHA-256 publié avant distribution ; Windows peut afficher un avertissement de réputation.
-- Les paquets Mac Apple Silicon et Intel sont autonomes, mais la bêta n'est pas notariée par Apple. Un premier lancement par clic droit puis `Ouvrir` peut être nécessaire.
+- L'installateur Windows n'est pas signé avec un certificat Authenticode public. Vérifier le SHA-256 publié avant distribution ; Windows peut afficher un avertissement de réputation.
+- Les paquets Mac Apple Silicon et Intel sont autonomes, mais la distribution n'est pas notariée par Apple. Un premier lancement par clic droit puis `Ouvrir` peut être nécessaire.
 - Les tests Mac automatisés sont headless. VoiceOver et le rendu sur matériel macOS réel restent à contrôler.
 - Le contraste élevé, les lecteurs d'écran et les échelles Windows 125 %, 150 % et 200 % nécessitent encore la validation manuelle décrite dans `ACCESSIBILITY.md`.
 
-## Statut de la bêta
+## Statut de la version
 
-La V3.07 est une version bêta en développement, non exempte de bugs. Toujours travailler sur une copie, lire le rapport avant/après et valider le fichier généré dans l'outil Dante officiel avant une utilisation terrain.
+La V3.07 est la version stable officielle du projet Dante Config Editor, mais reste un outil tiers non officiel Audinate et n'est pas exempte de bugs. Toujours travailler sur une copie, lire le rapport avant/après et valider le fichier généré dans l'outil Dante officiel avant une utilisation terrain.

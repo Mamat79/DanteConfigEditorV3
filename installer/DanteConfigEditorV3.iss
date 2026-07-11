@@ -1,5 +1,5 @@
-#define MyAppName "Dante Config Editor V3.07 Beta"
-#define MyAppVersion "3.07-beta"
+#define MyAppName "Dante Config Editor V3.07"
+#define MyAppVersion "3.07"
 #define MyAppPublisher "Mamat"
 #define MyAppExeName "DanteConfigEditorV3.exe"
 #define MyAppShortcutName "Dante Config Editor V3"

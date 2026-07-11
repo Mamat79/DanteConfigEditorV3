@@ -1,6 +1,10 @@
-# Tests et baseline V3.07 Beta
+# Tests et historique V3.07
 
-## Validation finale locale du 2026-07-11
+## Validation V3.07 officielle
+
+La validation complète de la publication stable sera consignée ici après reconstruction de l'installateur et contrôle de l'application installée.
+
+## Validation de la V3.07 Beta du 2026-07-11
 
 Source fonctionnelle testée :
 

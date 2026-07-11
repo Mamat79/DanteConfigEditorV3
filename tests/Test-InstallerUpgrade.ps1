@@ -1,6 +1,6 @@
 param(
     [string]$InstallerPath = "",
-    [string]$ExpectedVersion = "3.07-beta",
+    [string]$ExpectedVersion = "3.07",
     [switch]$AllowCustomInstallLocation
 )
 

@@ -1501,7 +1501,7 @@ public partial class MainWindow : Window
             }
         }
 
-        Title = L("Dante Config Editor V3.07 Beta - macOS", "Dante Config Editor V3.07 Beta - macOS");
+        Title = L("Dante Config Editor V3.07 - macOS", "Dante Config Editor V3.07 - macOS");
         FindControl<Button>("ThemeButton")!.Content = _darkTheme ? L("Thème clair", "Light theme") : L("Thème sombre", "Dark theme");
     }
 

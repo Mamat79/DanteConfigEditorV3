@@ -1,16 +1,17 @@
-# Validation de livraison V3.07 Beta
+# Validation de livraison V3.07 officielle
 
 ## Statut
 
-Ce document suit la préparation de la **V3.07 Beta**. Son nom est conservé pour le pack documentaire demandé, mais il ne signifie pas que l'application est une Release Candidate.
+Ce document suit la promotion de la **V3.07 officielle**. Son nom historique est conservé pour le pack documentaire demandé, mais il ne signifie pas que l'application est une Release Candidate ni un produit officiel Audinate.
 
-Un résultat automatisé réussi ne prouve pas la compatibilité avec Dante Controller. La bêta ne pourra être qualifiée pour un usage terrain qu'après les imports manuels décrits dans `MANUAL_DANTE_CONTROLLER_TESTS.md`.
+Un résultat automatisé réussi ne prouve pas la compatibilité avec Dante Controller. La version ne peut être qualifiée pour un usage terrain qu'après les imports manuels décrits dans `MANUAL_DANTE_CONTROLLER_TESTS.md`.
 
 ## Référence de travail
 
 - dépôt : `Mamat79/DanteConfigEditorV3` ;
 - branche : `main` ;
-- version : `3.07-beta` ;
+- version : `3.07` ;
+- tag de sécurité avant promotion officielle : `safety-v3.07-beta-before-official-20260711` ;
 - tag de sécurité avant travaux : `safety-v3.07-before-validation-20260711` ;
 - système de validation locale : Windows x64, .NET 8 ;
 - commit fonctionnel validé : `840566b5451d7ddd3985cc1abdc82277a6efa986` ;
@@ -68,4 +69,4 @@ Aucune case d'import ne doit être marquée comme réussie sans preuve obtenue d
 - [x] les limites restantes sont cohérentes avec `KNOWN_LIMITATIONS.md` ;
 - [x] aucune donnée XML de production n'est suivie dans Git.
 
-La livraison peut rester une **V3.07 Beta** même si tous les contrôles techniques ci-dessus réussissent. L'import Dante Controller demeure une validation manuelle séparée.
+La V3.07 officielle reste un outil tiers hors ligne. L'import Dante Controller demeure une validation manuelle séparée et obligatoire avant toute utilisation terrain.

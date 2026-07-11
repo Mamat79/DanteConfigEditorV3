@@ -5,7 +5,7 @@
     <key>CFBundleDevelopmentRegion</key>
     <string>fr</string>
     <key>CFBundleDisplayName</key>
-    <string>Dante Config Editor V3.07 Beta</string>
+    <string>Dante Config Editor V3.07</string>
     <key>CFBundleExecutable</key>
     <string>DanteConfigEditorV3.Mac</string>
     <key>CFBundleIconFile</key>

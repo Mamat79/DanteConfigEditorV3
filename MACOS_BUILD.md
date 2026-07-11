@@ -1,4 +1,4 @@
-# Version macOS - V3.07 Beta
+# Version macOS - V3.07
 
 La version macOS utilise Avalonia pour l'interface et compile exactement les mêmes classes métier et services XML que la version Windows.
 
@@ -11,11 +11,11 @@ Deux DMG autonomes sont produits :
 
 Le runtime .NET 8 et les notices FR/EN sont inclus. L'utilisateur ouvre le DMG puis glisse `Dante Config Editor` vers `Applications`.
 
-## Limite de signature de la bêta
+## Limite de signature
 
 Les paquets publics sont signés localement de façon ad hoc, mais ils ne sont pas encore signés avec un certificat Apple Developer ID ni notariés par Apple. Au premier lancement, macOS peut donc afficher une alerte de sécurité.
 
-Pour cette bêta, ouvrir `Applications`, faire un clic droit sur `Dante Config Editor`, choisir `Ouvrir`, puis confirmer. Une future distribution sans cette étape exige un compte Apple Developer, un certificat `Developer ID Application`, le hardened runtime et une notarisation Apple.
+Pour cette distribution, ouvrir `Applications`, faire un clic droit sur `Dante Config Editor`, choisir `Ouvrir`, puis confirmer. Une distribution sans cette étape exige un compte Apple Developer, un certificat `Developer ID Application`, le hardened runtime et une notarisation Apple.
 
 ## Compilation locale
 
@@ -46,4 +46,4 @@ La version Mac inclut l'atelier de patch visuel partagé avec Windows : sélecti
 
 Pour garder la matrice utilisable sur de gros presets, elle affiche un couple de devices à la fois et limite la vue Mac aux 128 premiers TX et RX. Les listes de canaux conservent tous les éléments.
 
-La suite courante comprend 63 tests du moteur partagé et 7 tests Avalonia headless. Ces derniers couvrent notamment les alertes latérales, la navigation au clavier, les dimensions compactes et le patch visuel ; ils ne remplacent pas un contrôle VoiceOver sur un Mac réel.
+La suite courante comprend 67 tests du moteur partagé et 7 tests Avalonia headless. Ces derniers couvrent notamment les alertes latérales, la navigation au clavier, les dimensions compactes et le patch visuel ; ils ne remplacent pas un contrôle VoiceOver sur un Mac réel.

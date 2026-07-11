@@ -1,5 +1,14 @@
 # Changelog V3
 
+## 2026-07-11 - Version 3.07 officielle
+
+- Promotion de la V3.07 en version stable officielle du projet, sans prétendre à une publication officielle Audinate.
+- Retrait du suffixe `Beta` dans les interfaces Windows/macOS, les métadonnées, les notices et l'installateur.
+- Correction du mode d'affichage Expert de la page Patch : les colonnes TX détaillées apparaissent désormais réellement.
+- Extension de la suite à 67 tests Core et maintien des 7 tests d'interface Mac headless.
+- Conservation du même AppId : l'installateur V3.07 remplace la V3.07 Beta au lieu de créer une copie parallèle.
+- Les nouvelles fonctions de patch par sélection et par série sont réservées à la branche `3.08-beta`.
+
 ## 2026-07-11 - Version 3.07 Beta
 
 - Extraction d'un projet `DanteConfigEditor.Core` partagé par les interfaces Windows et macOS.

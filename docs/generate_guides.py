@@ -23,8 +23,8 @@ from reportlab.platypus import (
 ROOT = Path(__file__).resolve().parent
 # Les quatre PDF sont générés depuis une source unique pour garder les versions
 # française et anglaise synchronisées avec l'application et l'installateur.
-PRODUCT = "Dante Config Editor V3.07 Beta"
-VERSION = "3.07-beta"
+PRODUCT = "Dante Config Editor V3.07"
+VERSION = "3.07"
 GITHUB = "github.com/Mamat79/DanteConfigEditorV3"
 
 INK = colors.HexColor("#172033")
@@ -222,9 +222,9 @@ def quick_start(language: str) -> None:
         else "Quick start - offline editing of Dante XML files"
     )
     warning = (
-        "<b>Version bêta non officielle.</b> Travaillez sur une copie et validez toujours le XML final par un import dans l'outil Dante officiel adapté avant toute utilisation réelle."
+        "<b>Outil tiers non officiel Audinate.</b> Cette V3.07 est la version stable du projet. Travaillez sur une copie et validez toujours le XML final par un import dans l'outil Dante officiel adapté avant toute utilisation réelle."
         if french
-        else "<b>Unofficial beta version.</b> Work on a copy and always validate the final XML by importing it into the appropriate official Dante tool before real use."
+        else "<b>Third-party tool, not an official Audinate product.</b> V3.07 is the stable project release. Work on a copy and always validate the final XML by importing it into the appropriate official Dante tool before real use."
     )
     steps = (
         [
@@ -312,13 +312,13 @@ def full_guide(language: str) -> None:
         page1 = [
             para(PRODUCT, "title"),
             para(f"Notice complète - version {VERSION}", "subtitle"),
-            callout("<b>Important :</b> cette application est une bêta non officielle. Elle édite des XML hors ligne, sans connexion au réseau Dante ni API Audinate. Conservez l'original et validez le fichier généré dans Dante Controller avant toute utilisation en production."),
+            callout("<b>Important :</b> cette application est un outil tiers non officiel Audinate. La V3.07 est la version stable du projet. Elle édite des XML hors ligne, sans connexion au réseau Dante ni API Audinate. Conservez l'original et validez le fichier généré dans Dante Controller avant toute utilisation en production."),
             para("1. Installation et démarrage", "h1"),
             para("Les livrables autonomes contiennent l'application et le runtime .NET 8 nécessaire. Windows x64 et macOS n'ont normalement pas besoin d'installer .NET séparément."),
             *bullets([
                 "L'installation proposée par défaut se trouve dans Program Files et crée un raccourci dans le menu Démarrer.",
                 "Sur Mac, choisissez le DMG Apple Silicon ou Intel, ouvrez-le, puis glissez Dante Config Editor dans Applications.",
-                "Cette bêta Mac n'est pas encore notariée : au premier lancement, faites un clic droit sur l'application, choisissez Ouvrir, puis confirmez.",
+                "La distribution Mac n'est pas encore notariée : au premier lancement, faites un clic droit sur l'application, choisissez Ouvrir, puis confirmez.",
                 "Une version précédente est remplacée ou mise à jour. La V3.07 ne propose plus d'installation parallèle.",
                 "Les quatre notices PDF françaises et anglaises sont installées et restent accessibles depuis l'application.",
             ]),
@@ -432,7 +432,7 @@ def full_guide(language: str) -> None:
                 [48, 122],
             ),
             para("13. Tests de non-régression", "h1"),
-            para("La suite V3.07 exécute 63 tests du moteur XML et 7 tests d'interface Mac : identités techniques, chemins inconnus, sauvegarde atomique, récupération, interfaces IPv4, alias de subscription, namespace par défaut, presets synthétiques, alertes latérales et atelier de patch visuel. GitHub Actions les rejoue sur Windows et macOS."),
+            para("La suite V3.07 exécute 67 tests du moteur XML et 7 tests d'interface Mac : identités techniques, chemins inconnus, sauvegarde atomique, récupération, interfaces IPv4, alias de subscription, namespace par défaut, presets synthétiques, alertes latérales, modes de vue du patch et atelier de patch visuel. GitHub Actions les rejoue sur Windows et macOS."),
             para("14. Limites connues", "h1"),
             *bullets([
                 "Aucun pilotage en temps réel et aucune communication avec les appareils.",
@@ -450,13 +450,13 @@ def full_guide(language: str) -> None:
         page1 = [
             para(PRODUCT, "title"),
             para(f"Full user guide - version {VERSION}", "subtitle"),
-            callout("<b>Important:</b> this application is an unofficial beta. It edits XML files offline without connecting to a Dante network or using an Audinate API. Keep the original and validate the generated file in Dante Controller before production use."),
+            callout("<b>Important:</b> this is a third-party tool, not an official Audinate product. V3.07 is the stable project release. It edits XML files offline without connecting to a Dante network or using an Audinate API. Keep the original and validate the generated file in Dante Controller before production use."),
             para("1. Installation and startup", "h1"),
             para("The self-contained packages include the application and the required .NET 8 runtime. Windows x64 and macOS normally do not need a separate .NET installation."),
             *bullets([
                 "The default location is Program Files, with a Start menu shortcut.",
                 "On Mac, choose the Apple Silicon or Intel DMG, open it, then drag Dante Config Editor to Applications.",
-                "This Mac beta is not notarized yet. For the first launch, right-click the application, choose Open, then confirm.",
+                "The Mac distribution is not notarized yet. For the first launch, right-click the application, choose Open, then confirm.",
                 "A previous version is replaced or updated. V3.07 no longer offers a parallel installation.",
                 "All four French and English PDFs are installed and remain available from the application.",
             ]),
@@ -570,7 +570,7 @@ def full_guide(language: str) -> None:
                 [48, 122],
             ),
             para("13. Regression tests", "h1"),
-            para("The V3.07 suite runs 63 shared XML engine tests and 7 Mac UI tests covering technical identities, unknown paths, atomic save, recovery, IPv4 interfaces, subscription aliases, default namespaces, synthetic presets, side alerts, and the visual patch workspace. GitHub Actions reruns them on Windows and macOS."),
+            para("The V3.07 suite runs 67 shared XML engine tests and 7 Mac UI tests covering technical identities, unknown paths, atomic save, recovery, IPv4 interfaces, subscription aliases, default namespaces, synthetic presets, side alerts, patch view modes, and the visual patch workspace. GitHub Actions reruns them on Windows and macOS."),
             para("14. Known limitations", "h1"),
             *bullets([
                 "No real-time Dante control and no communication with devices.",
