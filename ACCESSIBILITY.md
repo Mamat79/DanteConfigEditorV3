@@ -7,11 +7,13 @@
 - ouverture et navigation de l'application WPF avec les contrôles d'automatisation Windows ;
 - fenêtre compacte observée à environ `1266 x 813` : repli automatique des réglages et tableau machines accessible ;
 - fenêtre maximisée observée à environ `1920 x 1032` : panneaux et tableau accessibles sans recouvrement incohérent ;
-- atelier de patch ouvert, sélections et commandes actionnées via l'arbre d'accessibilité ;
-- libellés d'automatisation et info-bulles ajoutés aux commandes du patch visuel.
+- onglet `Easy patch` ouvert et inspecté visuellement en thème sombre ; RX à gauche, TX à droite et onglet actif lisible ;
+- sélections et commandes actionnées via l'arbre d'accessibilité ;
+- libellés d'automatisation et info-bulles présents sur les menus et flèches précédent/suivant RX/TX ;
+- sélecteur de machine de `Détail machine` utilisé au clavier, avec alerte de protection des changements en attente ;
 - exécutable final installé contrôlé : démarrage, bouton `Ouvrir XML`, ouverture d'une fixture anonymisée et résumé du projet lus par l'arbre d'accessibilité.
 
-La capture pixel directe des surfaces WPF a renvoyé une image vide dans l'outil utilisé. Les interactions et états ont été vérifiés par l'arbre d'accessibilité, mais ce cycle ne constitue donc pas une validation visuelle pixel par pixel complète de Windows.
+Les captures WPF de ce cycle ont permis un contrôle visuel à environ `1920 x 1032`. Ce contrôle ne remplace pas les essais encore manuels de contraste élevé, d'échelle système et de lecteur d'écran.
 
 ### macOS / Avalonia headless
 
@@ -44,8 +46,8 @@ Les points suivants **n'ont pas été validés matériellement dans ce cycle** :
 - [ ] Le focus visible suit un ordre logique.
 - [ ] Entrée et Espace activent les boutons, cases et cellules attendus.
 - [ ] Échap ferme les dialogues sans appliquer les changements en attente.
-- [ ] Le glisser-déposer du patch visuel possède une alternative clavier par le bouton d'affectation.
-- [ ] La sélection multiple TX fonctionne au clavier avec Ctrl/Maj.
+- [ ] La sélection et la prévisualisation Easy patch restent utilisables entièrement au clavier.
+- [ ] La sélection multiple TX et RX fonctionne au clavier avec Ctrl/Maj.
 
 ### Thèmes et contraste
 

@@ -1,4 +1,70 @@
-# Tests et historique V3.07
+# Tests et historique V3
+
+## Validation V3.08 Beta Windows du 2026-07-12
+
+Source fonctionnelle testée :
+
+- branche : `3.08-beta` ;
+- commit source du paquet : `faa5a8d9ece26e4b7c726121252d3a19f9498736` ;
+- système : Windows `10.0.26200`, `win-x64` ;
+- .NET SDK `8.0.422`, MSBuild `17.11.48` ;
+- Inno Setup `6.7.3` ;
+- aucune compilation ni aucun test macOS exécuté pour cette bêta.
+
+| Étape | Temps | Code retour | Résultat |
+|---|---:|---:|---|
+| Restore application Windows | 0,906 s | 0 | réussi |
+| Restore tests Core/contrats Windows | 0,878 s | 0 | réussi |
+| Tests Release | 9,938 s | 0 | 86 réussis, 0 échec, 0 ignoré |
+| Build Windows Release | 2,921 s | 0 | 0 warning, 0 erreur |
+| Restore RID `win-x64` | 1,123 s | 0 | réussi |
+| Publish Windows `win-x64` framework-dependent | 2,486 s | 0 | réussi |
+| Installateur Windows autonome | 39,980 s | 0 | réussi, 0 erreur Inno Setup |
+| Installation puis mise à niveau de contrôle | 9,390 s | 0 | deux passages réussis |
+
+Installateur validé :
+
+- fichier : `dist/DanteConfigEditorV3_08_Beta_Installer.exe` ;
+- version : `3.08-beta`, version fichier `3.8.0.0` ;
+- taille : `66 858 195` octets ;
+- SHA-256 : `BEDAC3F0A28D1BFFFED7F26E3700C98C68FEC6C1DCAD438ED5D0D8A59A2BCBB2` ;
+- somme `.sha256` concordante ;
+- signature Authenticode : absente (`NotSigned`).
+
+Installation vérifiée :
+
+- dossier : `C:\Program Files\Dante Config Editor V3.08\` ;
+- une seule entrée V3.08 Beta après deux passages de l'installateur ;
+- une entrée V3.07 stable conservée séparément ;
+- deux installations Dante Config Editor V3 au total ;
+- raccourci Menu Démarrer et quatre notices PDF FR/EN présents ;
+- démarrage réel de l'exécutable installé réussi.
+
+Contrôles fonctionnels et visuels réalisés sur les fixtures anonymisées :
+
+- onglets principaux `Patch` et `Easy patch` présents et lisibles en thème sombre ;
+- onglet actif Easy patch bleu avec texte lisible ;
+- machines et canaux RX à gauche, machines et canaux TX à droite ;
+- menus RX/TX et flèches précédent/suivant visibles, accessibles et fonctionnels ;
+- passage RX de `DEVICE-A` à `DEVICE-B` avec mise à jour immédiate des canaux ;
+- sélecteur de machine visible en haut de `Détail machine` ;
+- passage de `DEVICE-A` à `DEVICE-D` sans changement en attente ;
+- alerte appliquer/abandonner/annuler affichée après une modification non appliquée ;
+- test annulé puis fenêtre fermée sans appliquer : le projet est resté `Non modifié` ;
+- contrôle du choix de résolution des conflits et du texte sombre sur fond clair ;
+- aucune sauvegarde de fixture ni modification d'un XML de test.
+
+Documentation vérifiée :
+
+- Quick Start FR/EN : 1 page chacun ;
+- notice complète FR/EN : 5 pages chacune ;
+- `Easy patch`, `V3.08` et `By Mamat` présents dans les quatre PDF ;
+- aucun caractère `Ø` parasite ni caractère de remplacement Unicode ;
+- rendu Poppler contrôlé page par page, sans zone noire réelle, texte coupé ou coin non blanc.
+
+Le scan `dotnet list package --vulnerable --include-transitive` ne signale aucun package vulnérable dans l'application Windows, le Core, les tests Windows, ValidationPack et Benchmarks avec les sources NuGet du 2026-07-12.
+
+La CI distante doit encore être confirmée après le push de la branche. Aucun import dans Dante Controller et aucun test sur matériel Dante réel n'ont été exécutés pendant cette validation.
 
 ## Validation V3.07 officielle
 
