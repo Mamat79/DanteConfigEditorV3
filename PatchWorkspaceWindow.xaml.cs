@@ -74,6 +74,7 @@ public partial class PatchWorkspaceWindow : Window
             return;
         }
 
+        ClearPreview();
         RefreshSourceChannelsAndMatrixColumns();
         RefreshTargetRows();
     }
@@ -82,6 +83,7 @@ public partial class PatchWorkspaceWindow : Window
     {
         if (!_initializing)
         {
+            ClearPreview();
             RefreshTargetRows();
         }
     }
@@ -568,6 +570,14 @@ public partial class PatchWorkspaceWindow : Window
     {
         if (!_session.HasChanges)
         {
+            if (_returnEditsOnly)
+            {
+                // Dans le détail machine, une liste vide est un résultat utile :
+                // elle permet d'effacer des patchs précédemment préparés.
+                DialogResult = true;
+                return;
+            }
+
             SetInfo(L("Aucun changement à appliquer.", "No changes to apply."), warning: true);
             return;
         }
@@ -597,7 +607,7 @@ public partial class PatchWorkspaceWindow : Window
         CancelPreviewButton.IsEnabled = _currentPreview is not null;
         ConflictResolutionComboBox.IsEnabled = _currentPreview?.HasConflicts == true;
         ResetPendingButton.IsEnabled = _session.HasChanges;
-        ApplyButton.IsEnabled = _session.HasChanges;
+        ApplyButton.IsEnabled = _session.HasChanges || _returnEditsOnly;
 
         string pending = _session.PendingCount == 0
             ? L("Aucun changement en attente", "No pending changes")

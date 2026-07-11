@@ -393,6 +393,21 @@ public sealed class PatchAssignmentPlannerTests
     }
 
     [Fact]
+    public void ReopenedPendingEditsCanBeResetToAnEmptyResult()
+    {
+        using TestDirectory directory = new();
+        DanteProject project = DanteProject.Load(directory.CopyFixture("representative-preset.xml"));
+        PatchEditRequest pending = new("DEVICE-C", 1, "DEVICE-A", "PROGRAM L");
+        PatchWorkspaceSession reopened = new(project.PatchMatrix.Subscriptions, [pending]);
+
+        Assert.Single(reopened.Edits);
+        reopened.Reset();
+
+        Assert.False(reopened.HasChanges);
+        Assert.Empty(reopened.Edits);
+    }
+
+    [Fact]
     public void DeviceDetailBatchPatchesBeforeRenamesAndUndoesAsOneAction()
     {
         using TestDirectory directory = new();
