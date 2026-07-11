@@ -3,7 +3,10 @@ using Avalonia.Controls;
 using Avalonia.Headless;
 using Avalonia.Headless.XUnit;
 using Avalonia.Input;
+using Avalonia.Interactivity;
 using Avalonia.LogicalTree;
+using Avalonia.Threading;
+using DanteConfigEditor.Models;
 using DanteConfigEditor.Services;
 
 namespace DanteConfigEditor.Mac.Tests;
@@ -76,6 +79,32 @@ public sealed class MainWindowTests
     }
 
     [AvaloniaFact]
+    public async Task CompactPatchToolbarKeepsVisualWorkspaceButtonVisible()
+    {
+        string source = Path.Combine(AppContext.BaseDirectory, "Fixtures", "representative-preset.xml");
+        string temporaryXml = Path.Combine(Path.GetTempPath(), $"dante-mac-patch-layout-{Guid.NewGuid():N}.xml");
+        File.Copy(source, temporaryXml);
+
+        MainWindow window = new() { Width = 1366, Height = 768 };
+        window.Show();
+        try
+        {
+            await window.OpenStartupFileAsync(temporaryXml);
+            window.FindControl<TabItem>("PatchTab")!.IsSelected = true;
+            Dispatcher.UIThread.RunJobs();
+
+            AssertControlFits(window, window.FindControl<Button>("VisualPatchButton")!);
+            AssertControlFits(window, window.FindControl<DataGrid>("PatchGrid")!);
+        }
+        finally
+        {
+            window.Close();
+            SessionRecoveryService.Delete(temporaryXml);
+            File.Delete(temporaryXml);
+        }
+    }
+
+    [AvaloniaFact]
     public async Task TabKeyMovesFocusFromOpenToMergeAfterProjectLoad()
     {
         string source = Path.Combine(AppContext.BaseDirectory, "Fixtures", "representative-preset.xml");
@@ -102,6 +131,56 @@ public sealed class MainWindowTests
             window.Close();
             SessionRecoveryService.Delete(temporaryXml);
             File.Delete(temporaryXml);
+        }
+    }
+
+    [AvaloniaFact]
+    public void VisualPatchDialogStagesMatrixEditWithoutChangingProject()
+    {
+        string source = Path.Combine(AppContext.BaseDirectory, "Fixtures", "representative-preset.xml");
+        DanteProject project = DanteProject.Load(source);
+        PatchWorkspaceDialog dialog = new(
+            UiLanguage.French,
+            project,
+            initialTxDeviceName: "DEVICE-A",
+            initialRxDeviceName: "DEVICE-B")
+        {
+            Width = 960,
+            Height = 640
+        };
+        dialog.Show();
+
+        try
+        {
+            ListBox txList = dialog.FindControl<ListBox>("TxChannelList")!;
+            ListBox rxList = dialog.FindControl<ListBox>("RxChannelList")!;
+            Grid matrix = dialog.FindControl<Grid>("MatrixPanel")!;
+            Button apply = dialog.FindControl<Button>("ApplyButton")!;
+
+            Assert.Equal(2, txList.ItemCount);
+            Assert.Equal(2, rxList.ItemCount);
+            Assert.Equal(3, matrix.ColumnDefinitions.Count);
+            Assert.Equal(3, matrix.RowDefinitions.Count);
+            Assert.False(apply.IsEnabled);
+            Assert.Empty(dialog.Edits);
+            Assert.False(project.IsModified);
+
+            Button activeCell = matrix.Children.OfType<Button>().First(button => Equals(button.Content, "●"));
+            activeCell.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+
+            Assert.True(apply.IsEnabled);
+            PatchEditRequest edit = Assert.Single(dialog.Edits);
+            Assert.True(edit.IsRemoval);
+            Assert.Equal("DEVICE-B", edit.RxDeviceName);
+            Assert.False(project.IsModified);
+
+            dialog.FindControl<TabItem>("MatrixTab")!.IsSelected = true;
+            Dispatcher.UIThread.RunJobs();
+            AssertControlFits(dialog, matrix);
+        }
+        finally
+        {
+            dialog.Close();
         }
     }
 

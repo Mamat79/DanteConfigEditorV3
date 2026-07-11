@@ -854,6 +854,62 @@ public partial class MainWindow : Window
             patch.RxDevice);
     }
 
+    private async void VisualPatchButton_Click(object? sender, RoutedEventArgs e)
+    {
+        if (_project is null)
+        {
+            return;
+        }
+
+        if (!_project.Devices.Any(device => device.TxCount > 0)
+            || !_project.Devices.Any(device => device.RxCount > 0))
+        {
+            await ShowInfoAsync(
+                LocalizationService.Text(_language, "Dialog.ActionImpossibleTitle"),
+                L(
+                    "Le preset chargé doit contenir au moins un canal TX et un canal RX.",
+                    "The loaded preset must contain at least one Tx channel and one Rx channel."));
+            return;
+        }
+
+        string? initialTxDevice = FindControl<ComboBox>("SourceDeviceCombo")!.SelectedItem as string;
+        string? initialRxDevice = (FindControl<DataGrid>("PatchGrid")!.SelectedItem as PatchRow)?.RxDevice;
+        PatchWorkspaceDialog dialog = new(
+            _language,
+            _project,
+            initialTxDevice,
+            initialRxDevice);
+
+        if (!await dialog.ShowDialog<bool>(this) || dialog.Edits.Count == 0)
+        {
+            return;
+        }
+
+        PatchEditRequest[] edits = dialog.Edits.ToArray();
+        await ExecuteMutationAsync(
+            L("Patch visuel", "Visual patch"),
+            LocalizationService.Format(_language, "Action.VisualPatchesApplied", edits.Length),
+            project => project.ApplyBatch(batch =>
+            {
+                foreach (PatchEditRequest edit in edits)
+                {
+                    if (edit.IsRemoval)
+                    {
+                        batch.RemovePatch(edit.RxDeviceName, edit.RxDanteId);
+                    }
+                    else
+                    {
+                        batch.ApplyPatch(
+                            edit.RxDeviceName,
+                            edit.RxDanteId,
+                            edit.TxDeviceName!,
+                            edit.TxChannelName ?? string.Empty);
+                    }
+                }
+            }),
+            edits[0].RxDeviceName);
+    }
+
     private void ValidateButton_Click(object? sender, RoutedEventArgs e)
     {
         if (_project is null) return;
@@ -1359,17 +1415,17 @@ public partial class MainWindow : Window
             return false;
         }
 
-        if (_editEnabled)
+        if (!_editEnabled)
         {
-            return true;
+            // Le mode initial protège uniquement le fichier d'origine. Une
+            // action dans l'interface active l'édition, tandis que Save As
+            // reste obligatoire pour écrire le résultat ailleurs.
+            _editEnabled = true;
+            UpdateUiState();
+            SetStatus(LocalizationService.Text(_language, "Status.EditEnabled"));
         }
 
-        await ShowInfoAsync(
-            L("Mode lecture seule", "Read-only mode"),
-            L(
-                "Activez l'édition pour modifier l'interface. La sauvegarde restera imposée sous un nouveau nom.",
-                "Enable editing to modify the interface. Saving will still require a new file name."));
-        return false;
+        return true;
     }
 
     private void ScheduleRecovery()

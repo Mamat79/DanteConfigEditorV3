@@ -255,7 +255,7 @@
                 <TabItem x:Name="PatchTab" Header="Patch">
                     <Grid RowDefinitions="Auto,*" RowSpacing="12" Margin="0,12,0,0">
                         <Border Classes="panel">
-                            <Grid ColumnDefinitions="220,180,*,*,Auto,Auto" ColumnSpacing="8">
+                            <Grid ColumnDefinitions="200,160,*,*,Auto,Auto,Auto" ColumnSpacing="8">
                                 <TextBox x:Name="PatchSearchTextBox" Watermark="Recherche device ou canal" TextChanged="PatchSearchTextBox_TextChanged" />
                                 <ComboBox x:Name="PatchStatusCombo" Grid.Column="1" SelectionChanged="PatchStatusCombo_SelectionChanged">
                                     <ComboBoxItem Tag="all">Tous les RX</ComboBoxItem>
@@ -267,6 +267,7 @@
                                 <ComboBox x:Name="SourceChannelCombo" Grid.Column="3" PlaceholderText="Canal TX à appliquer" />
                                 <Button x:Name="ApplyPatchButton" Grid.Column="4" Classes="primary" Click="ApplyPatchButton_Click">Appliquer</Button>
                                 <Button x:Name="RemovePatchButton" Grid.Column="5" Click="RemovePatchButton_Click">Supprimer</Button>
+                                <Button x:Name="VisualPatchButton" Grid.Column="6" Click="VisualPatchButton_Click">Patch visuel / grille</Button>
                             </Grid>
                         </Border>
 
