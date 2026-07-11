@@ -2,9 +2,22 @@
 bin/
 obj/
 publish/
+artifacts/
+TestResults/
+*.trx
+*.coverage
+coverage.*
+*.nupkg
 
 # Distribution output is published through GitHub Releases, not committed.
 dist/
+*.dmg
+*.app/
+*.sha256
+
+# Benchmark and manual-validation outputs are reproducible and machine-specific.
+benchmarks/results/
+validation-output/
 
 # User and IDE files
 .vs/
@@ -23,3 +36,4 @@ __pycache__/
 # OS files
 Thumbs.db
 Desktop.ini
+.DS_Store

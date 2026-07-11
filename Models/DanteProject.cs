@@ -408,31 +408,6 @@ public sealed class DanteProject
         RegisterChange("Preferred master", $"{deviceName} -> {preferredMaster}");
     }
 
-    public void SetAllPreferredMasters(bool preferredMaster)
-    {
-        foreach (DanteDevice device in Devices)
-        {
-            SetBooleanElementAttribute(device.Element, "preferred_master", "value", preferredMaster, afterElementName: "redundancy");
-        }
-
-        RegisterChange("Preferred master global", $"Tous -> {preferredMaster}");
-    }
-
-    public void SetSolePreferredMaster(string deviceName)
-    {
-        if (FindDevice(deviceName) is null)
-        {
-            throw new InvalidOperationException("Device introuvable.");
-        }
-
-        foreach (DanteDevice device in Devices)
-        {
-            SetBooleanElementAttribute(device.Element, "preferred_master", "value", string.Equals(device.Name, deviceName, StringComparison.OrdinalIgnoreCase), afterElementName: "redundancy");
-        }
-
-        RegisterChange("Preferred master unique", $"{deviceName} défini comme seul preferred master");
-    }
-
     public int DeleteDevice(string deviceName)
     {
         DanteDevice device = FindDevice(deviceName) ?? throw new InvalidOperationException("Device introuvable.");
@@ -1128,165 +1103,6 @@ public sealed class DanteProject
         {
             result.AddWarning(DanteIssueCategory.Clock, $"{preferredMasters} machines sont déclarées preferred master.");
         }
-    }
-
-    public string BuildAllLatencyPreview(string latency)
-    {
-        ValidateLatency(latency);
-        return BuildDevicePreview(
-            $"appliquer la latence {DanteLatencyFormatter.FormatLatencyDisplay(latency)}",
-            Devices.Select(device => (
-                Device: device.Name,
-                Before: DanteLatencyFormatter.FormatLatencyDisplay(device.Latency),
-                After: DanteLatencyFormatter.FormatLatencyDisplay(latency),
-                Changed: !string.Equals(device.Latency, latency, StringComparison.OrdinalIgnoreCase))));
-    }
-
-    public string BuildAllSampleratePreview(string samplerate)
-    {
-        string cleanSamplerate = ValidateSamplerate(samplerate);
-        return BuildDevicePreview(
-            $"appliquer la sample rate {FormatSamplerateForDisplay(cleanSamplerate)}",
-            Devices.Select(device => (
-                Device: device.Name,
-                Before: FormatSamplerateForDisplay(device.Samplerate),
-                After: FormatSamplerateForDisplay(cleanSamplerate),
-                Changed: !string.Equals(device.Samplerate, cleanSamplerate, StringComparison.OrdinalIgnoreCase))));
-    }
-
-    public string BuildAllEncodingPreview(string encoding)
-    {
-        string cleanEncoding = ValidateEncoding(encoding);
-        return BuildDevicePreview(
-            $"appliquer les bits par échantillon {FormatEncodingForDisplay(cleanEncoding)}",
-            Devices.Select(device => (
-                Device: device.Name,
-                Before: FormatEncodingForDisplay(device.Encoding),
-                After: FormatEncodingForDisplay(cleanEncoding),
-                Changed: !string.Equals(device.Encoding, cleanEncoding, StringComparison.OrdinalIgnoreCase))));
-    }
-
-    public string BuildAllIpAutoPreview()
-    {
-        return BuildDevicePreview(
-            "mettre les adresses IPv4 en automatique",
-            Devices.Select(device => (
-                Device: device.Name,
-                Before: device.IpModeDisplay,
-                After: "Auto",
-                Changed: DeviceHasStaticIpConfiguration(device))));
-    }
-
-    public string BuildAllStaticIpPreview(string prefix, int startHost, string netmask, string gateway)
-    {
-        string cleanPrefix = ValidateIpv4Prefix(prefix);
-        string cleanNetmask = ValidateIpv4Address(string.IsNullOrWhiteSpace(netmask) ? "255.255.255.0" : netmask, "masque");
-        string cleanGateway = ValidateIpv4Address(string.IsNullOrWhiteSpace(gateway) ? "0.0.0.0" : gateway, "passerelle");
-        DanteDevice[] configurableDevices = Devices.Where(DeviceSupportsIpConfiguration).ToArray();
-        if (configurableDevices.Length == 0)
-        {
-            throw new InvalidOperationException("Aucune machine du XML ne contient d'interface IPv4 modifiable.");
-        }
-
-        if (startHost < 1 || startHost > 254 || startHost + configurableDevices.Length - 1 > 254)
-        {
-            throw new InvalidOperationException("La plage IP demandée doit rester entre .1 et .254.");
-        }
-
-        Dictionary<string, string> targetByDeviceName = configurableDevices
-            .Select((device, index) => new { device.Name, Address = $"{cleanPrefix}.{startHost + index}" })
-            .ToDictionary(item => item.Name, item => item.Address, StringComparer.OrdinalIgnoreCase);
-
-        return BuildDevicePreview(
-            $"fixer les IP depuis {cleanPrefix}.{startHost} / {cleanNetmask} / gateway {cleanGateway}",
-            Devices.Select(device =>
-            {
-                bool configurable = targetByDeviceName.TryGetValue(device.Name, out string? targetAddress);
-                string before = device.UsesStaticIp ? device.IpModeDisplay : "Auto";
-                return (
-                    Device: device.Name,
-                    Before: before,
-                    After: configurable ? $"Fixe ({targetAddress})" : "non modifiable",
-                    Changed: configurable && (!string.Equals(device.StaticIpAddress, targetAddress, StringComparison.OrdinalIgnoreCase)
-                        || !string.Equals(device.StaticIpNetmask, cleanNetmask, StringComparison.OrdinalIgnoreCase)
-                        || !string.Equals(device.StaticIpGateway, cleanGateway, StringComparison.OrdinalIgnoreCase)));
-            }));
-    }
-
-    public string BuildAllNetworkModePreview(bool redundant)
-    {
-        string target = redundant ? "Redondant" : "Daisychain";
-        return BuildDevicePreview(
-            $"appliquer le mode réseau {target}",
-            Devices.Select(device => (
-                Device: device.Name,
-                Before: device.NetworkMode,
-                After: target,
-                Changed: device.IsRedundant != redundant)));
-    }
-
-    public string BuildClearPreferredMastersPreview()
-    {
-        return BuildDevicePreview(
-            "retirer tous les preferred masters",
-            Devices.Select(device => (
-                Device: device.Name,
-                Before: device.PreferredMaster ? "Preferred master" : "Non preferred",
-                After: "Non preferred",
-                Changed: device.PreferredMaster)));
-    }
-
-    public string BuildSolePreferredMasterPreview(string deviceName)
-    {
-        return BuildDevicePreview(
-            $"définir {deviceName} comme seul preferred master",
-            Devices.Select(device => (
-                Device: device.Name,
-                Before: device.PreferredMaster ? "Preferred master" : "Non preferred",
-                After: string.Equals(device.Name, deviceName, StringComparison.OrdinalIgnoreCase) ? "Preferred master" : "Non preferred",
-                Changed: device.PreferredMaster != string.Equals(device.Name, deviceName, StringComparison.OrdinalIgnoreCase))));
-    }
-
-    public string BuildResetAllChannelsPreview()
-    {
-        StringBuilder builder = new();
-        builder.AppendLine("Prévisualisation");
-        builder.AppendLine("----------------");
-        builder.AppendLine("Action : réinitialiser tous les noms de canaux TX/RX");
-        builder.AppendLine();
-        builder.AppendLine("Résumé :");
-        builder.AppendLine($"- {Devices.Count} devices concernés");
-        builder.AppendLine($"- {Devices.Sum(device => device.TxCount)} canaux TX potentiellement renommés");
-        builder.AppendLine($"- {Devices.Sum(device => device.RxCount)} canaux RX potentiellement renommés");
-        builder.AppendLine();
-        builder.AppendLine("Cette action peut modifier beaucoup de noms et mettre à jour les patchs qui utilisent les TX reconnus.");
-        return builder.ToString();
-    }
-
-    private static string BuildDevicePreview(string action, IEnumerable<(string Device, string Before, string After, bool Changed)> rows)
-    {
-        (string Device, string Before, string After, bool Changed)[] materializedRows = rows.ToArray();
-        StringBuilder builder = new();
-        builder.AppendLine("Prévisualisation");
-        builder.AppendLine("----------------");
-        builder.AppendLine("Action : " + action);
-        builder.AppendLine();
-        builder.AppendLine("Devices concernés :");
-        foreach ((string device, string before, string after, bool changed) in materializedRows.Take(80))
-        {
-            builder.AppendLine($"- {device} : {Blank(before)} -> {(changed ? Blank(after) : "inchangé")}");
-        }
-
-        if (materializedRows.Length > 80)
-        {
-            builder.AppendLine($"- {materializedRows.Length - 80} device(s) supplémentaire(s) non affiché(s).");
-        }
-
-        builder.AppendLine();
-        builder.AppendLine("Résumé :");
-        builder.AppendLine($"- {materializedRows.Count(row => row.Changed)} devices modifiés");
-        builder.AppendLine($"- {materializedRows.Count(row => !row.Changed)} devices inchangés");
-        return builder.ToString();
     }
 
     public string BuildSaveSummary()
@@ -2216,13 +2032,6 @@ public sealed class DanteProject
         ReloadModel();
     }
 
-    private static string FormatPatchbookSourceDevice(DanteSubscription subscription)
-    {
-        return subscription.IsLocalSubscription
-            ? "LOCAL"
-            : Blank(subscription.DisplayTxDeviceName);
-    }
-
     private void ReloadModel()
     {
         // Après chaque modification XML, les objets de lecture sont reconstruits
@@ -2578,25 +2387,6 @@ public sealed class DanteProject
         else
         {
             deviceElement.Value = txDeviceName;
-        }
-    }
-
-    private static void SetSubscriptionChannel(XElement rxElement, string txChannelName)
-    {
-        XElement? channelElement = FindFirstElement(rxElement, SubscriptionChannelElementNames);
-        if (string.IsNullOrWhiteSpace(txChannelName))
-        {
-            channelElement?.Remove();
-            return;
-        }
-
-        if (channelElement is null)
-        {
-            rxElement.Add(new XElement(rxElement.ChildName(SubscriptionChannelElementNames[0]), txChannelName));
-        }
-        else
-        {
-            channelElement.Value = txChannelName;
         }
     }
 
