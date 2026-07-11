@@ -1,5 +1,13 @@
 # Changelog V3
 
+## 2026-07-11 - Version 3.06 Beta macOS
+
+- Extraction d'un projet `DanteConfigEditor.Core` partagé par les interfaces Windows et macOS.
+- Ajout d'une interface macOS Avalonia reprenant les workflows de configuration, patch, santé du fichier, sécurité, exports et notices.
+- Placement des alertes importantes dans la colonne latérale sur macOS et Windows.
+- Ajout de bundles `.app` et de DMG autonomes Apple Silicon / Intel, avec runtime .NET 8 et documentation FR/EN inclus.
+- Ajout d'une signature ad hoc pour vérifier l'intégrité locale ; la notarisation Apple reste une limite connue de cette bêta.
+
 ## 2026-07-10 - Version 3.06 Beta
 
 - Remplacement de l'identité XML basée sur le nom par une association stable utilisant en priorité `instance_id/device_id`, puis les identifiants techniques de repli.

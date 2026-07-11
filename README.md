@@ -1,6 +1,6 @@
 # Dante Config Editor V3.06 Beta
 
-Outil Windows pour éditer hors ligne des fichiers XML de configuration Dante.
+Outil Windows et macOS pour éditer hors ligne des fichiers XML de configuration Dante.
 
 > **Statut du projet : version bêta en développement.**
 > Cette application est fournie comme outil de travail en cours. Elle n'est pas exempte de bugs, peut encore mal interpréter certains fichiers XML Dante, et ne doit pas être utilisée directement sur des fichiers critiques sans sauvegarde et validation dans les outils Dante officiels.
@@ -72,6 +72,17 @@ Le fichier recommandé est fourni dans le dossier `dist` local et dans les Relea
 
 La version autonome inclut le runtime .NET nécessaire. Sur une machine Windows x64, il ne devrait pas être nécessaire d'installer .NET séparément pour utiliser l'application.
 
+### macOS
+
+La Release GitHub fournit deux DMG autonomes :
+
+- `DanteConfigEditorV3_macOS_AppleSilicon.dmg` pour les Mac M1, M2, M3, M4 et suivants ;
+- `DanteConfigEditorV3_macOS_Intel.dmg` pour les Mac Intel 64 bits.
+
+Ouvrir le DMG, puis glisser `Dante Config Editor` dans `Applications`. Le runtime .NET 8 et les notices FR/EN sont inclus.
+
+Cette première bêta Mac n'est pas encore notariée avec un compte Apple Developer. Au premier lancement, faire un clic droit sur l'application dans `Applications`, choisir `Ouvrir`, puis confirmer l'ouverture. Les détails de compilation, signature et notarisation sont documentés dans `MACOS_BUILD.md`.
+
 L'installateur contient uniquement l'application autonome et la documentation utilisateur. Les sources du projet ne sont pas installees sur la machine de l'utilisateur.
 
 En fin d'installation, il peut proposer d'ouvrir les release notes, le quick start PDF et la notice complète PDF dans la langue choisie dans l'installateur. Les quatre PDF français/anglais restent installés et accessibles depuis le menu Démarrer.
@@ -118,6 +129,9 @@ Si une version est déjà installée, l'assistant le détecte et propose de remp
 - 38 tests de sécurité et de non-régression, dont les presets synthétiques de 10, 50 et 200 machines en 64 TX / 64 RX.
 - Workflow GitHub Actions sur Windows et script `build.ps1` qui vérifie chaque code de retour.
 - Installateur de mise à niveau unique : la V3.06 Beta remplace la version déjà installée sans proposer de copie parallèle.
+- Nouvelle interface macOS via Avalonia, avec les alertes placées dans la colonne latérale pour préserver la hauteur des tableaux.
+- DMG autonomes distincts Apple Silicon et Intel, incluant .NET 8 et les notices françaises/anglaises.
+- Les alertes importantes de la version Windows sont également déplacées dans la colonne latérale.
 
 ## Nouveautés V3.05
 

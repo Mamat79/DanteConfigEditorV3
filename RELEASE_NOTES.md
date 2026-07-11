@@ -9,6 +9,10 @@ Travaillez toujours sur une copie de vos fichiers XML Dante et validez le result
 ## Nouveautes principales
 
 - Version 3.06 beta.
+- Premiere version macOS, avec une interface Avalonia partageant le meme moteur XML que l'application Windows.
+- DMG autonomes Apple Silicon et Intel avec .NET 8 et notices FR/EN inclus.
+- Alertes importantes placees dans la colonne laterale sur macOS et Windows pour conserver la hauteur des tableaux.
+- Les DMG de cette beta utilisent une signature ad hoc et ne sont pas encore notaries par Apple ; le premier lancement se fait par clic droit puis `Ouvrir`.
 - Garde-fou XML durci : identité stable des machines, chemins inconnus bloqués par défaut et absence de faux positif lors d'un simple réordonnancement de balises.
 - Prise en charge des XML avec namespace par défaut.
 - Sauvegarde atomique avec conservation de l'ancienne destination en cas d'erreur et backup de la destination remplacée.

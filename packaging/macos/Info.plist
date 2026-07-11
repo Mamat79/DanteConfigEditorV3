@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleDevelopmentRegion</key>
+    <string>fr</string>
+    <key>CFBundleDisplayName</key>
+    <string>Dante Config Editor V3.06 Beta</string>
+    <key>CFBundleExecutable</key>
+    <string>DanteConfigEditorV3.Mac</string>
+    <key>CFBundleIconFile</key>
+    <string>DanteEdit</string>
+    <key>CFBundleIdentifier</key>
+    <string>fr.mamat.danteconfigeditor.v3</string>
+    <key>CFBundleInfoDictionaryVersion</key>
+    <string>6.0</string>
+    <key>CFBundleLocalizations</key>
+    <array>
+        <string>fr</string>
+        <string>en</string>
+    </array>
+    <key>CFBundleName</key>
+    <string>Dante Config Editor</string>
+    <key>CFBundlePackageType</key>
+    <string>APPL</string>
+    <key>CFBundleShortVersionString</key>
+    <string>3.6.0</string>
+    <key>CFBundleVersion</key>
+    <string>3.6.0</string>
+    <key>LSApplicationCategoryType</key>
+    <string>public.app-category.utilities</string>
+    <key>LSMinimumSystemVersion</key>
+    <string>11.0</string>
+    <key>NSHighResolutionCapable</key>
+    <true/>
+    <key>NSHumanReadableCopyright</key>
+    <string>By Mamat</string>
+    <key>CFBundleDocumentTypes</key>
+    <array>
+        <dict>
+            <key>CFBundleTypeExtensions</key>
+            <array>
+                <string>xml</string>
+            </array>
+            <key>CFBundleTypeName</key>
+            <string>Dante XML configuration</string>
+            <key>CFBundleTypeRole</key>
+            <string>Editor</string>
+            <key>LSHandlerRank</key>
+            <string>Alternate</string>
+            <key>LSItemContentTypes</key>
+            <array>
+                <string>public.xml</string>
+            </array>
+        </dict>
+    </array>
+</dict>
+</plist>
