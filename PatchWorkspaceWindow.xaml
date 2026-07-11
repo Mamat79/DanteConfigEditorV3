@@ -3,10 +3,10 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:automation="clr-namespace:System.Windows.Automation;assembly=PresentationCore"
         Title="Patch visuel"
-        Width="1320"
-        Height="820"
-        MinWidth="980"
-        MinHeight="640"
+        Width="1380"
+        Height="900"
+        MinWidth="1080"
+        MinHeight="720"
         WindowStartupLocation="CenterOwner">
     <Window.Resources>
         <SolidColorBrush x:Key="WindowBackgroundBrush" Color="#10141F" />
@@ -76,6 +76,17 @@
                     <Setter Property="Foreground" Value="#111827" />
                 </Trigger>
             </Style.Triggers>
+        </Style>
+        <Style TargetType="{x:Type TextBox}">
+            <Setter Property="Background" Value="White" />
+            <Setter Property="Foreground" Value="#111827" />
+            <Setter Property="BorderBrush" Value="#CBD5E1" />
+            <Setter Property="Padding" Value="7,5" />
+        </Style>
+        <Style TargetType="{x:Type GroupBox}">
+            <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderLineBrush}" />
+            <Setter Property="Padding" Value="8" />
         </Style>
         <Style TargetType="{x:Type TabControl}">
             <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
@@ -185,65 +196,176 @@
         </Grid>
 
         <TabControl Grid.Row="2" Margin="16,0,16,10">
-            <TabItem x:Name="AssignmentTab" Header="Glisser-déposer et série">
+            <TabItem x:Name="AssignmentTab" Header="Sélection et plage">
                 <Grid Margin="12">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="220" />
+                        <ColumnDefinition Width="250" />
                         <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="*" />
+                        <RowDefinition Height="240" />
                     </Grid.RowDefinitions>
 
-                    <TextBlock x:Name="TxListHeadingTextBlock"
-                               Text="Canaux TX disponibles"
-                               FontWeight="SemiBold"
-                               Margin="0,0,0,8" />
+                    <DockPanel Margin="0,0,0,8">
+                        <Button x:Name="SelectAllTxButton"
+                                DockPanel.Dock="Right"
+                                Content="Tout sélectionner"
+                                Style="{StaticResource SecondaryButtonStyle}"
+                                Padding="8,4"
+                                Margin="8,0,0,0"
+                                Click="SelectAllTxButton_Click" />
+                        <TextBlock x:Name="TxListHeadingTextBlock"
+                                   Text="Canaux TX disponibles"
+                                   FontWeight="SemiBold"
+                                   VerticalAlignment="Center" />
+                    </DockPanel>
                     <ListBox x:Name="TxChannelListBox"
                              Grid.Row="1"
                              SelectionMode="Extended"
                              DisplayMemberPath="Display"
                              automation:AutomationProperties.Name="Canaux TX disponibles"
-                             SelectionChanged="TxChannelListBox_SelectionChanged"
-                             PreviewMouseLeftButtonDown="TxChannelListBox_PreviewMouseLeftButtonDown"
-                             PreviewMouseMove="TxChannelListBox_PreviewMouseMove" />
+                             SelectionChanged="TxChannelListBox_SelectionChanged" />
 
                     <StackPanel Grid.Column="1"
                                 Grid.RowSpan="2"
                                 HorizontalAlignment="Stretch"
                                 VerticalAlignment="Center"
                                 Margin="16,0">
-                        <TextBlock x:Name="DragHintTextBlock"
-                                   Text="Sélectionnez un ou plusieurs TX puis déposez-les sur le premier RX."
+                        <TextBlock x:Name="SelectionHintTextBlock"
+                                   Text="Sélectionnez les TX et les RX à relier."
                                    Foreground="{DynamicResource MutedTextBrush}"
                                    TextAlignment="Center"
-                                   Margin="0,0,0,14" />
-                        <Button x:Name="AssignSequentialButton"
-                                Content="Affecter à partir du RX sélectionné"
-                                Click="AssignSequentialButton_Click"
-                                ToolTip="Les TX sélectionnés sont affectés dans l'ordre aux RX qui suivent." />
+                                   Margin="0,0,0,10" />
+                        <Button x:Name="PreviewSelectionButton"
+                                Content="Prévisualiser la sélection"
+                                Click="PreviewSelectionButton_Click" />
                         <Button x:Name="RemoveSelectedRxButton"
-                                Content="Déconnecter le RX sélectionné"
+                                Content="Déconnecter les RX sélectionnés"
                                 Style="{StaticResource SecondaryButtonStyle}"
                                 Click="RemoveSelectedRxButton_Click" />
+                        <Button x:Name="ClearSelectionButton"
+                                Content="Effacer la sélection"
+                                Style="{StaticResource SecondaryButtonStyle}"
+                                Click="ClearSelectionButton_Click" />
+
+                        <Separator Margin="0,10" Background="{DynamicResource BorderLineBrush}" />
+                        <TextBlock x:Name="RangeHeadingTextBlock"
+                                   Text="Patch par plage"
+                                   FontWeight="SemiBold"
+                                   Margin="0,0,0,4" />
+                        <Label x:Name="RangeStartTxLabel" Content="Premier TX" />
+                        <ComboBox x:Name="RangeStartTxComboBox"
+                                  DisplayMemberPath="Display"
+                                  SelectionChanged="RangeControl_Changed" />
+                        <Label x:Name="RangeStartRxLabel" Content="Premier RX" />
+                        <ComboBox x:Name="RangeStartRxComboBox"
+                                  DisplayMemberPath="Display"
+                                  SelectionChanged="RangeControl_Changed" />
+                        <Label x:Name="RangeCountLabel" Content="Nombre de canaux" />
+                        <TextBox x:Name="RangeCountTextBox"
+                                 Text="1"
+                                 TextChanged="RangeControl_Changed" />
+                        <Button x:Name="PreviewRangeButton"
+                                Content="Prévisualiser la plage"
+                                Margin="0,10,8,0"
+                                Click="PreviewRangeButton_Click" />
                     </StackPanel>
 
-                    <TextBlock x:Name="RxListHeadingTextBlock"
-                               Grid.Column="2"
-                               Text="Canaux RX et source actuelle"
-                               FontWeight="SemiBold"
-                               Margin="0,0,0,8" />
+                    <DockPanel Grid.Column="2" Margin="0,0,0,8">
+                        <Button x:Name="SelectAllRxButton"
+                                DockPanel.Dock="Right"
+                                Content="Tout sélectionner"
+                                Style="{StaticResource SecondaryButtonStyle}"
+                                Padding="8,4"
+                                Margin="8,0,0,0"
+                                Click="SelectAllRxButton_Click" />
+                        <TextBlock x:Name="RxListHeadingTextBlock"
+                                   Text="Canaux RX et source actuelle"
+                                   FontWeight="SemiBold"
+                                   VerticalAlignment="Center" />
+                    </DockPanel>
                     <ListBox x:Name="RxChannelListBox"
                              Grid.Column="2"
                              Grid.Row="1"
+                             SelectionMode="Extended"
                              DisplayMemberPath="Display"
-                             AllowDrop="True"
                              automation:AutomationProperties.Name="Canaux RX et source actuelle"
-                             SelectionChanged="RxChannelListBox_SelectionChanged"
-                             DragOver="RxChannelListBox_DragOver"
-                             Drop="RxChannelListBox_Drop" />
+                             SelectionChanged="RxChannelListBox_SelectionChanged" />
+
+                    <GroupBox x:Name="PreviewGroupBox"
+                              Grid.Row="2"
+                              Grid.ColumnSpan="3"
+                              Header="Prévisualisation"
+                              Margin="0,12,0,0">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="*" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+                            <TextBlock x:Name="PreviewSummaryTextBlock"
+                                       Text="Aucune prévisualisation."
+                                       Foreground="{DynamicResource MutedTextBrush}"
+                                       Margin="0,0,0,6" />
+                            <DataGrid x:Name="PreviewGrid"
+                                      Grid.Row="1"
+                                      AutoGenerateColumns="False"
+                                      CanUserAddRows="False"
+                                      CanUserDeleteRows="False"
+                                      IsReadOnly="True"
+                                      EnableRowVirtualization="True"
+                                      VirtualizingPanel.IsVirtualizing="True"
+                                      VirtualizingPanel.VirtualizationMode="Recycling">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn x:Name="PreviewTargetColumn" Header="RX cible" Binding="{Binding Target}" Width="*" />
+                                    <DataGridTextColumn x:Name="PreviewCurrentColumn" Header="Source actuelle" Binding="{Binding Current}" Width="*" />
+                                    <DataGridTextColumn x:Name="PreviewProposedColumn" Header="Nouvelle source" Binding="{Binding Proposed}" Width="*" />
+                                    <DataGridTextColumn x:Name="PreviewActionColumn" Header="Action" Binding="{Binding Action}" Width="130" />
+                                </DataGrid.Columns>
+                                <DataGrid.RowStyle>
+                                    <Style TargetType="{x:Type DataGridRow}">
+                                        <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
+                                        <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding ActionKey}" Value="Replace">
+                                                <Setter Property="Background" Value="#7C2D12" />
+                                                <Setter Property="Foreground" Value="White" />
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding ActionKey}" Value="Create">
+                                                <Setter Property="Background" Value="#14532D" />
+                                                <Setter Property="Foreground" Value="White" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </DataGrid.RowStyle>
+                            </DataGrid>
+                            <DockPanel Grid.Row="2" Margin="0,8,0,0">
+                                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                                    <Label x:Name="ConflictResolutionLabel"
+                                           Content="Conflits"
+                                           VerticalAlignment="Center"
+                                           Padding="0,0,6,8" />
+                                    <ComboBox x:Name="ConflictResolutionComboBox"
+                                              Width="165"
+                                              Margin="0,0,8,8" />
+                                    <Button x:Name="StagePreviewButton"
+                                            Content="Préparer ces changements"
+                                            Click="StagePreviewButton_Click" />
+                                    <Button x:Name="CancelPreviewButton"
+                                            Content="Annuler l'aperçu"
+                                            Style="{StaticResource SecondaryButtonStyle}"
+                                            Click="CancelPreviewButton_Click" />
+                                </StackPanel>
+                                <TextBlock x:Name="PreviewSafetyTextBlock"
+                                           Text="Aucun changement XML avant Appliquer au projet."
+                                           Foreground="{DynamicResource MutedTextBrush}"
+                                           VerticalAlignment="Center" />
+                            </DockPanel>
+                        </Grid>
+                    </GroupBox>
                 </Grid>
             </TabItem>
 

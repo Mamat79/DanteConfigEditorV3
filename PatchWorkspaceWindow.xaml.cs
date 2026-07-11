@@ -3,7 +3,6 @@ using System.Windows.Automation;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Data;
-using System.Windows.Input;
 using System.Windows.Media;
 using DanteConfigEditor.Models;
 using DanteConfigEditor.Services;
@@ -12,15 +11,13 @@ namespace DanteConfigEditor;
 
 public partial class PatchWorkspaceWindow : Window
 {
-    private const string DragDataFormat = "DanteConfigEditor.VisualPatchSources";
-
     private readonly UiLanguage _language;
     private readonly DanteProject _project;
     private readonly PatchWorkspaceSession _session;
     private readonly HashSet<string> _ambiguousSourceNames = new(StringComparer.OrdinalIgnoreCase);
     private IReadOnlyList<PatchSourceDescriptor> _visibleSources = [];
     private IReadOnlyList<PatchTargetDescriptor> _visibleTargets = [];
-    private Point _dragStart;
+    private PatchBatchPreview? _currentPreview;
     private bool _initializing = true;
 
     public PatchWorkspaceWindow(
@@ -28,12 +25,13 @@ public partial class PatchWorkspaceWindow : Window
         DanteProject project,
         bool useLightTheme,
         string? initialTxDeviceName = null,
-        string? initialRxDeviceName = null)
+        string? initialRxDeviceName = null,
+        IEnumerable<PatchEditRequest>? initialEdits = null)
     {
         InitializeComponent();
         _language = language;
         _project = project ?? throw new ArgumentNullException(nameof(project));
-        _session = new PatchWorkspaceSession(project.PatchMatrix.Subscriptions);
+        _session = new PatchWorkspaceSession(project.PatchMatrix.Subscriptions, initialEdits);
 
         ApplyTheme(useLightTheme);
         ApplyLanguage();
@@ -93,6 +91,7 @@ public partial class PatchWorkspaceWindow : Window
 
     private void RefreshSourceChannelsAndMatrixColumns()
     {
+        int? selectedRangeDanteId = (RangeStartTxComboBox.SelectedItem as PatchSourceDescriptor)?.DanteId;
         DanteDevice? device = _project.FindDevice(TxDeviceComboBox.SelectedItem as string);
         _visibleSources = device?.TxChannels
             .Select(channel => new PatchSourceDescriptor(
@@ -104,6 +103,9 @@ public partial class PatchWorkspaceWindow : Window
             .ToArray() ?? [];
 
         TxChannelListBox.ItemsSource = _visibleSources;
+        RangeStartTxComboBox.ItemsSource = _visibleSources;
+        RangeStartTxComboBox.SelectedItem = _visibleSources.FirstOrDefault(source => source.DanteId == selectedRangeDanteId)
+            ?? _visibleSources.FirstOrDefault();
         _ambiguousSourceNames.Clear();
         foreach (IGrouping<string, PatchSourceDescriptor> duplicate in _visibleSources
                      .GroupBy(source => source.ChannelName, StringComparer.OrdinalIgnoreCase)
@@ -131,7 +133,13 @@ public partial class PatchWorkspaceWindow : Window
 
     private void RefreshTargetRows()
     {
-        int? selectedDanteId = (RxChannelListBox.SelectedItem as PatchRxListItem)?.Target.DanteId;
+        string? requestedDeviceName = RxDeviceComboBox.SelectedItem as string;
+        HashSet<int> selectedDanteIds = RxChannelListBox.SelectedItems
+            .OfType<PatchRxListItem>()
+            .Where(row => string.Equals(row.Target.DeviceName, requestedDeviceName, StringComparison.OrdinalIgnoreCase))
+            .Select(row => row.Target.DanteId)
+            .ToHashSet();
+        int? selectedRangeDanteId = (RangeStartRxComboBox.SelectedItem as PatchTargetDescriptor)?.DanteId;
         DanteDevice? device = _project.FindDevice(RxDeviceComboBox.SelectedItem as string);
         _visibleTargets = device?.RxChannels
             .Select(channel => new PatchTargetDescriptor(
@@ -146,8 +154,19 @@ public partial class PatchWorkspaceWindow : Window
             .Select(BuildRxListItem)
             .ToArray();
         RxChannelListBox.ItemsSource = rows;
-        RxChannelListBox.SelectedItem = rows.FirstOrDefault(row => row.Target.DanteId == selectedDanteId)
-            ?? rows.FirstOrDefault();
+        foreach (PatchRxListItem row in rows.Where(row => selectedDanteIds.Contains(row.Target.DanteId)))
+        {
+            RxChannelListBox.SelectedItems.Add(row);
+        }
+
+        if (RxChannelListBox.SelectedItems.Count == 0 && rows.Length > 0)
+        {
+            RxChannelListBox.SelectedItem = rows[0];
+        }
+
+        RangeStartRxComboBox.ItemsSource = _visibleTargets;
+        RangeStartRxComboBox.SelectedItem = _visibleTargets.FirstOrDefault(target => target.DanteId == selectedRangeDanteId)
+            ?? _visibleTargets.FirstOrDefault();
 
         MatrixGrid.ItemsSource = _visibleTargets.Select(BuildMatrixRow).ToArray();
         UpdateCommandState();
@@ -260,63 +279,154 @@ public partial class PatchWorkspaceWindow : Window
         return panel;
     }
 
-    private void AssignSequentialButton_Click(object sender, RoutedEventArgs e)
+    private void PreviewSelectionButton_Click(object sender, RoutedEventArgs e)
     {
-        PatchSourceDescriptor[] selectedSources = SelectedSources();
-        if (selectedSources.Length == 0)
+        try
         {
-            SetInfo(L("Sélectionnez au moins un canal TX.", "Select at least one Tx channel."), warning: true);
+            PatchAssignmentPlan plan = PatchAssignmentPlanner.PlanSelection(SelectedSources(), SelectedTargets());
+            ShowPreview(plan);
+        }
+        catch (Exception exception)
+        {
+            SetInfo(exception.Message, warning: true);
+        }
+    }
+
+    private void PreviewRangeButton_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            if (RangeStartTxComboBox.SelectedItem is not PatchSourceDescriptor firstSource
+                || RangeStartRxComboBox.SelectedItem is not PatchTargetDescriptor firstTarget
+                || !int.TryParse(RangeCountTextBox.Text, out int count))
+            {
+                throw new InvalidOperationException(L(
+                    "Renseignez le premier TX, le premier RX et un nombre de canaux valide.",
+                    "Choose the first Tx, first Rx and a valid channel count."));
+            }
+
+            PatchAssignmentPlan plan = PatchAssignmentPlanner.PlanRange(
+                _visibleSources,
+                firstSource,
+                _visibleTargets,
+                firstTarget,
+                count);
+            ShowPreview(plan);
+        }
+        catch (Exception exception)
+        {
+            SetInfo(exception.Message, warning: true);
+        }
+    }
+
+    private void ShowPreview(PatchAssignmentPlan plan)
+    {
+        if (!SourcesAreUnambiguous(plan.Assignments.Select(assignment => assignment.Source)))
+        {
             return;
         }
 
-        if (RxChannelListBox.SelectedItem is not PatchRxListItem targetRow)
+        _currentPreview = _session.BuildPreview(plan.Assignments);
+        PreviewGrid.ItemsSource = _currentPreview.Items.Select(BuildPreviewRow).ToArray();
+        PreviewSummaryTextBlock.Text = L(
+            $"{_currentPreview.Items.Count} ligne(s) : {_currentPreview.CreateCount} création(s), {_currentPreview.ReplaceCount} remplacement(s), {_currentPreview.UnchangedCount} inchangée(s).",
+            $"{_currentPreview.Items.Count} row(s): {_currentPreview.CreateCount} new, {_currentPreview.ReplaceCount} replacement(s), {_currentPreview.UnchangedCount} unchanged.");
+
+        SelectConflictResolution(_currentPreview.HasConflicts
+            ? PatchConflictResolution.Cancel
+            : PatchConflictResolution.Replace);
+        SetInfo(_currentPreview.HasConflicts
+            ? L("Des RX sont déjà patchés. Choisissez explicitement comment traiter les conflits.", "Some Rx channels are already patched. Explicitly choose how to handle conflicts.")
+            : L("Prévisualisation prête. Aucun conflit de remplacement.", "Preview ready. No replacement conflict."),
+            warning: _currentPreview.HasConflicts);
+        UpdateCommandState();
+    }
+
+    private PatchPreviewRow BuildPreviewRow(PatchPreviewItem item)
+    {
+        string current = item.Current.IsActive
+            ? $"{item.Current.TxDeviceName} / {item.Current.TxChannelName}"
+            : L("Libre", "Free");
+        string action = item.Action switch
         {
-            SetInfo(L("Sélectionnez le premier canal RX.", "Select the first Rx channel."), warning: true);
+            PatchPreviewAction.Create => L("Créer", "Create"),
+            PatchPreviewAction.Replace => L("Remplacer", "Replace"),
+            _ => L("Inchangé", "Unchanged")
+        };
+
+        return new PatchPreviewRow(
+            item.Assignment.Target.FullDisplay,
+            current,
+            item.Assignment.Source.FullDisplay,
+            action,
+            item.Action.ToString());
+    }
+
+    private void StagePreviewButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (_currentPreview is null)
+        {
+            SetInfo(L("Créez d'abord une prévisualisation.", "Create a preview first."), warning: true);
             return;
         }
 
-        AssignSources(selectedSources, targetRow.Target);
+        try
+        {
+            PatchConflictResolution resolution = SelectedConflictResolution();
+            PatchStageResult result = _session.StagePreview(_currentPreview, resolution);
+            if (result.IsCancelled)
+            {
+                SetInfo(L("Aucun changement préparé : résolution annulée.", "No change staged: conflict resolution cancelled."), warning: true);
+                return;
+            }
+
+            string message = L(
+                $"{result.StagedCount} changement(s) préparé(s), {result.SkippedConflictCount} conflit(s) ignoré(s), {result.UnchangedCount} ligne(s) inchangée(s).",
+                $"{result.StagedCount} change(s) staged, {result.SkippedConflictCount} conflict(s) skipped, {result.UnchangedCount} row(s) unchanged.");
+            ClearPreview();
+            RefreshTargetRows();
+            SetInfo(message, warning: result.SkippedConflictCount > 0);
+        }
+        catch (Exception exception)
+        {
+            SetInfo(exception.Message, warning: true);
+        }
+    }
+
+    private void CancelPreviewButton_Click(object sender, RoutedEventArgs e)
+    {
+        ClearPreview();
+        SetInfo(L("Prévisualisation annulée.", "Preview cancelled."));
     }
 
     private void RemoveSelectedRxButton_Click(object sender, RoutedEventArgs e)
     {
-        if (RxChannelListBox.SelectedItem is not PatchRxListItem targetRow)
+        PatchTargetDescriptor[] targets = SelectedTargets();
+        if (targets.Length == 0)
         {
-            SetInfo(L("Sélectionnez un canal RX à déconnecter.", "Select an Rx channel to disconnect."), warning: true);
+            SetInfo(L("Sélectionnez au moins un canal RX à déconnecter.", "Select at least one Rx channel to disconnect."), warning: true);
             return;
         }
 
-        _session.Remove(targetRow.Target);
-        RefreshTargetRows();
-        SetInfo(L("Déconnexion préparée.", "Disconnection staged."));
-    }
-
-    private void AssignSources(IReadOnlyList<PatchSourceDescriptor> sources, PatchTargetDescriptor firstTarget)
-    {
-        if (!SourcesAreUnambiguous(sources))
+        MessageBoxResult confirmation = MessageBox.Show(
+            this,
+            L(
+                $"Préparer la déconnexion de {targets.Length} canal(aux) RX sélectionné(s) ?",
+                $"Stage disconnection of {targets.Length} selected Rx channel(s)?"),
+            L("Confirmer la déconnexion", "Confirm disconnection"),
+            MessageBoxButton.YesNo,
+            MessageBoxImage.Warning);
+        if (confirmation != MessageBoxResult.Yes)
         {
             return;
         }
 
         try
         {
-            SequentialPatchPlan plan = _session.AssignSequential(sources, _visibleTargets, firstTarget);
+            int removed = _session.RemoveMany(targets);
+            ClearPreview();
             RefreshTargetRows();
-
-            if (plan.UnassignedSources.Count > 0)
-            {
-                SetInfo(
-                    L(
-                        $"{plan.Assignments.Count} affectation(s) préparée(s), {plan.UnassignedSources.Count} TX sans RX disponible.",
-                        $"{plan.Assignments.Count} assignment(s) staged, {plan.UnassignedSources.Count} Tx channel(s) without an available Rx."),
-                    warning: true);
-            }
-            else
-            {
-                SetInfo(L(
-                    $"{plan.Assignments.Count} affectation(s) préparée(s).",
-                    $"{plan.Assignments.Count} assignment(s) staged."));
-            }
+            SetInfo(L($"{removed} déconnexion(s) préparée(s).", $"{removed} disconnection(s) staged."));
         }
         catch (Exception exception)
         {
@@ -365,69 +475,61 @@ public partial class PatchWorkspaceWindow : Window
                 return;
             }
 
-            _session.Assign(new PlannedPatchAssignment(cell.Source, cell.Target));
-            SetInfo(L("Affectation préparée.", "Assignment staged."));
+            PatchBatchPreview preview = _session.BuildPreview(
+                [new PlannedPatchAssignment(cell.Source, cell.Target)]);
+            PatchConflictResolution resolution = PatchConflictResolution.Replace;
+            if (preview.HasConflicts)
+            {
+                MessageBoxResult choice = MessageBox.Show(
+                    this,
+                    L(
+                        "Ce RX possède déjà une source. Oui = remplacer, Non = ignorer, Annuler = ne rien changer.",
+                        "This Rx already has a source. Yes = replace, No = skip, Cancel = make no change."),
+                    L("Conflit de patch", "Patch conflict"),
+                    MessageBoxButton.YesNoCancel,
+                    MessageBoxImage.Warning);
+                resolution = choice switch
+                {
+                    MessageBoxResult.Yes => PatchConflictResolution.Replace,
+                    MessageBoxResult.No => PatchConflictResolution.Skip,
+                    _ => PatchConflictResolution.Cancel
+                };
+            }
+
+            PatchStageResult result = _session.StagePreview(preview, resolution);
+            SetInfo(result.IsCancelled || result.SkippedConflictCount > 0
+                ? L("Aucune affectation préparée.", "No assignment staged.")
+                : L("Affectation préparée.", "Assignment staged."),
+                warning: result.IsCancelled || result.SkippedConflictCount > 0);
         }
 
+        ClearPreview();
         RefreshTargetRows();
     }
 
-    private void TxChannelListBox_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    private void SelectAllTxButton_Click(object sender, RoutedEventArgs e)
     {
-        _dragStart = e.GetPosition(TxChannelListBox);
+        TxChannelListBox.SelectAll();
     }
 
-    private void TxChannelListBox_PreviewMouseMove(object sender, MouseEventArgs e)
+    private void SelectAllRxButton_Click(object sender, RoutedEventArgs e)
     {
-        if (e.LeftButton != MouseButtonState.Pressed)
-        {
-            return;
-        }
-
-        Point current = e.GetPosition(TxChannelListBox);
-        if (Math.Abs(current.X - _dragStart.X) < SystemParameters.MinimumHorizontalDragDistance
-            && Math.Abs(current.Y - _dragStart.Y) < SystemParameters.MinimumVerticalDragDistance)
-        {
-            return;
-        }
-
-        PatchSourceDescriptor[] selectedSources = SelectedSources();
-        if (selectedSources.Length == 0 || !SourcesAreUnambiguous(selectedSources))
-        {
-            return;
-        }
-
-        DataObject data = new();
-        data.SetData(DragDataFormat, selectedSources);
-        DragDrop.DoDragDrop(TxChannelListBox, data, DragDropEffects.Copy);
+        RxChannelListBox.SelectAll();
     }
 
-    private void RxChannelListBox_DragOver(object sender, DragEventArgs e)
+    private void ClearSelectionButton_Click(object sender, RoutedEventArgs e)
     {
-        e.Effects = e.Data.GetDataPresent(DragDataFormat) ? DragDropEffects.Copy : DragDropEffects.None;
-        e.Handled = true;
+        TxChannelListBox.UnselectAll();
+        RxChannelListBox.UnselectAll();
+        UpdateCommandState();
     }
 
-    private void RxChannelListBox_Drop(object sender, DragEventArgs e)
+    private void RangeControl_Changed(object sender, RoutedEventArgs e)
     {
-        if (e.Data.GetData(DragDataFormat) is not PatchSourceDescriptor[] sources)
+        if (!_initializing)
         {
-            return;
+            UpdateCommandState();
         }
-
-        DependencyObject? origin = e.OriginalSource as DependencyObject;
-        ListBoxItem? container = origin is null
-            ? null
-            : ItemsControl.ContainerFromElement(RxChannelListBox, origin) as ListBoxItem;
-        if (container?.DataContext is not PatchRxListItem targetRow)
-        {
-            SetInfo(L("Déposez les TX sur une ligne RX.", "Drop the Tx channels on an Rx row."), warning: true);
-            return;
-        }
-
-        RxChannelListBox.SelectedItem = targetRow;
-        AssignSources(sources, targetRow.Target);
-        e.Handled = true;
     }
 
     private PatchSourceDescriptor[] SelectedSources()
@@ -438,9 +540,19 @@ public partial class PatchWorkspaceWindow : Window
             .ToArray();
     }
 
+    private PatchTargetDescriptor[] SelectedTargets()
+    {
+        return RxChannelListBox.SelectedItems
+            .OfType<PatchRxListItem>()
+            .Select(row => row.Target)
+            .OrderBy(target => target.PositionIndex)
+            .ToArray();
+    }
+
     private void ResetPendingButton_Click(object sender, RoutedEventArgs e)
     {
         _session.Reset();
+        ClearPreview();
         RefreshTargetRows();
         SetInfo(L("Tous les changements visuels ont été annulés.", "All visual changes were discarded."));
     }
@@ -463,10 +575,20 @@ public partial class PatchWorkspaceWindow : Window
 
     private void UpdateCommandState()
     {
-        bool hasRxSelection = RxChannelListBox.SelectedItem is PatchRxListItem;
+        bool hasRxSelection = RxChannelListBox.SelectedItems.Count > 0;
         bool hasTxSelection = TxChannelListBox.SelectedItems.Count > 0;
-        AssignSequentialButton.IsEnabled = hasRxSelection && hasTxSelection;
+        bool hasValidRangeCount = int.TryParse(RangeCountTextBox.Text, out int rangeCount) && rangeCount > 0;
+        PreviewSelectionButton.IsEnabled = hasRxSelection && hasTxSelection;
         RemoveSelectedRxButton.IsEnabled = hasRxSelection;
+        ClearSelectionButton.IsEnabled = hasRxSelection || hasTxSelection;
+        SelectAllTxButton.IsEnabled = _visibleSources.Count > 0;
+        SelectAllRxButton.IsEnabled = _visibleTargets.Count > 0;
+        PreviewRangeButton.IsEnabled = RangeStartTxComboBox.SelectedItem is PatchSourceDescriptor
+            && RangeStartRxComboBox.SelectedItem is PatchTargetDescriptor
+            && hasValidRangeCount;
+        StagePreviewButton.IsEnabled = _currentPreview is not null;
+        CancelPreviewButton.IsEnabled = _currentPreview is not null;
+        ConflictResolutionComboBox.IsEnabled = _currentPreview?.HasConflicts == true;
         ResetPendingButton.IsEnabled = _session.HasChanges;
         ApplyButton.IsEnabled = _session.HasChanges;
 
@@ -488,15 +610,42 @@ public partial class PatchWorkspaceWindow : Window
             "Stage assignments, then apply them in a single operation.");
         TxDeviceLabel.Content = L("Machine émettrice TX", "Tx transmitting device");
         RxDeviceLabel.Content = L("Machine réceptrice RX", "Rx receiving device");
-        AssignmentTab.Header = L("Glisser-déposer et série", "Drag and drop / sequential");
+        AssignmentTab.Header = L("Sélection et plage", "Selection and range");
         MatrixTab.Header = L("Grille de patch", "Patch matrix");
         TxListHeadingTextBlock.Text = L("Canaux TX disponibles", "Available Tx channels");
         RxListHeadingTextBlock.Text = L("Canaux RX et source actuelle", "Rx channels and current source");
-        DragHintTextBlock.Text = L(
-            "Sélectionnez un ou plusieurs TX puis déposez-les sur le premier RX.",
-            "Select one or more Tx channels, then drop them on the first Rx.");
-        AssignSequentialButton.Content = L("Affecter à partir du RX sélectionné", "Assign from selected Rx");
-        RemoveSelectedRxButton.Content = L("Déconnecter le RX sélectionné", "Disconnect selected Rx");
+        SelectAllTxButton.Content = L("Tout sélectionner", "Select all");
+        SelectAllRxButton.Content = L("Tout sélectionner", "Select all");
+        SelectionHintTextBlock.Text = L(
+            "Sélectionnez les TX et les RX à relier. Un TX peut alimenter plusieurs RX.",
+            "Select the Tx and Rx channels to connect. One Tx may feed several Rx channels.");
+        PreviewSelectionButton.Content = L("Prévisualiser la sélection", "Preview selection");
+        RemoveSelectedRxButton.Content = L("Déconnecter les RX sélectionnés", "Disconnect selected Rx channels");
+        ClearSelectionButton.Content = L("Effacer la sélection", "Clear selection");
+        RangeHeadingTextBlock.Text = L("Patch par plage", "Range patch");
+        RangeStartTxLabel.Content = L("Premier TX", "First Tx");
+        RangeStartRxLabel.Content = L("Premier RX", "First Rx");
+        RangeCountLabel.Content = L("Nombre de canaux", "Channel count");
+        PreviewRangeButton.Content = L("Prévisualiser la plage", "Preview range");
+        PreviewGroupBox.Header = L("Prévisualisation", "Preview");
+        PreviewTargetColumn.Header = L("RX cible", "Target Rx");
+        PreviewCurrentColumn.Header = L("Source actuelle", "Current source");
+        PreviewProposedColumn.Header = L("Nouvelle source", "New source");
+        PreviewActionColumn.Header = L("Action", "Action");
+        ConflictResolutionLabel.Content = L("Conflits", "Conflicts");
+        StagePreviewButton.Content = L("Préparer ces changements", "Stage these changes");
+        CancelPreviewButton.Content = L("Annuler l'aperçu", "Cancel preview");
+        PreviewSafetyTextBlock.Text = L(
+            "Aucun changement XML avant Appliquer au projet.",
+            "No XML change until Apply to project.");
+        ConflictResolutionComboBox.ItemsSource = new[]
+        {
+            new ConflictChoice(PatchConflictResolution.Cancel, L("Annuler le lot", "Cancel batch")),
+            new ConflictChoice(PatchConflictResolution.Skip, L("Ignorer les conflits", "Skip conflicts")),
+            new ConflictChoice(PatchConflictResolution.Replace, L("Remplacer les patchs", "Replace subscriptions"))
+        };
+        SelectConflictResolution(PatchConflictResolution.Cancel);
+        PreviewSummaryTextBlock.Text = L("Aucune prévisualisation.", "No preview.");
         MatrixHintTextBlock.Text = L(
             "RX en lignes, TX en colonnes. Cliquez dans une case pour affecter ou retirer un patch.",
             "Rx channels are rows and Tx channels are columns. Click a cell to assign or remove a subscription.");
@@ -509,6 +658,33 @@ public partial class PatchWorkspaceWindow : Window
         AutomationProperties.SetName(TxChannelListBox, TxListHeadingTextBlock.Text);
         AutomationProperties.SetName(RxChannelListBox, RxListHeadingTextBlock.Text);
         AutomationProperties.SetName(MatrixGrid, MatrixTab.Header.ToString()!);
+        AutomationProperties.SetName(PreviewGrid, PreviewGroupBox.Header.ToString()!);
+    }
+
+    private void ClearPreview()
+    {
+        _currentPreview = null;
+        PreviewGrid.ItemsSource = Array.Empty<PatchPreviewRow>();
+        PreviewSummaryTextBlock.Text = L("Aucune prévisualisation.", "No preview.");
+        SelectConflictResolution(PatchConflictResolution.Cancel);
+        UpdateCommandState();
+    }
+
+    private PatchConflictResolution SelectedConflictResolution()
+    {
+        return ConflictResolutionComboBox.SelectedItem is ConflictChoice choice
+            ? choice.Resolution
+            : PatchConflictResolution.Cancel;
+    }
+
+    private void SelectConflictResolution(PatchConflictResolution resolution)
+    {
+        if (ConflictResolutionComboBox.ItemsSource is not IEnumerable<ConflictChoice> choices)
+        {
+            return;
+        }
+
+        ConflictResolutionComboBox.SelectedItem = choices.FirstOrDefault(choice => choice.Resolution == resolution);
     }
 
     private void ApplyTheme(bool useLightTheme)
@@ -569,6 +745,21 @@ public partial class PatchWorkspaceWindow : Window
     }
 
     private sealed record PatchRxListItem(PatchTargetDescriptor Target, string Display);
+
+    private sealed record PatchPreviewRow(
+        string Target,
+        string Current,
+        string Proposed,
+        string Action,
+        string ActionKey);
+
+    private sealed record ConflictChoice(PatchConflictResolution Resolution, string Display)
+    {
+        public override string ToString()
+        {
+            return Display;
+        }
+    }
 
     private sealed record PatchMatrixRow(
         string TargetDisplay,
