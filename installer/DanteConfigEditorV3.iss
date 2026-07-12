@@ -1,8 +1,8 @@
-#define MyAppName "Dante Config Editor V3.08 Beta"
-#define MyAppVersion "3.08-beta"
+#define MyAppName "Dante Config Editor V3.08"
+#define MyAppVersion "3.08"
 #define MyAppPublisher "Mamat"
 #define MyAppExeName "DanteConfigEditorV3.exe"
-#define MyAppShortcutName "Dante Config Editor V3.08 Beta"
+#define MyAppShortcutName "Dante Config Editor V3.08"
 #define SourceRoot ".."
 
 [Setup]
@@ -15,7 +15,7 @@ DefaultGroupName=Dante Config Editor V3.08
 DisableProgramGroupPage=no
 AllowNoIcons=yes
 OutputDir={#SourceRoot}\dist
-OutputBaseFilename=DanteConfigEditorV3_08_Beta_Installer
+OutputBaseFilename=DanteConfigEditorV3_08_Installer
 SetupIconFile={#SourceRoot}\DanteEdit.ico
 Compression=lzma2
 SolidCompression=yes
@@ -26,7 +26,7 @@ PrivilegesRequired=admin
 UninstallDisplayIcon={app}\{#MyAppExeName}
 VersionInfoVersion=3.8.0
 VersionInfoCompany={#MyAppPublisher}
-VersionInfoDescription=Dante Config Editor V3.08 Beta installer
+VersionInfoDescription=Dante Config Editor V3.08 installer
 VersionInfoProductName={#MyAppName}
 SetupLogging=yes
 CloseApplications=yes
@@ -70,7 +70,7 @@ Name: "{group}\Désinstaller {code:GetShortcutAppName}"; Filename: "{uninstallex
 Name: "{autodesktop}\{code:GetShortcutAppName}"; Filename: "{app}\{#MyAppExeName}"; WorkingDir: "{app}"; IconFilename: "{app}\DanteEdit.ico"; Tasks: desktopicon
 
 [Run]
-Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,Dante Config Editor V3.08 Beta}"; Flags: nowait postinstall skipifsilent
+Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,Dante Config Editor V3.08}"; Flags: nowait postinstall skipifsilent
 Filename: "{app}\RELEASE_NOTES.md"; Description: "Ouvrir les release notes"; Flags: postinstall shellexec unchecked skipifsilent
 Filename: "{app}\QuickStart_DanteConfigEditorV3_FR.pdf"; Description: "Ouvrir le démarrage rapide en français"; Flags: postinstall shellexec unchecked skipifsilent; Check: IsFrenchLanguage
 Filename: "{app}\Notice_DanteConfigEditorV3_FR.pdf"; Description: "Ouvrir la notice complète en français"; Flags: postinstall shellexec unchecked skipifsilent; Check: IsFrenchLanguage
@@ -136,7 +136,7 @@ begin
   if ActiveLanguage = 'english' then
   begin
     Result :=
-      'A previous installation of Dante Config Editor V3.08 Beta was found.' + #13#10#13#10 +
+      'A previous installation of Dante Config Editor V3.08 was found.' + #13#10#13#10 +
       'Detected version: ' + ExistingInstallVersion + #13#10 +
       'Folder: ' + ExistingInstallDir + #13#10#13#10 +
       'Yes = replace/update this installation.' + #13#10 +
@@ -145,7 +145,7 @@ begin
   else
   begin
     Result :=
-      'Une version précédente de Dante Config Editor V3.08 Beta est déjà installée.' + #13#10#13#10 +
+      'Une version précédente de Dante Config Editor V3.08 est déjà installée.' + #13#10#13#10 +
       'Version détectée : ' + ExistingInstallVersion + #13#10 +
       'Dossier : ' + ExistingInstallDir + #13#10#13#10 +
       'Oui = remplacer / mettre à jour cette installation.' + #13#10 +

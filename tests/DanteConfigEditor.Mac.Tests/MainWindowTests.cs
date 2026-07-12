@@ -1,3 +1,4 @@
+using System.Reflection;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Headless;
@@ -13,6 +14,25 @@ namespace DanteConfigEditor.Mac.Tests;
 
 public sealed class MainWindowTests
 {
+    [AvaloniaFact]
+    public void OfficialV308VersionIsShownInMacApplication()
+    {
+        string version = typeof(MainWindow).Assembly
+            .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?
+            .InformationalVersion ?? string.Empty;
+        MainWindow window = new();
+        window.Show();
+        try
+        {
+            Assert.Equal("3.08", version);
+            Assert.Equal("Dante Config Editor V3.08 - macOS", window.Title);
+        }
+        finally
+        {
+            window.Close();
+        }
+    }
+
     [AvaloniaFact]
     public void ImportantWarnings_AreKeptInsideProjectSidebar()
     {

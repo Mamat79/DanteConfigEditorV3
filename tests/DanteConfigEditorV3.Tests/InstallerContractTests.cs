@@ -13,7 +13,8 @@ public sealed class InstallerContractTests
         Assert.DoesNotContain("AppId={{D9A22EA8-8370-4C6D-9E7C-DBC5A59F53A1}", script, StringComparison.Ordinal);
         Assert.Contains("DefaultDirName={autopf}\\Dante Config Editor V3.08", script, StringComparison.Ordinal);
         Assert.Contains("DefaultGroupName=Dante Config Editor V3.08", script, StringComparison.Ordinal);
-        Assert.Contains("OutputBaseFilename=DanteConfigEditorV3_08_Beta_Installer", script, StringComparison.Ordinal);
+        Assert.Contains("OutputBaseFilename=DanteConfigEditorV3_08_Installer", script, StringComparison.Ordinal);
+        Assert.DoesNotContain("V3.08 Beta", script, StringComparison.Ordinal);
         Assert.Contains("UsePreviousAppDir=yes", script, StringComparison.Ordinal);
         Assert.Contains("DetectExistingInstall", script, StringComparison.Ordinal);
         Assert.Contains("remplacer / mettre à jour", script, StringComparison.Ordinal);
@@ -40,7 +41,7 @@ public sealed class InstallerContractTests
         Assert.Contains("Assert-RepositoryPath", buildScript, StringComparison.Ordinal);
         Assert.Contains("Remove-GeneratedPath", buildScript, StringComparison.Ordinal);
         Assert.Contains("Get-FileHash", buildScript, StringComparison.Ordinal);
-        Assert.Contains("DanteConfigEditorV3_08_Beta_Installer.exe", buildScript, StringComparison.Ordinal);
+        Assert.Contains("DanteConfigEditorV3_08_Installer.exe", buildScript, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -64,10 +65,27 @@ public sealed class InstallerContractTests
     }
 
     [Fact]
-    public void BetaUsesSeparateLocalApplicationDataFolder()
+    public void V308UsesSeparateLocalApplicationDataFolder()
     {
         Assert.Equal("DanteConfigEditorV3.08", ApplicationStoragePaths.RootFolderName);
         Assert.DoesNotContain("DanteConfigEditorV3\\Recovery", ApplicationStoragePaths.Resolve("Recovery"), StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void OfficialV308IncludesMacPackagingMetadata()
+    {
+        string project = File.ReadAllText(RepositoryFile("src", "DanteConfigEditor.Mac", "DanteConfigEditor.Mac.csproj"));
+        string plist = File.ReadAllText(RepositoryFile("packaging", "macos", "Info.plist"));
+        string packaging = File.ReadAllText(RepositoryFile("packaging", "macos", "build-macos.sh"));
+        string workflow = File.ReadAllText(RepositoryFile(".github", "workflows", "macos-ci.yml"));
+
+        Assert.Contains("<InformationalVersion>3.08</InformationalVersion>", project, StringComparison.Ordinal);
+        Assert.Contains("<string>Dante Config Editor V3.08</string>", plist, StringComparison.Ordinal);
+        Assert.Contains("<string>3.8.0</string>", plist, StringComparison.Ordinal);
+        Assert.Contains("Dante Config Editor V3.08", packaging, StringComparison.Ordinal);
+        Assert.Contains("branches:", workflow, StringComparison.Ordinal);
+        Assert.Contains("- main", workflow, StringComparison.Ordinal);
+        Assert.Contains("workflow_dispatch:", workflow, StringComparison.Ordinal);
     }
 
     private static string RepositoryFile(params string[] relativeParts)

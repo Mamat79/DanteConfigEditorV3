@@ -1,6 +1,6 @@
 param(
     [string]$InstallerPath = "",
-    [string]$ExpectedVersion = "3.08-beta",
+    [string]$ExpectedVersion = "3.08",
     [switch]$AllowCustomInstallLocation
 )
 
@@ -8,7 +8,7 @@ $ErrorActionPreference = "Stop"
 
 $root = Split-Path $PSScriptRoot -Parent
 if ([string]::IsNullOrWhiteSpace($InstallerPath)) {
-    $InstallerPath = Join-Path $root "dist\DanteConfigEditorV3_08_Beta_Installer.exe"
+    $InstallerPath = Join-Path $root "dist\DanteConfigEditorV3_08_Installer.exe"
 }
 
 $installer = (Resolve-Path -LiteralPath $InstallerPath -ErrorAction Stop).Path
@@ -113,7 +113,7 @@ function Assert-InstalledState {
 
     $targetRecords = @(Get-TargetInstallRecords)
     if ($targetRecords.Count -ne 1) {
-        throw "$Step : une seule entrée V3.08 Beta était attendue, trouvé $($targetRecords.Count)."
+        throw "$Step : une seule entrée V3.08 était attendue, trouvé $($targetRecords.Count)."
     }
 
     Assert-StableInstallUnchanged -Step $Step
@@ -154,7 +154,7 @@ function Assert-InstalledState {
         }
     }
 
-    $shortcut = Join-Path ([Environment]::GetFolderPath([Environment+SpecialFolder]::CommonPrograms)) "Dante Config Editor V3.08\Dante Config Editor V3.08 Beta.lnk"
+    $shortcut = Join-Path ([Environment]::GetFolderPath([Environment+SpecialFolder]::CommonPrograms)) "Dante Config Editor V3.08\Dante Config Editor V3.08.lnk"
     if (-not (Test-Path -LiteralPath $shortcut)) {
         throw "$Step : raccourci Menu Démarrer manquant : $shortcut"
     }
@@ -162,7 +162,7 @@ function Assert-InstalledState {
     return $record
 }
 
-# Deux passages prouvent que la V3.08 Beta se met à niveau elle-même sans toucher à la V3.07.
+# Deux passages prouvent que la V3.08 se met à niveau elle-même sans toucher à la V3.07.
 Invoke-InstallerPass -Name "Installation ou remplacement initial"
 $firstRecord = Assert-InstalledState -Step "Après le premier passage"
 

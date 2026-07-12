@@ -79,7 +79,7 @@ cp -R "$APP" "$DMG_STAGE/"
 ln -s /Applications "$DMG_STAGE/Applications"
 rm -f "$DMG"
 hdiutil create \
-  -volname "Dante Config Editor V3.07" \
+  -volname "Dante Config Editor V3.08" \
   -srcfolder "$DMG_STAGE" \
   -ov \
   -format UDZO \

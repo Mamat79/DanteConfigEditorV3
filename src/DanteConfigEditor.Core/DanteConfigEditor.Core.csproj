@@ -9,7 +9,8 @@
     <Version>3.8.0</Version>
     <AssemblyVersion>3.8.0.0</AssemblyVersion>
     <FileVersion>3.8.0.0</FileVersion>
-    <InformationalVersion>3.08-beta</InformationalVersion>
+    <InformationalVersion>3.08</InformationalVersion>
+    <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
   </PropertyGroup>
 
   <ItemGroup>
