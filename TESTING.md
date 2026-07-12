@@ -1,5 +1,45 @@
 # Tests et historique V3
 
+## Validation de la V3.08 officielle du 2026-07-12
+
+Source validée avant ajout de ce relevé :
+
+- branche : `main` ;
+- commit : `552b2e3837b4de9fb2dcb631bce14c16e0fd38a0` ;
+- système local : Windows `10.0.26200`, `win-x64` ;
+- .NET SDK `8.0.422`, MSBuild `17.11.48` ;
+- Inno Setup `6.7.3`.
+
+Résultats locaux :
+
+- 89 tests Core et contrats Windows réussis, 0 échec, 0 ignoré ;
+- 8 tests Avalonia sans écran réussis, 0 échec, 0 ignoré ;
+- builds WPF et Avalonia Release réussis, 0 warning, 0 erreur ;
+- aucun package vulnérable signalé pour les applications Windows et Mac avec les sources NuGet consultées le 2026-07-12 ;
+- Quick Start FR/EN : 1 page chacun ; notices complètes FR/EN : 5 pages chacune ;
+- rendu Poppler et texte extrait contrôlés sans chevauchement, caractère `Ø` parasite ni caractère Unicode de remplacement.
+
+Installateur Windows officiel :
+
+- fichier : `dist/DanteConfigEditorV3_08_Installer.exe` ;
+- taille : `66 858 808` octets ;
+- version produit : `3.08`, version fichier : `3.8.0.0` ;
+- SHA-256 : `29A699E485933E42CF138B5CDDE3898AAA3C5CA639DEED7533386DCD851C39EE` ;
+- signature Authenticode : absente (`NotSigned`) ;
+- deux passages d'installation réussis, avec une seule entrée V3.08 et un raccourci Menu Démarrer valide ;
+- lancement réel de l'exécutable installé réussi, titre `Dante Config Editor V3.08`, processus répondant ;
+- ancienne V3.07 ensuite désinstallée à la demande de l'utilisateur, sans suppression de fichiers XML personnels.
+
+GitHub Actions sur macOS :
+
+- Windows CI `29188564426` : réussi en 1 min 2 s ;
+- macOS CI `29188564417` : réussi en 1 min 22 s ;
+- `Info.plist` validé, application signée ad hoc, contrôle `codesign` réussi et `hdiutil verify` déclaré `VALID` pour les deux DMG ;
+- Apple Silicon : `49 819 194` octets, SHA-256 `763F255EC70C05BD634711F274624D3B468F2BECEC16164739BE58719BC664DD` ;
+- Intel : `51 050 377` octets, SHA-256 `E56B86B751CB1377F50A713B83C0D9F1FDC337F82F666BB6211A719305BD5BAF`.
+
+Limites de cette validation : aucun lancement manuel sur un Mac physique, aucune notarisation Apple, aucun import dans Dante Controller et aucun test sur matériel Dante réel. Les deux DMG sont signés ad hoc et peuvent déclencher Gatekeeper au premier lancement.
+
 ## Promotion de la V3.08 Beta dans main du 2026-07-12
 
 - ancienne tête de `main` : `903ed94114ee419e4063cbf07e55ff8626006a7a` (V3.07) ;
