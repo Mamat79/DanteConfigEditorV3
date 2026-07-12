@@ -3,6 +3,7 @@
 ## 2026-07-12 - Version 3.08 Beta Windows
 
 - Promotion de la V3.08 Beta dans la branche `main` en remplacement de la V3.07 pour le développement Windows courant ; le tag et la Release V3.07 restent conservés.
+- Conservation du workflow macOS en lancement manuel uniquement tant que la V3.08 n'est pas déclarée Release officielle.
 - Création de la branche `3.08-beta` depuis la V3.07 officielle, sans workflow ni compilation macOS.
 - Nouvel AppId V3.08, dossier `Program Files`, groupe Menu Démarrer et stockage local distincts pour permettre la coexistence avec la V3.07.
 - Ajout d'un moteur central de patch par sélection avec identités RX stables basées sur le device et le Dante Id.

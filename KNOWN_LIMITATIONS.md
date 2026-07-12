@@ -40,7 +40,7 @@
 - L'installateur Windows est autonome pour Windows x64 et inclut .NET 8. Les architectures Windows ARM64 et x86 ne sont pas distribuées.
 - L'installateur Windows n'est pas signé avec un certificat Authenticode public. Vérifier le SHA-256 publié avant distribution ; Windows peut afficher un avertissement de réputation.
 - La V3.08 Beta, désormais version courante de `main`, est distribuée uniquement sur Windows. Les paquets Mac disponibles restent ceux de la V3.07 jusqu'à la future Release officielle V3.08.
-- Aucun workflow, DMG ou résultat de test Mac ne doit être attribué à la branche V3.08 Beta.
+- Aucun build automatique, DMG ou résultat de test Mac ne doit être attribué à la V3.08 Beta ; le workflow macOS reste manuel.
 - Le contraste élevé, les lecteurs d'écran et les échelles Windows 125 %, 150 % et 200 % nécessitent encore la validation manuelle décrite dans `ACCESSIBILITY.md`.
 
 ## Statut de la version

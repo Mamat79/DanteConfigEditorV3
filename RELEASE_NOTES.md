@@ -55,7 +55,7 @@ La V3.08 Beta est désormais la version Windows courante de la branche `main` et
 ## Plateformes
 
 - Cette bêta V3.08 est uniquement construite et testée sur Windows x64.
-- Aucun workflow ni paquet macOS V3.08 n'est publié pour le moment.
+- Aucun build automatique ni paquet macOS V3.08 n'est publié pour le moment ; le workflow existant reste manuel.
 - La version Mac reste la V3.07 stable.
 - Le workflow et les DMG Mac seront ajoutés lors de la future Release officielle V3.08.
 
