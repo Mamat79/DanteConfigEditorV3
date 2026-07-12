@@ -6,7 +6,11 @@
 - tag annoté de sauvegarde : `safety-v3.07-before-v3.08-main-20260712` ;
 - promotion par avance rapide, sans conflit ni réécriture d'historique ;
 - nouvelle base de `main` avant mise à jour documentaire : `9a17e3ea20191e2543be9dd31a4408f89d2944af` ;
-- branche `3.08-beta` et anciennes Releases conservées.
+- branche `3.08-beta` et anciennes Releases conservées ;
+- 88 tests Windows réussis et build Release sans warning sur `main` ;
+- installateur principal reconstruit : `66 861 369` octets, SHA-256 `3893DA578196B3B5A327D51BA222DDD92D3BFA82EFA48D8D306C9F695CDFA09A` ;
+- mise à niveau locale V3.08 réussie, notices installées identiques au dépôt ;
+- V3.07 locale conservée séparément, sans suppression destructive.
 
 ## Validation ergonomique Easy patch du 2026-07-12
 
