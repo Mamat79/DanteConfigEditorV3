@@ -23,8 +23,8 @@ from reportlab.platypus import (
 ROOT = Path(__file__).resolve().parent
 # Les quatre PDF sont générés depuis une source unique pour garder les versions
 # française et anglaise synchronisées avec l'application et l'installateur.
-PRODUCT = "Dante Config Editor V3.08 Beta"
-VERSION = "3.08-beta"
+PRODUCT = "Dante Config Editor V3.08"
+VERSION = "3.08"
 GITHUB = "github.com/Mamat79/DanteConfigEditorV3"
 
 INK = colors.HexColor("#172033")
@@ -222,15 +222,15 @@ def quick_start(language: str) -> None:
         else "Quick start - offline editing of Dante XML files"
     )
     warning = (
-        "<b>Outil tiers non officiel Audinate.</b> Cette V3.08 Beta est la version Windows courante de main, mais reste en développement. La V3.07 demeure disponible dans l'historique et pour les paquets Mac. Travaillez sur une copie et validez toujours le XML final par un import dans l'outil Dante officiel adapté avant toute utilisation réelle."
+        "<b>Outil tiers non officiel Audinate.</b> La V3.08 est la version officielle courante pour Windows et macOS, mais elle peut encore contenir des bugs. La V3.07 demeure disponible dans l'historique. Travaillez sur une copie et validez toujours le XML final par un import dans l'outil Dante officiel adapté avant toute utilisation réelle."
         if french
-        else "<b>Third-party tool, not an official Audinate product.</b> V3.08 Beta is the current Windows version on main, but remains under development. V3.07 remains available in history and for Mac packages. Work on a copy and always validate the final XML by importing it into the appropriate official Dante tool before real use."
+        else "<b>Third-party tool, not an official Audinate product.</b> V3.08 is the current official version for Windows and macOS, but it may still contain bugs. V3.07 remains available in history. Work on a copy and always validate the final XML by importing it into the appropriate official Dante tool before real use."
     )
     steps = (
         [
             ("Ouvrir XML", "Choisissez un export Dante. L'application travaille hors ligne et n'accède pas au réseau."),
             ("Contrôler les alertes", "Affichez les machines concernées et vérifiez chaque point signalé."),
-            ("Modifier", "Utilisez Détail machine, Easy patch ou les actions globales. Verrouillez les machines à exclure."),
+            ("Modifier", "Utilisez Détail machine, Easy patch sous Windows, l'atelier visuel sur Mac ou les actions globales. Verrouillez les machines à exclure."),
             ("Vérifier", "Utilisez Modifiées uniquement puis Avant / après. Les changements techniques inconnus sont bloqués."),
             ("Enregistrer sous", "Choisissez un nouveau nom. La destination est remplacée atomiquement et sauvegardée si elle existait."),
             ("Tester l'import", "Importez le résultat dans Dante Controller sur une copie de travail avant toute intervention terrain."),
@@ -239,7 +239,7 @@ def quick_start(language: str) -> None:
         else [
             ("Open XML", "Choose a Dante export. The application works offline and does not access the network."),
             ("Review alerts", "Show affected devices and verify every reported item."),
-            ("Edit", "Use Device details, Easy patch, or global actions. Lock devices that must be excluded."),
+            ("Edit", "Use Device details, Easy patch on Windows, the visual patch workshop on Mac, or global actions. Lock devices that must be excluded."),
             ("Review", "Use Modified only and Before / after. Unknown technical changes are blocked."),
             ("Save as", "Choose a new name. The destination is replaced atomically and backed up when it already exists."),
             ("Test the import", "Import the result into Dante Controller on a working copy before any field operation."),
@@ -247,14 +247,14 @@ def quick_start(language: str) -> None:
     )
     features = (
         [
-            ("Easy patch", "Choisissez les RX à gauche et les TX à droite. Appliquez directement, ou prévisualisez puis ajoutez au lot avant l'application finale."),
+            ("Patch visuel", "Sous Windows, Easy patch place les RX à gauche et les TX à droite. Sur Mac, utilisez l'atelier visuel Avalonia avec sélection multiple et matrice."),
             ("Récupération", "Une copie est écrite en arrière-plan après un court délai. La nouvelle destination devient la référence après Enregistrer sous."),
             ("Sous-projet", "Ajouter XML au projet importe les machines uniques et ne propose un renommage que pour les doublons."),
             ("IPv4", "Seule l'interface principale est ciblée. DNS et interface secondaire ne sont pas réécrits implicitement."),
         ]
         if french
         else [
-            ("Easy patch", "Choose Rx channels on the left and Tx channels on the right. Apply directly, or preview and add to the batch before final application."),
+            ("Visual patch", "On Windows, Easy patch places Rx channels on the left and Tx channels on the right. On Mac, use the Avalonia visual workshop with multi-selection and matrix."),
             ("Recovery", "A copy is written in the background after a short delay. Save as makes the new destination the session reference."),
             ("Sub-project", "Add XML to project imports unique devices and only asks about conflicting names."),
             ("IPv4", "Only the primary interface is targeted. DNS and the secondary interface are not rewritten implicitly."),
@@ -312,14 +312,14 @@ def full_guide(language: str) -> None:
         page1 = [
             para(PRODUCT, "title"),
             para(f"Notice complète - version {VERSION}", "subtitle"),
-            callout("<b>Important :</b> cette application est un outil tiers non officiel Audinate. La V3.08 Beta est la version Windows courante de main, mais reste en développement ; la V3.07 demeure disponible dans l'historique et pour les paquets Mac. Elle édite des XML hors ligne, sans connexion au réseau Dante ni API Audinate. Conservez l'original et validez le fichier généré dans Dante Controller avant toute utilisation en production."),
+            callout("<b>Important :</b> cette application est un outil tiers non officiel Audinate. La V3.08 est la version officielle courante pour Windows et macOS, mais elle peut encore contenir des bugs. Elle édite des XML hors ligne, sans connexion au réseau Dante ni API Audinate. Conservez l'original et validez le fichier généré dans Dante Controller avant toute utilisation en production."),
             para("1. Installation et démarrage", "h1"),
             para("L'installateur Windows x64 contient l'application et le runtime .NET 8 nécessaire. Il n'est normalement pas nécessaire d'installer .NET séparément."),
             *bullets([
                 "L'installation proposée par défaut se trouve dans Program Files et crée un raccourci dans le menu Démarrer.",
-                "La V3.08 Beta utilise son propre dossier Program Files, son propre raccourci et son propre AppId.",
-                "Elle peut cohabiter avec la V3.07 stable et ne met à niveau qu'une précédente V3.08.",
-                "La V3.08 Beta n'est pas distribuée sur Mac ; les paquets Mac disponibles restent ceux de la V3.07 jusqu'à la Release officielle V3.08.",
+                "La V3.08 utilise son propre dossier Program Files, son propre raccourci et son propre AppId.",
+                "Elle peut cohabiter avec la V3.07 et met à niveau une précédente V3.08 Beta ou V3.08.",
+                "Deux DMG autonomes V3.08 sont fournis pour macOS : Apple Silicon et Intel. Ils sont signés ad hoc mais non notariés par Apple.",
                 "Les quatre notices PDF françaises et anglaises sont installées et restent accessibles depuis l'application.",
             ]),
             para("2. Principes de sécurité", "h1"),
@@ -437,7 +437,7 @@ def full_guide(language: str) -> None:
                 [48, 122],
             ),
             para("13. Tests de non-régression", "h1"),
-            para("La suite V3.08 Beta exécute 88 tests Core et contrats Windows : identités techniques, chemins inconnus, sauvegarde atomique, récupération, interfaces IPv4, alias de subscription, namespace par défaut, presets synthétiques, sélection TX/RX, plages, conflits, rollback, persistance, matrice, Easy patch et détail machine. GitHub Actions les rejoue sur Windows."),
+            para("La suite V3.08 exécute 89 tests Core et contrats Windows, plus 8 tests Avalonia sans écran : identités techniques, chemins inconnus, sauvegarde atomique, récupération, interfaces IPv4, alias de subscription, namespace par défaut, presets synthétiques, sélection TX/RX, plages, conflits, rollback, persistance, matrice, Easy patch, détail machine et identité Mac. GitHub Actions les rejoue sur Windows et macOS."),
             para("14. Limites connues", "h1"),
             *bullets([
                 "Aucun pilotage en temps réel et aucune communication avec les appareils.",
@@ -445,7 +445,8 @@ def full_guide(language: str) -> None:
                 "La compatibilité dépend de la structure du XML ; seul l'import officiel confirme le fichier final.",
                 "L'historique d'annulation conserve au maximum 10 états pour limiter la mémoire.",
                 "La matrice affiche uniquement les deux machines choisies pour préserver les performances sur les gros presets.",
-                "La V3.08 Beta est uniquement distribuée sur Windows ; les paquets Mac disponibles restent ceux de la V3.07.",
+                "Les DMG Mac sont signés ad hoc mais non notariés ; le premier lancement peut nécessiter un clic droit puis Ouvrir.",
+                "L'onglet Windows Easy patch n'est pas reproduit à l'identique sur Mac, qui conserve l'atelier visuel Avalonia.",
                 "Des noms TX dupliqués sont ambigus dans les subscriptions Dante et doivent être renommés avant Easy patch.",
             ]),
             para("15. Aide et informations", "h1"),
@@ -456,14 +457,14 @@ def full_guide(language: str) -> None:
         page1 = [
             para(PRODUCT, "title"),
             para(f"Full user guide - version {VERSION}", "subtitle"),
-            callout("<b>Important:</b> this is a third-party tool, not an official Audinate product. V3.08 Beta is the current Windows version on main, but remains under development; V3.07 remains available in history and for Mac packages. It edits XML files offline without connecting to a Dante network or using an Audinate API. Keep the original and validate the generated file in Dante Controller before production use."),
+            callout("<b>Important:</b> this is a third-party tool, not an official Audinate product. V3.08 is the current official version for Windows and macOS, but it may still contain bugs. It edits XML files offline without connecting to a Dante network or using an Audinate API. Keep the original and validate the generated file in Dante Controller before production use."),
             para("1. Installation and startup", "h1"),
             para("The Windows x64 installer includes the application and the required .NET 8 runtime. A separate .NET installation is normally not required."),
             *bullets([
                 "The default location is Program Files, with a Start menu shortcut.",
-                "V3.08 Beta uses its own Program Files folder, shortcut, and AppId.",
-                "It can coexist with stable V3.07 and only upgrades an earlier V3.08 installation.",
-                "V3.08 Beta is not distributed on Mac; use stable V3.07 until the official V3.08 Release.",
+                "V3.08 uses its own Program Files folder, shortcut, and AppId.",
+                "It can coexist with V3.07 and upgrades an earlier V3.08 Beta or V3.08 installation.",
+                "Two standalone V3.08 DMGs are provided for macOS: Apple Silicon and Intel. They are ad hoc signed but not notarized by Apple.",
                 "All four French and English PDFs are installed and remain available from the application.",
             ]),
             para("2. Safety principles", "h1"),
@@ -581,7 +582,7 @@ def full_guide(language: str) -> None:
                 [48, 122],
             ),
             para("13. Regression tests", "h1"),
-            para("The V3.08 Beta suite runs 88 Core and Windows contract tests covering technical identities, unknown paths, atomic save, recovery, IPv4 interfaces, subscription aliases, default namespaces, synthetic presets, Tx/Rx selection, ranges, conflicts, rollback, persistence, matrix actions, Easy patch, and Device details integration. GitHub Actions reruns them on Windows."),
+            para("The V3.08 suite runs 89 Core and Windows contract tests plus 8 headless Avalonia tests covering technical identities, unknown paths, atomic save, recovery, IPv4 interfaces, subscription aliases, default namespaces, synthetic presets, Tx/Rx selection, ranges, conflicts, rollback, persistence, matrix actions, Easy patch, Device details integration, and Mac identity. GitHub Actions reruns them on Windows and macOS."),
             para("14. Known limitations", "h1"),
             *bullets([
                 "No real-time Dante control and no communication with devices.",
@@ -589,7 +590,8 @@ def full_guide(language: str) -> None:
                 "Compatibility depends on the XML structure; only an official import confirms the final file.",
                 "Undo keeps at most 10 states to limit memory use.",
                 "The matrix displays only the two selected devices to preserve performance on large presets.",
-                "V3.08 Beta is distributed only on Windows; the available Mac packages remain those from V3.07.",
+                "Mac DMGs are ad hoc signed but not notarized; first launch may require right-clicking the application and choosing Open.",
+                "The Windows Easy patch tab is not reproduced identically on Mac, which keeps the Avalonia visual patch workshop.",
                 "Duplicate Tx names are ambiguous in Dante subscriptions and must be renamed before using Easy patch.",
             ]),
             para("15. Help and information", "h1"),

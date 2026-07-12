@@ -1,10 +1,10 @@
-# Dante Config Editor V3.08 Beta
+# Dante Config Editor V3.08
 
 ## Statut
 
-Version bêta Windows en cours de développement. Il s'agit d'un outil tiers non officiel Audinate et cette application n'est pas exempte de bugs.
+Version officielle V3.08 pour Windows x64, macOS Apple Silicon et macOS Intel. Il s'agit d'un outil tiers non officiel Audinate et cette application n'est pas exempte de bugs.
 
-La V3.08 Beta est désormais la version Windows courante de la branche `main` et remplace la V3.07 dans le développement actif. La V3.07 reste disponible dans l'historique et demeure la version Mac distribuée. Travaillez toujours sur une copie de vos fichiers XML Dante et validez le résultat dans les outils Dante officiels avant toute utilisation réelle.
+La V3.08 remplace la V3.07 comme version courante de la branche `main`. La V3.07 reste disponible dans l'historique. Travaillez toujours sur une copie de vos fichiers XML Dante et validez le résultat dans les outils Dante officiels avant toute utilisation réelle.
 
 ## Nouvel onglet Easy patch
 
@@ -45,24 +45,26 @@ La V3.08 Beta est désormais la version Windows courante de la branche `main` et
 
 - Nouvel AppId réservé à la famille V3.08.
 - Dossier par défaut : `C:\Program Files\Dante Config Editor V3.08\`.
-- Groupe Menu Démarrer et raccourci `Dante Config Editor V3.08 Beta` distincts.
+- Groupe Menu Démarrer et raccourci `Dante Config Editor V3.08` distincts.
 - Données locales V3.08 séparées : langue, fichiers récents, récupération et journaux.
 - L'installation ou la mise à niveau V3.08 ne remplace pas la V3.07.
-- Une nouvelle V3.08 Beta met à niveau uniquement une précédente V3.08.
+- L'installateur V3.08 met à niveau une précédente V3.08 Beta ou V3.08.
 - L'installateur inclut le runtime .NET 8 et les notices françaises/anglaises.
 - Une somme SHA-256 est régénérée après chaque construction de l'installateur.
 
 ## Plateformes
 
-- Cette bêta V3.08 est uniquement construite et testée sur Windows x64.
-- Aucun build automatique ni paquet macOS V3.08 n'est publié pour le moment ; le workflow existant reste manuel.
-- La version Mac reste la V3.07 stable.
-- Le workflow et les DMG Mac seront ajoutés lors de la future Release officielle V3.08.
+- Windows x64 : installateur autonome contenant le runtime .NET 8 et les notices FR/EN.
+- macOS Apple Silicon : DMG autonome pour les Mac M1 et suivants.
+- macOS Intel : DMG autonome pour les Mac Intel 64 bits.
+- Le moteur XML et ses garde-fous sont partagés entre Windows et macOS.
+- L'interface Mac conserve l'atelier visuel Avalonia avec sélection multiple, glisser-déposer et matrice. Le nouvel onglet Windows `Easy patch` n'est pas reproduit à l'identique sur Mac dans cette version.
+- Les DMG sont signés ad hoc mais ne sont pas notariés par Apple ; le premier lancement peut nécessiter un clic droit sur l'application puis `Ouvrir`.
 
 ## Validation automatisée
 
-- 88 tests Core et contrats Windows réussissent localement.
-- Le build WPF Release réussit sans warning.
+- 89 tests Core et contrats Windows, plus 8 tests d'interface Mac sans écran, réussissent en Release.
+- Les builds WPF et Avalonia Release réussissent sans warning.
 - Les tests couvrent la sélection, les plages, les conflits, le remplacement, l'annulation, le rollback, la persistance, la matrice et l'intégration au détail machine.
 - Le garde-fou XML, les sauvegardes atomiques, les namespaces, les interfaces réseau et les presets synthétiques restent couverts.
 
@@ -75,6 +77,7 @@ La V3.08 Beta est désormais la version Windows courante de la branche `main` et
 - Les noms TX dupliqués sur un même device restent ambigus et doivent être corrigés avant une nouvelle affectation.
 - L'application vérifie la cohérence du XML généré, mais seul un import réussi dans Dante Controller valide définitivement le fichier.
 - L'installateur Windows n'est pas signé avec un certificat Authenticode public ; vérifiez la somme SHA-256 publiée.
+- Les DMG macOS ne sont pas notariés avec un compte Apple Developer ; vérifiez également leurs sommes SHA-256 publiées.
 
 ## Dépôt public
 

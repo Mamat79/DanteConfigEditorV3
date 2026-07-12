@@ -1,9 +1,9 @@
-# Dante Config Editor V3.08 Beta
+# Dante Config Editor V3.08
 
-Version Windows courante de la branche `main` pour éditer hors ligne des fichiers XML de configuration Dante.
+Version officielle Windows et macOS de la branche `main` pour éditer hors ligne des fichiers XML de configuration Dante.
 
-> **Statut : V3.08 Beta Windows. Outil tiers non officiel Audinate.**
-> La V3.08 Beta remplace désormais la V3.07 comme version Windows courante du dépôt, mais reste en développement et peut contenir des bugs. La V3.07 demeure disponible dans l'historique et reste la version Mac distribuée. Travaillez toujours sur une copie et validez le XML généré dans les outils Dante officiels.
+> **Statut : V3.08 officielle Windows et macOS. Outil tiers non officiel Audinate.**
+> Cette version peut encore contenir des bugs. La V3.07 demeure disponible dans l'historique. Travaillez toujours sur une copie et validez le XML généré dans les outils Dante officiels.
 
 ## Ce que fait l'application
 
@@ -69,13 +69,13 @@ Version Windows courante de la branche `main` pour éditer hors ligne des fichie
 
 Le fichier recommandé est fourni dans le dossier `dist` local et dans les Releases GitHub :
 
-- `dist/DanteConfigEditorV3_08_Beta_Installer.exe` : installateur Windows bêta autonome, avec installation par défaut dans Program Files, choix du dossier, raccourcis et désinstallation propre.
+- `DanteConfigEditorV3_08_Installer.exe` : installateur Windows autonome, avec installation par défaut dans Program Files, choix du dossier, raccourcis et désinstallation propre.
 
 La version autonome inclut le runtime .NET nécessaire. Sur une machine Windows x64, il ne devrait pas être nécessaire d'installer .NET séparément pour utiliser l'application.
 
 ### macOS
 
-La V3.08 Beta n'est pas encore distribuée pour macOS. Les utilisateurs Mac disposent toujours de la précédente Release V3.07, qui fournit deux DMG autonomes :
+La Release V3.08 fournit deux DMG autonomes :
 
 - `DanteConfigEditorV3_macOS_AppleSilicon.dmg` pour les Mac M1, M2, M3, M4 et suivants ;
 - `DanteConfigEditorV3_macOS_Intel.dmg` pour les Mac Intel 64 bits.
@@ -95,14 +95,14 @@ Notices fournies :
 
 Dans l'application, les boutons d'aide ouvrent automatiquement les fichiers FR ou EN selon la langue active.
 
-La V3.08 Beta utilise un AppId, un dossier Program Files, un menu Démarrer et un stockage local distincts. Elle peut donc cohabiter avec la V3.07. Une nouvelle V3.08 Beta remplace uniquement une précédente installation V3.08.
+La V3.08 utilise un AppId, un dossier Program Files, un menu Démarrer et un stockage local distincts. Elle peut donc cohabiter avec la V3.07. L'installateur officiel V3.08 remplace une précédente installation V3.08 Beta ou V3.08 sans toucher à la V3.07.
 
 ## Version distribuée
 
-- La branche `main` contient désormais la V3.08 Beta, version Windows courante du dépôt.
-- La V3.07 reste conservée dans le tag et la Release `v3.07`, notamment pour les paquets macOS existants.
+- La branche `main` contient la V3.08 officielle pour Windows et macOS.
+- La V3.07 reste conservée dans le tag et la Release `v3.07`.
 - La branche de développement `3.08-beta` est conservée dans l'historique Git ; elle n'est plus la branche principale.
-- Aucun paquet Mac V3.08 ne sera produit avant la future Release officielle.
+- La Release `v3.08` fournit un installateur Windows x64 et deux DMG macOS, Apple Silicon et Intel.
 - Les anciens tags et Releases restent de l'historique ; ils ne doivent pas être utilisés à la place de la publication courante.
 - L'historique fonctionnel reste consultable dans Git et dans `CHANGELOG_V3.md`.
 
@@ -120,7 +120,7 @@ La V3.08 Beta utilise un AppId, un dossier Program Files, un menu Démarrer et u
 10. Sauvegarder sous un nouveau nom.
 11. Valider le fichier généré dans l'outil Dante officiel approprié avant usage terrain.
 
-## Nouveautés V3.08 Beta
+## Nouveautés V3.08
 
 - Sélection multiple indépendante des canaux TX et RX avec `Ctrl` ou `Maj`, plus commandes `Tout sélectionner`.
 - Appariement un-à-un quand les quantités sont égales et diffusion autorisée d'un seul TX vers plusieurs RX.
@@ -138,8 +138,9 @@ La V3.08 Beta utilise un AppId, un dossier Program Files, un menu Démarrer et u
 - Sélecteur de machine dans `Détail machine`, avec confirmation appliquer/abandonner/annuler si des changements sont en attente.
 - Onglet `Patch RX` dans `Détail machine`, limité aux entrées de la machine ouverte.
 - Identité d'installation, dossier Program Files, raccourcis et données locales séparés de la V3.07.
-- V3.08 Beta limitée à Windows ; le workflow et les paquets Mac seront ajoutés lors de la future Release officielle.
-- 88 tests Core et contrats Windows validant notamment sélection, plages, conflits, rollback, persistance, affichage Easy patch et navigation du détail machine.
+- Paquets macOS V3.08 autonomes Apple Silicon et Intel construits et vérifiés sur GitHub Actions macOS.
+- Le moteur XML est commun aux deux plateformes. macOS conserve son atelier visuel Avalonia ; le nouvel onglet Windows `Easy patch` n'y est pas encore reproduit à l'identique.
+- Suites automatisées couvrant notamment la sélection, les plages, les conflits, le rollback, la persistance, l'affichage Easy patch, la navigation du détail machine et l'interface Mac sans écran.
 
 ## Nouveautés V3.07
 

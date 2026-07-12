@@ -1,5 +1,17 @@
 # Changelog V3
 
+## 2026-07-12 - Version 3.08 officielle Windows et macOS
+
+- Retrait du suffixe `Beta` dans les interfaces, métadonnées, exports, notices et installateur.
+- Publication d'un installateur autonome Windows x64 qui met à niveau une précédente V3.08 sans toucher à la V3.07.
+- Passage de l'interface Avalonia et des métadonnées macOS à la V3.08.
+- Production de deux DMG autonomes : Apple Silicon et Intel, avec runtime .NET 8 et notices FR/EN.
+- Réactivation du workflow GitHub Actions macOS sur les changements de `main`, en plus du lancement manuel.
+- Vérification automatisée des versions officielles Windows/macOS et des contrats de packaging.
+- Conservation documentée de la différence d'interface : `Easy patch` reste propre à Windows ; macOS conserve l'atelier visuel Avalonia.
+- Publication de sommes SHA-256 pour l'installateur et les deux DMG.
+- Les paquets Mac restent signés ad hoc et non notariés faute de certificat Apple Developer.
+
 ## 2026-07-12 - Version 3.08 Beta Windows
 
 - Promotion de la V3.08 Beta dans la branche `main` en remplacement de la V3.07 pour le développement Windows courant ; le tag et la Release V3.07 restent conservés.

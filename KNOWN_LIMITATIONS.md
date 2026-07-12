@@ -1,4 +1,4 @@
-# Limites connues - V3.08 Beta
+# Limites connues - V3.08
 
 ## Compatibilité Dante
 
@@ -39,10 +39,12 @@
 
 - L'installateur Windows est autonome pour Windows x64 et inclut .NET 8. Les architectures Windows ARM64 et x86 ne sont pas distribuées.
 - L'installateur Windows n'est pas signé avec un certificat Authenticode public. Vérifier le SHA-256 publié avant distribution ; Windows peut afficher un avertissement de réputation.
-- La V3.08 Beta, désormais version courante de `main`, est distribuée uniquement sur Windows. Les paquets Mac disponibles restent ceux de la V3.07 jusqu'à la future Release officielle V3.08.
-- Aucun build automatique, DMG ou résultat de test Mac ne doit être attribué à la V3.08 Beta ; le workflow macOS reste manuel.
+- La V3.08 est distribuée sur Windows x64, macOS Apple Silicon et macOS Intel. Windows ARM64 et x86 ne sont pas distribués.
+- Les DMG macOS sont signés ad hoc, sans certificat Apple Developer ID ni notarisation. Gatekeeper peut demander un clic droit puis `Ouvrir` au premier lancement.
+- Le moteur XML est partagé, mais l'interface Mac n'offre pas encore le nouvel onglet Windows `Easy patch` à l'identique. Elle conserve l'atelier visuel Avalonia avec sélection multiple, glisser-déposer et matrice.
+- Les tests Avalonia sans écran ne remplacent pas une validation manuelle sur plusieurs modèles de Mac, ni un contrôle VoiceOver réel.
 - Le contraste élevé, les lecteurs d'écran et les échelles Windows 125 %, 150 % et 200 % nécessitent encore la validation manuelle décrite dans `ACCESSIBILITY.md`.
 
 ## Statut de la version
 
-La V3.08 Beta est la version Windows courante de `main`, mais reste une version en développement. La V3.07 est conservée comme précédente Release et comme distribution Mac existante. Les deux restent des outils tiers non officiels Audinate. Toujours travailler sur une copie, lire le rapport avant/après et valider le fichier généré dans l'outil Dante officiel avant une utilisation terrain.
+La V3.08 est la version officielle courante de `main` pour Windows et macOS. La V3.07 est conservée comme précédente Release. Les deux restent des outils tiers non officiels Audinate. Toujours travailler sur une copie, lire le rapport avant/après et valider le fichier généré dans l'outil Dante officiel avant une utilisation terrain.
