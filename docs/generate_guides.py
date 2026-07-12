@@ -247,14 +247,14 @@ def quick_start(language: str) -> None:
     )
     features = (
         [
-            ("Easy patch", "Choisissez les RX à gauche et les TX à droite, changez de machine par le menu ou les flèches, prévisualisez le lot, puis traitez explicitement les conflits."),
+            ("Easy patch", "Choisissez les RX à gauche et les TX à droite. Appliquez directement, ou prévisualisez puis ajoutez au lot avant l'application finale."),
             ("Récupération", "Une copie est écrite en arrière-plan après un court délai. La nouvelle destination devient la référence après Enregistrer sous."),
             ("Sous-projet", "Ajouter XML au projet importe les machines uniques et ne propose un renommage que pour les doublons."),
             ("IPv4", "Seule l'interface principale est ciblée. DNS et interface secondaire ne sont pas réécrits implicitement."),
         ]
         if french
         else [
-            ("Easy patch", "Choose Rx channels on the left and Tx channels on the right, switch devices with the menu or arrows, preview the batch, then resolve conflicts explicitly."),
+            ("Easy patch", "Choose Rx channels on the left and Tx channels on the right. Apply directly, or preview and add to the batch before final application."),
             ("Recovery", "A copy is written in the background after a short delay. Save as makes the new destination the session reference."),
             ("Sub-project", "Add XML to project imports unique devices and only asks about conflicting names."),
             ("IPv4", "Only the primary interface is targeted. DNS and the secondary interface are not rewritten implicitly."),
@@ -397,8 +397,9 @@ def full_guide(language: str) -> None:
                 "Plusieurs TX vers un RX et les sélections multiples de tailles différentes sont refusés.",
                 "Le patch par plage demande un premier TX, un premier RX et une quantité exacte ; une plage incomplète est entièrement bloquée.",
                 "La prévisualisation classe chaque ligne en création, remplacement ou inchangée. Pour les conflits, choisissez annuler, ignorer ou remplacer.",
-                "Dans la grille, les RX sont en lignes et les TX en colonnes. Cliquer une cellule affecte la source ; cliquer la cellule active prépare sa déconnexion.",
-                "Les changements restent en attente jusqu'à Appliquer à la configuration. Ils sont alors exécutés en un seul lot et une seule étape d'annulation.",
+                "Appliquer exécute directement la sélection ou la plage. Après une prévisualisation, choisissez Ajouter au lot ou Appliquer ces changements.",
+                "Dans la grille, les RX sont en lignes et les TX en colonnes. Cliquer une cellule ajoute l'affectation ou la déconnexion au lot.",
+                "Les changements ajoutés au lot restent en attente jusqu'à Appliquer tout le lot. Ils sont alors exécutés en une seule étape d'annulation.",
                 "Dans Détail machine, le menu supérieur passe à une autre machine et protège les modifications non appliquées.",
             ]),
             para("9. Ajouter un XML au projet", "h1"),
@@ -436,7 +437,7 @@ def full_guide(language: str) -> None:
                 [48, 122],
             ),
             para("13. Tests de non-régression", "h1"),
-            para("La suite V3.08 Beta exécute 86 tests Core et contrats Windows : identités techniques, chemins inconnus, sauvegarde atomique, récupération, interfaces IPv4, alias de subscription, namespace par défaut, presets synthétiques, sélection TX/RX, plages, conflits, rollback, persistance, matrice, Easy patch et détail machine. GitHub Actions les rejoue sur Windows."),
+            para("La suite V3.08 Beta exécute 88 tests Core et contrats Windows : identités techniques, chemins inconnus, sauvegarde atomique, récupération, interfaces IPv4, alias de subscription, namespace par défaut, presets synthétiques, sélection TX/RX, plages, conflits, rollback, persistance, matrice, Easy patch et détail machine. GitHub Actions les rejoue sur Windows."),
             para("14. Limites connues", "h1"),
             *bullets([
                 "Aucun pilotage en temps réel et aucune communication avec les appareils.",
@@ -540,8 +541,9 @@ def full_guide(language: str) -> None:
                 "Several Tx channels to one Rx and unequal multiple selections are blocked.",
                 "Range patching requires a first Tx, first Rx, and exact count; an incomplete range is blocked as a whole.",
                 "The preview classifies rows as create, replace, or unchanged. For conflicts, choose cancel, skip, or replace.",
-                "In the matrix, Rx channels are rows and Tx channels are columns. Clicking a cell assigns its source; clicking the active cell stages a disconnection.",
-                "Changes remain pending until Apply to configuration. They are then executed as one batch and one undo step.",
+                "Apply executes the selection or range directly. After a preview, choose Add to batch or Apply these changes.",
+                "In the matrix, Rx channels are rows and Tx channels are columns. Clicking a cell adds the assignment or disconnection to the batch.",
+                "Changes added to the batch remain pending until Apply entire batch. They are then executed in one undo step.",
                 "In Device details, the top menu switches devices and protects unapplied changes.",
             ]),
             para("9. Add XML to project", "h1"),
@@ -579,7 +581,7 @@ def full_guide(language: str) -> None:
                 [48, 122],
             ),
             para("13. Regression tests", "h1"),
-            para("The V3.08 Beta suite runs 86 Core and Windows contract tests covering technical identities, unknown paths, atomic save, recovery, IPv4 interfaces, subscription aliases, default namespaces, synthetic presets, Tx/Rx selection, ranges, conflicts, rollback, persistence, matrix actions, Easy patch, and Device details integration. GitHub Actions reruns them on Windows."),
+            para("The V3.08 Beta suite runs 88 Core and Windows contract tests covering technical identities, unknown paths, atomic save, recovery, IPv4 interfaces, subscription aliases, default namespaces, synthetic presets, Tx/Rx selection, ranges, conflicts, rollback, persistence, matrix actions, Easy patch, and Device details integration. GitHub Actions reruns them on Windows."),
             para("14. Known limitations", "h1"),
             *bullets([
                 "No real-time Dante control and no communication with devices.",

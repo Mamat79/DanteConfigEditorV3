@@ -20,11 +20,14 @@ La V3.07 reste la Release stable recommandée pour Windows et macOS. Travaillez 
 - Deux sélections multiples de tailles différentes sont refusées.
 - Patch par plage avec premier TX, premier RX et quantité exacte.
 - Une plage trop longue est entièrement bloquée ; aucune partie du lot n'est préparée.
-- Prévisualisation de chaque ligne avant préparation : création, remplacement ou inchangé.
+- Les noms des machines RX/TX restent visibles : Easy patch n'utilise plus un ascenseur pour toute la page.
+- Prévisualisation compacte de chaque ligne : RX cible, source actuelle, nouvelle source et action.
+- `Appliquer` exécute directement la sélection ou la plage sans imposer la prévisualisation.
+- Après une prévisualisation, `Ajouter au lot` permet d'accumuler plusieurs opérations et `Appliquer ces changements` les valide immédiatement.
 - Pour un RX déjà patché : annuler le lot, ignorer les conflits ou remplacer les subscriptions.
 - Déconnexion groupée des RX sélectionnés.
 - Grille TX/RX conservée pour affecter ou retirer un patch unitaire.
-- Les changements restent en mémoire jusqu'à `Appliquer à la configuration`.
+- Les changements ajoutés au lot restent en mémoire jusqu'à `Appliquer tout le lot`.
 - L'application finale utilise un seul lot et une seule étape d'annulation.
 
 ## Détail machine

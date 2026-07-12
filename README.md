@@ -112,11 +112,12 @@ La V3.08 Beta utilise un AppId, un dossier Program Files, un menu Démarrer et u
 3. Sélectionner une copie du fichier de configuration Dante.
 4. Vérifier les devices et paramètres détectés.
 5. Modifier les champs souhaités.
-6. Dans l'onglet `Easy patch`, choisir les machines RX et TX, sélectionner les canaux, puis prévisualiser la sélection ou une plage.
-7. Choisir explicitement d'annuler, d'ignorer ou de remplacer les patchs existants, préparer le lot, puis cliquer sur `Appliquer à la configuration`.
-8. Si besoin, utiliser `Ajouter XML au projet` pour importer les devices d'un autre export XML.
-9. Sauvegarder sous un nouveau nom.
-10. Valider le fichier généré dans l'outil Dante officiel approprié avant usage terrain.
+6. Dans l'onglet `Easy patch`, choisir les machines RX et TX, sélectionner les canaux, puis cliquer sur `Appliquer` pour agir directement ou sur `Prévisualiser` pour contrôler le détail.
+7. Après prévisualisation, traiter explicitement les conflits puis choisir `Ajouter au lot` ou `Appliquer ces changements`.
+8. Pour un lot accumulé, cliquer sur `Appliquer tout le lot` lorsque toutes les opérations sont prêtes.
+9. Si besoin, utiliser `Ajouter XML au projet` pour importer les devices d'un autre export XML.
+10. Sauvegarder sous un nouveau nom.
+11. Valider le fichier généré dans l'outil Dante officiel approprié avant usage terrain.
 
 ## Nouveautés V3.08 Beta
 
@@ -124,10 +125,12 @@ La V3.08 Beta utilise un AppId, un dossier Program Files, un menu Démarrer et u
 - Appariement un-à-un quand les quantités sont égales et diffusion autorisée d'un seul TX vers plusieurs RX.
 - Blocage de plusieurs TX vers un seul RX et de toute sélection multiple aux quantités incohérentes.
 - Patch par plage avec premier TX, premier RX et nombre exact ; aucune application partielle si la plage dépasse les canaux disponibles.
-- Prévisualisation avant préparation : création, remplacement ou ligne inchangée.
+- Prévisualisation lisible sans ascenseur général : les machines restent visibles et chaque ligne indique le RX, la source actuelle, la nouvelle source et l'action.
+- Application directe facultative pour la sélection et le patch par plage.
+- Après prévisualisation, choix entre ajouter l'opération au lot ou appliquer immédiatement les changements.
 - Traitement explicite des RX déjà patchés : annuler le lot, ignorer les conflits ou remplacer les subscriptions.
 - Déconnexion groupée de plusieurs RX et matrice unitaire TX vers RX conservée.
-- Changements préparés en mémoire puis appliqués au XML en un seul lot et une seule étape d'annulation.
+- Changements ajoutés en mémoire puis appliqués au XML en un seul lot et une seule étape d'annulation.
 - Onglets principaux distincts : `Patch` conserve l'éditeur classique et `Easy patch` accueille le nouveau système.
 - Disposition `Easy patch` avec machines et canaux RX à gauche, machines et canaux TX à droite.
 - Menus et flèches précédent/suivant pour parcourir rapidement les machines RX et TX.
@@ -135,7 +138,7 @@ La V3.08 Beta utilise un AppId, un dossier Program Files, un menu Démarrer et u
 - Onglet `Patch RX` dans `Détail machine`, limité aux entrées de la machine ouverte.
 - Identité d'installation, dossier Program Files, raccourcis et données locales séparés de la V3.07.
 - V3.08 Beta limitée à Windows ; le workflow et les paquets Mac seront ajoutés lors de la future Release officielle.
-- 86 tests Core et contrats Windows validant notamment sélection, plages, conflits, rollback, persistance, onglet Easy patch et navigation du détail machine.
+- 88 tests Core et contrats Windows validant notamment sélection, plages, conflits, rollback, persistance, affichage Easy patch et navigation du détail machine.
 
 ## Nouveautés V3.07
 

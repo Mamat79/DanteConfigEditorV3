@@ -8,6 +8,9 @@
 - Appariement un-à-un pour des sélections TX/RX de même taille et diffusion d'un TX vers plusieurs RX.
 - Blocage de plusieurs TX vers un RX, des tailles multiples incohérentes et des plages incomplètes.
 - Prévisualisation des créations, remplacements et lignes inchangées avant préparation du lot.
+- Suppression de l'ascenseur général d'Easy patch : les machines RX/TX restent visibles et les listes défilent dans leur propre zone.
+- Prévisualisation compacte, masquée lorsqu'elle est vide, avec colonnes RX, source actuelle, nouvelle source et action toujours lisibles.
+- Ajout de deux parcours : `Appliquer` directement une sélection ou une plage, ou `Prévisualiser` puis `Ajouter au lot` / `Appliquer ces changements`.
 - Résolution explicite des conflits : annuler le lot, ignorer les RX déjà patchés ou remplacer leurs subscriptions.
 - Déconnexion groupée de plusieurs RX, matrice unitaire conservée et suppression de la dépendance au glisser-déposer.
 - Ajout d'un patch par plage avec premier TX, premier RX et quantité exacte.
@@ -16,7 +19,7 @@
 - Ajout d'un sélecteur de machine en haut de `Détail machine`, avec protection des modifications non appliquées.
 - Intégration de l'atelier dans `Détail machine`, avec RX verrouillé sur la machine ouverte et application avant les renommages.
 - Application finale des patchs en un seul lot annulable et persistance contrôlée après sauvegarde/rechargement.
-- Extension de la suite Windows à 86 tests ; build WPF sans warning.
+- Extension de la suite Windows à 88 tests ; build WPF sans warning.
 - Génération automatique d'une somme SHA-256 fraîche après chaque construction de l'installateur.
 
 ## 2026-07-11 - Version 3.07 officielle

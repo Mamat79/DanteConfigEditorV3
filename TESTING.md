@@ -1,5 +1,28 @@
 # Tests et historique V3
 
+## Validation ergonomique Easy patch du 2026-07-12
+
+Source fonctionnelle testée :
+
+- branche : `3.08-beta` ;
+- commit fonctionnel : `cc403f190e12be081c682e8439346a2377382a51` ;
+- fixture anonymisée : `representative-preset.xml` ;
+- aucune sauvegarde ni modification du fichier XML de la fixture.
+
+Résultats :
+
+- 88 tests Release réussis, 0 échec, 0 ignoré ;
+- build WPF Release réussi, 0 warning, 0 erreur ;
+- rendu Easy patch contrôlé en thème sombre à `1600 x 820` et `1200 x 650` ;
+- rendu Easy patch contrôlé en thème clair à `1600 x 820` ;
+- menus des machines RX/TX conservés à l'écran pendant la prévisualisation ;
+- listes RX/TX et panneau central dotés de leurs propres ascenseurs lorsque l'espace manque ;
+- colonnes `RX cible`, `Source actuelle`, `Nouvelle source` et `Action` lisibles sans ascenseur horizontal de page ;
+- commandes `Prévisualiser`, `Appliquer`, `Ajouter au lot`, `Appliquer ces changements` et `Appliquer tout le lot` visibles ;
+- les conflits de remplacement restent soumis à un choix explicite.
+
+Ces contrôles ne constituent pas une preuve d'import dans Dante Controller ni un test sur matériel Dante réel.
+
 ## Validation V3.08 Beta Windows du 2026-07-12
 
 Source fonctionnelle testée :

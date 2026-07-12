@@ -8,8 +8,12 @@
 - fenêtre compacte observée à environ `1266 x 813` : repli automatique des réglages et tableau machines accessible ;
 - fenêtre maximisée observée à environ `1920 x 1032` : panneaux et tableau accessibles sans recouvrement incohérent ;
 - onglet `Easy patch` ouvert et inspecté visuellement en thème sombre ; RX à gauche, TX à droite et onglet actif lisible ;
+- composant `Easy patch` rendu avec prévisualisation à `1600 x 820` en thèmes sombre et clair, puis à `1200 x 650` en thème sombre ;
+- menus RX/TX maintenus hors de tout ascenseur de page ; à faible hauteur, seul le panneau central utilise un ascenseur interne ;
+- tableau de prévisualisation redimensionné avec quatre colonnes lisibles et sans défilement horizontal de page ;
 - sélections et commandes actionnées via l'arbre d'accessibilité ;
 - libellés d'automatisation et info-bulles présents sur les menus et flèches précédent/suivant RX/TX ;
+- noms d'automatisation ajoutés aux commandes d'application directe, d'ajout au lot et d'application après prévisualisation ;
 - sélecteur de machine de `Détail machine` utilisé au clavier, avec alerte de protection des changements en attente ;
 - exécutable final installé contrôlé : démarrage, bouton `Ouvrir XML`, ouverture d'une fixture anonymisée et résumé du projet lus par l'arbre d'accessibilité.
 
