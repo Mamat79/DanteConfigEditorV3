@@ -1,5 +1,13 @@
 # Tests et historique V3
 
+## Promotion de la V3.08 Beta dans main du 2026-07-12
+
+- ancienne tête de `main` : `903ed94114ee419e4063cbf07e55ff8626006a7a` (V3.07) ;
+- tag annoté de sauvegarde : `safety-v3.07-before-v3.08-main-20260712` ;
+- promotion par avance rapide, sans conflit ni réécriture d'historique ;
+- nouvelle base de `main` avant mise à jour documentaire : `9a17e3ea20191e2543be9dd31a4408f89d2944af` ;
+- branche `3.08-beta` et anciennes Releases conservées.
+
 ## Validation ergonomique Easy patch du 2026-07-12
 
 Source fonctionnelle testée :

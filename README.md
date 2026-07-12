@@ -1,9 +1,9 @@
 # Dante Config Editor V3.08 Beta
 
-Branche bêta Windows pour éditer hors ligne des fichiers XML de configuration Dante.
+Version Windows courante de la branche `main` pour éditer hors ligne des fichiers XML de configuration Dante.
 
 > **Statut : V3.08 Beta Windows. Outil tiers non officiel Audinate.**
-> Cette branche est en développement et peut contenir des bugs. La V3.07 reste la Release stable recommandée pour Windows et macOS. Travaillez toujours sur une copie et validez le XML généré dans les outils Dante officiels.
+> La V3.08 Beta remplace désormais la V3.07 comme version Windows courante du dépôt, mais reste en développement et peut contenir des bugs. La V3.07 demeure disponible dans l'historique et reste la version Mac distribuée. Travaillez toujours sur une copie et validez le XML généré dans les outils Dante officiels.
 
 ## Ce que fait l'application
 
@@ -75,7 +75,7 @@ La version autonome inclut le runtime .NET nécessaire. Sur une machine Windows 
 
 ### macOS
 
-La V3.08 Beta n'est pas compilée ni distribuée pour macOS. Les utilisateurs Mac doivent rester sur la Release stable V3.07, qui fournit deux DMG autonomes :
+La V3.08 Beta n'est pas encore distribuée pour macOS. Les utilisateurs Mac disposent toujours de la précédente Release V3.07, qui fournit deux DMG autonomes :
 
 - `DanteConfigEditorV3_macOS_AppleSilicon.dmg` pour les Mac M1, M2, M3, M4 et suivants ;
 - `DanteConfigEditorV3_macOS_Intel.dmg` pour les Mac Intel 64 bits.
@@ -99,8 +99,9 @@ La V3.08 Beta utilise un AppId, un dossier Program Files, un menu Démarrer et u
 
 ## Version distribuée
 
-- La V3.07 est la version stable actuellement recommandée et porte le tag `v3.07`.
-- La branche `3.08-beta` contient la bêta Windows en cours de validation.
+- La branche `main` contient désormais la V3.08 Beta, version Windows courante du dépôt.
+- La V3.07 reste conservée dans le tag et la Release `v3.07`, notamment pour les paquets macOS existants.
+- La branche de développement `3.08-beta` est conservée dans l'historique Git ; elle n'est plus la branche principale.
 - Aucun paquet Mac V3.08 ne sera produit avant la future Release officielle.
 - Les anciens tags et Releases restent de l'historique ; ils ne doivent pas être utilisés à la place de la publication courante.
 - L'historique fonctionnel reste consultable dans Git et dans `CHANGELOG_V3.md`.

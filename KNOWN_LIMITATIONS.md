@@ -39,10 +39,10 @@
 
 - L'installateur Windows est autonome pour Windows x64 et inclut .NET 8. Les architectures Windows ARM64 et x86 ne sont pas distribuées.
 - L'installateur Windows n'est pas signé avec un certificat Authenticode public. Vérifier le SHA-256 publié avant distribution ; Windows peut afficher un avertissement de réputation.
-- La V3.08 Beta est distribuée uniquement sur Windows. La version Mac reste la V3.07 stable jusqu'à la future Release officielle V3.08.
+- La V3.08 Beta, désormais version courante de `main`, est distribuée uniquement sur Windows. Les paquets Mac disponibles restent ceux de la V3.07 jusqu'à la future Release officielle V3.08.
 - Aucun workflow, DMG ou résultat de test Mac ne doit être attribué à la branche V3.08 Beta.
 - Le contraste élevé, les lecteurs d'écran et les échelles Windows 125 %, 150 % et 200 % nécessitent encore la validation manuelle décrite dans `ACCESSIBILITY.md`.
 
 ## Statut de la version
 
-La V3.08 Beta est une version Windows en développement. La V3.07 reste la version stable officielle recommandée. Les deux restent des outils tiers non officiels Audinate. Toujours travailler sur une copie, lire le rapport avant/après et valider le fichier généré dans l'outil Dante officiel avant une utilisation terrain.
+La V3.08 Beta est la version Windows courante de `main`, mais reste une version en développement. La V3.07 est conservée comme précédente Release et comme distribution Mac existante. Les deux restent des outils tiers non officiels Audinate. Toujours travailler sur une copie, lire le rapport avant/après et valider le fichier généré dans l'outil Dante officiel avant une utilisation terrain.

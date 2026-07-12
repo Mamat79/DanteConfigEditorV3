@@ -222,9 +222,9 @@ def quick_start(language: str) -> None:
         else "Quick start - offline editing of Dante XML files"
     )
     warning = (
-        "<b>Outil tiers non officiel Audinate.</b> Cette V3.08 est une bêta Windows. La V3.07 reste la version stable recommandée. Travaillez sur une copie et validez toujours le XML final par un import dans l'outil Dante officiel adapté avant toute utilisation réelle."
+        "<b>Outil tiers non officiel Audinate.</b> Cette V3.08 Beta est la version Windows courante de main, mais reste en développement. La V3.07 demeure disponible dans l'historique et pour les paquets Mac. Travaillez sur une copie et validez toujours le XML final par un import dans l'outil Dante officiel adapté avant toute utilisation réelle."
         if french
-        else "<b>Third-party tool, not an official Audinate product.</b> V3.08 is a Windows beta. V3.07 remains the recommended stable release. Work on a copy and always validate the final XML by importing it into the appropriate official Dante tool before real use."
+        else "<b>Third-party tool, not an official Audinate product.</b> V3.08 Beta is the current Windows version on main, but remains under development. V3.07 remains available in history and for Mac packages. Work on a copy and always validate the final XML by importing it into the appropriate official Dante tool before real use."
     )
     steps = (
         [
@@ -312,14 +312,14 @@ def full_guide(language: str) -> None:
         page1 = [
             para(PRODUCT, "title"),
             para(f"Notice complète - version {VERSION}", "subtitle"),
-            callout("<b>Important :</b> cette application est un outil tiers non officiel Audinate. La V3.08 est une bêta Windows ; la V3.07 reste la version stable recommandée. Elle édite des XML hors ligne, sans connexion au réseau Dante ni API Audinate. Conservez l'original et validez le fichier généré dans Dante Controller avant toute utilisation en production."),
+            callout("<b>Important :</b> cette application est un outil tiers non officiel Audinate. La V3.08 Beta est la version Windows courante de main, mais reste en développement ; la V3.07 demeure disponible dans l'historique et pour les paquets Mac. Elle édite des XML hors ligne, sans connexion au réseau Dante ni API Audinate. Conservez l'original et validez le fichier généré dans Dante Controller avant toute utilisation en production."),
             para("1. Installation et démarrage", "h1"),
             para("L'installateur Windows x64 contient l'application et le runtime .NET 8 nécessaire. Il n'est normalement pas nécessaire d'installer .NET séparément."),
             *bullets([
                 "L'installation proposée par défaut se trouve dans Program Files et crée un raccourci dans le menu Démarrer.",
                 "La V3.08 Beta utilise son propre dossier Program Files, son propre raccourci et son propre AppId.",
                 "Elle peut cohabiter avec la V3.07 stable et ne met à niveau qu'une précédente V3.08.",
-                "La V3.08 Beta n'est pas distribuée sur Mac ; utilisez la V3.07 stable jusqu'à la Release officielle V3.08.",
+                "La V3.08 Beta n'est pas distribuée sur Mac ; les paquets Mac disponibles restent ceux de la V3.07 jusqu'à la Release officielle V3.08.",
                 "Les quatre notices PDF françaises et anglaises sont installées et restent accessibles depuis l'application.",
             ]),
             para("2. Principes de sécurité", "h1"),
@@ -445,7 +445,7 @@ def full_guide(language: str) -> None:
                 "La compatibilité dépend de la structure du XML ; seul l'import officiel confirme le fichier final.",
                 "L'historique d'annulation conserve au maximum 10 états pour limiter la mémoire.",
                 "La matrice affiche uniquement les deux machines choisies pour préserver les performances sur les gros presets.",
-                "La V3.08 Beta est uniquement distribuée sur Windows ; la version Mac reste la V3.07 stable.",
+                "La V3.08 Beta est uniquement distribuée sur Windows ; les paquets Mac disponibles restent ceux de la V3.07.",
                 "Des noms TX dupliqués sont ambigus dans les subscriptions Dante et doivent être renommés avant Easy patch.",
             ]),
             para("15. Aide et informations", "h1"),
@@ -456,7 +456,7 @@ def full_guide(language: str) -> None:
         page1 = [
             para(PRODUCT, "title"),
             para(f"Full user guide - version {VERSION}", "subtitle"),
-            callout("<b>Important:</b> this is a third-party tool, not an official Audinate product. V3.08 is a Windows beta; V3.07 remains the recommended stable release. It edits XML files offline without connecting to a Dante network or using an Audinate API. Keep the original and validate the generated file in Dante Controller before production use."),
+            callout("<b>Important:</b> this is a third-party tool, not an official Audinate product. V3.08 Beta is the current Windows version on main, but remains under development; V3.07 remains available in history and for Mac packages. It edits XML files offline without connecting to a Dante network or using an Audinate API. Keep the original and validate the generated file in Dante Controller before production use."),
             para("1. Installation and startup", "h1"),
             para("The Windows x64 installer includes the application and the required .NET 8 runtime. A separate .NET installation is normally not required."),
             *bullets([
@@ -589,7 +589,7 @@ def full_guide(language: str) -> None:
                 "Compatibility depends on the XML structure; only an official import confirms the final file.",
                 "Undo keeps at most 10 states to limit memory use.",
                 "The matrix displays only the two selected devices to preserve performance on large presets.",
-                "V3.08 Beta is distributed only on Windows; the Mac version remains stable V3.07.",
+                "V3.08 Beta is distributed only on Windows; the available Mac packages remain those from V3.07.",
                 "Duplicate Tx names are ambiguous in Dante subscriptions and must be renamed before using Easy patch.",
             ]),
             para("15. Help and information", "h1"),

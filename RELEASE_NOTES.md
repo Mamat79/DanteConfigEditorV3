@@ -4,7 +4,7 @@
 
 Version bêta Windows en cours de développement. Il s'agit d'un outil tiers non officiel Audinate et cette application n'est pas exempte de bugs.
 
-La V3.07 reste la Release stable recommandée pour Windows et macOS. Travaillez toujours sur une copie de vos fichiers XML Dante et validez le résultat dans les outils Dante officiels avant toute utilisation réelle.
+La V3.08 Beta est désormais la version Windows courante de la branche `main` et remplace la V3.07 dans le développement actif. La V3.07 reste disponible dans l'historique et demeure la version Mac distribuée. Travaillez toujours sur une copie de vos fichiers XML Dante et validez le résultat dans les outils Dante officiels avant toute utilisation réelle.
 
 ## Nouvel onglet Easy patch
 
@@ -61,7 +61,7 @@ La V3.07 reste la Release stable recommandée pour Windows et macOS. Travaillez 
 
 ## Validation automatisée
 
-- 86 tests Core et contrats Windows réussissent localement.
+- 88 tests Core et contrats Windows réussissent localement.
 - Le build WPF Release réussit sans warning.
 - Les tests couvrent la sélection, les plages, les conflits, le remplacement, l'annulation, le rollback, la persistance, la matrice et l'intégration au détail machine.
 - Le garde-fou XML, les sauvegardes atomiques, les namespaces, les interfaces réseau et les presets synthétiques restent couverts.
