@@ -21,6 +21,18 @@ Résultats :
 - commandes `Prévisualiser`, `Appliquer`, `Ajouter au lot`, `Appliquer ces changements` et `Appliquer tout le lot` visibles ;
 - les conflits de remplacement restent soumis à un choix explicite.
 
+Paquet Windows contrôlé :
+
+- installateur autonome construit en 43,064 s ;
+- fichier : `dist/DanteConfigEditorV3_08_Beta_Installer.exe` ;
+- taille : `66 859 156` octets ;
+- SHA-256 : `9EE2355D983969167AA51CA002D844AF55BE6D34FAEEA5F9D9F62422B94DBF12` ;
+- somme `.sha256` concordante ;
+- mise à niveau silencieuse V3.08 réussie avec code retour 0 ;
+- V3.07 stable toujours présente dans son dossier séparé ;
+- notices FR installées identiques aux PDF du dépôt ;
+- exécutable installé démarré avec la fixture : 3 devices, 3 TX, 4 RX et 3 patchs actifs détectés.
+
 Ces contrôles ne constituent pas une preuve d'import dans Dante Controller ni un test sur matériel Dante réel.
 
 ## Validation V3.08 Beta Windows du 2026-07-12
