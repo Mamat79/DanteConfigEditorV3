@@ -2,8 +2,7 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:automation="clr-namespace:System.Windows.Automation;assembly=PresentationCore"
-             MinWidth="1000"
-             MinHeight="650">
+             MinWidth="900">
     <UserControl.Resources>
         <SolidColorBrush x:Key="WindowBackgroundBrush" Color="#10141F" />
         <SolidColorBrush x:Key="SurfaceBrush" Color="#171D2B" />
@@ -291,7 +290,7 @@
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="*" />
-                        <RowDefinition Height="240" />
+                        <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
 
                     <DockPanel Grid.Column="0" Margin="0,0,0,8">
@@ -315,50 +314,114 @@
                              automation:AutomationProperties.Name="Canaux RX et source actuelle"
                              SelectionChanged="RxChannelListBox_SelectionChanged" />
 
-                    <StackPanel Grid.Column="1"
-                                Grid.RowSpan="2"
-                                HorizontalAlignment="Stretch"
-                                VerticalAlignment="Center"
-                                Margin="16,0">
+                    <ScrollViewer Grid.Column="1"
+                                  Grid.RowSpan="2"
+                                  Margin="16,0"
+                                  HorizontalScrollBarVisibility="Disabled"
+                                  VerticalScrollBarVisibility="Auto">
+                    <StackPanel HorizontalAlignment="Stretch"
+                                VerticalAlignment="Top">
                         <TextBlock x:Name="SelectionHintTextBlock"
-                                   Text="Sélectionnez les TX et les RX à relier."
-                                   Foreground="{DynamicResource MutedTextBrush}"
-                                   TextAlignment="Center"
-                                   Margin="0,0,0,10" />
-                        <Button x:Name="PreviewSelectionButton"
-                                Content="Prévisualiser la sélection"
-                                Click="PreviewSelectionButton_Click" />
-                        <Button x:Name="RemoveSelectedRxButton"
-                                Content="Déconnecter les RX sélectionnés"
-                                Style="{StaticResource SecondaryButtonStyle}"
-                                Click="RemoveSelectedRxButton_Click" />
-                        <Button x:Name="ClearSelectionButton"
-                                Content="Effacer la sélection"
-                                Style="{StaticResource SecondaryButtonStyle}"
-                                Click="ClearSelectionButton_Click" />
+                                   Text="Sélection"
+                                   FontWeight="SemiBold"
+                                   TextAlignment="Left"
+                                   Margin="0,0,0,6" />
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Button x:Name="PreviewSelectionButton"
+                                    Content="Prévisualiser"
+                                    Style="{StaticResource SecondaryButtonStyle}"
+                                    Padding="6"
+                                    Margin="0,0,4,6"
+                                    Click="PreviewSelectionButton_Click" />
+                            <Button x:Name="ApplySelectionDirectButton"
+                                    Grid.Column="1"
+                                    Content="Appliquer"
+                                    Padding="6"
+                                    Margin="4,0,0,6"
+                                    ToolTip="Applique immédiatement la sélection et les éventuels changements déjà ajoutés au lot."
+                                    Click="ApplySelectionDirectButton_Click" />
+                        </Grid>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Button x:Name="RemoveSelectedRxButton"
+                                    Content="Déconnecter"
+                                    Style="{StaticResource SecondaryButtonStyle}"
+                                    Padding="6"
+                                    Margin="0,0,4,4"
+                                    Click="RemoveSelectedRxButton_Click" />
+                            <Button x:Name="ClearSelectionButton"
+                                    Grid.Column="1"
+                                    Content="Effacer la sélection"
+                                    Style="{StaticResource SecondaryButtonStyle}"
+                                    Padding="6"
+                                    Margin="4,0,0,4"
+                                    Click="ClearSelectionButton_Click" />
+                        </Grid>
 
-                        <Separator Margin="0,10" Background="{DynamicResource BorderLineBrush}" />
+                        <Separator Margin="0,6" Background="{DynamicResource BorderLineBrush}" />
                         <TextBlock x:Name="RangeHeadingTextBlock"
                                    Text="Patch par plage"
                                    FontWeight="SemiBold"
-                                   Margin="0,0,0,4" />
-                        <Label x:Name="RangeStartRxLabel" Content="Premier RX" />
-                        <ComboBox x:Name="RangeStartRxComboBox"
-                                  DisplayMemberPath="Display"
-                                  SelectionChanged="RangeControl_Changed" />
-                        <Label x:Name="RangeStartTxLabel" Content="Premier TX" />
-                        <ComboBox x:Name="RangeStartTxComboBox"
-                                  DisplayMemberPath="Display"
-                                  SelectionChanged="RangeControl_Changed" />
-                        <Label x:Name="RangeCountLabel" Content="Nombre de canaux" />
-                        <TextBox x:Name="RangeCountTextBox"
-                                 Text="1"
-                                 TextChanged="RangeControl_Changed" />
-                        <Button x:Name="PreviewRangeButton"
-                                Content="Prévisualiser la plage"
-                                Margin="0,10,8,0"
-                                Click="PreviewRangeButton_Click" />
+                                   Margin="0,0,0,2" />
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="82" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+                            <Label x:Name="RangeStartRxLabel" Content="Premier RX" VerticalAlignment="Center" Padding="0,4" />
+                            <ComboBox x:Name="RangeStartRxComboBox"
+                                      Grid.Column="1"
+                                      Margin="4,2"
+                                      DisplayMemberPath="Display"
+                                      SelectionChanged="RangeControl_Changed" />
+                            <Label x:Name="RangeStartTxLabel" Grid.Row="1" Content="Premier TX" VerticalAlignment="Center" Padding="0,4" />
+                            <ComboBox x:Name="RangeStartTxComboBox"
+                                      Grid.Row="1"
+                                      Grid.Column="1"
+                                      Margin="4,2"
+                                      DisplayMemberPath="Display"
+                                      SelectionChanged="RangeControl_Changed" />
+                            <Label x:Name="RangeCountLabel" Grid.Row="2" Content="Nombre" VerticalAlignment="Center" Padding="0,4" />
+                            <TextBox x:Name="RangeCountTextBox"
+                                     Grid.Row="2"
+                                     Grid.Column="1"
+                                     Margin="4,2"
+                                     Text="1"
+                                     TextChanged="RangeControl_Changed" />
+                        </Grid>
+                        <Grid Margin="0,4,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Button x:Name="PreviewRangeButton"
+                                    Content="Prévisualiser"
+                                    Style="{StaticResource SecondaryButtonStyle}"
+                                    Padding="6"
+                                    Margin="0,0,4,0"
+                                    Click="PreviewRangeButton_Click" />
+                            <Button x:Name="ApplyRangeDirectButton"
+                                    Grid.Column="1"
+                                    Content="Appliquer"
+                                    Padding="6"
+                                    Margin="4,0,0,0"
+                                    ToolTip="Applique immédiatement la plage et les éventuels changements déjà ajoutés au lot."
+                                    Click="ApplyRangeDirectButton_Click" />
+                        </Grid>
                     </StackPanel>
+                    </ScrollViewer>
 
                     <DockPanel Grid.Column="2" Margin="0,0,0,8">
                         <Button x:Name="SelectAllTxButton"
@@ -385,6 +448,8 @@
                               Grid.Row="2"
                               Grid.ColumnSpan="3"
                               Header="Prévisualisation"
+                              Height="250"
+                              Visibility="Collapsed"
                               Margin="0,12,0,0">
                         <Grid>
                             <Grid.RowDefinitions>
@@ -404,12 +469,14 @@
                                       IsReadOnly="True"
                                       EnableRowVirtualization="True"
                                       VirtualizingPanel.IsVirtualizing="True"
-                                      VirtualizingPanel.VirtualizationMode="Recycling">
+                                      VirtualizingPanel.VirtualizationMode="Recycling"
+                                      ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                                      ScrollViewer.VerticalScrollBarVisibility="Auto">
                                 <DataGrid.Columns>
-                                    <DataGridTextColumn x:Name="PreviewTargetColumn" Header="RX cible" Binding="{Binding Target}" Width="*" />
-                                    <DataGridTextColumn x:Name="PreviewCurrentColumn" Header="Source actuelle" Binding="{Binding Current}" Width="*" />
-                                    <DataGridTextColumn x:Name="PreviewProposedColumn" Header="Nouvelle source" Binding="{Binding Proposed}" Width="*" />
-                                    <DataGridTextColumn x:Name="PreviewActionColumn" Header="Action" Binding="{Binding Action}" Width="130" />
+                                    <DataGridTextColumn x:Name="PreviewTargetColumn" Header="RX cible" Binding="{Binding Target}" Width="1.2*" MinWidth="220" />
+                                    <DataGridTextColumn x:Name="PreviewCurrentColumn" Header="Source actuelle" Binding="{Binding Current}" Width="1.4*" MinWidth="240" />
+                                    <DataGridTextColumn x:Name="PreviewProposedColumn" Header="Nouvelle source" Binding="{Binding Proposed}" Width="1.4*" MinWidth="240" />
+                                    <DataGridTextColumn x:Name="PreviewActionColumn" Header="Action" Binding="{Binding Action}" Width="130" MinWidth="110" />
                                 </DataGrid.Columns>
                                 <DataGrid.RowStyle>
                                     <Style TargetType="{x:Type DataGridRow}">
@@ -444,16 +511,20 @@
                                             </DataTemplate>
                                         </ComboBox.ItemTemplate>
                                     </ComboBox>
-                                    <Button x:Name="StagePreviewButton"
-                                            Content="Préparer ces changements"
-                                            Click="StagePreviewButton_Click" />
+                                    <Button x:Name="AddPreviewToBatchButton"
+                                            Content="Ajouter au lot"
+                                            Style="{StaticResource SecondaryButtonStyle}"
+                                            Click="AddPreviewToBatchButton_Click" />
+                                    <Button x:Name="ApplyPreviewButton"
+                                            Content="Appliquer ces changements"
+                                            Click="ApplyPreviewButton_Click" />
                                     <Button x:Name="CancelPreviewButton"
                                             Content="Annuler l'aperçu"
                                             Style="{StaticResource SecondaryButtonStyle}"
                                             Click="CancelPreviewButton_Click" />
                                 </StackPanel>
                                 <TextBlock x:Name="PreviewSafetyTextBlock"
-                                           Text="Aucun changement XML avant Appliquer au projet."
+                                           Text="La prévisualisation ne modifie rien. Ajoutez au lot ou appliquez maintenant."
                                            Foreground="{DynamicResource MutedTextBrush}"
                                            VerticalAlignment="Center" />
                             </DockPanel>
@@ -523,7 +594,7 @@
                             IsCancel="True"
                             Click="CancelButton_Click" />
                     <Button x:Name="ApplyButton"
-                            Content="Appliquer au projet"
+                            Content="Appliquer tout le lot"
                             IsDefault="True"
                             Click="ApplyButton_Click" />
                 </StackPanel>

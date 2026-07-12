@@ -67,6 +67,44 @@ public sealed class PatchWorkspaceUiContractTests
     }
 
     [Fact]
+    public void EmbeddedEasyPatchKeepsDeviceSelectorsOutsideAnyPageScroller()
+    {
+        XDocument document = XDocument.Parse(File.ReadAllText(RepositoryFile("MainWindow.xaml")));
+        XNamespace xamlNamespace = "http://schemas.microsoft.com/winfx/2006/xaml";
+
+        XElement host = NamedElement(document, xamlNamespace, "EasyPatchHost");
+
+        Assert.DoesNotContain(
+            host.Ancestors(),
+            ancestor => string.Equals(ancestor.Name.LocalName, "ScrollViewer", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void WindowsPatchWorkspaceOffersBatchPreviewAndDirectApplyPaths()
+    {
+        string xaml = File.ReadAllText(RepositoryFile("PatchWorkspaceView.xaml"));
+        string codeBehind = File.ReadAllText(RepositoryFile("PatchWorkspaceView.xaml.cs"));
+        XDocument document = XDocument.Parse(xaml);
+        XNamespace xamlNamespace = "http://schemas.microsoft.com/winfx/2006/xaml";
+
+        Assert.Contains("x:Name=\"ApplySelectionDirectButton\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("x:Name=\"ApplyRangeDirectButton\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("x:Name=\"AddPreviewToBatchButton\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("x:Name=\"ApplyPreviewButton\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("Appliquer ces changements", xaml, StringComparison.Ordinal);
+        Assert.Contains("ApplyPlanDirectly", codeBehind, StringComparison.Ordinal);
+
+        XElement preview = NamedElement(document, xamlNamespace, "PreviewGroupBox");
+        Assert.Equal("Collapsed", preview.Attribute("Visibility")?.Value);
+
+        XElement previewGrid = NamedElement(document, xamlNamespace, "PreviewGrid");
+        Assert.Equal("Disabled", previewGrid.Attribute("ScrollViewer.HorizontalScrollBarVisibility")?.Value);
+        Assert.All(
+            previewGrid.Elements().Single(element => element.Name.LocalName == "DataGrid.Columns").Elements(),
+            column => Assert.NotNull(column.Attribute("MinWidth")));
+    }
+
+    [Fact]
     public void DeviceDetailsExposesRxPatchWorkspaceAndAppliesPatchesBeforeRenames()
     {
         string xaml = File.ReadAllText(RepositoryFile("DeviceDetailsWindow.xaml"));

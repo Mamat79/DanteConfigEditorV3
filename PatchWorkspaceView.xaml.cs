@@ -356,8 +356,7 @@ public partial class PatchWorkspaceView : UserControl
     {
         try
         {
-            PatchAssignmentPlan plan = PatchAssignmentPlanner.PlanSelection(SelectedSources(), SelectedTargets());
-            ShowPreview(plan);
+            ShowPreview(BuildSelectionPlan());
         }
         catch (Exception exception)
         {
@@ -365,31 +364,64 @@ public partial class PatchWorkspaceView : UserControl
         }
     }
 
-    private void PreviewRangeButton_Click(object sender, RoutedEventArgs e)
+    private void ApplySelectionDirectButton_Click(object sender, RoutedEventArgs e)
     {
         try
         {
-            if (RangeStartTxComboBox.SelectedItem is not PatchSourceDescriptor firstSource
-                || RangeStartRxComboBox.SelectedItem is not PatchTargetDescriptor firstTarget
-                || !int.TryParse(RangeCountTextBox.Text, out int count))
-            {
-                throw new InvalidOperationException(L(
-                    "Renseignez le premier TX, le premier RX et un nombre de canaux valide.",
-                    "Choose the first Tx, first Rx and a valid channel count."));
-            }
-
-            PatchAssignmentPlan plan = PatchAssignmentPlanner.PlanRange(
-                _visibleSources,
-                firstSource,
-                _visibleTargets,
-                firstTarget,
-                count);
-            ShowPreview(plan);
+            ApplyPlanDirectly(BuildSelectionPlan());
         }
         catch (Exception exception)
         {
             SetInfo(exception.Message, warning: true);
         }
+    }
+
+    private PatchAssignmentPlan BuildSelectionPlan()
+    {
+        return PatchAssignmentPlanner.PlanSelection(SelectedSources(), SelectedTargets());
+    }
+
+    private void PreviewRangeButton_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            ShowPreview(BuildRangePlan());
+        }
+        catch (Exception exception)
+        {
+            SetInfo(exception.Message, warning: true);
+        }
+    }
+
+    private void ApplyRangeDirectButton_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            ApplyPlanDirectly(BuildRangePlan());
+        }
+        catch (Exception exception)
+        {
+            SetInfo(exception.Message, warning: true);
+        }
+    }
+
+    private PatchAssignmentPlan BuildRangePlan()
+    {
+        if (RangeStartTxComboBox.SelectedItem is not PatchSourceDescriptor firstSource
+            || RangeStartRxComboBox.SelectedItem is not PatchTargetDescriptor firstTarget
+            || !int.TryParse(RangeCountTextBox.Text, out int count))
+        {
+            throw new InvalidOperationException(L(
+                "Renseignez le premier TX, le premier RX et un nombre de canaux valide.",
+                "Choose the first Tx, first Rx and a valid channel count."));
+        }
+
+        return PatchAssignmentPlanner.PlanRange(
+            _visibleSources,
+            firstSource,
+            _visibleTargets,
+            firstTarget,
+            count);
     }
 
     private void ShowPreview(PatchAssignmentPlan plan)
@@ -401,6 +433,7 @@ public partial class PatchWorkspaceView : UserControl
 
         _currentPreview = _session.BuildPreview(plan.Assignments);
         PreviewGrid.ItemsSource = _currentPreview.Items.Select(BuildPreviewRow).ToArray();
+        PreviewGroupBox.Visibility = Visibility.Visible;
         PreviewSummaryTextBlock.Text = L(
             $"{_currentPreview.Items.Count} ligne(s) : {_currentPreview.CreateCount} création(s), {_currentPreview.ReplaceCount} remplacement(s), {_currentPreview.UnchangedCount} inchangée(s).",
             $"{_currentPreview.Items.Count} row(s): {_currentPreview.CreateCount} new, {_currentPreview.ReplaceCount} replacement(s), {_currentPreview.UnchangedCount} unchanged.");
@@ -435,7 +468,17 @@ public partial class PatchWorkspaceView : UserControl
             item.Action.ToString());
     }
 
-    private void StagePreviewButton_Click(object sender, RoutedEventArgs e)
+    private void AddPreviewToBatchButton_Click(object sender, RoutedEventArgs e)
+    {
+        StageCurrentPreview(applyImmediately: false);
+    }
+
+    private void ApplyPreviewButton_Click(object sender, RoutedEventArgs e)
+    {
+        StageCurrentPreview(applyImmediately: true);
+    }
+
+    private void StageCurrentPreview(bool applyImmediately)
     {
         if (_currentPreview is null)
         {
@@ -449,21 +492,103 @@ public partial class PatchWorkspaceView : UserControl
             PatchStageResult result = _session.StagePreview(_currentPreview, resolution);
             if (result.IsCancelled)
             {
-                SetInfo(L("Aucun changement préparé : résolution annulée.", "No change staged: conflict resolution cancelled."), warning: true);
+                SetInfo(L("Aucun changement appliqué : résolution annulée.", "No change applied: conflict resolution cancelled."), warning: true);
                 return;
             }
 
             string message = L(
-                $"{result.StagedCount} changement(s) préparé(s), {result.SkippedConflictCount} conflit(s) ignoré(s), {result.UnchangedCount} ligne(s) inchangée(s).",
-                $"{result.StagedCount} change(s) staged, {result.SkippedConflictCount} conflict(s) skipped, {result.UnchangedCount} row(s) unchanged.");
+                $"{result.StagedCount} changement(s) ajouté(s) au lot, {result.SkippedConflictCount} conflit(s) ignoré(s), {result.UnchangedCount} ligne(s) inchangée(s).",
+                $"{result.StagedCount} change(s) added to the batch, {result.SkippedConflictCount} conflict(s) skipped, {result.UnchangedCount} row(s) unchanged.");
             ClearPreview();
             RefreshTargetRows();
+
+            if (result.StagedCount == 0)
+            {
+                SetInfo(message, warning: result.SkippedConflictCount > 0);
+                return;
+            }
+
+            if (applyImmediately)
+            {
+                SetInfo(L("Application des changements prévisualisés.", "Applying previewed changes."));
+                ApplyRequested?.Invoke(this, EventArgs.Empty);
+                return;
+            }
+
             SetInfo(message, warning: result.SkippedConflictCount > 0);
         }
         catch (Exception exception)
         {
             SetInfo(exception.Message, warning: true);
         }
+    }
+
+    private void ApplyPlanDirectly(PatchAssignmentPlan plan)
+    {
+        if (!SourcesAreUnambiguous(plan.Assignments.Select(assignment => assignment.Source)))
+        {
+            return;
+        }
+
+        if (_session.HasChanges)
+        {
+            MessageBoxResult pendingChoice = ShowConfirmation(
+                L(
+                    $"Cette action appliquera aussi les {_session.PendingCount} changement(s) déjà ajouté(s) au lot. Continuer ?",
+                    $"This action will also apply the {_session.PendingCount} change(s) already added to the batch. Continue?"),
+                L("Appliquer directement", "Apply directly"),
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Question);
+            if (pendingChoice != MessageBoxResult.Yes)
+            {
+                return;
+            }
+        }
+
+        PatchBatchPreview preview = _session.BuildPreview(plan.Assignments);
+        PatchConflictResolution resolution = ChooseDirectConflictResolution(preview);
+        PatchStageResult result = _session.StagePreview(preview, resolution);
+        if (result.IsCancelled)
+        {
+            SetInfo(L("Application directe annulée.", "Direct apply cancelled."), warning: true);
+            return;
+        }
+
+        ClearPreview();
+        RefreshTargetRows();
+        if (result.StagedCount == 0)
+        {
+            SetInfo(L(
+                $"Aucun changement à appliquer ({result.SkippedConflictCount} conflit(s) ignoré(s), {result.UnchangedCount} ligne(s) inchangée(s)).",
+                $"No change to apply ({result.SkippedConflictCount} conflict(s) skipped, {result.UnchangedCount} row(s) unchanged)."),
+                warning: result.SkippedConflictCount > 0);
+            return;
+        }
+
+        SetInfo(L("Application directe en cours.", "Applying changes directly."));
+        ApplyRequested?.Invoke(this, EventArgs.Empty);
+    }
+
+    private PatchConflictResolution ChooseDirectConflictResolution(PatchBatchPreview preview)
+    {
+        if (!preview.HasConflicts)
+        {
+            return PatchConflictResolution.Replace;
+        }
+
+        MessageBoxResult choice = ShowConfirmation(
+            L(
+                $"{preview.ReplaceCount} RX possède(nt) déjà une source. Oui = remplacer, Non = ignorer ces conflits, Annuler = ne rien appliquer.",
+                $"{preview.ReplaceCount} Rx channel(s) already have a source. Yes = replace, No = skip these conflicts, Cancel = apply nothing."),
+            L("Conflits de patch", "Patch conflicts"),
+            MessageBoxButton.YesNoCancel,
+            MessageBoxImage.Warning);
+        return choice switch
+        {
+            MessageBoxResult.Yes => PatchConflictResolution.Replace,
+            MessageBoxResult.No => PatchConflictResolution.Skip,
+            _ => PatchConflictResolution.Cancel
+        };
     }
 
     private void CancelPreviewButton_Click(object sender, RoutedEventArgs e)
@@ -483,8 +608,8 @@ public partial class PatchWorkspaceView : UserControl
 
         MessageBoxResult confirmation = ShowConfirmation(
             L(
-                $"Préparer la déconnexion de {targets.Length} canal(aux) RX sélectionné(s) ?",
-                $"Stage disconnection of {targets.Length} selected Rx channel(s)?"),
+                $"Ajouter la déconnexion de {targets.Length} canal(aux) RX sélectionné(s) au lot ?",
+                $"Add the disconnection of {targets.Length} selected Rx channel(s) to the batch?"),
             L("Confirmer la déconnexion", "Confirm disconnection"),
             MessageBoxButton.YesNo,
             MessageBoxImage.Warning);
@@ -498,7 +623,7 @@ public partial class PatchWorkspaceView : UserControl
             int removed = _session.RemoveMany(targets);
             ClearPreview();
             RefreshTargetRows();
-            SetInfo(L($"{removed} déconnexion(s) préparée(s).", $"{removed} disconnection(s) staged."));
+            SetInfo(L($"{removed} déconnexion(s) ajoutée(s) au lot.", $"{removed} disconnection(s) added to the batch."));
         }
         catch (Exception exception)
         {
@@ -537,7 +662,7 @@ public partial class PatchWorkspaceView : UserControl
         if (cell.IsAssigned)
         {
             _session.Remove(cell.Target);
-            SetInfo(L("Déconnexion préparée.", "Disconnection staged."));
+            SetInfo(L("Déconnexion ajoutée au lot.", "Disconnection added to the batch."));
         }
         else
         {
@@ -569,8 +694,8 @@ public partial class PatchWorkspaceView : UserControl
 
             PatchStageResult result = _session.StagePreview(preview, resolution);
             SetInfo(result.IsCancelled || result.SkippedConflictCount > 0
-                ? L("Aucune affectation préparée.", "No assignment staged.")
-                : L("Affectation préparée.", "Assignment staged."),
+                ? L("Aucune affectation ajoutée au lot.", "No assignment added to the batch.")
+                : L("Affectation ajoutée au lot.", "Assignment added to the batch."),
                 warning: result.IsCancelled || result.SkippedConflictCount > 0);
         }
 
@@ -658,6 +783,7 @@ public partial class PatchWorkspaceView : UserControl
         bool hasTxSelection = TxChannelListBox.SelectedItems.Count > 0;
         bool hasValidRangeCount = int.TryParse(RangeCountTextBox.Text, out int rangeCount) && rangeCount > 0;
         PreviewSelectionButton.IsEnabled = hasRxSelection && hasTxSelection;
+        ApplySelectionDirectButton.IsEnabled = hasRxSelection && hasTxSelection;
         RemoveSelectedRxButton.IsEnabled = hasRxSelection;
         ClearSelectionButton.IsEnabled = hasRxSelection || hasTxSelection;
         SelectAllTxButton.IsEnabled = _visibleSources.Count > 0;
@@ -665,7 +791,9 @@ public partial class PatchWorkspaceView : UserControl
         PreviewRangeButton.IsEnabled = RangeStartTxComboBox.SelectedItem is PatchSourceDescriptor
             && RangeStartRxComboBox.SelectedItem is PatchTargetDescriptor
             && hasValidRangeCount;
-        StagePreviewButton.IsEnabled = _currentPreview is not null;
+        ApplyRangeDirectButton.IsEnabled = PreviewRangeButton.IsEnabled;
+        AddPreviewToBatchButton.IsEnabled = _currentPreview is not null;
+        ApplyPreviewButton.IsEnabled = _currentPreview is not null;
         CancelPreviewButton.IsEnabled = _currentPreview is not null;
         ConflictResolutionComboBox.IsEnabled = _currentPreview?.HasConflicts == true;
         ResetPendingButton.IsEnabled = _session.HasChanges;
@@ -684,8 +812,8 @@ public partial class PatchWorkspaceView : UserControl
     {
         TitleTextBlock.Text = "Easy patch";
         IntroTextBlock.Text = L(
-            "Préparez les affectations puis appliquez-les en une seule opération.",
-            "Stage assignments, then apply them in a single operation.");
+            "Prévisualisez une opération, ajoutez-la au lot ou appliquez-la directement.",
+            "Preview an operation, add it to the batch, or apply it directly.");
         TxDeviceLabel.Content = L("Machine émettrice TX", "Tx transmitting device");
         RxDeviceLabel.Content = L("Machine réceptrice RX", "Rx receiving device");
         PreviousRxDeviceButton.ToolTip = L("Machine RX précédente", "Previous Rx device");
@@ -699,27 +827,36 @@ public partial class PatchWorkspaceView : UserControl
         SelectAllTxButton.Content = L("Tout sélectionner", "Select all");
         SelectAllRxButton.Content = L("Tout sélectionner", "Select all");
         SelectionHintTextBlock.Text = L(
-            "Sélectionnez les TX et les RX à relier. Un TX peut alimenter plusieurs RX.",
-            "Select the Tx and Rx channels to connect. One Tx may feed several Rx channels.");
-        PreviewSelectionButton.Content = L("Prévisualiser la sélection", "Preview selection");
-        RemoveSelectedRxButton.Content = L("Déconnecter les RX sélectionnés", "Disconnect selected Rx channels");
-        ClearSelectionButton.Content = L("Effacer la sélection", "Clear selection");
+            "Sélection",
+            "Selection");
+        PreviewSelectionButton.Content = L("Prévisualiser", "Preview");
+        ApplySelectionDirectButton.Content = L("Appliquer", "Apply now");
+        ApplySelectionDirectButton.ToolTip = L(
+            "Applique immédiatement la sélection et les éventuels changements déjà ajoutés au lot.",
+            "Immediately applies the selection and any changes already added to the batch.");
+        RemoveSelectedRxButton.Content = L("Déconnecter", "Disconnect");
+        ClearSelectionButton.Content = L("Effacer", "Clear");
         RangeHeadingTextBlock.Text = L("Patch par plage", "Range patch");
         RangeStartTxLabel.Content = L("Premier TX", "First Tx");
         RangeStartRxLabel.Content = L("Premier RX", "First Rx");
-        RangeCountLabel.Content = L("Nombre de canaux", "Channel count");
-        PreviewRangeButton.Content = L("Prévisualiser la plage", "Preview range");
+        RangeCountLabel.Content = L("Nombre", "Count");
+        PreviewRangeButton.Content = L("Prévisualiser", "Preview");
+        ApplyRangeDirectButton.Content = L("Appliquer", "Apply now");
+        ApplyRangeDirectButton.ToolTip = L(
+            "Applique immédiatement la plage et les éventuels changements déjà ajoutés au lot.",
+            "Immediately applies the range and any changes already added to the batch.");
         PreviewGroupBox.Header = L("Prévisualisation", "Preview");
         PreviewTargetColumn.Header = L("RX cible", "Target Rx");
         PreviewCurrentColumn.Header = L("Source actuelle", "Current source");
         PreviewProposedColumn.Header = L("Nouvelle source", "New source");
         PreviewActionColumn.Header = L("Action", "Action");
         ConflictResolutionLabel.Content = L("Conflits", "Conflicts");
-        StagePreviewButton.Content = L("Préparer ces changements", "Stage these changes");
+        AddPreviewToBatchButton.Content = L("Ajouter au lot", "Add to batch");
+        ApplyPreviewButton.Content = L("Appliquer ces changements", "Apply these changes");
         CancelPreviewButton.Content = L("Annuler l'aperçu", "Cancel preview");
         PreviewSafetyTextBlock.Text = L(
-            "Aucun changement XML avant Appliquer au projet.",
-            "No XML change until Apply to project.");
+            "La prévisualisation ne modifie rien. Ajoutez au lot ou appliquez maintenant.",
+            "Previewing changes nothing. Add to the batch or apply now.");
         ConflictResolutionComboBox.ItemsSource = new[]
         {
             new ConflictChoice(PatchConflictResolution.Cancel, L("Annuler le lot", "Cancel batch")),
@@ -735,10 +872,10 @@ public partial class PatchWorkspaceView : UserControl
         CancelButton.Content = L("Fermer sans appliquer", "Close without applying");
         CancelButton.Visibility = _embedded ? Visibility.Collapsed : Visibility.Visible;
         ApplyButton.Content = _embedded
-            ? L("Appliquer à la configuration", "Apply to configuration")
+            ? L("Appliquer tout le lot", "Apply entire batch")
             : _returnEditsOnly
             ? L("Valider dans le détail machine", "Return to device details")
-            : L("Appliquer au projet", "Apply to project");
+            : L("Appliquer tout le lot", "Apply entire batch");
 
         AutomationProperties.SetName(TxDeviceComboBox, TxDeviceLabel.Content.ToString()!);
         AutomationProperties.SetName(RxDeviceComboBox, RxDeviceLabel.Content.ToString()!);
@@ -748,6 +885,10 @@ public partial class PatchWorkspaceView : UserControl
         AutomationProperties.SetName(NextTxDeviceButton, NextTxDeviceButton.ToolTip.ToString()!);
         AutomationProperties.SetName(TxChannelListBox, TxListHeadingTextBlock.Text);
         AutomationProperties.SetName(RxChannelListBox, RxListHeadingTextBlock.Text);
+        AutomationProperties.SetName(ApplySelectionDirectButton, ApplySelectionDirectButton.Content.ToString()!);
+        AutomationProperties.SetName(ApplyRangeDirectButton, ApplyRangeDirectButton.Content.ToString()!);
+        AutomationProperties.SetName(AddPreviewToBatchButton, AddPreviewToBatchButton.Content.ToString()!);
+        AutomationProperties.SetName(ApplyPreviewButton, ApplyPreviewButton.Content.ToString()!);
         AutomationProperties.SetName(MatrixGrid, MatrixTab.Header.ToString()!);
         AutomationProperties.SetName(PreviewGrid, PreviewGroupBox.Header.ToString()!);
     }
@@ -768,6 +909,7 @@ public partial class PatchWorkspaceView : UserControl
     {
         _currentPreview = null;
         PreviewGrid.ItemsSource = Array.Empty<PatchPreviewRow>();
+        PreviewGroupBox.Visibility = Visibility.Collapsed;
         PreviewSummaryTextBlock.Text = L("Aucune prévisualisation.", "No preview.");
         SelectConflictResolution(PatchConflictResolution.Cancel);
         UpdateCommandState();
