@@ -23,7 +23,9 @@ La V3.08 remplace la V3.07 comme version courante de la branche `main`. La V3.07
 - Les noms des machines RX/TX restent visibles : Easy patch n'utilise plus un ascenseur pour toute la page.
 - Prévisualisation compacte de chaque ligne : RX cible, source actuelle, nouvelle source et action.
 - `Appliquer` exécute directement la sélection ou la plage sans imposer la prévisualisation.
-- Après une prévisualisation, `Ajouter au lot` permet d'accumuler plusieurs opérations et `Appliquer ces changements` les valide immédiatement.
+- Chaque prévisualisation rejoint automatiquement le lot cumulatif sans modifier le XML ; `Appliquer tout le lot` valide ensuite toutes les opérations en une seule action.
+- La grille utilise des cellules compactes et affiche le nom TX complet au survol.
+- Un glissement horizontal prépare une série TX/RX, un glissement vertical diffuse un TX vers plusieurs RX et une diagonale prépare une série un-à-un.
 - Pour un RX déjà patché : annuler le lot, ignorer les conflits ou remplacer les subscriptions.
 - Déconnexion groupée des RX sélectionnés.
 - Grille TX/RX conservée pour affecter ou retirer un patch unitaire.
@@ -63,7 +65,7 @@ La V3.08 remplace la V3.07 comme version courante de la branche `main`. La V3.07
 
 ## Validation automatisée
 
-- 89 tests Core et contrats Windows, plus 8 tests d'interface Mac sans écran, réussissent en Release.
+- 95 tests Core et contrats Windows, plus 8 tests d'interface Mac sans écran, réussissent en Release.
 - Les builds WPF et Avalonia Release réussissent sans warning.
 - Les tests couvrent la sélection, les plages, les conflits, le remplacement, l'annulation, le rollback, la persistance, la matrice et l'intégration au détail machine.
 - Le garde-fou XML, les sauvegardes atomiques, les namespaces, les interfaces réseau et les presets synthétiques restent couverts.

@@ -1,5 +1,15 @@
 # Changelog V3
 
+## 2026-07-13 - Version 3.08 - mise à jour Easy patch
+
+- Chaque commande `Prévisualiser` ajoute désormais immédiatement l'opération au lot temporaire, sans modifier le XML.
+- Le lot prévisualisé reste visible et se cumule lors des changements de machines RX/TX, des sélections et des plages successives.
+- `Appliquer tout le lot` conserve une seule mutation XML et une seule étape d'annulation pour l'ensemble des opérations.
+- Réduction des cellules de la grille à `28 × 22` pixels et des colonnes TX à 32 pixels ; le nom complet reste disponible au survol.
+- Ajout du glissement horizontal pour une série TX/RX, vertical pour un TX vers plusieurs RX et diagonal pour une série un-à-un.
+- Blocage atomique des diagonales ambiguës et des séries dépassant les canaux disponibles.
+- Extension de la suite à 95 tests Core et contrats Windows, plus 8 tests Avalonia sans écran.
+
 ## 2026-07-12 - Version 3.08 officielle Windows et macOS
 
 - Retrait du suffixe `Beta` dans les interfaces, métadonnées, exports, notices et installateur.

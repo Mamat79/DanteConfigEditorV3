@@ -18,7 +18,7 @@ Version officielle Windows et macOS de la branche `main` pour éditer hors ligne
 - Réinitialise les noms de canaux.
 - Modifie les paramètres réseau et audio exposés par les fichiers XML reconnus.
 - Affiche une page Patch pour visualiser et modifier les abonnements RX vers TX lorsque le format XML le permet.
-- Ajoute l'onglet Windows `Easy patch` avec RX à gauche, TX à droite, navigation rapide entre machines, sélection multiple, prévisualisation, plages strictes, résolution explicite des conflits et matrice interactive.
+- Ajoute l'onglet Windows `Easy patch` avec RX à gauche, TX à droite, navigation rapide entre machines, lot prévisualisé cumulatif, plages strictes, résolution explicite des conflits et matrice interactive compacte avec glissement en série.
 - Met à jour les patchs RX quand un canal TX utilisé est renommé.
 - Crée une sauvegarde du fichier source et de toute destination existante avant sauvegarde.
 - Sauvegarde via un fichier temporaire relu puis un remplacement atomique de la destination.
@@ -113,9 +113,9 @@ La V3.08 utilise un AppId, un dossier Program Files, un menu Démarrer et un sto
 3. Sélectionner une copie du fichier de configuration Dante.
 4. Vérifier les devices et paramètres détectés.
 5. Modifier les champs souhaités.
-6. Dans l'onglet `Easy patch`, choisir les machines RX et TX, sélectionner les canaux, puis cliquer sur `Appliquer` pour agir directement ou sur `Prévisualiser` pour contrôler le détail.
-7. Après prévisualisation, traiter explicitement les conflits puis choisir `Ajouter au lot` ou `Appliquer ces changements`.
-8. Pour un lot accumulé, cliquer sur `Appliquer tout le lot` lorsque toutes les opérations sont prêtes.
+6. Dans l'onglet `Easy patch`, choisir les machines RX et TX, puis cliquer sur `Prévisualiser` : chaque opération s'ajoute au lot temporaire sans modifier le XML.
+7. Répéter l'opération sur autant de machines, sélections ou plages que nécessaire. Les conflits demandent toujours un choix explicite.
+8. Cliquer sur `Appliquer tout le lot` lorsque tout est prêt, ou utiliser `Appliquer` pour valider immédiatement l'opération courante avec le lot déjà accumulé.
 9. Si besoin, utiliser `Ajouter XML au projet` pour importer les devices d'un autre export XML.
 10. Sauvegarder sous un nouveau nom.
 11. Valider le fichier généré dans l'outil Dante officiel approprié avant usage terrain.
@@ -128,7 +128,9 @@ La V3.08 utilise un AppId, un dossier Program Files, un menu Démarrer et un sto
 - Patch par plage avec premier TX, premier RX et nombre exact ; aucune application partielle si la plage dépasse les canaux disponibles.
 - Prévisualisation lisible sans ascenseur général : les machines restent visibles et chaque ligne indique le RX, la source actuelle, la nouvelle source et l'action.
 - Application directe facultative pour la sélection et le patch par plage.
-- Après prévisualisation, choix entre ajouter l'opération au lot ou appliquer immédiatement les changements.
+- Chaque prévisualisation rejoint automatiquement un lot cumulatif visible ; le XML reste inchangé jusqu'à `Appliquer tout le lot`.
+- Grille plus dense avec cellules `28 × 22`, numéros TX compacts et noms complets au survol.
+- Glissement maintenu dans la grille : horizontal pour une série TX/RX, vertical pour diffuser un TX vers plusieurs RX et diagonal pour une série un-à-un.
 - Traitement explicite des RX déjà patchés : annuler le lot, ignorer les conflits ou remplacer les subscriptions.
 - Déconnexion groupée de plusieurs RX et matrice unitaire TX vers RX conservée.
 - Changements ajoutés en mémoire puis appliqués au XML en un seul lot et une seule étape d'annulation.

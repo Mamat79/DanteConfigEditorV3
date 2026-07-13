@@ -18,6 +18,7 @@
 - La matrice affiche un couple de devices à la fois pour rester exploitable sur les gros presets.
 - Une sélection multiple doit contenir autant de TX que de RX, sauf lorsqu'un seul TX alimente plusieurs RX. Plusieurs TX vers un RX sont refusés.
 - Une plage est entièrement refusée si le nombre demandé dépasse les TX ou RX disponibles ; il n'existe pas d'application partielle silencieuse.
+- Dans la grille Windows, un glissement horizontal représente une série TX/RX à partir du RX choisi, car un RX Dante ne peut pas recevoir plusieurs TX. Une diagonale doit avancer du même nombre de cases TX et RX ; les gestes ambigus sont refusés sans changement partiel.
 - Un RX déjà patché demande un choix explicite : annuler, ignorer le conflit ou remplacer la subscription.
 - Les changements du patch visuel restent en attente jusqu'à `Appliquer au projet`. Fermer sans appliquer les abandonne.
 
