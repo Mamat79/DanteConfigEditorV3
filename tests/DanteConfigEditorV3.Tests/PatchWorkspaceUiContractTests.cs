@@ -14,21 +14,20 @@ public sealed class PatchWorkspaceUiContractTests
         Assert.Contains("x:Name=\"RxChannelListBox\"", xaml, StringComparison.Ordinal);
         Assert.Equal(2, CountOccurrences(xaml, "SelectionMode=\"Extended\""));
         Assert.Contains("x:Name=\"PreviewGrid\"", xaml, StringComparison.Ordinal);
-        Assert.Contains("x:Name=\"ConflictResolutionComboBox\"", xaml, StringComparison.Ordinal);
+        Assert.DoesNotContain("x:Name=\"ConflictResolutionComboBox\"", xaml, StringComparison.Ordinal);
         Assert.Contains("x:Name=\"RangeStartTxComboBox\"", xaml, StringComparison.Ordinal);
         Assert.Contains("x:Name=\"RangeStartRxComboBox\"", xaml, StringComparison.Ordinal);
         Assert.Contains("x:Name=\"RangeCountTextBox\"", xaml, StringComparison.Ordinal);
         Assert.Contains("x:Name=\"MatrixGrid\"", xaml, StringComparison.Ordinal);
         Assert.Contains("<Trigger Property=\"IsSelected\" Value=\"True\">", xaml, StringComparison.Ordinal);
-        Assert.Contains("<TextBlock Text=\"{Binding Display}\"", xaml, StringComparison.Ordinal);
         Assert.Contains("x:Name=\"PreviousRxDeviceButton\"", xaml, StringComparison.Ordinal);
         Assert.Contains("x:Name=\"NextRxDeviceButton\"", xaml, StringComparison.Ordinal);
         Assert.Contains("x:Name=\"PreviousTxDeviceButton\"", xaml, StringComparison.Ordinal);
         Assert.Contains("x:Name=\"NextTxDeviceButton\"", xaml, StringComparison.Ordinal);
-        Assert.DoesNotContain("AllowDrop=", xaml, StringComparison.Ordinal);
-        Assert.DoesNotContain("DragDrop.DoDragDrop", codeBehind, StringComparison.Ordinal);
-        Assert.DoesNotContain("glisser-déposer", xaml, StringComparison.OrdinalIgnoreCase);
-        Assert.DoesNotContain("glisser-déposer", codeBehind, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("PreviewMouseLeftButtonDown=\"MatrixGrid_PreviewMouseLeftButtonDown\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("PreviewMouseMove=\"MatrixGrid_PreviewMouseMove\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("PreviewMouseLeftButtonUp=\"MatrixGrid_PreviewMouseLeftButtonUp\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("PlanMatrixGesture", codeBehind, StringComparison.Ordinal);
 
         string mainWindowXaml = File.ReadAllText(RepositoryFile("MainWindow.xaml"));
         Assert.DoesNotContain("glisser-déposer", mainWindowXaml, StringComparison.OrdinalIgnoreCase);
@@ -80,7 +79,7 @@ public sealed class PatchWorkspaceUiContractTests
     }
 
     [Fact]
-    public void WindowsPatchWorkspaceOffersBatchPreviewAndDirectApplyPaths()
+    public void WindowsPatchWorkspaceOffersCumulativePreviewAndDirectApplyPaths()
     {
         string xaml = File.ReadAllText(RepositoryFile("PatchWorkspaceView.xaml"));
         string codeBehind = File.ReadAllText(RepositoryFile("PatchWorkspaceView.xaml.cs"));
@@ -89,9 +88,11 @@ public sealed class PatchWorkspaceUiContractTests
 
         Assert.Contains("x:Name=\"ApplySelectionDirectButton\"", xaml, StringComparison.Ordinal);
         Assert.Contains("x:Name=\"ApplyRangeDirectButton\"", xaml, StringComparison.Ordinal);
-        Assert.Contains("x:Name=\"AddPreviewToBatchButton\"", xaml, StringComparison.Ordinal);
-        Assert.Contains("x:Name=\"ApplyPreviewButton\"", xaml, StringComparison.Ordinal);
-        Assert.Contains("Appliquer ces changements", xaml, StringComparison.Ordinal);
+        Assert.DoesNotContain("x:Name=\"AddPreviewToBatchButton\"", xaml, StringComparison.Ordinal);
+        Assert.DoesNotContain("x:Name=\"ApplyPreviewButton\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("Lot prévisualisé", xaml, StringComparison.Ordinal);
+        Assert.Contains("StagePlanAsPreview", codeBehind, StringComparison.Ordinal);
+        Assert.Contains("PendingChanges", codeBehind, StringComparison.Ordinal);
         Assert.Contains("ApplyPlanDirectly", codeBehind, StringComparison.Ordinal);
 
         XElement preview = NamedElement(document, xamlNamespace, "PreviewGroupBox");
@@ -102,6 +103,25 @@ public sealed class PatchWorkspaceUiContractTests
         Assert.All(
             previewGrid.Elements().Single(element => element.Name.LocalName == "DataGrid.Columns").Elements(),
             column => Assert.NotNull(column.Attribute("MinWidth")));
+    }
+
+    [Fact]
+    public void PatchMatrixUsesCompactCells()
+    {
+        XDocument document = XDocument.Parse(File.ReadAllText(RepositoryFile("PatchWorkspaceView.xaml")));
+        XNamespace xamlNamespace = "http://schemas.microsoft.com/winfx/2006/xaml";
+        XElement style = document.Descendants()
+            .Single(element => string.Equals((string?)element.Attribute(xamlNamespace + "Key"), "MatrixCellToggleStyle", StringComparison.Ordinal));
+        Dictionary<string, double> setters = style.Elements()
+            .Where(element => element.Name.LocalName == "Setter")
+            .Where(element => element.Attribute("Property") is not null)
+            .ToDictionary(
+                element => element.Attribute("Property")!.Value,
+                element => double.TryParse(element.Attribute("Value")?.Value, out double value) ? value : double.NaN,
+                StringComparer.Ordinal);
+
+        Assert.True(setters["Width"] <= 30);
+        Assert.True(setters["Height"] <= 24);
     }
 
     [Fact]

@@ -48,6 +48,20 @@ public sealed record PatchStageResult(
     int UnchangedCount,
     bool IsCancelled);
 
+public sealed record PendingPatchChange(
+    string RxDeviceName,
+    int RxDanteId,
+    string? OriginalTxDeviceName,
+    string? OriginalTxChannelName,
+    string? DesiredTxDeviceName,
+    string? DesiredTxChannelName)
+{
+    public bool IsCreation => string.IsNullOrWhiteSpace(OriginalTxDeviceName)
+        && !string.IsNullOrWhiteSpace(DesiredTxDeviceName);
+
+    public bool IsRemoval => string.IsNullOrWhiteSpace(DesiredTxDeviceName);
+}
+
 public sealed class PatchWorkspaceSession
 {
     private readonly Dictionary<PatchTargetKey, PatchSourceValue> _originalAssignments;
@@ -76,6 +90,23 @@ public sealed class PatchWorkspaceSession
     public IReadOnlyList<PatchEditRequest> Edits => _pendingEdits.Values
         .OrderBy(edit => edit.RxDeviceName, StringComparer.OrdinalIgnoreCase)
         .ThenBy(edit => edit.RxDanteId)
+        .ToArray();
+
+    public IReadOnlyList<PendingPatchChange> PendingChanges => _pendingEdits
+        .Select(pair =>
+        {
+            PatchSourceValue original = _originalAssignments[pair.Key];
+            PatchEditRequest desired = pair.Value;
+            return new PendingPatchChange(
+                desired.RxDeviceName,
+                desired.RxDanteId,
+                original.DeviceName,
+                original.ChannelName,
+                desired.TxDeviceName,
+                desired.TxChannelName);
+        })
+        .OrderBy(change => change.RxDeviceName, StringComparer.OrdinalIgnoreCase)
+        .ThenBy(change => change.RxDanteId)
         .ToArray();
 
     public EffectivePatchAssignment GetEffectiveAssignment(PatchTargetDescriptor target)

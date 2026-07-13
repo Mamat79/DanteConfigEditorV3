@@ -3,6 +3,7 @@ using System.Windows.Automation;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Data;
+using System.Windows.Input;
 using System.Windows.Media;
 using DanteConfigEditor.Models;
 using DanteConfigEditor.Services;
@@ -18,9 +19,12 @@ public partial class PatchWorkspaceView : UserControl
     private readonly bool _lockRxDeviceSelection;
     private readonly bool _embedded;
     private readonly HashSet<string> _ambiguousSourceNames = new(StringComparer.OrdinalIgnoreCase);
+    private readonly List<ToggleButton> _matrixGestureHighlights = [];
     private IReadOnlyList<PatchSourceDescriptor> _visibleSources = [];
     private IReadOnlyList<PatchTargetDescriptor> _visibleTargets = [];
-    private PatchBatchPreview? _currentPreview;
+    private PatchMatrixCell? _matrixGestureStart;
+    private PatchMatrixCell? _matrixGestureCurrent;
+    private bool _matrixGestureActive;
     private bool _initializing = true;
 
     public PatchWorkspaceView(
@@ -65,7 +69,6 @@ public partial class PatchWorkspaceView : UserControl
     public void ResetPendingChanges()
     {
         _session.Reset();
-        ClearPreview();
         RefreshTargetRows();
         SetInfo(L("Tous les changements Easy patch ont été appliqués.", "All Easy patch changes were applied."));
     }
@@ -138,7 +141,6 @@ public partial class PatchWorkspaceView : UserControl
             return;
         }
 
-        ClearPreview();
         RefreshSourceChannelsAndMatrixColumns();
         RefreshTargetRows();
     }
@@ -147,7 +149,6 @@ public partial class PatchWorkspaceView : UserControl
     {
         if (!_initializing)
         {
-            ClearPreview();
             RefreshTargetRows();
         }
     }
@@ -241,7 +242,10 @@ public partial class PatchWorkspaceView : UserControl
         RangeStartRxComboBox.SelectedItem = _visibleTargets.FirstOrDefault(target => target.DanteId == selectedRangeDanteId)
             ?? _visibleTargets.FirstOrDefault();
 
-        MatrixGrid.ItemsSource = _visibleTargets.Select(BuildMatrixRow).ToArray();
+        MatrixGrid.ItemsSource = _visibleTargets
+            .Select((target, targetIndex) => BuildMatrixRow(target, targetIndex))
+            .ToArray();
+        RefreshPendingPreview();
         UpdateCommandState();
     }
 
@@ -255,7 +259,7 @@ public partial class PatchWorkspaceView : UserControl
         return new PatchRxListItem(target, $"{target.Display}   <-   {source}{marker}");
     }
 
-    private PatchMatrixRow BuildMatrixRow(PatchTargetDescriptor target)
+    private PatchMatrixRow BuildMatrixRow(PatchTargetDescriptor target, int targetIndex)
     {
         EffectivePatchAssignment assignment = _session.GetEffectiveAssignment(target);
         int assignedSourceIndex = FindAssignedSourceIndex(assignment);
@@ -263,6 +267,8 @@ public partial class PatchWorkspaceView : UserControl
             .Select((source, index) => new PatchMatrixCell(
                 source,
                 target,
+                SourceIndex: index,
+                TargetIndex: targetIndex,
                 IsAssigned: index == assignedSourceIndex,
                 IsPending: assignment.IsPending,
                 Marker: index == assignedSourceIndex ? "●" : string.Empty,
@@ -303,7 +309,7 @@ public partial class PatchWorkspaceView : UserControl
         {
             Header = L("Canal RX", "Rx channel"),
             Binding = new Binding(nameof(PatchMatrixRow.TargetDisplay)),
-            Width = new DataGridLength(220),
+            Width = new DataGridLength(190),
             IsReadOnly = true
         });
 
@@ -324,7 +330,7 @@ public partial class PatchWorkspaceView : UserControl
             {
                 Header = BuildMatrixHeader(source),
                 CellTemplate = new DataTemplate { VisualTree = toggle },
-                Width = new DataGridLength(96),
+                Width = new DataGridLength(32),
                 IsReadOnly = true
             });
         }
@@ -332,31 +338,25 @@ public partial class PatchWorkspaceView : UserControl
 
     private FrameworkElement BuildMatrixHeader(PatchSourceDescriptor source)
     {
-        StackPanel panel = new() { MaxWidth = 88 };
-        panel.Children.Add(new TextBlock
+        TextBlock header = new()
         {
-            Text = $"TX {source.DanteId}",
-            FontWeight = FontWeights.SemiBold,
-            TextAlignment = TextAlignment.Center
-        });
-        panel.Children.Add(new TextBlock
-        {
-            Text = source.ChannelName,
-            TextTrimming = TextTrimming.CharacterEllipsis,
+            Text = source.DanteId.ToString("000"),
             TextWrapping = TextWrapping.NoWrap,
             TextAlignment = TextAlignment.Center,
-            FontSize = 11
-        });
-        ToolTipService.SetToolTip(panel, source.FullDisplay);
-        AutomationProperties.SetName(panel, source.FullDisplay);
-        return panel;
+            FontSize = 10,
+            FontWeight = FontWeights.SemiBold,
+            Width = 28
+        };
+        ToolTipService.SetToolTip(header, source.FullDisplay);
+        AutomationProperties.SetName(header, source.FullDisplay);
+        return header;
     }
 
     private void PreviewSelectionButton_Click(object sender, RoutedEventArgs e)
     {
         try
         {
-            ShowPreview(BuildSelectionPlan());
+            StagePlanAsPreview(BuildSelectionPlan());
         }
         catch (Exception exception)
         {
@@ -385,7 +385,7 @@ public partial class PatchWorkspaceView : UserControl
     {
         try
         {
-            ShowPreview(BuildRangePlan());
+            StagePlanAsPreview(BuildRangePlan());
         }
         catch (Exception exception)
         {
@@ -424,103 +424,91 @@ public partial class PatchWorkspaceView : UserControl
             count);
     }
 
-    private void ShowPreview(PatchAssignmentPlan plan)
+    private void StagePlanAsPreview(PatchAssignmentPlan plan)
     {
         if (!SourcesAreUnambiguous(plan.Assignments.Select(assignment => assignment.Source)))
         {
             return;
         }
 
-        _currentPreview = _session.BuildPreview(plan.Assignments);
-        PreviewGrid.ItemsSource = _currentPreview.Items.Select(BuildPreviewRow).ToArray();
-        PreviewGroupBox.Visibility = Visibility.Visible;
-        PreviewSummaryTextBlock.Text = L(
-            $"{_currentPreview.Items.Count} ligne(s) : {_currentPreview.CreateCount} création(s), {_currentPreview.ReplaceCount} remplacement(s), {_currentPreview.UnchangedCount} inchangée(s).",
-            $"{_currentPreview.Items.Count} row(s): {_currentPreview.CreateCount} new, {_currentPreview.ReplaceCount} replacement(s), {_currentPreview.UnchangedCount} unchanged.");
-
-        SelectConflictResolution(_currentPreview.HasConflicts
-            ? PatchConflictResolution.Cancel
-            : PatchConflictResolution.Replace);
-        SetInfo(_currentPreview.HasConflicts
-            ? L("Des RX sont déjà patchés. Choisissez explicitement comment traiter les conflits.", "Some Rx channels are already patched. Explicitly choose how to handle conflicts.")
-            : L("Prévisualisation prête. Aucun conflit de remplacement.", "Preview ready. No replacement conflict."),
-            warning: _currentPreview.HasConflicts);
-        UpdateCommandState();
-    }
-
-    private PatchPreviewRow BuildPreviewRow(PatchPreviewItem item)
-    {
-        string current = item.Current.IsActive
-            ? $"{item.Current.TxDeviceName} / {item.Current.TxChannelName}"
-            : L("Libre", "Free");
-        string action = item.Action switch
-        {
-            PatchPreviewAction.Create => L("Créer", "Create"),
-            PatchPreviewAction.Replace => L("Remplacer", "Replace"),
-            _ => L("Inchangé", "Unchanged")
-        };
-
-        return new PatchPreviewRow(
-            item.Assignment.Target.FullDisplay,
-            current,
-            item.Assignment.Source.FullDisplay,
-            action,
-            item.Action.ToString());
-    }
-
-    private void AddPreviewToBatchButton_Click(object sender, RoutedEventArgs e)
-    {
-        StageCurrentPreview(applyImmediately: false);
-    }
-
-    private void ApplyPreviewButton_Click(object sender, RoutedEventArgs e)
-    {
-        StageCurrentPreview(applyImmediately: true);
-    }
-
-    private void StageCurrentPreview(bool applyImmediately)
-    {
-        if (_currentPreview is null)
-        {
-            SetInfo(L("Créez d'abord une prévisualisation.", "Create a preview first."), warning: true);
-            return;
-        }
-
         try
         {
-            PatchConflictResolution resolution = SelectedConflictResolution();
-            PatchStageResult result = _session.StagePreview(_currentPreview, resolution);
+            PatchBatchPreview preview = _session.BuildPreview(plan.Assignments);
+            PatchConflictResolution resolution = ChooseConflictResolution(preview);
+            PatchStageResult result = _session.StagePreview(preview, resolution);
             if (result.IsCancelled)
             {
-                SetInfo(L("Aucun changement appliqué : résolution annulée.", "No change applied: conflict resolution cancelled."), warning: true);
+                SetInfo(L("Prévisualisation annulée : le lot reste inchangé.", "Preview cancelled: the batch is unchanged."), warning: true);
                 return;
             }
 
             string message = L(
-                $"{result.StagedCount} changement(s) ajouté(s) au lot, {result.SkippedConflictCount} conflit(s) ignoré(s), {result.UnchangedCount} ligne(s) inchangée(s).",
-                $"{result.StagedCount} change(s) added to the batch, {result.SkippedConflictCount} conflict(s) skipped, {result.UnchangedCount} row(s) unchanged.");
-            ClearPreview();
+                $"{result.StagedCount} changement(s) prévisualisé(s) et ajouté(s) au lot, {result.SkippedConflictCount} conflit(s) ignoré(s), {result.UnchangedCount} ligne(s) inchangée(s).",
+                $"{result.StagedCount} change(s) previewed and added to the batch, {result.SkippedConflictCount} conflict(s) skipped, {result.UnchangedCount} row(s) unchanged.");
             RefreshTargetRows();
-
-            if (result.StagedCount == 0)
-            {
-                SetInfo(message, warning: result.SkippedConflictCount > 0);
-                return;
-            }
-
-            if (applyImmediately)
-            {
-                SetInfo(L("Application des changements prévisualisés.", "Applying previewed changes."));
-                ApplyRequested?.Invoke(this, EventArgs.Empty);
-                return;
-            }
-
             SetInfo(message, warning: result.SkippedConflictCount > 0);
         }
         catch (Exception exception)
         {
             SetInfo(exception.Message, warning: true);
         }
+    }
+
+    private void RefreshPendingPreview()
+    {
+        IReadOnlyList<PendingPatchChange> changes = _session.PendingChanges;
+        if (changes.Count == 0)
+        {
+            PreviewGrid.ItemsSource = Array.Empty<PatchPreviewRow>();
+            PreviewGroupBox.Visibility = Visibility.Collapsed;
+            PreviewSummaryTextBlock.Text = L("Aucun changement dans le lot.", "No changes in the batch.");
+            return;
+        }
+
+        PatchPreviewRow[] rows = changes.Select(BuildPendingPreviewRow).ToArray();
+        PreviewGrid.ItemsSource = rows;
+        PreviewGroupBox.Visibility = Visibility.Visible;
+        int creations = changes.Count(change => change.IsCreation);
+        int removals = changes.Count(change => change.IsRemoval);
+        int replacements = changes.Count - creations - removals;
+        PreviewSummaryTextBlock.Text = L(
+            $"Lot cumulatif : {changes.Count} changement(s), {creations} création(s), {replacements} remplacement(s), {removals} déconnexion(s). Le XML n'est pas encore modifié.",
+            $"Cumulative batch: {changes.Count} change(s), {creations} new, {replacements} replacement(s), {removals} disconnection(s). The XML is not modified yet.");
+    }
+
+    private PatchPreviewRow BuildPendingPreviewRow(PendingPatchChange change)
+    {
+        string action = change.IsRemoval
+            ? L("Déconnecter", "Disconnect")
+            : change.IsCreation
+                ? L("Créer", "Create")
+                : L("Remplacer", "Replace");
+        string actionKey = change.IsRemoval
+            ? "Remove"
+            : change.IsCreation ? "Create" : "Replace";
+
+        return new PatchPreviewRow(
+            DescribeTarget(change),
+            DescribeSource(change.OriginalTxDeviceName, change.OriginalTxChannelName),
+            DescribeSource(change.DesiredTxDeviceName, change.DesiredTxChannelName),
+            action,
+            actionKey);
+    }
+
+    private string DescribeTarget(PendingPatchChange change)
+    {
+        DanteChannel? channel = _project.FindDevice(change.RxDeviceName)?.RxChannels
+            .FirstOrDefault(item => item.DanteId == change.RxDanteId);
+        return channel is null
+            ? $"{change.RxDeviceName} / {change.RxDanteId:000}"
+            : $"{change.RxDeviceName} / {change.RxDanteId:000} - {channel.DisplayName}";
+    }
+
+    private string DescribeSource(string? deviceName, string? channelName)
+    {
+        return string.IsNullOrWhiteSpace(deviceName)
+            ? L("Libre", "Free")
+            : $"{deviceName} / {channelName}";
     }
 
     private void ApplyPlanDirectly(PatchAssignmentPlan plan)
@@ -546,7 +534,7 @@ public partial class PatchWorkspaceView : UserControl
         }
 
         PatchBatchPreview preview = _session.BuildPreview(plan.Assignments);
-        PatchConflictResolution resolution = ChooseDirectConflictResolution(preview);
+        PatchConflictResolution resolution = ChooseConflictResolution(preview);
         PatchStageResult result = _session.StagePreview(preview, resolution);
         if (result.IsCancelled)
         {
@@ -554,9 +542,8 @@ public partial class PatchWorkspaceView : UserControl
             return;
         }
 
-        ClearPreview();
         RefreshTargetRows();
-        if (result.StagedCount == 0)
+        if (!_session.HasChanges)
         {
             SetInfo(L(
                 $"Aucun changement à appliquer ({result.SkippedConflictCount} conflit(s) ignoré(s), {result.UnchangedCount} ligne(s) inchangée(s)).",
@@ -569,7 +556,7 @@ public partial class PatchWorkspaceView : UserControl
         ApplyRequested?.Invoke(this, EventArgs.Empty);
     }
 
-    private PatchConflictResolution ChooseDirectConflictResolution(PatchBatchPreview preview)
+    private PatchConflictResolution ChooseConflictResolution(PatchBatchPreview preview)
     {
         if (!preview.HasConflicts)
         {
@@ -589,12 +576,6 @@ public partial class PatchWorkspaceView : UserControl
             MessageBoxResult.No => PatchConflictResolution.Skip,
             _ => PatchConflictResolution.Cancel
         };
-    }
-
-    private void CancelPreviewButton_Click(object sender, RoutedEventArgs e)
-    {
-        ClearPreview();
-        SetInfo(L("Prévisualisation annulée.", "Preview cancelled."));
     }
 
     private void RemoveSelectedRxButton_Click(object sender, RoutedEventArgs e)
@@ -621,7 +602,6 @@ public partial class PatchWorkspaceView : UserControl
         try
         {
             int removed = _session.RemoveMany(targets);
-            ClearPreview();
             RefreshTargetRows();
             SetInfo(L($"{removed} déconnexion(s) ajoutée(s) au lot.", $"{removed} disconnection(s) added to the batch."));
         }
@@ -659,48 +639,233 @@ public partial class PatchWorkspaceView : UserControl
             return;
         }
 
-        if (cell.IsAssigned)
+        ExecuteMatrixGesture(cell, cell);
+    }
+
+    private void MatrixGrid_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        if (!TryGetMatrixCell(e.GetPosition(MatrixGrid), out PatchMatrixCell cell))
         {
-            _session.Remove(cell.Target);
+            return;
+        }
+
+        e.Handled = true;
+        _matrixGestureActive = true;
+        _matrixGestureStart = cell;
+        _matrixGestureCurrent = cell;
+        MatrixGrid.CaptureMouse();
+        UpdateMatrixGestureHighlight();
+    }
+
+    private void MatrixGrid_PreviewMouseMove(object sender, MouseEventArgs e)
+    {
+        if (!_matrixGestureActive)
+        {
+            return;
+        }
+
+        if (e.LeftButton != MouseButtonState.Pressed)
+        {
+            CancelMatrixGesture();
+            return;
+        }
+
+        if (TryGetMatrixCell(e.GetPosition(MatrixGrid), out PatchMatrixCell cell)
+            && (_matrixGestureCurrent?.SourceIndex != cell.SourceIndex
+                || _matrixGestureCurrent.TargetIndex != cell.TargetIndex))
+        {
+            _matrixGestureCurrent = cell;
+            UpdateMatrixGestureHighlight();
+        }
+
+        e.Handled = true;
+    }
+
+    private void MatrixGrid_PreviewMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+    {
+        if (!_matrixGestureActive || _matrixGestureStart is null)
+        {
+            return;
+        }
+
+        e.Handled = true;
+        PatchMatrixCell start = _matrixGestureStart;
+        PatchMatrixCell end = TryGetMatrixCell(e.GetPosition(MatrixGrid), out PatchMatrixCell releasedCell)
+            ? releasedCell
+            : _matrixGestureCurrent ?? start;
+
+        _matrixGestureActive = false;
+        _matrixGestureStart = null;
+        _matrixGestureCurrent = null;
+        ClearMatrixGestureHighlight();
+        MatrixGrid.ReleaseMouseCapture();
+        ExecuteMatrixGesture(start, end);
+    }
+
+    private void MatrixGrid_LostMouseCapture(object sender, MouseEventArgs e)
+    {
+        if (_matrixGestureActive)
+        {
+            CancelMatrixGesture();
+        }
+    }
+
+    private void ExecuteMatrixGesture(PatchMatrixCell start, PatchMatrixCell end)
+    {
+        if (start.SourceIndex == end.SourceIndex
+            && start.TargetIndex == end.TargetIndex
+            && start.IsAssigned)
+        {
+            _session.Remove(start.Target);
+            RefreshTargetRows();
             SetInfo(L("Déconnexion ajoutée au lot.", "Disconnection added to the batch."));
+            return;
         }
-        else
+
+        try
         {
-            if (!SourcesAreUnambiguous([cell.Source]))
-            {
-                RefreshTargetRows();
-                return;
-            }
+            PatchAssignmentPlan plan = PatchAssignmentPlanner.PlanMatrixGesture(
+                _visibleSources,
+                _visibleTargets,
+                start.SourceIndex,
+                start.TargetIndex,
+                end.SourceIndex,
+                end.TargetIndex);
+            StagePlanAsPreview(plan);
+        }
+        catch (Exception exception)
+        {
+            SetInfo(exception.Message, warning: true);
+        }
+    }
 
-            PatchBatchPreview preview = _session.BuildPreview(
-                [new PlannedPatchAssignment(cell.Source, cell.Target)]);
-            PatchConflictResolution resolution = PatchConflictResolution.Replace;
-            if (preview.HasConflicts)
-            {
-                MessageBoxResult choice = ShowConfirmation(
-                    L(
-                        "Ce RX possède déjà une source. Oui = remplacer, Non = ignorer, Annuler = ne rien changer.",
-                        "This Rx already has a source. Yes = replace, No = skip, Cancel = make no change."),
-                    L("Conflit de patch", "Patch conflict"),
-                    MessageBoxButton.YesNoCancel,
-                    MessageBoxImage.Warning);
-                resolution = choice switch
-                {
-                    MessageBoxResult.Yes => PatchConflictResolution.Replace,
-                    MessageBoxResult.No => PatchConflictResolution.Skip,
-                    _ => PatchConflictResolution.Cancel
-                };
-            }
-
-            PatchStageResult result = _session.StagePreview(preview, resolution);
-            SetInfo(result.IsCancelled || result.SkippedConflictCount > 0
-                ? L("Aucune affectation ajoutée au lot.", "No assignment added to the batch.")
-                : L("Affectation ajoutée au lot.", "Assignment added to the batch."),
-                warning: result.IsCancelled || result.SkippedConflictCount > 0);
+    private void UpdateMatrixGestureHighlight()
+    {
+        ClearMatrixGestureHighlight();
+        if (_matrixGestureStart is null || _matrixGestureCurrent is null)
+        {
+            return;
         }
 
-        ClearPreview();
-        RefreshTargetRows();
+        try
+        {
+            PatchAssignmentPlan plan = PatchAssignmentPlanner.PlanMatrixGesture(
+                _visibleSources,
+                _visibleTargets,
+                _matrixGestureStart.SourceIndex,
+                _matrixGestureStart.TargetIndex,
+                _matrixGestureCurrent.SourceIndex,
+                _matrixGestureCurrent.TargetIndex);
+            HashSet<(int SourceId, int TargetId)> plannedCells = plan.Assignments
+                .Select(item => (item.Source.DanteId, item.Target.DanteId))
+                .ToHashSet();
+            foreach (ToggleButton button in FindVisualChildren<ToggleButton>(MatrixGrid)
+                         .Where(button => button.Tag is PatchMatrixCell cell
+                             && plannedCells.Contains((cell.Source.DanteId, cell.Target.DanteId))))
+            {
+                HighlightMatrixButton(button, invalid: false);
+            }
+        }
+        catch (InvalidOperationException)
+        {
+            HighlightMatrixCell(_matrixGestureStart, invalid: true);
+            HighlightMatrixCell(_matrixGestureCurrent, invalid: true);
+        }
+    }
+
+    private void HighlightMatrixCell(PatchMatrixCell cell, bool invalid)
+    {
+        ToggleButton? button = FindVisualChildren<ToggleButton>(MatrixGrid)
+            .FirstOrDefault(candidate => candidate.Tag is PatchMatrixCell visible
+                && visible.SourceIndex == cell.SourceIndex
+                && visible.TargetIndex == cell.TargetIndex);
+        if (button is not null)
+        {
+            HighlightMatrixButton(button, invalid);
+        }
+    }
+
+    private void HighlightMatrixButton(ToggleButton button, bool invalid)
+    {
+        Color background = invalid ? Color.FromRgb(127, 29, 29) : Color.FromRgb(180, 83, 9);
+        button.Background = new SolidColorBrush(background);
+        button.Foreground = Brushes.White;
+        button.BorderBrush = (Brush)FindResource("WarningBrush");
+        button.BorderThickness = new Thickness(2);
+        _matrixGestureHighlights.Add(button);
+    }
+
+    private void ClearMatrixGestureHighlight()
+    {
+        foreach (ToggleButton button in _matrixGestureHighlights)
+        {
+            button.ClearValue(Control.BackgroundProperty);
+            button.ClearValue(Control.ForegroundProperty);
+            button.ClearValue(Control.BorderBrushProperty);
+            button.ClearValue(Control.BorderThicknessProperty);
+        }
+
+        _matrixGestureHighlights.Clear();
+    }
+
+    private void CancelMatrixGesture()
+    {
+        _matrixGestureActive = false;
+        _matrixGestureStart = null;
+        _matrixGestureCurrent = null;
+        ClearMatrixGestureHighlight();
+        if (MatrixGrid.IsMouseCaptured)
+        {
+            MatrixGrid.ReleaseMouseCapture();
+        }
+    }
+
+    private bool TryGetMatrixCell(Point point, out PatchMatrixCell cell)
+    {
+        DependencyObject? hit = MatrixGrid.InputHitTest(point) as DependencyObject;
+        ToggleButton? button = FindVisualParent<ToggleButton>(hit);
+        if (button?.Tag is PatchMatrixCell match)
+        {
+            cell = match;
+            return true;
+        }
+
+        cell = null!;
+        return false;
+    }
+
+    private static T? FindVisualParent<T>(DependencyObject? current)
+        where T : DependencyObject
+    {
+        while (current is not null)
+        {
+            if (current is T match)
+            {
+                return match;
+            }
+
+            current = VisualTreeHelper.GetParent(current);
+        }
+
+        return null;
+    }
+
+    private static IEnumerable<T> FindVisualChildren<T>(DependencyObject parent)
+        where T : DependencyObject
+    {
+        for (int index = 0; index < VisualTreeHelper.GetChildrenCount(parent); index++)
+        {
+            DependencyObject child = VisualTreeHelper.GetChild(parent, index);
+            if (child is T match)
+            {
+                yield return match;
+            }
+
+            foreach (T descendant in FindVisualChildren<T>(child))
+            {
+                yield return descendant;
+            }
+        }
     }
 
     private void SelectAllTxButton_Click(object sender, RoutedEventArgs e)
@@ -748,7 +913,6 @@ public partial class PatchWorkspaceView : UserControl
     private void ResetPendingButton_Click(object sender, RoutedEventArgs e)
     {
         _session.Reset();
-        ClearPreview();
         RefreshTargetRows();
         SetInfo(L("Tous les changements visuels ont été annulés.", "All visual changes were discarded."));
     }
@@ -792,10 +956,6 @@ public partial class PatchWorkspaceView : UserControl
             && RangeStartRxComboBox.SelectedItem is PatchTargetDescriptor
             && hasValidRangeCount;
         ApplyRangeDirectButton.IsEnabled = PreviewRangeButton.IsEnabled;
-        AddPreviewToBatchButton.IsEnabled = _currentPreview is not null;
-        ApplyPreviewButton.IsEnabled = _currentPreview is not null;
-        CancelPreviewButton.IsEnabled = _currentPreview is not null;
-        ConflictResolutionComboBox.IsEnabled = _currentPreview?.HasConflicts == true;
         ResetPendingButton.IsEnabled = _session.HasChanges;
         ApplyButton.IsEnabled = _session.HasChanges || _returnEditsOnly;
 
@@ -812,8 +972,8 @@ public partial class PatchWorkspaceView : UserControl
     {
         TitleTextBlock.Text = "Easy patch";
         IntroTextBlock.Text = L(
-            "Prévisualisez une opération, ajoutez-la au lot ou appliquez-la directement.",
-            "Preview an operation, add it to the batch, or apply it directly.");
+            "Chaque prévisualisation s'ajoute au lot. Appliquez tout en une seule fois quand il est prêt.",
+            "Each preview is added to the batch. Apply everything once when it is ready.");
         TxDeviceLabel.Content = L("Machine émettrice TX", "Tx transmitting device");
         RxDeviceLabel.Content = L("Machine réceptrice RX", "Rx receiving device");
         PreviousRxDeviceButton.ToolTip = L("Machine RX précédente", "Previous Rx device");
@@ -845,29 +1005,15 @@ public partial class PatchWorkspaceView : UserControl
         ApplyRangeDirectButton.ToolTip = L(
             "Applique immédiatement la plage et les éventuels changements déjà ajoutés au lot.",
             "Immediately applies the range and any changes already added to the batch.");
-        PreviewGroupBox.Header = L("Prévisualisation", "Preview");
+        PreviewGroupBox.Header = L("Lot prévisualisé", "Previewed batch");
         PreviewTargetColumn.Header = L("RX cible", "Target Rx");
         PreviewCurrentColumn.Header = L("Source actuelle", "Current source");
         PreviewProposedColumn.Header = L("Nouvelle source", "New source");
         PreviewActionColumn.Header = L("Action", "Action");
-        ConflictResolutionLabel.Content = L("Conflits", "Conflicts");
-        AddPreviewToBatchButton.Content = L("Ajouter au lot", "Add to batch");
-        ApplyPreviewButton.Content = L("Appliquer ces changements", "Apply these changes");
-        CancelPreviewButton.Content = L("Annuler l'aperçu", "Cancel preview");
-        PreviewSafetyTextBlock.Text = L(
-            "La prévisualisation ne modifie rien. Ajoutez au lot ou appliquez maintenant.",
-            "Previewing changes nothing. Add to the batch or apply now.");
-        ConflictResolutionComboBox.ItemsSource = new[]
-        {
-            new ConflictChoice(PatchConflictResolution.Cancel, L("Annuler le lot", "Cancel batch")),
-            new ConflictChoice(PatchConflictResolution.Skip, L("Ignorer les conflits", "Skip conflicts")),
-            new ConflictChoice(PatchConflictResolution.Replace, L("Remplacer les patchs", "Replace subscriptions"))
-        };
-        SelectConflictResolution(PatchConflictResolution.Cancel);
-        PreviewSummaryTextBlock.Text = L("Aucune prévisualisation.", "No preview.");
+        PreviewSummaryTextBlock.Text = L("Aucun changement dans le lot.", "No changes in the batch.");
         MatrixHintTextBlock.Text = L(
-            "RX en lignes, TX en colonnes. Cliquez dans une case pour affecter ou retirer un patch.",
-            "Rx channels are rows and Tx channels are columns. Click a cell to assign or remove a subscription.");
+            "RX en lignes, TX en colonnes. Cliquez pour un patch, ou maintenez et glissez : horizontal = série TX/RX, vertical = un TX vers plusieurs RX, diagonale = série un-à-un.",
+            "Rx channels are rows and Tx channels are columns. Click for one patch, or hold and drag: horizontal = Tx/Rx range, vertical = one Tx to several Rx channels, diagonal = one-to-one range.");
         ResetPendingButton.Content = L("Annuler les changements visuels", "Discard visual changes");
         CancelButton.Content = L("Fermer sans appliquer", "Close without applying");
         CancelButton.Visibility = _embedded ? Visibility.Collapsed : Visibility.Visible;
@@ -887,8 +1033,6 @@ public partial class PatchWorkspaceView : UserControl
         AutomationProperties.SetName(RxChannelListBox, RxListHeadingTextBlock.Text);
         AutomationProperties.SetName(ApplySelectionDirectButton, ApplySelectionDirectButton.Content.ToString()!);
         AutomationProperties.SetName(ApplyRangeDirectButton, ApplyRangeDirectButton.Content.ToString()!);
-        AutomationProperties.SetName(AddPreviewToBatchButton, AddPreviewToBatchButton.Content.ToString()!);
-        AutomationProperties.SetName(ApplyPreviewButton, ApplyPreviewButton.Content.ToString()!);
         AutomationProperties.SetName(MatrixGrid, MatrixTab.Header.ToString()!);
         AutomationProperties.SetName(PreviewGrid, PreviewGroupBox.Header.ToString()!);
     }
@@ -903,33 +1047,6 @@ public partial class PatchWorkspaceView : UserControl
         return owner is null
             ? MessageBox.Show(message, title, buttons, image)
             : MessageBox.Show(owner, message, title, buttons, image);
-    }
-
-    private void ClearPreview()
-    {
-        _currentPreview = null;
-        PreviewGrid.ItemsSource = Array.Empty<PatchPreviewRow>();
-        PreviewGroupBox.Visibility = Visibility.Collapsed;
-        PreviewSummaryTextBlock.Text = L("Aucune prévisualisation.", "No preview.");
-        SelectConflictResolution(PatchConflictResolution.Cancel);
-        UpdateCommandState();
-    }
-
-    private PatchConflictResolution SelectedConflictResolution()
-    {
-        return ConflictResolutionComboBox.SelectedItem is ConflictChoice choice
-            ? choice.Resolution
-            : PatchConflictResolution.Cancel;
-    }
-
-    private void SelectConflictResolution(PatchConflictResolution resolution)
-    {
-        if (ConflictResolutionComboBox.ItemsSource is not IEnumerable<ConflictChoice> choices)
-        {
-            return;
-        }
-
-        ConflictResolutionComboBox.SelectedItem = choices.FirstOrDefault(choice => choice.Resolution == resolution);
     }
 
     private void ApplyTheme(bool useLightTheme)
@@ -963,8 +1080,8 @@ public partial class PatchWorkspaceView : UserControl
         bool isPending)
     {
         string action = isAssigned
-            ? L("Cliquer pour déconnecter", "Click to disconnect")
-            : L("Cliquer pour affecter", "Click to assign");
+            ? L("Cliquer pour déconnecter, ou glisser pour préparer une série", "Click to disconnect, or drag to prepare a range")
+            : L("Cliquer pour affecter, ou glisser pour préparer une série", "Click to assign, or drag to prepare a range");
         string pending = isPending ? L(" - changement en attente", " - pending change") : string.Empty;
         return $"{target.FullDisplay} <- {source.FullDisplay}\n{action}{pending}";
     }
@@ -998,14 +1115,6 @@ public partial class PatchWorkspaceView : UserControl
         string Action,
         string ActionKey);
 
-    private sealed record ConflictChoice(PatchConflictResolution Resolution, string Display)
-    {
-        public override string ToString()
-        {
-            return Display;
-        }
-    }
-
     private sealed record PatchMatrixRow(
         string TargetDisplay,
         bool IsPending,
@@ -1014,6 +1123,8 @@ public partial class PatchWorkspaceView : UserControl
     private sealed record PatchMatrixCell(
         PatchSourceDescriptor Source,
         PatchTargetDescriptor Target,
+        int SourceIndex,
+        int TargetIndex,
         bool IsAssigned,
         bool IsPending,
         string Marker,

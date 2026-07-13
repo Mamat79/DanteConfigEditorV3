@@ -138,6 +138,79 @@ public static class PatchAssignmentPlanner
             sources.Zip(targets, (source, target) => new PlannedPatchAssignment(source, target)).ToArray());
     }
 
+    public static PatchAssignmentPlan PlanMatrixGesture(
+        IReadOnlyList<PatchSourceDescriptor> availableSources,
+        IReadOnlyList<PatchTargetDescriptor> availableTargets,
+        int startSourceIndex,
+        int startTargetIndex,
+        int endSourceIndex,
+        int endTargetIndex)
+    {
+        ArgumentNullException.ThrowIfNull(availableSources);
+        ArgumentNullException.ThrowIfNull(availableTargets);
+        EnsureMatrixIndex(startSourceIndex, availableSources.Count, "TX de départ");
+        EnsureMatrixIndex(endSourceIndex, availableSources.Count, "TX de fin");
+        EnsureMatrixIndex(startTargetIndex, availableTargets.Count, "RX de départ");
+        EnsureMatrixIndex(endTargetIndex, availableTargets.Count, "RX de fin");
+
+        int sourceDelta = endSourceIndex - startSourceIndex;
+        int targetDelta = endTargetIndex - startTargetIndex;
+
+        if (sourceDelta == 0)
+        {
+            int targetStep = Math.Sign(targetDelta);
+            int count = Math.Abs(targetDelta) + 1;
+            PlannedPatchAssignment[] assignments = Enumerable.Range(0, count)
+                .Select(offset => new PlannedPatchAssignment(
+                    availableSources[startSourceIndex],
+                    availableTargets[startTargetIndex + (offset * targetStep)]))
+                .ToArray();
+            return new PatchAssignmentPlan(assignments);
+        }
+
+        if (targetDelta == 0)
+        {
+            // Une ligne horizontale ne peut pas affecter plusieurs TX au même
+            // RX. Elle représente donc une série un-à-un à partir du RX de départ.
+            int sourceStep = Math.Sign(sourceDelta);
+            int count = Math.Abs(sourceDelta) + 1;
+            int targetStep = sourceStep;
+            if (!RangeFits(startTargetIndex, targetStep, count, availableTargets.Count))
+            {
+                targetStep = -targetStep;
+            }
+
+            if (!RangeFits(startTargetIndex, targetStep, count, availableTargets.Count))
+            {
+                throw new InvalidOperationException(
+                    "Le glissement horizontal dépasse les canaux RX disponibles. Aucun patch n'a été préparé.");
+            }
+
+            PlannedPatchAssignment[] assignments = Enumerable.Range(0, count)
+                .Select(offset => new PlannedPatchAssignment(
+                    availableSources[startSourceIndex + (offset * sourceStep)],
+                    availableTargets[startTargetIndex + (offset * targetStep)]))
+                .ToArray();
+            return new PatchAssignmentPlan(assignments);
+        }
+
+        if (Math.Abs(sourceDelta) != Math.Abs(targetDelta))
+        {
+            throw new InvalidOperationException(
+                "Pour une série diagonale, déplacez-vous du même nombre de cases TX et RX. Aucun patch n'a été préparé.");
+        }
+
+        int diagonalCount = Math.Abs(sourceDelta) + 1;
+        int diagonalSourceStep = Math.Sign(sourceDelta);
+        int diagonalTargetStep = Math.Sign(targetDelta);
+        return new PatchAssignmentPlan(
+            Enumerable.Range(0, diagonalCount)
+                .Select(offset => new PlannedPatchAssignment(
+                    availableSources[startSourceIndex + (offset * diagonalSourceStep)],
+                    availableTargets[startTargetIndex + (offset * diagonalTargetStep)]))
+                .ToArray());
+    }
+
     public static SequentialPatchPlan PlanSequential(
         IReadOnlyList<PatchSourceDescriptor> selectedSources,
         IReadOnlyList<PatchTargetDescriptor> availableTargets,
@@ -190,6 +263,20 @@ public static class PatchAssignmentPlanner
         {
             throw new InvalidOperationException("La sélection RX contient plusieurs fois le même canal.");
         }
+    }
+
+    private static void EnsureMatrixIndex(int index, int count, string label)
+    {
+        if (index < 0 || index >= count)
+        {
+            throw new InvalidOperationException($"Le {label} n'appartient pas à la grille visible.");
+        }
+    }
+
+    private static bool RangeFits(int startIndex, int step, int count, int availableCount)
+    {
+        int endIndex = startIndex + ((count - 1) * step);
+        return endIndex >= 0 && endIndex < availableCount;
     }
 
     private static PatchSourceDescriptor? FindKnownSource(

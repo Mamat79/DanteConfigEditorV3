@@ -271,6 +271,112 @@ public sealed class PatchAssignmentPlannerTests
     }
 
     [Fact]
+    public void HorizontalMatrixGestureBuildsASequentialTxRxRange()
+    {
+        PatchSourceDescriptor[] sources =
+        [
+            Source(1, 0, "TX 1"),
+            Source(2, 1, "TX 2"),
+            Source(3, 2, "TX 3")
+        ];
+        PatchTargetDescriptor[] targets =
+        [
+            Target(10, 0, "RX 10"),
+            Target(20, 1, "RX 20"),
+            Target(30, 2, "RX 30")
+        ];
+
+        PatchAssignmentPlan plan = PatchAssignmentPlanner.PlanMatrixGesture(
+            sources,
+            targets,
+            startSourceIndex: 0,
+            startTargetIndex: 0,
+            endSourceIndex: 2,
+            endTargetIndex: 0);
+
+        Assert.Equal([1, 2, 3], plan.Assignments.Select(item => item.Source.DanteId).ToArray());
+        Assert.Equal([10, 20, 30], plan.Assignments.Select(item => item.Target.DanteId).ToArray());
+    }
+
+    [Fact]
+    public void VerticalMatrixGestureBroadcastsOneTxToSeveralRxChannels()
+    {
+        PatchSourceDescriptor[] sources = [Source(1, 0, "TX 1"), Source(2, 1, "TX 2")];
+        PatchTargetDescriptor[] targets =
+        [
+            Target(10, 0, "RX 10"),
+            Target(20, 1, "RX 20"),
+            Target(30, 2, "RX 30")
+        ];
+
+        PatchAssignmentPlan plan = PatchAssignmentPlanner.PlanMatrixGesture(
+            sources,
+            targets,
+            startSourceIndex: 1,
+            startTargetIndex: 0,
+            endSourceIndex: 1,
+            endTargetIndex: 2);
+
+        Assert.Equal(3, plan.Assignments.Count);
+        Assert.All(plan.Assignments, item => Assert.Equal(2, item.Source.DanteId));
+        Assert.Equal([10, 20, 30], plan.Assignments.Select(item => item.Target.DanteId).ToArray());
+    }
+
+    [Fact]
+    public void DiagonalMatrixGestureBuildsOneToOneAssignments()
+    {
+        PatchSourceDescriptor[] sources =
+        [
+            Source(1, 0, "TX 1"),
+            Source(2, 1, "TX 2"),
+            Source(3, 2, "TX 3")
+        ];
+        PatchTargetDescriptor[] targets =
+        [
+            Target(10, 0, "RX 10"),
+            Target(20, 1, "RX 20"),
+            Target(30, 2, "RX 30")
+        ];
+
+        PatchAssignmentPlan plan = PatchAssignmentPlanner.PlanMatrixGesture(
+            sources,
+            targets,
+            startSourceIndex: 0,
+            startTargetIndex: 0,
+            endSourceIndex: 2,
+            endTargetIndex: 2);
+
+        Assert.Equal(3, plan.Assignments.Count);
+        Assert.Equal([1, 2, 3], plan.Assignments.Select(item => item.Source.DanteId).ToArray());
+        Assert.Equal([10, 20, 30], plan.Assignments.Select(item => item.Target.DanteId).ToArray());
+    }
+
+    [Fact]
+    public void MatrixGestureRejectsAnAmbiguousDiagonalWithoutPartialPlan()
+    {
+        PatchSourceDescriptor[] sources =
+        [
+            Source(1, 0, "TX 1"),
+            Source(2, 1, "TX 2"),
+            Source(3, 2, "TX 3")
+        ];
+        PatchTargetDescriptor[] targets =
+        [
+            Target(10, 0, "RX 10"),
+            Target(20, 1, "RX 20"),
+            Target(30, 2, "RX 30")
+        ];
+
+        Assert.Throws<InvalidOperationException>(() => PatchAssignmentPlanner.PlanMatrixGesture(
+            sources,
+            targets,
+            startSourceIndex: 0,
+            startTargetIndex: 0,
+            endSourceIndex: 2,
+            endTargetIndex: 1));
+    }
+
+    [Fact]
     public void PreviewClassifiesCreateReplaceAndUnchangedBeforeStaging()
     {
         using TestDirectory directory = new();
@@ -321,6 +427,46 @@ public sealed class PatchAssignmentPlannerTests
         Assert.Equal(expectedSkipped, result.SkippedConflictCount);
         Assert.Equal(expectedCancelled, result.IsCancelled);
         Assert.Equal(expectedStaged, workspace.PendingCount);
+    }
+
+    [Fact]
+    public void SeveralPreviewsAccumulateWithoutChangingTheProjectBeforeFinalApply()
+    {
+        using TestDirectory directory = new();
+        DanteProject project = DanteProject.Load(directory.CopyFixture("representative-preset.xml"));
+        DanteDevice txDevice = Assert.IsType<DanteDevice>(project.FindDevice("DEVICE-A"));
+        DanteDevice freeRxDevice = Assert.IsType<DanteDevice>(project.FindDevice("DEVICE-C"));
+        DanteDevice patchedRxDevice = Assert.IsType<DanteDevice>(project.FindDevice("DEVICE-B"));
+        PatchWorkspaceSession workspace = new(project.PatchMatrix.Subscriptions);
+        PatchTargetDescriptor firstTarget = TargetFrom(freeRxDevice.RxChannels[0]);
+        PatchTargetDescriptor secondTarget = TargetFrom(patchedRxDevice.RxChannels[1]);
+
+        workspace.StagePreview(
+            workspace.BuildPreview([new PlannedPatchAssignment(SourceFrom(txDevice.TxChannels[0]), firstTarget)]),
+            PatchConflictResolution.Replace);
+        workspace.StagePreview(
+            workspace.BuildPreview([new PlannedPatchAssignment(SourceFrom(txDevice.TxChannels[0]), secondTarget)]),
+            PatchConflictResolution.Replace);
+
+        Assert.Equal(2, workspace.PendingCount);
+        Assert.Equal(2, workspace.PendingChanges.Count);
+        Assert.False(project.IsModified);
+        Assert.False(project.PatchMatrix.Subscriptions.Single(item => item.RxDevice == freeRxDevice.Name).IsActive);
+        Assert.Equal(
+            "PROGRAM R",
+            project.PatchMatrix.Subscriptions.Single(item =>
+                item.RxDevice == patchedRxDevice.Name && item.RxDanteId == secondTarget.DanteId).TxChannelName);
+
+        ApplyEdits(project, workspace.Edits);
+
+        Assert.True(project.IsModified);
+        Assert.Equal(
+            "PROGRAM L",
+            project.PatchMatrix.Subscriptions.Single(item => item.RxDevice == freeRxDevice.Name).TxChannelName);
+        Assert.Equal(
+            "PROGRAM L",
+            project.PatchMatrix.Subscriptions.Single(item =>
+                item.RxDevice == patchedRxDevice.Name && item.RxDanteId == secondTarget.DanteId).TxChannelName);
     }
 
     [Fact]

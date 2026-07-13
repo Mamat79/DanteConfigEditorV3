@@ -144,9 +144,9 @@
             <Setter Property="FontWeight" Value="SemiBold" />
         </Style>
         <Style x:Key="MatrixCellToggleStyle" TargetType="{x:Type ToggleButton}">
-            <Setter Property="Width" Value="88" />
-            <Setter Property="Height" Value="32" />
-            <Setter Property="Margin" Value="2" />
+            <Setter Property="Width" Value="28" />
+            <Setter Property="Height" Value="22" />
+            <Setter Property="Margin" Value="1" />
             <Setter Property="Padding" Value="0" />
             <Setter Property="Background" Value="Transparent" />
             <Setter Property="Foreground" Value="{DynamicResource MutedTextBrush}" />
@@ -154,7 +154,7 @@
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="HorizontalContentAlignment" Value="Center" />
             <Setter Property="VerticalContentAlignment" Value="Center" />
-            <Setter Property="automation:AutomationProperties.HelpText" Value="Cliquez pour affecter ou retirer ce patch." />
+            <Setter Property="automation:AutomationProperties.HelpText" Value="Cliquez pour affecter ou retirer ce patch. Maintenez et glissez pour préparer une série." />
             <Style.Triggers>
                 <Trigger Property="IsChecked" Value="True">
                     <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
@@ -447,18 +447,17 @@
                     <GroupBox x:Name="PreviewGroupBox"
                               Grid.Row="2"
                               Grid.ColumnSpan="3"
-                              Header="Prévisualisation"
-                              Height="250"
+                              Header="Lot prévisualisé"
+                              Height="210"
                               Visibility="Collapsed"
                               Margin="0,12,0,0">
                         <Grid>
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto" />
                                 <RowDefinition Height="*" />
-                                <RowDefinition Height="Auto" />
                             </Grid.RowDefinitions>
                             <TextBlock x:Name="PreviewSummaryTextBlock"
-                                       Text="Aucune prévisualisation."
+                                       Text="Aucun changement dans le lot."
                                        Foreground="{DynamicResource MutedTextBrush}"
                                        Margin="0,0,0,6" />
                             <DataGrid x:Name="PreviewGrid"
@@ -491,43 +490,14 @@
                                                 <Setter Property="Background" Value="#14532D" />
                                                 <Setter Property="Foreground" Value="White" />
                                             </DataTrigger>
+                                            <DataTrigger Binding="{Binding ActionKey}" Value="Remove">
+                                                <Setter Property="Background" Value="#7F1D1D" />
+                                                <Setter Property="Foreground" Value="White" />
+                                            </DataTrigger>
                                         </Style.Triggers>
                                     </Style>
                                 </DataGrid.RowStyle>
                             </DataGrid>
-                            <DockPanel Grid.Row="2" Margin="0,8,0,0">
-                                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
-                                    <Label x:Name="ConflictResolutionLabel"
-                                           Content="Conflits"
-                                           VerticalAlignment="Center"
-                                           Padding="0,0,6,8" />
-                                    <ComboBox x:Name="ConflictResolutionComboBox"
-                                              Width="165"
-                                              Margin="0,0,8,8">
-                                        <ComboBox.ItemTemplate>
-                                            <DataTemplate>
-                                                <TextBlock Text="{Binding Display}"
-                                                           Foreground="#111827" />
-                                            </DataTemplate>
-                                        </ComboBox.ItemTemplate>
-                                    </ComboBox>
-                                    <Button x:Name="AddPreviewToBatchButton"
-                                            Content="Ajouter au lot"
-                                            Style="{StaticResource SecondaryButtonStyle}"
-                                            Click="AddPreviewToBatchButton_Click" />
-                                    <Button x:Name="ApplyPreviewButton"
-                                            Content="Appliquer ces changements"
-                                            Click="ApplyPreviewButton_Click" />
-                                    <Button x:Name="CancelPreviewButton"
-                                            Content="Annuler l'aperçu"
-                                            Style="{StaticResource SecondaryButtonStyle}"
-                                            Click="CancelPreviewButton_Click" />
-                                </StackPanel>
-                                <TextBlock x:Name="PreviewSafetyTextBlock"
-                                           Text="La prévisualisation ne modifie rien. Ajoutez au lot ou appliquez maintenant."
-                                           Foreground="{DynamicResource MutedTextBrush}"
-                                           VerticalAlignment="Center" />
-                            </DockPanel>
                         </Grid>
                     </GroupBox>
                 </Grid>
@@ -540,11 +510,13 @@
                         <RowDefinition Height="*" />
                     </Grid.RowDefinitions>
                     <TextBlock x:Name="MatrixHintTextBlock"
-                               Text="RX en lignes, TX en colonnes. Cliquez dans une case pour affecter ou retirer un patch."
+                               Text="RX en lignes, TX en colonnes. Cliquez ou maintenez puis glissez pour préparer plusieurs patchs."
                                Foreground="{DynamicResource MutedTextBrush}"
                                Margin="0,0,0,8" />
                     <DataGrid x:Name="MatrixGrid"
                               Grid.Row="1"
+                              RowHeight="26"
+                              ColumnHeaderHeight="34"
                               AutoGenerateColumns="False"
                               CanUserAddRows="False"
                               CanUserDeleteRows="False"
@@ -559,7 +531,18 @@
                               VirtualizingPanel.VirtualizationMode="Recycling"
                               ScrollViewer.CanContentScroll="True"
                               ScrollViewer.HorizontalScrollBarVisibility="Auto"
-                              ScrollViewer.VerticalScrollBarVisibility="Auto">
+                              ScrollViewer.VerticalScrollBarVisibility="Auto"
+                              PreviewMouseLeftButtonDown="MatrixGrid_PreviewMouseLeftButtonDown"
+                              PreviewMouseMove="MatrixGrid_PreviewMouseMove"
+                              PreviewMouseLeftButtonUp="MatrixGrid_PreviewMouseLeftButtonUp"
+                              LostMouseCapture="MatrixGrid_LostMouseCapture">
+                        <DataGrid.Resources>
+                            <Style TargetType="{x:Type DataGridColumnHeader}"
+                                   BasedOn="{StaticResource {x:Type DataGridColumnHeader}}">
+                                <Setter Property="Padding" Value="1,4" />
+                                <Setter Property="HorizontalContentAlignment" Value="Center" />
+                            </Style>
+                        </DataGrid.Resources>
                         <DataGrid.RowStyle>
                             <Style TargetType="{x:Type DataGridRow}">
                                 <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
