@@ -39,8 +39,10 @@ public sealed class InstallerContractTests
         Assert.Contains("https://github.com/Mamat79/DanteConfigEditorV3", installerScript, StringComparison.Ordinal);
         Assert.Contains("SignatureLabel.Caption := 'By Mamat'", installerScript, StringComparison.Ordinal);
         Assert.Contains("SignatureAgentsLabel.Caption := 'et ses agents'", installerScript, StringComparison.Ordinal);
-        Assert.Contains("By Mamat", File.ReadAllText(RepositoryFile("MainWindow.xaml")), StringComparison.Ordinal);
-        Assert.Contains("et ses agents", File.ReadAllText(RepositoryFile("MainWindow.xaml")), StringComparison.Ordinal);
+        string windowsWindow = File.ReadAllText(RepositoryFile("MainWindow.xaml"));
+        Assert.Contains("MinHeight=\"34\"", windowsWindow, StringComparison.Ordinal);
+        Assert.Contains("<TextBlock Text=\"By Mamat\"", windowsWindow, StringComparison.Ordinal);
+        Assert.Contains("<TextBlock Text=\"et ses agents\"", windowsWindow, StringComparison.Ordinal);
         Assert.Contains("By Mamat", File.ReadAllText(RepositoryFile("src", "DanteConfigEditor.Mac", "MainWindow.axaml")), StringComparison.Ordinal);
         Assert.Contains("et ses agents", File.ReadAllText(RepositoryFile("src", "DanteConfigEditor.Mac", "MainWindow.axaml")), StringComparison.Ordinal);
         Assert.Contains("By Mamat et ses agents", File.ReadAllText(RepositoryFile("Services", "ReportExportService.cs")), StringComparison.Ordinal);
