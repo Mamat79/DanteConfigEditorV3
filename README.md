@@ -21,13 +21,16 @@ Enfin, le workflow hors ligne disponible dans Dante Controller ne répondait pas
 
 L'arrivée des agents de développement actuels a permis de faire évoluer ce simple éditeur XML beaucoup plus rapidement : sécurisation des sauvegardes, tests de non-régression, interface bilingue, installateurs autonomes, version macOS, rapports et outils de patch plus élaborés. Les besoins métier, les choix fonctionnels et la validation d'usage restent dirigés par Mamat ; les agents participent à l'analyse, au développement, aux tests et à la documentation.
 
-## Aperçu
+## Présentation générale
 
-[![Easy patch V3.08 sur un preset synthétique anonymisé](docs/media/easy-patch-v308.png)](docs/media/easy-patch-v308.png)
+[![Présentation de Dante Config Editor V3.08 sur un preset synthétique anonymisé](docs/media/guide/fr/overview.png)](docs/media/dante-config-editor-v308-overview-fr.mp4)
 
-**[Voir la démonstration Easy patch bilingue - 40 secondes (MP4)](docs/media/easy-patch-v308-demo.mp4)**
+- **[Voir la présentation complète en français (MP4)](docs/media/dante-config-editor-v308-overview-fr.mp4)** - sous-titres lisibles intégrés à la vidéo ; [fichier SRT séparé](docs/media/dante-config-editor-v308-overview-fr.srt).
+- **[Voir la présentation complète en anglais (MP4)](docs/media/dante-config-editor-v308-overview-en.mp4)** - [fichier SRT séparé](docs/media/dante-config-editor-v308-overview-en.srt).
+- **[Lire la notice complète en français (PDF)](docs/Notice_DanteConfigEditorV3_FR.pdf)** ou le [démarrage rapide](docs/QuickStart_DanteConfigEditorV3_FR.pdf).
+- **[Read the full English guide (PDF)](docs/Notice_DanteConfigEditorV3_EN.pdf)** or the [quick start](docs/QuickStart_DanteConfigEditorV3_EN.pdf).
 
-La capture et la démonstration utilisent uniquement un preset synthétique anonymisé. Elles ne contiennent aucun nom de machine, fichier ou chemin de production.
+Les captures, notices et vidéos utilisent uniquement un preset synthétique anonymisé. Elles ne contiennent aucun nom de machine, fichier ou chemin de production.
 
 ## Ce que fait l'application
 

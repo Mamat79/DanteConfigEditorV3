@@ -11,7 +11,7 @@ Official V3.08 build for Windows and macOS. Dante Config Editor edits Dante Cont
 
 ## Origin and agent-assisted development
 
-Dante Config Editor began as an attempt to fill the gaps I encountered in Dante Controller. It started as a small personal application written manually by Mamat to solve a practical field need: checking a Dante configuration quickly without opening each page of the application in turn. The goal was to provide one overview of devices, latency, sample rates, network modes, Preferred Master state, IP addresses and channels, with the ability to correct preset values when needed.
+Dante Config Editor began as an attempt to provide what I personally was missing in Dante Controller. It started as a small personal application written manually by Mamat to solve a practical field need: checking a Dante configuration quickly without opening each page of the application in turn. The goal was to provide one overview of devices, latency, sample rates, network modes, Preferred Master state, IP addresses and channels, with the ability to correct preset values when needed.
 
 Renaming on an already patched network was another recurring problem. Changing a device name or TX channel names can require revisiting the affected subscriptions and rebuilding part of the patch. The editor was therefore designed to update recognized XML references during renaming and preserve the patch as far as the preset structure allows.
 
@@ -19,13 +19,16 @@ Finally, the offline workflow available in Dante Controller did not provide the 
 
 Modern development agents then enabled a much larger step forward: safer saving, regression tests, a bilingual interface, self-contained installers, a macOS build, reports and more advanced patching tools. Product needs, functional decisions and field validation remain directed by Mamat; the agents contribute to analysis, implementation, testing and documentation.
 
-## Preview
+## General presentation
 
-[![Easy patch V3.08 using a synthetic anonymized preset](docs/media/easy-patch-v308.png)](docs/media/easy-patch-v308.png)
+[![Dante Config Editor V3.08 presentation using a synthetic anonymized preset](docs/media/guide/en/overview.png)](docs/media/dante-config-editor-v308-overview-en.mp4)
 
-**[Watch the bilingual Easy patch demo - 40 seconds (MP4)](docs/media/easy-patch-v308-demo.mp4)**
+- **[Watch the full English presentation (MP4)](docs/media/dante-config-editor-v308-overview-en.mp4)** - readable subtitles are burned into the video; [separate SRT file](docs/media/dante-config-editor-v308-overview-en.srt).
+- **[Watch the full French presentation (MP4)](docs/media/dante-config-editor-v308-overview-fr.mp4)** - [separate SRT file](docs/media/dante-config-editor-v308-overview-fr.srt).
+- **[Read the full English guide (PDF)](docs/Notice_DanteConfigEditorV3_EN.pdf)** or the [quick start](docs/QuickStart_DanteConfigEditorV3_EN.pdf).
+- **[Lire la notice complète en français (PDF)](docs/Notice_DanteConfigEditorV3_FR.pdf)** ou le [démarrage rapide](docs/QuickStart_DanteConfigEditorV3_FR.pdf).
 
-The screenshot and demo use only a synthetic anonymized preset. They contain no production device name, file or path.
+The screenshots, manuals and videos use only a synthetic anonymized preset. They contain no production device name, file or path.
 
 ## What the application does
 
