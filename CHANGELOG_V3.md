@@ -1,5 +1,13 @@
 # Changelog V3
 
+## 2026-07-17 - Version 3.08 - crédit et présentation bilingue
+
+- Conservation de `By Mamat` comme signature principale, avec `et ses agents` sur une seconde ligne plus discrète dans les interfaces Windows/macOS et l'installateur ; les exports et notices conservent le crédit complet sur une ligne.
+- Présentation assumée de l'origine manuelle du projet et de son évolution accélérée avec les agents de développement actuels.
+- Ajout d'un README anglais complet et de notes de version anglaises, reliés aux documents français.
+- Ajout d'une capture et d'une démonstration Easy patch bilingue de 40 secondes, réalisées avec un preset synthétique anonymisé.
+- Conservation stricte du numéro V3.08 et du fonctionnement XML existant.
+
 ## 2026-07-13 - Version 3.08 - mise à jour Easy patch
 
 - Chaque commande `Prévisualiser` ajoute désormais immédiatement l'opération au lot temporaire, sans modifier le XML.

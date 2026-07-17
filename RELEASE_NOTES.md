@@ -1,5 +1,7 @@
 # Dante Config Editor V3.08
 
+**Français** | [English](https://github.com/Mamat79/DanteConfigEditorV3/blob/main/RELEASE_NOTES_EN.md)
+
 ## Statut
 
 Version officielle V3.08 pour Windows x64, macOS Apple Silicon et macOS Intel. Il s'agit d'un outil tiers non officiel Audinate et cette application n'est pas exempte de bugs.
@@ -85,4 +87,8 @@ La V3.08 remplace la V3.07 comme version courante de la branche `main`. Les anci
 
 https://github.com/Mamat79/DanteConfigEditorV3
 
-By Mamat
+## Origine et crédit
+
+Le projet a commencé comme un petit éditeur XML personnel écrit manuellement par Mamat. Les agents de développement actuels ont ensuite permis une évolution importante de l'interface, des garde-fous, des tests, de la documentation et du packaging, sous la direction fonctionnelle de Mamat.
+
+**By Mamat et ses agents**

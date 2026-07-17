@@ -1,5 +1,7 @@
 # Dante Config Editor V3.08
 
+**Français** | [English](README_EN.md)
+
 Version officielle Windows et macOS de la branche `main` pour éditer hors ligne des fichiers XML de configuration Dante.
 
 **Téléchargement direct : [Windows x64](https://github.com/Mamat79/DanteConfigEditorV3/releases/download/v3.08/DanteConfigEditorV3_08_Installer.exe) | [macOS Apple Silicon](https://github.com/Mamat79/DanteConfigEditorV3/releases/download/v3.08/DanteConfigEditorV3_macOS_AppleSilicon.dmg) | [macOS Intel](https://github.com/Mamat79/DanteConfigEditorV3/releases/download/v3.08/DanteConfigEditorV3_macOS_Intel.dmg)**
@@ -8,6 +10,22 @@ Version officielle Windows et macOS de la branche `main` pour éditer hors ligne
 
 > **Statut : V3.08 officielle Windows et macOS. Outil tiers non officiel Audinate.**
 > Cette version peut encore contenir des bugs. Les anciennes versions ne sont plus proposées au téléchargement. Travaillez toujours sur une copie et validez le XML généré dans les outils Dante officiels.
+
+## Origine et développement assisté
+
+Dante Config Editor est à l'origine un petit logiciel personnel écrit manuellement par Mamat. Sa première fonction était volontairement simple : ouvrir et modifier plus facilement les fichiers XML produits par Dante Controller sans devoir travailler directement dans un éditeur de texte.
+
+L'arrivée des agents de développement actuels a permis de faire évoluer ce simple éditeur XML beaucoup plus rapidement : sécurisation des sauvegardes, tests de non-régression, interface bilingue, installateurs autonomes, version macOS, rapports et outils de patch plus élaborés. Les besoins métier, les choix fonctionnels et la validation d'usage restent dirigés par Mamat ; les agents participent à l'analyse, au développement, aux tests et à la documentation.
+
+Cette collaboration est assumée publiquement dans le crédit du logiciel : **By Mamat et ses agents**.
+
+## Aperçu
+
+[![Easy patch V3.08 sur un preset synthétique anonymisé](docs/media/easy-patch-v308.png)](docs/media/easy-patch-v308.png)
+
+**[Voir la démonstration Easy patch bilingue - 40 secondes (MP4)](docs/media/easy-patch-v308-demo.mp4)**
+
+La capture et la démonstration utilisent uniquement un preset synthétique anonymisé. Elles ne contiennent aucun nom de machine, fichier ou chemin de production.
 
 ## Ce que fait l'application
 
@@ -318,4 +336,5 @@ Pour lancer les tests automatiques :
 
 ## Crédit
 
-By Mamat
+**By Mamat**<br>
+<sub>et ses agents</sub>
