@@ -13,11 +13,13 @@ Version officielle Windows et macOS de la branche `main` pour éditer hors ligne
 
 ## Origine et développement assisté
 
-Dante Config Editor est à l'origine un petit logiciel personnel écrit manuellement par Mamat. Sa première fonction était volontairement simple : ouvrir et modifier plus facilement les fichiers XML produits par Dante Controller sans devoir travailler directement dans un éditeur de texte.
+Dante Config Editor est né d'une tentative de pallier ce qui me manquait dans Dante Controller. À l'origine, c'était un petit logiciel personnel écrit manuellement par Mamat pour répondre à un besoin de terrain : vérifier rapidement une configuration Dante sans devoir ouvrir successivement toutes les pages du logiciel. L'objectif était de disposer d'une vue d'ensemble unique des devices, latences, fréquences d'échantillonnage, modes réseau, Preferred Master, adresses IP et canaux, puis de pouvoir corriger au besoin les valeurs présentes dans le preset.
+
+Un autre problème récurrent concernait les renommages sur un réseau déjà patché. Changer le nom d'une machine ou de canaux TX peut obliger à reprendre les subscriptions concernées et à repasser par une phase de patch. L'éditeur a donc été conçu pour mettre à jour les références XML reconnues lors d'un renommage et préserver le patch autant que la structure du preset le permet.
+
+Enfin, le workflow hors ligne disponible dans Dante Controller ne répondait pas au besoin d'une préparation globale et rapide. Pouvoir contrôler, modifier, fusionner et préparer un preset sans être connecté au réseau Dante est ainsi devenu l'un des objectifs centraux du projet.
 
 L'arrivée des agents de développement actuels a permis de faire évoluer ce simple éditeur XML beaucoup plus rapidement : sécurisation des sauvegardes, tests de non-régression, interface bilingue, installateurs autonomes, version macOS, rapports et outils de patch plus élaborés. Les besoins métier, les choix fonctionnels et la validation d'usage restent dirigés par Mamat ; les agents participent à l'analyse, au développement, aux tests et à la documentation.
-
-Cette collaboration est assumée publiquement dans le crédit du logiciel : **By Mamat et ses agents**.
 
 ## Aperçu
 

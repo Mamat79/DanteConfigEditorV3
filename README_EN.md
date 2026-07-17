@@ -11,11 +11,13 @@ Official V3.08 build for Windows and macOS. Dante Config Editor edits Dante Cont
 
 ## Origin and agent-assisted development
 
-Dante Config Editor started as a small personal application written manually by Mamat. Its original purpose was deliberately simple: make Dante Controller XML files easier to inspect and edit without working directly in a text editor.
+Dante Config Editor began as an attempt to fill the gaps I encountered in Dante Controller. It started as a small personal application written manually by Mamat to solve a practical field need: checking a Dante configuration quickly without opening each page of the application in turn. The goal was to provide one overview of devices, latency, sample rates, network modes, Preferred Master state, IP addresses and channels, with the ability to correct preset values when needed.
+
+Renaming on an already patched network was another recurring problem. Changing a device name or TX channel names can require revisiting the affected subscriptions and rebuilding part of the patch. The editor was therefore designed to update recognized XML references during renaming and preserve the patch as far as the preset structure allows.
+
+Finally, the offline workflow available in Dante Controller did not provide the consolidated preparation process required for this use case. Reviewing, editing, merging and preparing a preset without being connected to the Dante network therefore became one of the project's central goals.
 
 Modern development agents then enabled a much larger step forward: safer saving, regression tests, a bilingual interface, self-contained installers, a macOS build, reports and more advanced patching tools. Product needs, functional decisions and field validation remain directed by Mamat; the agents contribute to analysis, implementation, testing and documentation.
-
-This collaboration is openly credited in the application as **By Mamat et ses agents**.
 
 ## Preview
 
