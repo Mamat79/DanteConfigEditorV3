@@ -10,6 +10,7 @@ from reportlab.lib.units import mm
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.platypus import (
+    Image as ReportLabImage,
     KeepTogether,
     PageBreak,
     Paragraph,
@@ -18,9 +19,11 @@ from reportlab.platypus import (
     Table,
     TableStyle,
 )
+from PIL import Image as PillowImage
 
 
 ROOT = Path(__file__).resolve().parent
+MEDIA = ROOT / "media" / "guide"
 # Les quatre PDF sont générés depuis une source unique pour garder les versions
 # française et anglaise synchronisées avec l'application et l'installateur.
 PRODUCT = "Dante Config Editor V3.08"
@@ -136,6 +139,38 @@ STYLES = {
         leading=10.5,
         textColor=INK,
     ),
+    "caption": ParagraphStyle(
+        "GuideCaption",
+        parent=BASE["BodyText"],
+        fontName=REGULAR,
+        fontSize=7.8,
+        leading=10.2,
+        textColor=MUTED,
+        alignment=TA_CENTER,
+        spaceAfter=2 * mm,
+    ),
+    "eyebrow": ParagraphStyle(
+        "GuideEyebrow",
+        parent=BASE["BodyText"],
+        fontName=BOLD,
+        fontSize=8.5,
+        leading=11,
+        textColor=ACCENT,
+        alignment=TA_CENTER,
+        spaceAfter=2.5 * mm,
+    ),
+    "cover_lead": ParagraphStyle(
+        "GuideCoverLead",
+        parent=BASE["BodyText"],
+        fontName=REGULAR,
+        fontSize=11.2,
+        leading=15.2,
+        textColor=INK,
+        alignment=TA_CENTER,
+        leftIndent=10 * mm,
+        rightIndent=10 * mm,
+        spaceAfter=4 * mm,
+    ),
 }
 
 
@@ -183,6 +218,82 @@ def data_table(headers: list[str], rows: list[list[str]], widths: list[float]) -
         )
     )
     return table
+
+
+def guide_image(language: str, name: str, max_width: float = 170, max_height: float = 96) -> ReportLabImage:
+    path = MEDIA / language.lower() / name
+    with PillowImage.open(path) as source:
+        width, height = source.size
+    scale = min((max_width * mm) / width, (max_height * mm) / height)
+    image = ReportLabImage(str(path), width=width * scale, height=height * scale)
+    image.hAlign = "CENTER"
+    return image
+
+
+def figure(language: str, name: str, caption: str, max_width: float = 170, max_height: float = 96) -> list:
+    return [guide_image(language, name, max_width, max_height), Spacer(1, 1.4 * mm), para(caption, "caption")]
+
+
+def feature_band(items: list[tuple[str, str]]) -> Table:
+    cells = [para(f"<b>{heading}</b><br/>{body}", "small") for heading, body in items]
+    width = 170 / len(cells)
+    table = Table([cells], colWidths=[width * mm] * len(cells))
+    table.setStyle(
+        TableStyle(
+            [
+                ("BACKGROUND", (0, 0), (-1, -1), PALE_BLUE),
+                ("GRID", (0, 0), (-1, -1), 0.45, LINE),
+                ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                ("LEFTPADDING", (0, 0), (-1, -1), 3 * mm),
+                ("RIGHTPADDING", (0, 0), (-1, -1), 3 * mm),
+                ("TOPPADDING", (0, 0), (-1, -1), 2.5 * mm),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 2.5 * mm),
+            ]
+        )
+    )
+    return table
+
+
+def cover_page(language: str) -> list:
+    french = language == "FR"
+    eyebrow = "GUIDE COMPLET - ÉDITION XML DANTE HORS LIGNE" if french else "FULL GUIDE - OFFLINE DANTE XML EDITING"
+    lead = (
+        "Cet outil est né d'une tentative de pallier ce qui me manquait dans Dante Controller : voir rapidement une configuration entière, corriger les écarts et préparer un preset hors ligne."
+        if french
+        else "This tool began as an attempt to provide what I personally was missing in Dante Controller: review an entire configuration quickly, correct discrepancies, and prepare a preset offline."
+    )
+    goals = (
+        [
+            ("Vue d'ensemble", "Latence, sample rate, réseau, IP, horloge et canaux sur un même écran."),
+            ("Renommage cohérent", "Les références reconnues suivent les devices et canaux renommés."),
+            ("Préparation hors ligne", "Contrôlez, fusionnez et modifiez avant la validation officielle."),
+        ]
+        if french
+        else [
+            ("One overview", "Latency, sample rate, network, IP, clock, and channels on one screen."),
+            ("Consistent renaming", "Recognized references follow renamed devices and channels."),
+            ("Offline preparation", "Review, merge, and edit before official validation."),
+        ]
+    )
+    warning = (
+        "<b>Outil tiers non officiel.</b> Il ne se connecte pas au réseau Dante. Conservez toujours l'original et validez le XML final dans Dante Controller."
+        if french
+        else "<b>Unofficial third-party tool.</b> It does not connect to the Dante network. Always keep the original and validate the final XML in Dante Controller."
+    )
+    return [
+        Spacer(1, 5 * mm),
+        para(eyebrow, "eyebrow"),
+        para(PRODUCT, "title"),
+        para("Notice complète illustrée" if french else "Illustrated full user guide", "subtitle"),
+        para(lead, "cover_lead"),
+        guide_image(language, "overview.png", 170, 95),
+        Spacer(1, 4 * mm),
+        feature_band(goals),
+        Spacer(1, 4 * mm),
+        callout(warning, PALE_RED),
+        Spacer(1, 2 * mm),
+        para(("Projet public : " if french else "Public project: ") + GITHUB, "small"),
+    ]
 
 
 def draw_header_footer(canvas, doc) -> None:
@@ -310,10 +421,8 @@ def full_guide(language: str) -> None:
     french = language == "FR"
     if french:
         page1 = [
-            para(PRODUCT, "title"),
-            para(f"Notice complète - version {VERSION}", "subtitle"),
-            callout("<b>Important :</b> cette application est un outil tiers non officiel Audinate. La V3.08 est la version officielle courante pour Windows et macOS, mais elle peut encore contenir des bugs. Elle édite des XML hors ligne, sans connexion au réseau Dante ni API Audinate. Conservez l'original et validez le fichier généré dans Dante Controller avant toute utilisation en production."),
             para("1. Installation et démarrage", "h1"),
+            callout("<b>Important :</b> cette application est un outil tiers non officiel Audinate. La V3.08 est la version officielle courante pour Windows et macOS, mais elle peut encore contenir des bugs. Elle édite des XML hors ligne, sans connexion au réseau Dante ni API Audinate. Conservez l'original et validez le fichier généré dans Dante Controller avant toute utilisation en production."),
             para("L'installateur Windows x64 contient l'application et le runtime .NET 8 nécessaire. Il n'est normalement pas nécessaire d'installer .NET séparément."),
             *bullets([
                 "L'installation proposée par défaut se trouve dans Program Files et crée un raccourci dans le menu Démarrer.",
@@ -453,12 +562,42 @@ def full_guide(language: str) -> None:
             para("Quick start et Notice complète ouvrent automatiquement le PDF français ou anglais selon la langue active."),
             callout(f"Projet public : {GITHUB}<br/>Crédit : By Mamat et ses agents", PALE_GREEN),
         ]
+        visual_overview = [
+            para("L'essentiel en un écran", "h1"),
+            para("La page Configuration répond au besoin d'origine du logiciel : survoler rapidement tout le preset sans ouvrir successivement chaque page de Dante Controller."),
+            *figure(language, "configuration.png", "Vue Configuration avec alertes, réglages par machine, renommage des canaux, actions globales et tableau de synthèse.", 170, 91),
+            feature_band([
+                ("Repérer", "Les lignes colorées et le bandeau latéral signalent les écarts importants."),
+                ("Cibler", "Filtres, sélection multiple et verrouillage définissent précisément les machines touchées."),
+                ("Vérifier", "Avant / après permet de relire les changements avant la sauvegarde."),
+            ]),
+        ]
+        visual_device = [
+            para("Modifier une machine sans changer de page", "h1"),
+            para("Détail machine regroupe les paramètres essentiels et permet de passer directement à une autre machine depuis le menu supérieur."),
+            *figure(language, "device-details.png", "Nom, mode réseau, Preferred Master, latence, sample rate, bits, IP et canaux TX/RX.", 148, 116),
+            *bullets([
+                "Les onglets TX et RX permettent de renommer les canaux individuellement.",
+                "Patch RX permet de contrôler ou déconnecter les subscriptions reçues par la machine.",
+                "Appliquer valide l'ensemble en une seule opération groupée ; Annuler ne modifie pas le XML.",
+            ]),
+        ]
+        visual_patch = [
+            para("Deux façons de travailler sur le patch", "h1"),
+            para("Patch reste l'éditeur tabulaire précis. Easy patch ajoute une sélection visuelle, les plages et un lot cumulatif appliqué en une seule fois."),
+            *figure(language, "patch.png", "Patch : filtrer les TX/RX, rechercher une source, appliquer ou retirer une subscription et renommer depuis la liste.", 166, 82),
+            *figure(language, "easy-patch.png", "Easy patch : RX à gauche, TX à droite, prévisualisation ou application directe, plages et lot cumulatif.", 166, 82),
+        ]
+        visual_health = [
+            para("Contrôler avant d'enregistrer", "h1"),
+            para("Les deux dernières pages servent à comprendre les anomalies, produire les rapports et vérifier que seules les modifications attendues seront conservées."),
+            *figure(language, "file-health.png", "Santé du fichier : erreurs, warnings, formats audio mélangés, IP fixes, patchs locaux et compatibilité.", 166, 80),
+            *figure(language, "safety-log.png", "Sécurité et journal : résumé avant sauvegarde, rapports Dante Controller, exports, historique et notices.", 166, 80),
+        ]
     else:
         page1 = [
-            para(PRODUCT, "title"),
-            para(f"Full user guide - version {VERSION}", "subtitle"),
-            callout("<b>Important:</b> this is a third-party tool, not an official Audinate product. V3.08 is the current official version for Windows and macOS, but it may still contain bugs. It edits XML files offline without connecting to a Dante network or using an Audinate API. Keep the original and validate the generated file in Dante Controller before production use."),
             para("1. Installation and startup", "h1"),
+            callout("<b>Important:</b> this is a third-party tool, not an official Audinate product. V3.08 is the current official version for Windows and macOS, but it may still contain bugs. It edits XML files offline without connecting to a Dante network or using an Audinate API. Keep the original and validate the generated file in Dante Controller before production use."),
             para("The Windows x64 installer includes the application and the required .NET 8 runtime. A separate .NET installation is normally not required."),
             *bullets([
                 "The default location is Program Files, with a Start menu shortcut.",
@@ -598,9 +737,53 @@ def full_guide(language: str) -> None:
             para("Quick start and Full guide automatically open the French or English PDF for the active language."),
             callout(f"Public project: {GITHUB}<br/>Credit: By Mamat et ses agents", PALE_GREEN),
         ]
+        visual_overview = [
+            para("The essentials on one screen", "h1"),
+            para("The Configuration page addresses the software's original need: review an entire preset quickly without opening each Dante Controller page in turn."),
+            *figure(language, "configuration.png", "Configuration view with alerts, per-device settings, channel renaming, global actions, and the overview table.", 170, 91),
+            feature_band([
+                ("Spot issues", "Colored rows and the side banner highlight important discrepancies."),
+                ("Target safely", "Filters, multiple selection, and locks define exactly which devices are affected."),
+                ("Review", "Before / after lets you inspect every change before saving."),
+            ]),
+        ]
+        visual_device = [
+            para("Edit a device without leaving the workflow", "h1"),
+            para("Device details combines the essential settings and lets you move directly to another device from the top menu."),
+            *figure(language, "device-details.png", "Name, network mode, Preferred Master, latency, sample rate, bits, IP settings, and TX/RX channels.", 148, 116),
+            *bullets([
+                "The TX and RX tabs rename individual channels.",
+                "Rx patch reviews or disconnects subscriptions received by the device.",
+                "Apply validates the complete edit as one grouped operation; Cancel leaves the XML unchanged.",
+            ]),
+        ]
+        visual_patch = [
+            para("Two patching workflows", "h1"),
+            para("Patch remains the precise tabular editor. Easy patch adds visual selection, ranges, and a cumulative batch that is applied once."),
+            *figure(language, "patch.png", "Patch: filter TX/RX devices, find a source, apply or remove a subscription, and rename from the list.", 166, 82),
+            *figure(language, "easy-patch.png", "Easy patch: RX on the left, TX on the right, preview or direct apply, exact ranges, and a cumulative batch.", 166, 82),
+        ]
+        visual_health = [
+            para("Review before saving", "h1"),
+            para("The final two pages explain anomalies, produce reports, and help verify that only the intended changes will be kept."),
+            *figure(language, "file-health.png", "File health: errors, warnings, mixed audio formats, static IPs, local subscriptions, and compatibility.", 166, 80),
+            *figure(language, "safety-log.png", "Safety and log: pre-save summary, Dante Controller reports, exports, history, and user guides.", 166, 80),
+        ]
 
     story: list = []
-    for index, page in enumerate([page1, page2, page3, page4, page5]):
+    pages = [
+        cover_page(language),
+        page1,
+        visual_overview,
+        page2,
+        visual_device,
+        page3,
+        visual_patch,
+        page4,
+        visual_health,
+        page5,
+    ]
+    for index, page in enumerate(pages):
         if index:
             story.append(PageBreak())
         story.extend(page)
