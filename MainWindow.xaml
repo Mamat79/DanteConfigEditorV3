@@ -1204,7 +1204,14 @@
                 <TextBlock x:Name="CountsTextBlock" Text="0 device - 0 TX - 0 RX" Foreground="{DynamicResource MutedTextBrush}" />
             </StatusBarItem>
             <StatusBarItem HorizontalAlignment="Right">
-                <TextBlock Text="By Mamat" Foreground="{DynamicResource MutedTextBrush}" FontSize="11" Opacity="0.72" />
+                <TextBlock Foreground="{DynamicResource MutedTextBrush}"
+                           TextAlignment="Right"
+                           LineHeight="11"
+                           Opacity="0.72">
+                    <Run Text="By Mamat" FontSize="11" />
+                    <LineBreak />
+                    <Run Text="et ses agents" FontSize="8" />
+                </TextBlock>
             </StatusBarItem>
         </StatusBar>
     </Grid>

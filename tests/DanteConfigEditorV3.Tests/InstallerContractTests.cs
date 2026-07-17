@@ -37,7 +37,17 @@ public sealed class InstallerContractTests
         Assert.Contains("Notice_DanteConfigEditorV3_FR.pdf", installerScript, StringComparison.Ordinal);
         Assert.Contains("Notice_DanteConfigEditorV3_EN.pdf", installerScript, StringComparison.Ordinal);
         Assert.Contains("https://github.com/Mamat79/DanteConfigEditorV3", installerScript, StringComparison.Ordinal);
-        Assert.Contains("By Mamat", installerScript, StringComparison.Ordinal);
+        Assert.Contains("SignatureLabel.Caption := 'By Mamat'", installerScript, StringComparison.Ordinal);
+        Assert.Contains("SignatureAgentsLabel.Caption := 'et ses agents'", installerScript, StringComparison.Ordinal);
+        Assert.Contains("By Mamat", File.ReadAllText(RepositoryFile("MainWindow.xaml")), StringComparison.Ordinal);
+        Assert.Contains("et ses agents", File.ReadAllText(RepositoryFile("MainWindow.xaml")), StringComparison.Ordinal);
+        Assert.Contains("By Mamat", File.ReadAllText(RepositoryFile("src", "DanteConfigEditor.Mac", "MainWindow.axaml")), StringComparison.Ordinal);
+        Assert.Contains("et ses agents", File.ReadAllText(RepositoryFile("src", "DanteConfigEditor.Mac", "MainWindow.axaml")), StringComparison.Ordinal);
+        Assert.Contains("By Mamat et ses agents", File.ReadAllText(RepositoryFile("Services", "ReportExportService.cs")), StringComparison.Ordinal);
+        Assert.Contains("By Mamat et ses agents", File.ReadAllText(RepositoryFile("packaging", "macos", "Info.plist")), StringComparison.Ordinal);
+        Assert.Contains("By Mamat et ses agents", File.ReadAllText(RepositoryFile("docs", "generate_guides.py")), StringComparison.Ordinal);
+        Assert.Contains("README_EN.md", installerScript, StringComparison.Ordinal);
+        Assert.Contains("RELEASE_NOTES_EN.md", installerScript, StringComparison.Ordinal);
         Assert.Contains("Assert-RepositoryPath", buildScript, StringComparison.Ordinal);
         Assert.Contains("Remove-GeneratedPath", buildScript, StringComparison.Ordinal);
         Assert.Contains("Get-FileHash", buildScript, StringComparison.Ordinal);

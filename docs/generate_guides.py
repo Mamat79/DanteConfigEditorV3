@@ -193,7 +193,7 @@ def draw_header_footer(canvas, doc) -> None:
     canvas.line(18 * mm, height - 15 * mm, width - 18 * mm, height - 15 * mm)
     canvas.setFont(REGULAR, 7.4)
     canvas.setFillColor(MUTED)
-    canvas.drawString(18 * mm, height - 11.5 * mm, f"{PRODUCT} - version {VERSION} - By Mamat")
+    canvas.drawString(18 * mm, height - 11.5 * mm, f"{PRODUCT} - version {VERSION} - By Mamat et ses agents")
     canvas.drawRightString(width - 18 * mm, 10 * mm, f"Page {doc.page}")
     canvas.line(18 * mm, 14 * mm, width - 18 * mm, 14 * mm)
     canvas.restoreState()
@@ -208,7 +208,7 @@ def build_document(path: Path, story: list) -> None:
         topMargin=21 * mm,
         bottomMargin=18 * mm,
         title=PRODUCT,
-        author="Mamat",
+        author="Mamat et ses agents",
         subject="Offline Dante XML editor user guide",
     )
     document.build(story, onFirstPage=draw_header_footer, onLaterPages=draw_header_footer)
@@ -420,7 +420,7 @@ def full_guide(language: str) -> None:
             *bullets([
                 "Santé du fichier regroupe statistiques, erreurs, warnings, patchs libres/locaux et compatibilité.",
                 "La comparaison XML affiche les différences dans un tableau.",
-                "Les exports TXT/PDF portent la version du logiciel et la signature By Mamat.",
+                "Les exports TXT/PDF portent la version du logiciel et la signature By Mamat et ses agents.",
             ]),
         ]
         page5 = [
@@ -451,7 +451,7 @@ def full_guide(language: str) -> None:
             ]),
             para("15. Aide et informations", "h1"),
             para("Quick start et Notice complète ouvrent automatiquement le PDF français ou anglais selon la langue active."),
-            callout(f"Projet public : {GITHUB}<br/>Crédit : By Mamat", PALE_GREEN),
+            callout(f"Projet public : {GITHUB}<br/>Crédit : By Mamat et ses agents", PALE_GREEN),
         ]
     else:
         page1 = [
@@ -565,7 +565,7 @@ def full_guide(language: str) -> None:
             *bullets([
                 "File health combines statistics, errors, warnings, free/local subscriptions, and compatibility checks.",
                 "XML comparison displays differences in a table.",
-                "TXT/PDF exports include the application version and the By Mamat signature.",
+                "TXT/PDF exports include the application version and the By Mamat et ses agents signature.",
             ]),
         ]
         page5 = [
@@ -596,7 +596,7 @@ def full_guide(language: str) -> None:
             ]),
             para("15. Help and information", "h1"),
             para("Quick start and Full guide automatically open the French or English PDF for the active language."),
-            callout(f"Public project: {GITHUB}<br/>Credit: By Mamat", PALE_GREEN),
+            callout(f"Public project: {GITHUB}<br/>Credit: By Mamat et ses agents", PALE_GREEN),
         ]
 
     story: list = []

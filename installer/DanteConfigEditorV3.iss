@@ -45,8 +45,10 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 Source: "{#SourceRoot}\dist\installer_payload\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#SourceRoot}\DanteEdit.ico"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#SourceRoot}\README.md"; DestDir: "{app}"; Flags: ignoreversion
+Source: "{#SourceRoot}\README_EN.md"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#SourceRoot}\CHANGELOG_V3.md"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#SourceRoot}\RELEASE_NOTES.md"; DestDir: "{app}"; Flags: ignoreversion
+Source: "{#SourceRoot}\RELEASE_NOTES_EN.md"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#SourceRoot}\docs\QuickStart_DanteConfigEditorV3_FR.pdf"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#SourceRoot}\docs\QuickStart_DanteConfigEditorV3_EN.pdf"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#SourceRoot}\docs\Notice_DanteConfigEditorV3_FR.pdf"; DestDir: "{app}"; Flags: ignoreversion
@@ -60,18 +62,21 @@ Type: files; Name: "{group}\Notice PDF.lnk"
 
 [Icons]
 Name: "{group}\{code:GetShortcutAppName}"; Filename: "{app}\{#MyAppExeName}"; WorkingDir: "{app}"; IconFilename: "{app}\DanteEdit.ico"
-Name: "{group}\Documentation"; Filename: "{app}\README.md"
+Name: "{group}\Documentation - Français"; Filename: "{app}\README.md"
+Name: "{group}\Documentation - English"; Filename: "{app}\README_EN.md"
 Name: "{group}\Démarrage rapide - Français"; Filename: "{app}\QuickStart_DanteConfigEditorV3_FR.pdf"
 Name: "{group}\Quick start - English"; Filename: "{app}\QuickStart_DanteConfigEditorV3_EN.pdf"
 Name: "{group}\Notice complète - Français"; Filename: "{app}\Notice_DanteConfigEditorV3_FR.pdf"
 Name: "{group}\Full user guide - English"; Filename: "{app}\Notice_DanteConfigEditorV3_EN.pdf"
-Name: "{group}\Release notes"; Filename: "{app}\RELEASE_NOTES.md"
+Name: "{group}\Notes de version - Français"; Filename: "{app}\RELEASE_NOTES.md"
+Name: "{group}\Release notes - English"; Filename: "{app}\RELEASE_NOTES_EN.md"
 Name: "{group}\Désinstaller {code:GetShortcutAppName}"; Filename: "{uninstallexe}"
 Name: "{autodesktop}\{code:GetShortcutAppName}"; Filename: "{app}\{#MyAppExeName}"; WorkingDir: "{app}"; IconFilename: "{app}\DanteEdit.ico"; Tasks: desktopicon
 
 [Run]
 Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,Dante Config Editor V3.08}"; Flags: nowait postinstall skipifsilent
-Filename: "{app}\RELEASE_NOTES.md"; Description: "Ouvrir les release notes"; Flags: postinstall shellexec unchecked skipifsilent
+Filename: "{app}\RELEASE_NOTES.md"; Description: "Ouvrir les notes de version"; Flags: postinstall shellexec unchecked skipifsilent; Check: IsFrenchLanguage
+Filename: "{app}\RELEASE_NOTES_EN.md"; Description: "Open the release notes"; Flags: postinstall shellexec unchecked skipifsilent; Check: IsEnglishLanguage
 Filename: "{app}\QuickStart_DanteConfigEditorV3_FR.pdf"; Description: "Ouvrir le démarrage rapide en français"; Flags: postinstall shellexec unchecked skipifsilent; Check: IsFrenchLanguage
 Filename: "{app}\Notice_DanteConfigEditorV3_FR.pdf"; Description: "Ouvrir la notice complète en français"; Flags: postinstall shellexec unchecked skipifsilent; Check: IsFrenchLanguage
 Filename: "{app}\QuickStart_DanteConfigEditorV3_EN.pdf"; Description: "Open the English quick start"; Flags: postinstall shellexec unchecked skipifsilent; Check: IsEnglishLanguage
@@ -80,6 +85,7 @@ Filename: "{app}\Notice_DanteConfigEditorV3_EN.pdf"; Description: "Open the full
 [Code]
 var
   SignatureLabel: TNewStaticText;
+  SignatureAgentsLabel: TNewStaticText;
   GithubLabel: TNewStaticText;
   ExistingInstallDir: String;
   ExistingInstallVersion: String;
@@ -173,9 +179,17 @@ begin
   SignatureLabel := TNewStaticText.Create(WizardForm);
   SignatureLabel.Parent := WizardForm;
   SignatureLabel.Caption := 'By Mamat';
-  SignatureLabel.Left := WizardForm.ClientWidth - ScaleX(75);
-  SignatureLabel.Top := WizardForm.ClientHeight - ScaleY(28);
+  SignatureLabel.Left := WizardForm.ClientWidth - ScaleX(82);
+  SignatureLabel.Top := WizardForm.ClientHeight - ScaleY(36);
   SignatureLabel.Font.Color := clGray;
+
+  SignatureAgentsLabel := TNewStaticText.Create(WizardForm);
+  SignatureAgentsLabel.Parent := WizardForm;
+  SignatureAgentsLabel.Caption := 'et ses agents';
+  SignatureAgentsLabel.Left := WizardForm.ClientWidth - ScaleX(82);
+  SignatureAgentsLabel.Top := WizardForm.ClientHeight - ScaleY(22);
+  SignatureAgentsLabel.Font.Color := clGray;
+  SignatureAgentsLabel.Font.Size := 7;
 end;
 
 function InitializeSetup(): Boolean;
