@@ -8,6 +8,14 @@ Version officielle V3.08 pour Windows x64, macOS Apple Silicon et macOS Intel. I
 
 La V3.08 remplace la V3.07 comme version courante de la branche `main`. Les anciennes versions ne sont plus proposées au téléchargement, mais leur historique fonctionnel reste consultable dans les commits et le changelog. Travaillez toujours sur une copie de vos fichiers XML Dante et validez le résultat dans les outils Dante officiels avant toute utilisation réelle.
 
+## Pourquoi j'ai créé cet outil
+
+J'ai créé Dante Config Editor pour pallier ce qui me manquait dans Dante Controller : vérifier rapidement une configuration complète sans devoir ouvrir successivement toutes les pages consacrées aux machines, aux latences, aux fréquences d'échantillonnage, aux modes réseau, aux adresses IP ou à l'horloge. Je voulais pouvoir tout survoler depuis une vue d'ensemble et corriger les valeurs du preset lorsque cela était nécessaire.
+
+Je rencontrais aussi régulièrement le même problème sur des réseaux déjà patchés : renommer une machine ou des canaux TX pouvait imposer de reprendre les subscriptions et une partie du patch. L'éditeur met donc à jour les références XML reconnues lors de ces renommages afin de préserver le patch autant que la structure du preset le permet.
+
+La préparation hors ligne est enfin un besoin central du projet. L'application permet de contrôler, modifier, fusionner et préparer un preset sans connexion au réseau Dante, avant de valider le fichier final dans Dante Controller.
+
 ## Nouvel onglet Easy patch
 
 - L'onglet classique `Patch` reste disponible sans changement de principe.
@@ -64,6 +72,13 @@ La V3.08 remplace la V3.07 comme version courante de la branche `main`. Les anci
 - Le moteur XML et ses garde-fous sont partagés entre Windows et macOS.
 - L'interface Mac conserve l'atelier visuel Avalonia avec sélection multiple, glisser-déposer et matrice. Le nouvel onglet Windows `Easy patch` n'est pas reproduit à l'identique sur Mac dans cette version.
 - Les DMG sont signés ad hoc mais ne sont pas notariés par Apple ; le premier lancement peut nécessiter un clic droit sur l'application puis `Ouvrir`.
+
+## Documentation et présentation
+
+- Notice complète illustrée en français et en anglais pour l'ensemble du logiciel.
+- Démarrage rapide PDF dans les deux langues.
+- Présentation générale V3.08 en français et en anglais, avec sous-titres lisibles intégrés et fichiers SRT séparés.
+- Captures et vidéos réalisées uniquement avec un preset synthétique anonymisé.
 
 ## Validation automatisée
 

@@ -8,6 +8,14 @@ Official V3.08 build for Windows x64, macOS Apple Silicon and macOS Intel. This 
 
 V3.08 replaces V3.07 as the current version on `main`. Older versions are no longer offered for download, while their functional history remains available in the commits and changelog. Always work on a copy of Dante XML files and validate the result with official Dante tools before production use.
 
+## Why I created this tool
+
+I created Dante Config Editor to provide what I personally was missing in Dante Controller: a quick way to review an entire configuration without opening every page dedicated to devices, latency, sample rates, network modes, IP settings or clock status. I wanted one overview from which I could inspect the preset and correct values when necessary.
+
+I also repeatedly encountered the same problem on already patched networks: renaming a device or TX channels could require rebuilding subscriptions and part of the patch. The editor therefore updates recognized XML references during those renames, preserving the patch as far as the preset structure allows.
+
+Offline preparation is another central goal. The application can review, edit, merge and prepare a preset without connecting to the Dante network, before the final file is validated in Dante Controller.
+
 ## Easy patch
 
 - The classic `Patch` view remains available.
@@ -50,6 +58,13 @@ V3.08 replaces V3.07 as the current version on `main`. Older versions are no lon
 - The XML engine and safety guards are shared across platforms.
 - macOS retains its Avalonia visual patch workshop; the Windows Easy patch layout is not reproduced identically.
 - macOS packages are ad hoc signed and not notarized.
+
+## Documentation and presentation
+
+- Illustrated full user guide in French and English covering the entire application.
+- Bilingual PDF quick starts.
+- General V3.08 presentation in French and English, with readable burned-in subtitles and separate SRT files.
+- Screenshots and videos produced only from a synthetic anonymized preset.
 
 ## Automated validation
 
