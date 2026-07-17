@@ -4,7 +4,7 @@
 
 Version officielle V3.08 pour Windows x64, macOS Apple Silicon et macOS Intel. Il s'agit d'un outil tiers non officiel Audinate et cette application n'est pas exempte de bugs.
 
-La V3.08 remplace la V3.07 comme version courante de la branche `main`. La V3.07 reste disponible dans l'historique. Travaillez toujours sur une copie de vos fichiers XML Dante et validez le résultat dans les outils Dante officiels avant toute utilisation réelle.
+La V3.08 remplace la V3.07 comme version courante de la branche `main`. Les anciennes versions ne sont plus proposées au téléchargement, mais leur historique fonctionnel reste consultable dans les commits et le changelog. Travaillez toujours sur une copie de vos fichiers XML Dante et validez le résultat dans les outils Dante officiels avant toute utilisation réelle.
 
 ## Nouvel onglet Easy patch
 

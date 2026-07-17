@@ -2,8 +2,12 @@
 
 Version officielle Windows et macOS de la branche `main` pour éditer hors ligne des fichiers XML de configuration Dante.
 
+**Téléchargement direct : [Windows x64](https://github.com/Mamat79/DanteConfigEditorV3/releases/download/v3.08/DanteConfigEditorV3_08_Installer.exe) | [macOS Apple Silicon](https://github.com/Mamat79/DanteConfigEditorV3/releases/download/v3.08/DanteConfigEditorV3_macOS_AppleSilicon.dmg) | [macOS Intel](https://github.com/Mamat79/DanteConfigEditorV3/releases/download/v3.08/DanteConfigEditorV3_macOS_Intel.dmg)**
+
+**English summary:** Offline Dante XML configuration editor for Windows and macOS. Inspect devices and channels, rename TX/RX channels, edit subscriptions with Easy patch, merge presets and save with XML safety checks. This is an unofficial third-party tool and does not connect to a live Dante network.
+
 > **Statut : V3.08 officielle Windows et macOS. Outil tiers non officiel Audinate.**
-> Cette version peut encore contenir des bugs. La V3.07 demeure disponible dans l'historique. Travaillez toujours sur une copie et validez le XML généré dans les outils Dante officiels.
+> Cette version peut encore contenir des bugs. Les anciennes versions ne sont plus proposées au téléchargement. Travaillez toujours sur une copie et validez le XML généré dans les outils Dante officiels.
 
 ## Ce que fait l'application
 
@@ -67,9 +71,9 @@ Version officielle Windows et macOS de la branche `main` pour éditer hors ligne
 
 ## Télécharger / installer
 
-Le fichier recommandé est fourni dans le dossier `dist` local et dans les Releases GitHub :
+Le fichier recommandé est fourni dans la [Release GitHub V3.08](https://github.com/Mamat79/DanteConfigEditorV3/releases/tag/v3.08) :
 
-- `DanteConfigEditorV3_08_Installer.exe` : installateur Windows autonome, avec installation par défaut dans Program Files, choix du dossier, raccourcis et désinstallation propre.
+- [`DanteConfigEditorV3_08_Installer.exe`](https://github.com/Mamat79/DanteConfigEditorV3/releases/download/v3.08/DanteConfigEditorV3_08_Installer.exe) : installateur Windows autonome, avec installation par défaut dans Program Files, choix du dossier, raccourcis et désinstallation propre.
 
 La version autonome inclut le runtime .NET nécessaire. Sur une machine Windows x64, il ne devrait pas être nécessaire d'installer .NET séparément pour utiliser l'application.
 
@@ -77,8 +81,8 @@ La version autonome inclut le runtime .NET nécessaire. Sur une machine Windows 
 
 La Release V3.08 fournit deux DMG autonomes :
 
-- `DanteConfigEditorV3_macOS_AppleSilicon.dmg` pour les Mac M1, M2, M3, M4 et suivants ;
-- `DanteConfigEditorV3_macOS_Intel.dmg` pour les Mac Intel 64 bits.
+- [`DanteConfigEditorV3_macOS_AppleSilicon.dmg`](https://github.com/Mamat79/DanteConfigEditorV3/releases/download/v3.08/DanteConfigEditorV3_macOS_AppleSilicon.dmg) pour les Mac M1, M2, M3, M4 et suivants ;
+- [`DanteConfigEditorV3_macOS_Intel.dmg`](https://github.com/Mamat79/DanteConfigEditorV3/releases/download/v3.08/DanteConfigEditorV3_macOS_Intel.dmg) pour les Mac Intel 64 bits.
 
 Ouvrir le DMG, puis glisser `Dante Config Editor` dans `Applications`. Le runtime .NET 8 et les notices FR/EN sont inclus.
 
@@ -95,16 +99,15 @@ Notices fournies :
 
 Dans l'application, les boutons d'aide ouvrent automatiquement les fichiers FR ou EN selon la langue active.
 
-La V3.08 utilise un AppId, un dossier Program Files, un menu Démarrer et un stockage local distincts. Elle peut donc cohabiter avec la V3.07. L'installateur officiel V3.08 remplace une précédente installation V3.08 Beta ou V3.08 sans toucher à la V3.07.
+La V3.08 utilise un AppId, un dossier Program Files, un menu Démarrer et un stockage local distincts. Elle peut donc cohabiter avec une ancienne V3.07 déjà installée, même si cette ancienne version n'est plus distribuée sur GitHub. L'installateur officiel V3.08 remplace une précédente installation V3.08 Beta ou V3.08 sans toucher à la V3.07.
 
 ## Version distribuée
 
 - La branche `main` contient la V3.08 officielle pour Windows et macOS.
-- La V3.07 reste conservée dans le tag et la Release `v3.07`.
-- La branche de développement `3.08-beta` est conservée dans l'historique Git ; elle n'est plus la branche principale.
+- `main` est l'unique branche publiée sur GitHub.
 - La Release `v3.08` fournit un installateur Windows x64 et deux DMG macOS, Apple Silicon et Intel.
-- Les anciens tags et Releases restent de l'historique ; ils ne doivent pas être utilisés à la place de la publication courante.
-- L'historique fonctionnel reste consultable dans Git et dans `CHANGELOG_V3.md`.
+- `v3.08` est l'unique tag et l'unique Release conservés sur GitHub.
+- L'historique fonctionnel reste consultable dans les commits de `main` et dans `CHANGELOG_V3.md`.
 
 ## Utilisation rapide
 
