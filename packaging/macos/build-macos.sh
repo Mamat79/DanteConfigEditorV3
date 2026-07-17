@@ -85,6 +85,11 @@ hdiutil create \
   -format UDZO \
   "$DMG" >/dev/null
 hdiutil verify "$DMG" >/dev/null
-shasum -a 256 "$DMG" > "$DMG.sha256"
+DMG_DIR="$(dirname "$DMG")"
+DMG_NAME="$(basename "$DMG")"
+(
+  cd "$DMG_DIR"
+  shasum -a 256 "$DMG_NAME" > "$DMG_NAME.sha256"
+)
 
 echo "DMG créé : $DMG"

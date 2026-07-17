@@ -93,6 +93,7 @@ public sealed class InstallerContractTests
         Assert.Contains("<string>Dante Config Editor V3.08</string>", plist, StringComparison.Ordinal);
         Assert.Contains("<string>3.8.0</string>", plist, StringComparison.Ordinal);
         Assert.Contains("Dante Config Editor V3.08", packaging, StringComparison.Ordinal);
+        Assert.Contains("shasum -a 256 \"$DMG_NAME\"", packaging, StringComparison.Ordinal);
         Assert.Contains("branches:", workflow, StringComparison.Ordinal);
         Assert.Contains("- main", workflow, StringComparison.Ordinal);
         Assert.Contains("workflow_dispatch:", workflow, StringComparison.Ordinal);
