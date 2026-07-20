@@ -18,6 +18,7 @@ Offline preparation is another central goal. The application can review, edit, m
 
 ## Atomic Bomb for training
 
+- Thanks to **Charles Bouticourt** for the idea behind this training feature.
 - Adds a large red button in `Safety and log` to generate a deliberately disordered troubleshooting preset.
 - Three successive confirmations are required before the operation.
 - Controlled mixing of names, subscriptions, network modes, Preferred Master states, latencies, sample rates, encodings, and primary IP settings.
@@ -98,6 +99,8 @@ Offline preparation is another central goal. The application can review, edit, m
 The project started as a small personal XML editor written manually by Mamat. Modern development agents then enabled a substantial evolution of the interface, XML safeguards, automated tests, documentation and packaging, under Mamat's functional direction.
 
 **By Mamat et ses agents**
+
+Special thanks to **Charles Bouticourt** for the idea behind the `Atomic Bomb` feature.
 
 ## Public repository
 

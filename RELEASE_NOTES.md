@@ -18,6 +18,7 @@ La préparation hors ligne est enfin un besoin central du projet. L'application 
 
 ## Atomic Bomb pour la formation
 
+- Merci à **Charles Bouticourt** pour l'idée de cette fonction de formation.
 - Ajout d'un gros bouton rouge dans `Sécurité et journal` pour générer un preset d'exercice volontairement en désordre.
 - Trois confirmations successives sont obligatoires avant l'opération.
 - Mélange contrôlé des noms, patchs, modes réseau, Preferred Master, latences, sample rates, encodages et IP principales.
@@ -117,3 +118,5 @@ https://github.com/Mamat79/DanteConfigEditorV3
 Le projet a commencé comme un petit éditeur XML personnel écrit manuellement par Mamat. Les agents de développement actuels ont ensuite permis une évolution importante de l'interface, des garde-fous, des tests, de la documentation et du packaging, sous la direction fonctionnelle de Mamat.
 
 **By Mamat et ses agents**
+
+Remerciement à **Charles Bouticourt** pour l'idée de la fonction `Atomic Bomb`.

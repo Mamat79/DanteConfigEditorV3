@@ -111,6 +111,8 @@ The macOS builds are ad hoc signed but are not notarized with an Apple Developer
 
 `Atomic Bomb`, visible in the Project sidebar and in `Safety and log`, prepares a deliberately disordered network preset for training. It only changes the XML copy loaded in memory and requires three successive confirmations.
 
+Thanks to **Charles Bouticourt** for the idea behind this training feature.
+
 Devices receive unique names from a mythological, audio-themed, and deliberately playful catalogue, such as `ATHENA`, `RAVENNA`, `PYRAMIX`, `INFERNO`, or `PATCHOS`. They therefore do not share an obvious uniform prefix.
 
 - Device and TX/RX channel names are replaced with exercise names.
@@ -202,3 +204,5 @@ https://github.com/Mamat79/DanteConfigEditorV3
 
 **By Mamat**<br>
 <sub>et ses agents</sub>
+
+Special thanks to **Charles Bouticourt** for the idea behind the `Atomic Bomb` feature.

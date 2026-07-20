@@ -151,6 +151,8 @@ La V3.09 utilise un AppId, un dossier Program Files, un menu Démarrer et un sto
 
 `Atomic Bomb`, visible dans la colonne Projet et dans `Sécurité et journal`, sert à préparer un réseau volontairement en désordre pour une formation. Il agit uniquement sur la copie XML chargée en mémoire et demande trois confirmations successives.
 
+Merci à **Charles Bouticourt** pour l'idée de cette fonction de formation.
+
 Les machines reçoivent des noms uniques choisis dans un catalogue mythologique, audio et volontairement décalé, comme `ATHENA`, `RAVENNA`, `PYRAMIX`, `INFERNO` ou `PATCHOS`. Les noms ne suivent donc pas un préfixe uniforme facilement reconnaissable.
 
 - Les noms des machines et des canaux TX/RX sont remplacés par des noms d'exercice.
@@ -367,3 +369,5 @@ Pour lancer les tests automatiques :
 
 **By Mamat**<br>
 <sub>et ses agents</sub>
+
+Remerciement à **Charles Bouticourt** pour l'idée de la fonction `Atomic Bomb`.
