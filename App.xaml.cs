@@ -10,7 +10,7 @@ public partial class App : Application
     protected override void OnStartup(StartupEventArgs e)
     {
         // Ces gestionnaires évitent qu'une erreur UI ferme brutalement l'application.
-        // Le détail est écrit dans l'espace local propre à la V3.08.
+        // Le détail est écrit dans l'espace local propre à la V3.09.
         DispatcherUnhandledException += HandleDispatcherUnhandledException;
         AppDomain.CurrentDomain.UnhandledException += HandleUnhandledException;
         TaskScheduler.UnobservedTaskException += HandleUnobservedTaskException;

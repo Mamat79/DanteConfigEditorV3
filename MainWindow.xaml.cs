@@ -3137,6 +3137,7 @@ public partial class MainWindow : Window
         yield return OpenVisualPatchButton;
         yield return RenamePatchRxChannelButton;
         yield return RenamePatchTxChannelButton;
+        yield return AtomicChaosSidebarButton;
         yield return AtomicChaosButton;
     }
 

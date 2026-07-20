@@ -9,18 +9,28 @@ public sealed partial class DanteProject
     private static readonly string[] AtomicLatencies = ["250", "1000", "2000", "5000"];
     private static readonly string[] AtomicSamplerates = ["44100", "48000", "88200", "96000", "176400", "192000"];
     private static readonly string[] AtomicEncodings = ["16", "24", "32"];
+    private static readonly string[] AtomicDeviceNames =
+    [
+        "APOLLON", "ATHENA", "HERMES", "ORPHEE", "HEPHAISTOS", "POSEIDON", "ARTEMIS", "HERA",
+        "ZEUS", "HADES", "NYX", "HELIOS", "ATLAS", "ECHO", "MORPHEE", "ARIANE", "PEGASE",
+        "PHENIX", "OLYMPE", "DELPHES", "STYX", "CIRCE", "CALYPSO", "RAVENNA", "PYRAMIX",
+        "INFERNO", "PURGATORIO", "PARADISO", "BEATRICE", "VIRGILE", "CHRONOS", "DAEDALUS",
+        "SONICUS", "MIXOLYDIEN", "PATCHOS", "LATENCIA", "DUPLEX", "FLOWDINI", "CLOCKOS",
+        "RESONIX", "GAINOS", "PANDEMONIUM"
+    ];
 
     public AtomicChaosResult ApplyAtomicChaos(int? seed = null)
     {
         if (Devices.Count == 0)
         {
-            throw new InvalidOperationException("Le bouton atomique nécessite au moins une machine.");
+            throw new InvalidOperationException("Atomic Bomb nécessite au moins une machine.");
         }
 
         int actualSeed = seed ?? RandomNumberGenerator.GetInt32(1, int.MaxValue);
         Random random = new(actualSeed);
+        IReadOnlyList<string> deviceNames = BuildAtomicDeviceNames(Devices.Count, random);
         AtomicDevicePlan[] plans = Devices
-            .Select((device, index) => BuildAtomicDevicePlan(device, index + 1, random))
+            .Select((device, index) => BuildAtomicDevicePlan(device, deviceNames[index], random))
             .ToArray();
         List<string> documentationAddresses = BuildDocumentationAddresses(random);
         int networkOffset = random.Next(2);
@@ -131,7 +141,7 @@ public sealed partial class DanteProject
         }
 
         RegisterChange(
-            "Bouton atomique",
+            "Atomic Bomb",
             $"Seed {actualSeed}: {plans.Length} machine(s), {txEndpoints.Length} TX, {patchedRxCount} RX patché(s), {disconnectedRxCount} RX libre(s)");
 
         return new AtomicChaosResult(
@@ -150,9 +160,27 @@ public sealed partial class DanteProject
             appliedLatencies.Count);
     }
 
-    private static AtomicDevicePlan BuildAtomicDevicePlan(DanteDevice device, int deviceNumber, Random random)
+    private static IReadOnlyList<string> BuildAtomicDeviceNames(int count, Random random)
     {
-        string newDeviceName = $"ATOM-{deviceNumber:00}-{random.Next(0x10000):X4}";
+        List<string> shuffledNames = AtomicDeviceNames.ToList();
+        for (int index = shuffledNames.Count - 1; index > 0; index--)
+        {
+            int swapIndex = random.Next(index + 1);
+            (shuffledNames[index], shuffledNames[swapIndex]) = (shuffledNames[swapIndex], shuffledNames[index]);
+        }
+
+        return Enumerable.Range(0, count)
+            .Select(index =>
+            {
+                string baseName = shuffledNames[index % shuffledNames.Count];
+                int series = index / shuffledNames.Count;
+                return series == 0 ? baseName : $"{baseName}-{series + 1:00}";
+            })
+            .ToArray();
+    }
+
+    private static AtomicDevicePlan BuildAtomicDevicePlan(DanteDevice device, string newDeviceName, Random random)
+    {
         AtomicChannelPlan[] txChannels = device.TxChannels
             .Select((channel, index) => new AtomicChannelPlan(channel, $"CHAOS-TX-{index + 1:000}-{random.Next(0x100):X2}"))
             .ToArray();

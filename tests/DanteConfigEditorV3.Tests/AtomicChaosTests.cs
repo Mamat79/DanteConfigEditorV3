@@ -39,7 +39,8 @@ public sealed class AtomicChaosTests
         Assert.Equal(project.Devices.Count, project.Devices.Select(device => device.Name).Distinct(StringComparer.OrdinalIgnoreCase).Count());
         Assert.All(project.Devices, device =>
         {
-            Assert.StartsWith("ATOM-", device.Name, StringComparison.Ordinal);
+            Assert.False(device.Name.StartsWith("ATOM-", StringComparison.Ordinal));
+            Assert.Matches("^[A-Z0-9-]+$", device.Name);
             Assert.Contains(device.Samplerate, new[] { "44100", "48000", "88200", "96000", "176400", "192000" });
             Assert.Contains(device.Encoding, new[] { "16", "24", "32" });
             Assert.Contains(device.Latency, new[] { "250", "1000", "2000", "5000" });
@@ -59,6 +60,24 @@ public sealed class AtomicChaosTests
     }
 
     [Fact]
+    public void AtomicChaosKeepsFunnyDeviceNamesUniqueBeyondTheNamePool()
+    {
+        using TestWorkspace workspace = new();
+        string source = workspace.PathFor("atomic-many-devices.xml");
+        SyntheticPresetFactory.Create(source, deviceCount: 80, txPerDevice: 1, rxPerDevice: 1);
+        DanteProject project = DanteProject.Load(source);
+
+        project.ApplyAtomicChaos(seed: 314159);
+
+        Assert.Equal(80, project.Devices.Select(device => device.Name).Distinct(StringComparer.OrdinalIgnoreCase).Count());
+        Assert.DoesNotContain(project.Devices, device => device.Name.StartsWith("ATOM-", StringComparison.Ordinal));
+        Assert.Contains(project.Devices, device => device.Name.StartsWith("ATHENA", StringComparison.Ordinal)
+            || device.Name.StartsWith("RAVENNA", StringComparison.Ordinal)
+            || device.Name.StartsWith("PYRAMIX", StringComparison.Ordinal));
+        Assert.False(project.ValidateXmlChangeGuard().HasErrors);
+    }
+
+    [Fact]
     public void AtomicChaosIsOneUndoableOperation()
     {
         using TestWorkspace workspace = new();
@@ -67,11 +86,11 @@ public sealed class AtomicChaosTests
         DanteProject project = DanteProject.Load(source);
         string originalXml = project.Document.ToString(SaveOptions.DisableFormatting);
 
-        project.PushUndoSnapshot("Bouton atomique");
+        project.PushUndoSnapshot("Atomic Bomb");
         project.ApplyAtomicChaos(seed: 12345);
         Assert.NotEqual(originalXml, project.Document.ToString(SaveOptions.DisableFormatting));
 
-        Assert.Equal("Bouton atomique", project.UndoLastChange());
+        Assert.Equal("Atomic Bomb", project.UndoLastChange());
         Assert.Equal(originalXml, project.Document.ToString(SaveOptions.DisableFormatting));
         Assert.False(project.IsModified);
     }

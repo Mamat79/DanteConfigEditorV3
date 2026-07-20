@@ -15,7 +15,7 @@ namespace DanteConfigEditor.Mac.Tests;
 public sealed class MainWindowTests
 {
     [AvaloniaFact]
-    public void OfficialV308VersionIsShownInMacApplication()
+    public void OfficialV309VersionIsShownInMacApplication()
     {
         string version = typeof(MainWindow).Assembly
             .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?
@@ -24,8 +24,8 @@ public sealed class MainWindowTests
         window.Show();
         try
         {
-            Assert.Equal("3.08", version);
-            Assert.Equal("Dante Config Editor V3.08 - macOS", window.Title);
+            Assert.Equal("3.09", version);
+            Assert.Equal("Dante Config Editor V3.09 - macOS", window.Title);
         }
         finally
         {
@@ -136,14 +136,18 @@ public sealed class MainWindowTests
         try
         {
             Button atomicButton = window.FindControl<Button>("AtomicChaosButton")!;
+            Button sidebarAtomicButton = window.FindControl<Button>("AtomicChaosSidebarButton")!;
             Assert.False(atomicButton.IsEnabled);
+            Assert.False(sidebarAtomicButton.IsEnabled);
 
             await window.OpenStartupFileAsync(temporaryXml);
             window.FindControl<TabItem>("SafetyTab")!.IsSelected = true;
             Dispatcher.UIThread.RunJobs();
 
             Assert.True(atomicButton.IsEnabled);
+            Assert.True(sidebarAtomicButton.IsEnabled);
             AssertControlFits(window, atomicButton);
+            AssertControlFits(window, sidebarAtomicButton);
         }
         finally
         {

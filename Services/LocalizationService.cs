@@ -179,7 +179,7 @@ public static class LocalizationService
         ["Dialog.IpStaticWarning"] = "Modifier une IP en fixe peut couper la communication si l'adresse, le masque ou la passerelle sont mauvais. Vérifiez toujours le preset dans Dante Controller.",
         ["Dialog.IpStaticWarningContinue"] = "Modifier les IP en fixe peut couper la communication si la plage, le masque ou la passerelle sont mauvais. Continuer ?",
         ["Dialog.DeviceDetailsWarning"] = "Les changements de cette fiche peuvent modifier le nom de la machine, ses formats, son IP et ses canaux. Continuer ?",
-        ["Dialog.AtomicChaosTitle"] = "Bouton atomique - exercice de dépannage",
+        ["Dialog.AtomicChaosTitle"] = "Atomic Bomb - exercice de dépannage",
         ["Dialog.AtomicChaosFirst"] = "Premier verrou : cette fonction désorganise volontairement la copie XML chargée pour créer un exercice de dépannage. Elle mélange les noms, modes réseau, horloges, latences, formats audio, IP principales et patchs. Continuer ?",
         ["Dialog.AtomicChaosSecond"] = "Deuxième verrou : le résultat sera volontairement incohérent, mais seules des valeurs Dante reconnues seront écrites. Les identifiants techniques, DNS, passerelles et interfaces secondaires seront conservés. Préparer cet exercice ?",
         ["Dialog.AtomicChaosThird"] = "DERNIÈRE CONFIRMATION : atomiser la configuration en mémoire ? Le fichier original restera intact et Enregistrer sous sera obligatoire pour conserver l'exercice.",
@@ -402,7 +402,7 @@ public static class LocalizationService
         ["Dialog.IpStaticWarning"] = "Setting a static IP can break communication if the address, netmask, or gateway is wrong. Always verify the preset in Dante Controller.",
         ["Dialog.IpStaticWarningContinue"] = "Setting static IPs can break communication if the range, netmask, or gateway is wrong. Continue?",
         ["Dialog.DeviceDetailsWarning"] = "This device sheet can change the device name, formats, IP address, and channels. Continue?",
-        ["Dialog.AtomicChaosTitle"] = "Atomic button - troubleshooting exercise",
+        ["Dialog.AtomicChaosTitle"] = "Atomic Bomb - troubleshooting exercise",
         ["Dialog.AtomicChaosFirst"] = "First lock: this function deliberately scrambles the loaded XML copy to create a troubleshooting exercise. It mixes names, network modes, clocks, latencies, audio formats, primary IP settings, and subscriptions. Continue?",
         ["Dialog.AtomicChaosSecond"] = "Second lock: the result will be deliberately inconsistent, but only recognized Dante values will be written. Technical identifiers, DNS, gateways, and secondary interfaces will be preserved. Prepare this exercise?",
         ["Dialog.AtomicChaosThird"] = "FINAL CONFIRMATION: atomize the configuration in memory? The original file will remain intact and Save As will be required to keep the exercise.",
@@ -645,7 +645,7 @@ public static class LocalizationService
         Add(map, "Journal", "Log");
         Add(map, "GÉNÉRATEUR D'EXERCICE DE DÉPANNAGE", "TROUBLESHOOTING EXERCISE GENERATOR");
         Add(map, "Désorganise volontairement la copie XML chargée pour créer un réseau d'entraînement à réparer. Le fichier original et les identifiants techniques restent protégés.", "Deliberately scrambles the loaded XML copy to create a training network to repair. The original file and technical identifiers remain protected.");
-        Add(map, "BOUTON ATOMIQUE", "ATOMIC BUTTON");
+        Add(map, "ATOMIC BOMB", "ATOMIC BOMB");
         Add(map, "Crée un exercice hors ligne en mélangeant les noms, patchs, modes réseau, formats audio, horloges et IP principales. Trois confirmations sont requises.", "Creates an offline exercise by mixing names, subscriptions, network modes, audio formats, clocks, and primary IP settings. Three confirmations are required.");
         Add(map, "Charge un export XML Dante Controller.", "Loads a Dante Controller XML export.");
         Add(map, "Ajoute les machines d'un autre XML au projet ouvert. Les doublons peuvent être renommés.", "Adds devices from another XML to the open project. Duplicates can be renamed.");

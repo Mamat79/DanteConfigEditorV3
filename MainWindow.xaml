@@ -1,7 +1,7 @@
 <Window x:Class="DanteConfigEditor.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Dante Config Editor V3.08"
+        Title="Dante Config Editor V3.09"
         Width="1280"
         Height="820"
         MinWidth="1120"
@@ -98,25 +98,86 @@
             </Style.Triggers>
         </Style>
 
+        <!-- Commande d'entraînement dessinée en XAML, sans image externe. -->
         <Style x:Key="AtomicButtonStyle"
                TargetType="{x:Type Button}"
                BasedOn="{StaticResource {x:Type Button}}">
-            <Setter Property="Background" Value="#C62828" />
-            <Setter Property="BorderBrush" Value="#7F1D1D" />
             <Setter Property="Foreground" Value="White" />
-            <Setter Property="FontSize" Value="16" />
             <Setter Property="FontWeight" Value="Bold" />
-            <Setter Property="MinWidth" Value="260" />
-            <Setter Property="MinHeight" Value="54" />
-            <Setter Property="Padding" Value="18,10" />
-            <Style.Triggers>
-                <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="#E53935" />
-                </Trigger>
-                <Trigger Property="IsPressed" Value="True">
-                    <Setter Property="Background" Value="#991B1B" />
-                </Trigger>
-            </Style.Triggers>
+            <Setter Property="MinWidth" Value="176" />
+            <Setter Property="MinHeight" Value="126" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="Margin" Value="0" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type Button}">
+                        <Grid x:Name="AtomicAssembly"
+                              MinWidth="170"
+                              MinHeight="120"
+                              ClipToBounds="True"
+                              RenderTransformOrigin="0.5,0.5">
+                            <Ellipse Width="112"
+                                     Height="112"
+                                     Fill="#C8CDD3"
+                                     Stroke="#4B4F55"
+                                     StrokeThickness="4">
+                                <Ellipse.Effect>
+                                    <DropShadowEffect BlurRadius="8"
+                                                      Direction="270"
+                                                      Opacity="0.75"
+                                                      ShadowDepth="4"
+                                                      Color="#000000" />
+                                </Ellipse.Effect>
+                            </Ellipse>
+                            <Ellipse x:Name="AtomicFace"
+                                     Width="92"
+                                     Height="92"
+                                     Stroke="#7F0B0B"
+                                     StrokeThickness="3">
+                                <Ellipse.Fill>
+                                    <RadialGradientBrush Center="0.35,0.25"
+                                                         GradientOrigin="0.32,0.2"
+                                                         RadiusX="0.78"
+                                                         RadiusY="0.78">
+                                        <GradientStop Color="#FF6B5E" Offset="0" />
+                                        <GradientStop Color="#F32121" Offset="0.45" />
+                                        <GradientStop Color="#A60000" Offset="1" />
+                                    </RadialGradientBrush>
+                                </Ellipse.Fill>
+                            </Ellipse>
+                            <StackPanel HorizontalAlignment="Center"
+                                        VerticalAlignment="Center"
+                                        IsHitTestVisible="False">
+                                <TextBlock Text="ATOMIC"
+                                           Foreground="#FFF4F4"
+                                           FontSize="9"
+                                           FontWeight="SemiBold"
+                                           TextAlignment="Center" />
+                                <TextBlock Text="BOMB"
+                                           Foreground="White"
+                                           FontSize="19"
+                                           FontWeight="Black"
+                                           TextAlignment="Center" />
+                            </StackPanel>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="AtomicFace" Property="Stroke" Value="#FFD0D0" />
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="AtomicAssembly" Property="RenderTransform">
+                                    <Setter.Value>
+                                        <TranslateTransform Y="3" />
+                                    </Setter.Value>
+                                </Setter>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="AtomicAssembly" Property="Opacity" Value="0.4" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
         </Style>
 
         <Style TargetType="{x:Type ToggleButton}">
@@ -355,7 +416,7 @@
                     </Grid.ColumnDefinitions>
 
                     <StackPanel Margin="0,0,18,0" VerticalAlignment="Center">
-                        <TextBlock Text="Dante Config Editor V3.08"
+                        <TextBlock Text="Dante Config Editor V3.09"
                                    FontSize="20"
                                    FontWeight="SemiBold"
                                    TextWrapping="NoWrap" />
@@ -438,6 +499,15 @@
                                    Text="Chargez un fichier XML pour commencer."
                                     Foreground="{DynamicResource MutedTextBrush}" />
                         </Border>
+
+                        <Button x:Name="AtomicChaosSidebarButton"
+                                Style="{StaticResource AtomicButtonStyle}"
+                                MinWidth="0"
+                                MinHeight="120"
+                                Margin="0,12,0,0"
+                                Content="ATOMIC BOMB"
+                                Click="AtomicChaosButton_Click"
+                                ToolTip="Crée un exercice hors ligne en mélangeant les noms, patchs, modes réseau, formats audio, horloges et IP principales. Trois confirmations sont requises." />
 
                         <!-- Les alertes restent dans le rail de navigation afin de ne pas réduire
                              la hauteur disponible pour les réglages et le tableau des machines. -->
@@ -1199,7 +1269,7 @@
                                 </StackPanel>
                                 <Button x:Name="AtomicChaosButton"
                                         Grid.Column="1"
-                                        Content="BOUTON ATOMIQUE"
+                                        Content="ATOMIC BOMB"
                                         Style="{StaticResource AtomicButtonStyle}"
                                         Click="AtomicChaosButton_Click"
                                         ToolTip="Crée un exercice hors ligne en mélangeant les noms, patchs, modes réseau, formats audio, horloges et IP principales. Trois confirmations sont requises." />

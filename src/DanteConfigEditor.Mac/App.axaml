@@ -56,20 +56,53 @@
             <Setter Property="Padding" Value="14" />
         </Style>
         <Style Selector="Button.atomic">
-            <Setter Property="Background" Value="#C62828" />
-            <Setter Property="BorderBrush" Value="#7F1D1D" />
             <Setter Property="Foreground" Value="White" />
-            <Setter Property="FontSize" Value="16" />
             <Setter Property="FontWeight" Value="Bold" />
-            <Setter Property="MinWidth" Value="260" />
-            <Setter Property="MinHeight" Value="54" />
-            <Setter Property="Padding" Value="18,10" />
+            <Setter Property="MinWidth" Value="176" />
+            <Setter Property="MinHeight" Value="126" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <Grid MinWidth="170" MinHeight="120" ClipToBounds="True">
+                        <Ellipse Width="112"
+                                 Height="112"
+                                 Fill="#C8CDD3"
+                                 Stroke="#4B4F55"
+                                 StrokeThickness="4" />
+                        <Ellipse Width="92"
+                                 Height="92"
+                                 Fill="#E71919"
+                                 Stroke="#7F0B0B"
+                                 StrokeThickness="3" />
+                        <Ellipse Width="65"
+                                 Height="30"
+                                 Margin="0,13,0,0"
+                                 VerticalAlignment="Top"
+                                 Fill="#42FFFFFF"
+                                 IsHitTestVisible="False" />
+                        <StackPanel HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    IsHitTestVisible="False">
+                            <TextBlock Text="ATOMIC"
+                                       Foreground="#FFF4F4"
+                                       FontSize="9"
+                                       FontWeight="SemiBold"
+                                       TextAlignment="Center" />
+                            <TextBlock Text="BOMB"
+                                       Foreground="White"
+                                       FontSize="19"
+                                       FontWeight="Black"
+                                       TextAlignment="Center" />
+                        </StackPanel>
+                    </Grid>
+                </ControlTemplate>
+            </Setter>
         </Style>
         <Style Selector="Button.atomic:pointerover">
-            <Setter Property="Background" Value="#E53935" />
+            <Setter Property="Opacity" Value="0.9" />
         </Style>
         <Style Selector="Button.atomic:pressed">
-            <Setter Property="Background" Value="#991B1B" />
+            <Setter Property="Opacity" Value="0.72" />
         </Style>
         <Style Selector="DataGrid">
             <Setter Property="Background" Value="{DynamicResource PanelBrush}" />

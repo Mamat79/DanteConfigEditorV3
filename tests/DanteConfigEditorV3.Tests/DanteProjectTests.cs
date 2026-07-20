@@ -7,13 +7,13 @@ namespace DanteConfigEditorV3.Tests;
 public sealed class DanteProjectTests
 {
     [Fact]
-    public void AssemblyMetadataUsesOfficialV308Version()
+    public void AssemblyMetadataUsesOfficialV309Version()
     {
         string version = typeof(DanteProject).Assembly
             .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?
             .InformationalVersion ?? string.Empty;
 
-        Assert.StartsWith("3.08", version, StringComparison.Ordinal);
+        Assert.StartsWith("3.09", version, StringComparison.Ordinal);
         Assert.DoesNotContain("beta", version, StringComparison.OrdinalIgnoreCase);
     }
 
