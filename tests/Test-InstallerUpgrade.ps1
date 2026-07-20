@@ -1,6 +1,6 @@
 param(
     [string]$InstallerPath = "",
-    [string]$ExpectedVersion = "3.08",
+    [string]$ExpectedVersion = "3.09",
     [switch]$AllowCustomInstallLocation
 )
 
@@ -8,7 +8,7 @@ $ErrorActionPreference = "Stop"
 
 $root = Split-Path $PSScriptRoot -Parent
 if ([string]::IsNullOrWhiteSpace($InstallerPath)) {
-    $InstallerPath = Join-Path $root "dist\DanteConfigEditorV3_08_Installer.exe"
+    $InstallerPath = Join-Path $root "dist\DanteConfigEditorV3_09_Installer.exe"
 }
 
 $installer = (Resolve-Path -LiteralPath $InstallerPath -ErrorAction Stop).Path
@@ -19,11 +19,13 @@ if (-not $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administra
 }
 
 $targetRegistryPaths = @(
-    "HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\{23FF6543-561B-4C55-B733-817C9F92F5AA}_is1",
-    "HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\{23FF6543-561B-4C55-B733-817C9F92F5AA}_is1"
+    "HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\{C72399DF-AC3B-4FFA-A503-D79A4D6D9380}_is1",
+    "HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\{C72399DF-AC3B-4FFA-A503-D79A4D6D9380}_is1"
 )
 
-$stableRegistryPaths = @(
+$legacyRegistryPaths = @(
+    "HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\{23FF6543-561B-4C55-B733-817C9F92F5AA}_is1",
+    "HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\{23FF6543-561B-4C55-B733-817C9F92F5AA}_is1",
     "HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\{D9A22EA8-8370-4C6D-9E7C-DBC5A59F53A1}_is1",
     "HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\{D9A22EA8-8370-4C6D-9E7C-DBC5A59F53A1}_is1"
 )
@@ -38,44 +40,14 @@ function Get-TargetInstallRecords {
     )
 }
 
-function Get-StableInstallRecords {
+function Get-LegacyInstallRecords {
     return @(
-        foreach ($registryPath in $stableRegistryPaths) {
+        foreach ($registryPath in $legacyRegistryPaths) {
             if (Test-Path -LiteralPath $registryPath) {
                 Get-ItemProperty -LiteralPath $registryPath
             }
         }
     )
-}
-
-$stableRecordsBefore = @(Get-StableInstallRecords)
-if ($stableRecordsBefore.Count -gt 1) {
-    throw "Plusieurs installations V3.07 stables ont été trouvées avant le test."
-}
-
-$stableSnapshot = @(
-    foreach ($record in $stableRecordsBefore) {
-        [pscustomobject]@{
-            DisplayVersion = [string]$record.DisplayVersion
-            InstallLocation = [string]$record.InstallLocation
-        }
-    }
-)
-
-function Assert-StableInstallUnchanged {
-    param([Parameter(Mandatory = $true)][string]$Step)
-
-    $current = @(Get-StableInstallRecords)
-    if ($current.Count -ne $stableSnapshot.Count) {
-        throw "$Step : l'installation V3.07 stable a été ajoutée ou supprimée par erreur."
-    }
-
-    for ($index = 0; $index -lt $stableSnapshot.Count; $index++) {
-        if ($current[$index].DisplayVersion -ne $stableSnapshot[$index].DisplayVersion -or
-            -not [string]::Equals([string]$current[$index].InstallLocation, [string]$stableSnapshot[$index].InstallLocation, [System.StringComparison]::OrdinalIgnoreCase)) {
-            throw "$Step : l'installation V3.07 stable a été modifiée par erreur."
-        }
-    }
 }
 
 function Get-AllV3InstallRecords {
@@ -113,13 +85,16 @@ function Assert-InstalledState {
 
     $targetRecords = @(Get-TargetInstallRecords)
     if ($targetRecords.Count -ne 1) {
-        throw "$Step : une seule entrée V3.08 était attendue, trouvé $($targetRecords.Count)."
+        throw "$Step : une seule entrée V3.09 était attendue, trouvé $($targetRecords.Count)."
     }
 
-    Assert-StableInstallUnchanged -Step $Step
+    $legacyRecords = @(Get-LegacyInstallRecords)
+    if ($legacyRecords.Count -ne 0) {
+        throw "$Step : $($legacyRecords.Count) ancienne(s) installation(s) V3.07/V3.08 subsistent."
+    }
 
     $allRecords = @(Get-AllV3InstallRecords)
-    $expectedV3Count = $stableSnapshot.Count + 1
+    $expectedV3Count = 1
     if ($allRecords.Count -ne $expectedV3Count) {
         throw "$Step : $expectedV3Count installation(s) Dante Config Editor V3 étaient attendues, trouvé $($allRecords.Count)."
     }
@@ -157,15 +132,23 @@ function Assert-InstalledState {
         }
     }
 
-    $shortcut = Join-Path ([Environment]::GetFolderPath([Environment+SpecialFolder]::CommonPrograms)) "Dante Config Editor V3.08\Dante Config Editor V3.08.lnk"
+    $shortcut = Join-Path ([Environment]::GetFolderPath([Environment+SpecialFolder]::CommonPrograms)) "Dante Config Editor V3.09\Dante Config Editor V3.09.lnk"
     if (-not (Test-Path -LiteralPath $shortcut)) {
         throw "$Step : raccourci Menu Démarrer manquant : $shortcut"
+    }
+
+    $desktopShortcutCandidates = @(
+        (Join-Path ([Environment]::GetFolderPath([Environment+SpecialFolder]::DesktopDirectory)) "Dante Config Editor V3.09.lnk"),
+        (Join-Path ([Environment]::GetFolderPath([Environment+SpecialFolder]::CommonDesktopDirectory)) "Dante Config Editor V3.09.lnk")
+    ) | Select-Object -Unique
+    if (-not ($desktopShortcutCandidates | Where-Object { Test-Path -LiteralPath $_ })) {
+        throw "$Step : raccourci Bureau manquant. Chemins vérifiés : $($desktopShortcutCandidates -join ', ')"
     }
 
     return $record
 }
 
-# Deux passages prouvent que la V3.08 se met à niveau elle-même sans toucher à la V3.07.
+# Le premier passage remplace les anciennes versions ; le second prouve que la V3.09 se met à niveau elle-même.
 Invoke-InstallerPass -Name "Installation ou remplacement initial"
 $firstRecord = Assert-InstalledState -Step "Après le premier passage"
 
@@ -188,6 +171,6 @@ $fileVersion = (Get-Item -LiteralPath $exePath).VersionInfo.FileVersion
     InstallerSha256 = (Get-FileHash -LiteralPath $installer -Algorithm SHA256).Hash
     UpgradePasses = 2
     TargetInstallRecords = @(Get-TargetInstallRecords).Count
-    StableInstallRecords = @(Get-StableInstallRecords).Count
+    LegacyInstallRecords = @(Get-LegacyInstallRecords).Count
     V3InstallRecords = @(Get-AllV3InstallRecords).Count
 } | ConvertTo-Json -Depth 3

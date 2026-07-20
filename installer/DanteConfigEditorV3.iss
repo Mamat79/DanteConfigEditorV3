@@ -1,21 +1,21 @@
-#define MyAppName "Dante Config Editor V3.08"
-#define MyAppVersion "3.08"
+#define MyAppName "Dante Config Editor V3.09"
+#define MyAppVersion "3.09"
 #define MyAppPublisher "Mamat"
 #define MyAppExeName "DanteConfigEditorV3.exe"
-#define MyAppShortcutName "Dante Config Editor V3.08"
+#define MyAppShortcutName "Dante Config Editor V3.09"
 #define SourceRoot ".."
 
 [Setup]
-AppId={{23FF6543-561B-4C55-B733-817C9F92F5AA}
+AppId={{C72399DF-AC3B-4FFA-A503-D79A4D6D9380}
 AppName={#MyAppName}
 AppVersion={#MyAppVersion}
 AppPublisher={#MyAppPublisher}
-DefaultDirName={autopf}\Dante Config Editor V3.08
-DefaultGroupName=Dante Config Editor V3.08
+DefaultDirName={autopf}\Dante Config Editor V3.09
+DefaultGroupName=Dante Config Editor V3.09
 DisableProgramGroupPage=no
 AllowNoIcons=yes
 OutputDir={#SourceRoot}\dist
-OutputBaseFilename=DanteConfigEditorV3_08_Installer
+OutputBaseFilename=DanteConfigEditorV3_09_Installer
 SetupIconFile={#SourceRoot}\DanteEdit.ico
 Compression=lzma2
 SolidCompression=yes
@@ -24,9 +24,9 @@ ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
 PrivilegesRequired=admin
 UninstallDisplayIcon={app}\{#MyAppExeName}
-VersionInfoVersion=3.8.0
+VersionInfoVersion=3.9.0
 VersionInfoCompany={#MyAppPublisher}
-VersionInfoDescription=Dante Config Editor V3.08 installer
+VersionInfoDescription=Dante Config Editor V3.09 installer
 VersionInfoProductName={#MyAppName}
 SetupLogging=yes
 CloseApplications=yes
@@ -39,7 +39,7 @@ Name: "french"; MessagesFile: "compiler:Languages\French.isl"
 Name: "english"; MessagesFile: "compiler:Default.isl"
 
 [Tasks]
-Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
+Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"
 
 [Files]
 Source: "{#SourceRoot}\dist\installer_payload\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
@@ -74,7 +74,7 @@ Name: "{group}\Désinstaller {code:GetShortcutAppName}"; Filename: "{uninstallex
 Name: "{autodesktop}\{code:GetShortcutAppName}"; Filename: "{app}\{#MyAppExeName}"; WorkingDir: "{app}"; IconFilename: "{app}\DanteEdit.ico"; Tasks: desktopicon
 
 [Run]
-Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,Dante Config Editor V3.08}"; Flags: nowait postinstall skipifsilent
+Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,Dante Config Editor V3.09}"; Flags: nowait postinstall skipifsilent
 Filename: "{app}\RELEASE_NOTES.md"; Description: "Ouvrir les notes de version"; Flags: postinstall shellexec unchecked skipifsilent; Check: IsFrenchLanguage
 Filename: "{app}\RELEASE_NOTES_EN.md"; Description: "Open the release notes"; Flags: postinstall shellexec unchecked skipifsilent; Check: IsEnglishLanguage
 Filename: "{app}\QuickStart_DanteConfigEditorV3_FR.pdf"; Description: "Ouvrir le démarrage rapide en français"; Flags: postinstall shellexec unchecked skipifsilent; Check: IsFrenchLanguage
@@ -89,6 +89,9 @@ var
   GithubLabel: TNewStaticText;
   ExistingInstallDir: String;
   ExistingInstallVersion: String;
+  ExistingInstallIsCurrent: Boolean;
+  LegacyV308Uninstaller: String;
+  LegacyV307Uninstaller: String;
 
 function GetShortcutAppName(Param: String): String;
 begin
@@ -112,24 +115,58 @@ begin
   ShellExec('open', 'https://github.com/Mamat79/DanteConfigEditorV3', '', '', SW_SHOWNORMAL, ewNoWait, ErrorCode);
 end;
 
-function QueryExistingInstallValue(ValueName: String; var Value: String): Boolean;
+function QueryInstallValue(AppId: String; ValueName: String; var Value: String): Boolean;
+var
+  RegistryKey: String;
 begin
-  Result := RegQueryStringValue(HKLM, 'Software\Microsoft\Windows\CurrentVersion\Uninstall\{23FF6543-561B-4C55-B733-817C9F92F5AA}_is1', ValueName, Value);
+  RegistryKey := 'Software\Microsoft\Windows\CurrentVersion\Uninstall\{' + AppId + '}_is1';
+  Result := RegQueryStringValue(HKLM, RegistryKey, ValueName, Value);
   if not Result then
   begin
-    Result := RegQueryStringValue(HKCU, 'Software\Microsoft\Windows\CurrentVersion\Uninstall\{23FF6543-561B-4C55-B733-817C9F92F5AA}_is1', ValueName, Value);
+    Result := RegQueryStringValue(HKCU, RegistryKey, ValueName, Value);
   end;
 end;
 
 function DetectExistingInstall(): Boolean;
+var
+  LegacyInstallDir: String;
 begin
   ExistingInstallDir := '';
   ExistingInstallVersion := '';
-  Result := QueryExistingInstallValue('InstallLocation', ExistingInstallDir);
+  ExistingInstallIsCurrent := False;
+  LegacyV308Uninstaller := '';
+  LegacyV307Uninstaller := '';
+
+  QueryInstallValue('23FF6543-561B-4C55-B733-817C9F92F5AA', 'UninstallString', LegacyV308Uninstaller);
+  QueryInstallValue('D9A22EA8-8370-4C6D-9E7C-DBC5A59F53A1', 'UninstallString', LegacyV307Uninstaller);
+
+  Result := QueryInstallValue('C72399DF-AC3B-4FFA-A503-D79A4D6D9380', 'InstallLocation', ExistingInstallDir);
+  ExistingInstallIsCurrent := Result;
+
+  if not Result then
+  begin
+    LegacyInstallDir := '';
+    if QueryInstallValue('23FF6543-561B-4C55-B733-817C9F92F5AA', 'InstallLocation', LegacyInstallDir) then
+    begin
+      ExistingInstallDir := LegacyInstallDir;
+      Result := True;
+    end
+    else if QueryInstallValue('D9A22EA8-8370-4C6D-9E7C-DBC5A59F53A1', 'InstallLocation', LegacyInstallDir) then
+    begin
+      ExistingInstallDir := LegacyInstallDir;
+      Result := True;
+    end;
+  end;
 
   if Result then
   begin
-    QueryExistingInstallValue('DisplayVersion', ExistingInstallVersion);
+    if ExistingInstallIsCurrent then
+      QueryInstallValue('C72399DF-AC3B-4FFA-A503-D79A4D6D9380', 'DisplayVersion', ExistingInstallVersion)
+    else if LegacyV308Uninstaller <> '' then
+      QueryInstallValue('23FF6543-561B-4C55-B733-817C9F92F5AA', 'DisplayVersion', ExistingInstallVersion)
+    else
+      QueryInstallValue('D9A22EA8-8370-4C6D-9E7C-DBC5A59F53A1', 'DisplayVersion', ExistingInstallVersion);
+
     if ExistingInstallVersion = '' then
     begin
       ExistingInstallVersion := 'version inconnue';
@@ -142,7 +179,7 @@ begin
   if ActiveLanguage = 'english' then
   begin
     Result :=
-      'A previous installation of Dante Config Editor V3.08 was found.' + #13#10#13#10 +
+      'A previous installation of Dante Config Editor was found.' + #13#10#13#10 +
       'Detected version: ' + ExistingInstallVersion + #13#10 +
       'Folder: ' + ExistingInstallDir + #13#10#13#10 +
       'Yes = replace/update this installation.' + #13#10 +
@@ -151,7 +188,7 @@ begin
   else
   begin
     Result :=
-      'Une version précédente de Dante Config Editor V3.08 est déjà installée.' + #13#10#13#10 +
+      'Une version précédente de Dante Config Editor est déjà installée.' + #13#10#13#10 +
       'Version détectée : ' + ExistingInstallVersion + #13#10 +
       'Dossier : ' + ExistingInstallDir + #13#10#13#10 +
       'Oui = remplacer / mettre à jour cette installation.' + #13#10 +
@@ -161,7 +198,7 @@ end;
 
 procedure InitializeWizard();
 begin
-  if ExistingInstallDir <> '' then
+  if ExistingInstallIsCurrent and (ExistingInstallDir <> '') then
   begin
     WizardForm.DirEdit.Text := ExistingInstallDir;
   end;
@@ -190,6 +227,41 @@ begin
   SignatureAgentsLabel.Top := WizardForm.ClientHeight - ScaleY(22);
   SignatureAgentsLabel.Font.Color := clGray;
   SignatureAgentsLabel.Font.Size := 7;
+end;
+
+function RunLegacyUninstaller(UninstallCommand: String): Boolean;
+var
+  ResultCode: Integer;
+  UninstallerPath: String;
+begin
+  Result := True;
+  if UninstallCommand = '' then
+    Exit;
+
+  UninstallerPath := RemoveQuotes(UninstallCommand);
+  Result := Exec(
+    UninstallerPath,
+    '/VERYSILENT /SUPPRESSMSGBOXES /NORESTART',
+    '',
+    SW_HIDE,
+    ewWaitUntilTerminated,
+    ResultCode) and (ResultCode = 0);
+end;
+
+function PrepareToInstall(var NeedsRestart: Boolean): String;
+begin
+  Result := '';
+
+  if not RunLegacyUninstaller(LegacyV308Uninstaller) then
+  begin
+    Result := 'Impossible de remplacer automatiquement Dante Config Editor V3.08. Fermez l''application puis réessayez.';
+    Exit;
+  end;
+
+  if not RunLegacyUninstaller(LegacyV307Uninstaller) then
+  begin
+    Result := 'Impossible de remplacer automatiquement Dante Config Editor V3.07. Fermez l''application puis réessayez.';
+  end;
 end;
 
 function InitializeSetup(): Boolean;
