@@ -1,4 +1,4 @@
-# Version macOS - V3.08
+# Version macOS - V3.09
 
 La version macOS utilise Avalonia pour l'interface et compile exactement les mêmes classes métier et services XML que la version Windows.
 
@@ -42,8 +42,8 @@ Le moteur XML reste protégé par les mêmes tests de non-régression que sous W
 
 ## Interface et patch visuel
 
-La version Mac inclut l'atelier de patch visuel Avalonia : sélection de plusieurs TX, affectation séquentielle, glisser-déposer et matrice interactive. Les changements restent en attente jusqu'à `Appliquer au projet`. Le nouvel onglet Windows `Easy patch` de la V3.08 n'est pas reproduit à l'identique sur Mac.
+La version Mac inclut l'atelier de patch visuel Avalonia : sélection de plusieurs TX, affectation séquentielle, glisser-déposer et matrice interactive. Les changements restent en attente jusqu'à `Appliquer au projet`. L'onglet Windows `Easy patch`, introduit en V3.08, n'est pas reproduit à l'identique sur Mac.
 
 Pour garder la matrice utilisable sur de gros presets, elle affiche un couple de devices à la fois et limite la vue Mac aux 128 premiers TX et RX. Les listes de canaux conservent tous les éléments.
 
-La suite courante exécute les tests du moteur partagé et les tests Avalonia sans écran. Ces derniers couvrent notamment les alertes latérales, la navigation au clavier, les dimensions compactes, le patch visuel et l'identité V3.08 ; ils ne remplacent pas un contrôle VoiceOver sur un Mac réel.
+La suite courante exécute les tests du moteur partagé et les tests Avalonia sans écran. Ces derniers couvrent notamment les alertes latérales, la navigation au clavier, les dimensions compactes, le patch visuel, Atomic Bomb et l'identité V3.09 ; ils ne remplacent pas un contrôle VoiceOver sur un Mac réel.

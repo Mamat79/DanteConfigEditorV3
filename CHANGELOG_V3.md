@@ -1,5 +1,15 @@
 # Changelog V3
 
+## 2026-07-20 - Version 3.09 - exercice de dépannage atomique
+
+- Ajout d'`Atomic Bomb` dans la colonne Projet et dans `Sécurité et journal` sur Windows et macOS.
+- Génération d'un preset de formation volontairement incohérent : noms, canaux, patchs, modes réseau, Preferred Master, latences, sample rates, encodages et IP principales sont mélangés.
+- Les machines reçoivent des noms uniques tirés d'un catalogue mythologique, audio et humoristique, par exemple `ATHENA`, `RAVENNA`, `PYRAMIX`, `INFERNO` ou `PATCHOS`, au lieu d'un préfixe uniforme.
+- Garantie d'un mélange de valeurs sur les presets comportant plusieurs machines, avec une graine de scénario affichée.
+- Trois confirmations avant exécution, fichier original protégé, `Enregistrer sous` obligatoire et une seule étape d'annulation.
+- Conservation des identifiants techniques Dante, namespaces, DNS, passerelles et interfaces secondaires.
+- Extension de la suite à 100 tests Core/contrats Windows et 9 tests Avalonia sans écran.
+
 ## 2026-07-17 - Version 3.08 - crédit et présentation bilingue
 
 - Conservation de `By Mamat` comme signature principale, avec `et ses agents` sur une seconde ligne plus discrète dans les interfaces Windows/macOS et l'installateur ; les exports et notices conservent le crédit complet sur une ligne.

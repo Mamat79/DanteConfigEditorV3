@@ -1,6 +1,6 @@
 ﻿1
 00:00:00,000 --> 00:00:08,000
-Dante Config Editor V3.08
+Dante Config Editor V3.09
 Voir, corriger et préparer un preset Dante hors ligne.
 
 2
@@ -30,8 +30,8 @@ Le logiciel signale les modes réseau mélangés, les IP fixes, les fréquences,
 
 7
 00:00:44,000 --> 00:00:52,000
-Contrôler avant la sauvegarde
-Relisez le résumé, les différences, les rapports de compatibilité et l'historique avant d'enregistrer sous un nouveau nom.
+Créer un exercice à réparer
+Atomic Bomb mélange volontairement la copie XML après trois confirmations, sans toucher au fichier original.
 
 8
 00:00:52,000 --> 00:01:00,000
@@ -40,5 +40,5 @@ Dante Config Editor ne pilote pas le réseau : le XML final doit toujours être 
 
 9
 00:01:00,000 --> 00:01:07,000
-Dante Config Editor V3.08
+Dante Config Editor V3.09
 Projet gratuit et public - By Mamat et ses agents.

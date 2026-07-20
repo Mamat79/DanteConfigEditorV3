@@ -2,7 +2,7 @@
 
 ## Objectif
 
-La V3.08 conserve le projet existant et extrait progressivement les responsabilités risquées. Il n'y a pas de réécriture générale : chaque déplacement doit préserver le XML produit, rester couvert par les tests et faire l'objet d'un commit isolé.
+La V3.09 conserve le projet existant et extrait progressivement les responsabilités risquées. Il n'y a pas de réécriture générale : chaque déplacement doit préserver le XML produit, rester couvert par les tests et faire l'objet d'un commit isolé.
 
 ## Projets
 

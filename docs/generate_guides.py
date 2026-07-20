@@ -26,8 +26,8 @@ ROOT = Path(__file__).resolve().parent
 MEDIA = ROOT / "media" / "guide"
 # Les quatre PDF sont générés depuis une source unique pour garder les versions
 # française et anglaise synchronisées avec l'application et l'installateur.
-PRODUCT = "Dante Config Editor V3.08"
-VERSION = "3.08"
+PRODUCT = "Dante Config Editor V3.09"
+VERSION = "3.09"
 GITHUB = "github.com/Mamat79/DanteConfigEditorV3"
 
 INK = colors.HexColor("#172033")
@@ -333,9 +333,9 @@ def quick_start(language: str) -> None:
         else "Quick start - offline editing of Dante XML files"
     )
     warning = (
-        "<b>Outil tiers non officiel Audinate.</b> La V3.08 est la version officielle courante pour Windows et macOS, mais elle peut encore contenir des bugs. La V3.07 demeure disponible dans l'historique. Travaillez sur une copie et validez toujours le XML final par un import dans l'outil Dante officiel adapté avant toute utilisation réelle."
+        "<b>Outil tiers non officiel Audinate.</b> La V3.09 est la version officielle courante pour Windows et macOS, mais elle peut encore contenir des bugs. Les anciennes versions restent consultables dans l'historique Git. Travaillez sur une copie et validez toujours le XML final par un import dans l'outil Dante officiel adapté avant toute utilisation réelle."
         if french
-        else "<b>Third-party tool, not an official Audinate product.</b> V3.08 is the current official version for Windows and macOS, but it may still contain bugs. V3.07 remains available in history. Work on a copy and always validate the final XML by importing it into the appropriate official Dante tool before real use."
+        else "<b>Third-party tool, not an official Audinate product.</b> V3.09 is the current official version for Windows and macOS, but it may still contain bugs. Older versions remain available in Git history. Work on a copy and always validate the final XML by importing it into the appropriate official Dante tool before real use."
     )
     steps = (
         [
@@ -413,7 +413,12 @@ def quick_start(language: str) -> None:
         if french
         else "<b>Remember:</b> no real-time control, no Audinate API, and no guarantee for every XML format. Import validation in official tools remains mandatory."
     )
-    story.extend([feature_table, Spacer(1, 2.5 * mm), callout(reminder, PALE_GREEN), Spacer(1, 2 * mm), para(("Dépôt public : " if french else "Public repository: ") + GITHUB, "small")])
+    atomic_note = (
+        "<b>Exercice :</b> le gros bouton rouge Atomic Bomb reste visible dans la colonne Projet et se retrouve aussi dans Sécurité et journal. Il demande trois confirmations puis mélange la copie XML en mémoire. Les identifiants techniques restent protégés ; utilisez Enregistrer sous pour créer le fichier destiné aux stagiaires."
+        if french
+        else "<b>Exercise:</b> the large red Atomic Bomb button stays visible in the Project sidebar and is also available in Safety and log. It asks for three confirmations and then scrambles the XML copy in memory. Technical identifiers remain protected; use Save as to create the trainee file."
+    )
+    story.extend([feature_table, Spacer(1, 2.5 * mm), callout(atomic_note, PALE_RED), Spacer(1, 2 * mm), callout(reminder, PALE_GREEN), Spacer(1, 2 * mm), para(("Dépôt public : " if french else "Public repository: ") + GITHUB, "small")])
     build_document(ROOT / f"QuickStart_DanteConfigEditorV3_{language}.pdf", story)
 
 
@@ -422,13 +427,13 @@ def full_guide(language: str) -> None:
     if french:
         page1 = [
             para("1. Installation et démarrage", "h1"),
-            callout("<b>Important :</b> cette application est un outil tiers non officiel Audinate. La V3.08 est la version officielle courante pour Windows et macOS, mais elle peut encore contenir des bugs. Elle édite des XML hors ligne, sans connexion au réseau Dante ni API Audinate. Conservez l'original et validez le fichier généré dans Dante Controller avant toute utilisation en production."),
+            callout("<b>Important :</b> cette application est un outil tiers non officiel Audinate. La V3.09 est la version officielle courante pour Windows et macOS, mais elle peut encore contenir des bugs. Elle édite des XML hors ligne, sans connexion au réseau Dante ni API Audinate. Conservez l'original et validez le fichier généré dans Dante Controller avant toute utilisation en production."),
             para("L'installateur Windows x64 contient l'application et le runtime .NET 8 nécessaire. Il n'est normalement pas nécessaire d'installer .NET séparément."),
             *bullets([
-                "L'installation proposée par défaut se trouve dans Program Files et crée un raccourci dans le menu Démarrer.",
-                "La V3.08 utilise son propre dossier Program Files, son propre raccourci et son propre AppId.",
-                "Elle peut cohabiter avec la V3.07 et met à niveau une précédente V3.08 Beta ou V3.08.",
-                "Deux DMG autonomes V3.08 sont fournis pour macOS : Apple Silicon et Intel. Ils sont signés ad hoc mais non notariés par Apple.",
+                "L'installation proposée par défaut se trouve dans Program Files et crée des raccourcis dans le menu Démarrer et sur le Bureau.",
+                "La V3.09 utilise son propre dossier Program Files, son propre raccourci et son propre AppId.",
+                "L'installateur remplace les V3.07/V3.08 détectées et met à niveau une précédente V3.09.",
+                "Deux DMG autonomes V3.09 sont fournis pour macOS : Apple Silicon et Intel. Ils sont signés ad hoc mais non notariés par Apple.",
                 "Les quatre notices PDF françaises et anglaises sont installées et restent accessibles depuis l'application.",
             ]),
             para("2. Principes de sécurité", "h1"),
@@ -533,7 +538,16 @@ def full_guide(language: str) -> None:
             ]),
         ]
         page5 = [
-            para("12. Sauvegarde et validation finale", "h1"),
+            para("12. Atomic Bomb : créer un exercice", "h1"),
+            *bullets([
+                "Cliquez sur le gros bouton rouge toujours visible dans la colonne Projet, ou ouvrez Sécurité et journal. Trois confirmations détaillent les conséquences avant toute modification.",
+                "La copie en mémoire reçoit des noms uniques mythologiques, audio ou humoristiques, ainsi qu'un mélange de patchs, modes réseau, Preferred Master, latences, sample rates, encodages et IP principales.",
+                "Les identifiants techniques, namespaces, DNS, passerelles et interfaces secondaires restent protégés.",
+                "Le résumé indique la graine du scénario. L'ensemble s'annule en une seule action et le fichier source n'est jamais écrasé.",
+                "Utilisez Enregistrer sous pour remettre le preset aux stagiaires, puis vérifiez son import dans l'outil Dante officiel approprié.",
+            ]),
+            callout("Ce mode sert uniquement à la formation hors ligne. Il ne dérègle aucun appareil et ne communique pas avec le réseau Dante.", PALE_RED),
+            para("13. Sauvegarde et validation finale", "h1"),
             para("Utilisez Enregistrer sous. Le XML temporaire est relu, le garde-fou vérifie les changements, puis la destination est remplacée atomiquement. Une erreur avant le remplacement laisse l'ancienne destination intacte."),
             data_table(
                 ["Contrôle", "Action recommandée"],
@@ -545,9 +559,9 @@ def full_guide(language: str) -> None:
                 ],
                 [48, 122],
             ),
-            para("13. Tests de non-régression", "h1"),
-            para("La suite V3.08 exécute 95 tests Core et contrats Windows, plus 8 tests Avalonia sans écran : identités techniques, chemins inconnus, sauvegarde atomique, récupération, interfaces IPv4, alias de subscription, namespace par défaut, presets synthétiques, lot cumulatif, gestes de matrice, conflits, rollback, persistance, Easy patch, détail machine et identité Mac. GitHub Actions les rejoue sur Windows et macOS."),
-            para("14. Limites connues", "h1"),
+            para("14. Tests de non-régression", "h1"),
+            para("La suite V3.09 exécute 100 tests Core et contrats Windows, plus 9 tests Avalonia sans écran : identités techniques, chemins inconnus, sauvegarde atomique, récupération, interfaces IPv4, alias de subscription, namespace par défaut, presets synthétiques, scénario Atomic Bomb, lot cumulatif, gestes de matrice, conflits, rollback, persistance, Easy patch, détail machine et identité Mac. GitHub Actions les rejoue sur Windows et macOS."),
+            para("15. Limites connues", "h1"),
             *bullets([
                 "Aucun pilotage en temps réel et aucune communication avec les appareils.",
                 "Aucun SDK/API Audinate et aucun contournement de protocole propriétaire.",
@@ -558,7 +572,7 @@ def full_guide(language: str) -> None:
                 "L'onglet Windows Easy patch n'est pas reproduit à l'identique sur Mac, qui conserve l'atelier visuel Avalonia.",
                 "Des noms TX dupliqués sont ambigus dans les subscriptions Dante et doivent être renommés avant Easy patch.",
             ]),
-            para("15. Aide et informations", "h1"),
+            para("16. Aide et informations", "h1"),
             para("Quick start et Notice complète ouvrent automatiquement le PDF français ou anglais selon la langue active."),
             callout(f"Projet public : {GITHUB}<br/>Crédit : By Mamat et ses agents", PALE_GREEN),
         ]
@@ -592,18 +606,18 @@ def full_guide(language: str) -> None:
             para("Contrôler avant d'enregistrer", "h1"),
             para("Les deux dernières pages servent à comprendre les anomalies, produire les rapports et vérifier que seules les modifications attendues seront conservées."),
             *figure(language, "file-health.png", "Santé du fichier : erreurs, warnings, formats audio mélangés, IP fixes, patchs locaux et compatibilité.", 166, 80),
-            *figure(language, "safety-log.png", "Sécurité et journal : résumé avant sauvegarde, rapports Dante Controller, exports, historique et notices.", 166, 80),
+            *figure(language, "safety-log.png", "Sécurité et journal : exercice atomique, résumé avant sauvegarde, rapports Dante Controller, exports, historique et notices.", 166, 80),
         ]
     else:
         page1 = [
             para("1. Installation and startup", "h1"),
-            callout("<b>Important:</b> this is a third-party tool, not an official Audinate product. V3.08 is the current official version for Windows and macOS, but it may still contain bugs. It edits XML files offline without connecting to a Dante network or using an Audinate API. Keep the original and validate the generated file in Dante Controller before production use."),
+            callout("<b>Important:</b> this is a third-party tool, not an official Audinate product. V3.09 is the current official version for Windows and macOS, but it may still contain bugs. It edits XML files offline without connecting to a Dante network or using an Audinate API. Keep the original and validate the generated file in Dante Controller before production use."),
             para("The Windows x64 installer includes the application and the required .NET 8 runtime. A separate .NET installation is normally not required."),
             *bullets([
-                "The default location is Program Files, with a Start menu shortcut.",
-                "V3.08 uses its own Program Files folder, shortcut, and AppId.",
-                "It can coexist with V3.07 and upgrades an earlier V3.08 Beta or V3.08 installation.",
-                "Two standalone V3.08 DMGs are provided for macOS: Apple Silicon and Intel. They are ad hoc signed but not notarized by Apple.",
+                "The default location is Program Files, with Start menu and desktop shortcuts.",
+                "V3.09 uses its own Program Files folder, shortcut, and AppId.",
+                "The installer replaces detected V3.07/V3.08 installations and upgrades an earlier V3.09 installation.",
+                "Two standalone V3.09 DMGs are provided for macOS: Apple Silicon and Intel. They are ad hoc signed but not notarized by Apple.",
                 "All four French and English PDFs are installed and remain available from the application.",
             ]),
             para("2. Safety principles", "h1"),
@@ -708,7 +722,16 @@ def full_guide(language: str) -> None:
             ]),
         ]
         page5 = [
-            para("12. Save and final validation", "h1"),
+            para("12. Atomic Bomb: create an exercise", "h1"),
+            *bullets([
+                "Select the large red button that remains visible in the Project sidebar, or open Safety and log. Three confirmations describe the consequences before any change.",
+                "The in-memory copy receives unique mythological, audio-themed, or playful names plus a mixture of subscriptions, network modes, Preferred Master states, latencies, sample rates, encodings, and primary IP settings.",
+                "Technical identifiers, namespaces, DNS, gateways, and secondary interfaces remain protected.",
+                "The summary displays the scenario seed. The entire operation is one undo step and the source file is never overwritten.",
+                "Use Save as to provide the trainee preset, then verify its import in the appropriate official Dante tool.",
+            ]),
+            callout("This mode is only for offline training. It does not alter any device or communicate with the Dante network.", PALE_RED),
+            para("13. Save and final validation", "h1"),
             para("Use Save as. The temporary XML is reloaded, protected changes are checked, and the destination is replaced atomically. A failure before replacement leaves the previous destination intact."),
             data_table(
                 ["Check", "Recommended action"],
@@ -720,9 +743,9 @@ def full_guide(language: str) -> None:
                 ],
                 [48, 122],
             ),
-            para("13. Regression tests", "h1"),
-            para("The V3.08 suite runs 95 Core and Windows contract tests plus 8 headless Avalonia tests covering technical identities, unknown paths, atomic save, recovery, IPv4 interfaces, subscription aliases, default namespaces, synthetic presets, cumulative batches, matrix gestures, conflicts, rollback, persistence, Easy patch, Device details integration, and Mac identity. GitHub Actions reruns them on Windows and macOS."),
-            para("14. Known limitations", "h1"),
+            para("14. Regression tests", "h1"),
+            para("The V3.09 suite runs 100 Core and Windows contract tests plus 9 headless Avalonia tests covering technical identities, unknown paths, atomic save, recovery, IPv4 interfaces, subscription aliases, default namespaces, synthetic presets, the Atomic Bomb scenario, cumulative batches, matrix gestures, conflicts, rollback, persistence, Easy patch, Device details integration, and Mac identity. GitHub Actions reruns them on Windows and macOS."),
+            para("15. Known limitations", "h1"),
             *bullets([
                 "No real-time Dante control and no communication with devices.",
                 "No Audinate SDK/API and no proprietary protocol bypass.",
@@ -733,7 +756,7 @@ def full_guide(language: str) -> None:
                 "The Windows Easy patch tab is not reproduced identically on Mac, which keeps the Avalonia visual patch workshop.",
                 "Duplicate Tx names are ambiguous in Dante subscriptions and must be renamed before using Easy patch.",
             ]),
-            para("15. Help and information", "h1"),
+            para("16. Help and information", "h1"),
             para("Quick start and Full guide automatically open the French or English PDF for the active language."),
             callout(f"Public project: {GITHUB}<br/>Credit: By Mamat et ses agents", PALE_GREEN),
         ]
@@ -767,7 +790,7 @@ def full_guide(language: str) -> None:
             para("Review before saving", "h1"),
             para("The final two pages explain anomalies, produce reports, and help verify that only the intended changes will be kept."),
             *figure(language, "file-health.png", "File health: errors, warnings, mixed audio formats, static IPs, local subscriptions, and compatibility.", 166, 80),
-            *figure(language, "safety-log.png", "Safety and log: pre-save summary, Dante Controller reports, exports, history, and user guides.", 166, 80),
+            *figure(language, "safety-log.png", "Safety and log: atomic exercise, pre-save summary, Dante Controller reports, exports, history, and user guides.", 166, 80),
         ]
 
     story: list = []

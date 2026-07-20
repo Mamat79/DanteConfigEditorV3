@@ -1,6 +1,6 @@
 ﻿1
 00:00:00,000 --> 00:00:08,000
-Dante Config Editor V3.08
+Dante Config Editor V3.09
 Review, correct, and prepare a Dante preset offline.
 
 2
@@ -30,8 +30,8 @@ The application reports mixed network modes, static IPs, sample rates, bit depth
 
 7
 00:00:44,000 --> 00:00:52,000
-Review before saving
-Inspect the summary, differences, compatibility reports, and history before saving under a new name.
+Create a repair exercise
+Atomic Bomb deliberately scrambles the XML copy after three confirmations without touching the original file.
 
 8
 00:00:52,000 --> 00:01:00,000
@@ -40,5 +40,5 @@ Dante Config Editor does not control the network: always import and validate the
 
 9
 00:01:00,000 --> 00:01:07,000
-Dante Config Editor V3.08
+Dante Config Editor V3.09
 Free and public project - By Mamat et ses agents.

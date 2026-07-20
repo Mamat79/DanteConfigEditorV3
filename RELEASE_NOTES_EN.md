@@ -1,12 +1,12 @@
-# Dante Config Editor V3.08
+# Dante Config Editor V3.09
 
 [Français](https://github.com/Mamat79/DanteConfigEditorV3/blob/main/RELEASE_NOTES.md) | **English**
 
 ## Status
 
-Official V3.08 build for Windows x64, macOS Apple Silicon and macOS Intel. This is an unofficial third-party tool, not affiliated with Audinate, and it may still contain bugs.
+Official V3.09 build for Windows x64, macOS Apple Silicon and macOS Intel. This is an unofficial third-party tool, not affiliated with Audinate, and it may still contain bugs.
 
-V3.08 replaces V3.07 as the current version on `main`. Older versions are no longer offered for download, while their functional history remains available in the commits and changelog. Always work on a copy of Dante XML files and validate the result with official Dante tools before production use.
+V3.09 replaces V3.08 as the current version on `main`. Older versions are no longer offered for download, while their functional history remains available in the commits and changelog. Always work on a copy of Dante XML files and validate the result with official Dante tools before production use.
 
 ## Why I created this tool
 
@@ -15,6 +15,16 @@ I created Dante Config Editor to provide what I personally was missing in Dante 
 I also repeatedly encountered the same problem on already patched networks: renaming a device or TX channels could require rebuilding subscriptions and part of the patch. The editor therefore updates recognized XML references during those renames, preserving the patch as far as the preset structure allows.
 
 Offline preparation is another central goal. The application can review, edit, merge and prepare a preset without connecting to the Dante network, before the final file is validated in Dante Controller.
+
+## Atomic Bomb for training
+
+- Adds a large red button in `Safety and log` to generate a deliberately disordered troubleshooting preset.
+- Three successive confirmations are required before the operation.
+- Controlled mixing of names, subscriptions, network modes, Preferred Master states, latencies, sample rates, encodings, and primary IP settings.
+- Unique, varied device names from a mythological, audio-themed, and playful catalogue, without a uniform prefix.
+- Technical identifiers, namespaces, DNS, gateways, and secondary interfaces remain protected.
+- The original file stays intact; the result must be created with `Save as`.
+- The complete scenario is one undoable action and its random seed is displayed.
 
 ## Easy patch
 
@@ -44,8 +54,8 @@ Offline preparation is another central goal. The application can review, edit, m
 
 ## Installation
 
-- Windows defaults to `C:\Program Files\Dante Config Editor V3.08\`.
-- The V3.08 installer upgrades an existing V3.08 Beta or V3.08 installation.
+- Windows defaults to `C:\Program Files\Dante Config Editor V3.09\` and creates Start menu and desktop shortcuts.
+- The V3.09 installer replaces detected V3.07/V3.08 installations and upgrades an existing V3.09 installation.
 - The Windows installer is self-contained and includes .NET 8 and both language manuals.
 - Apple Silicon and Intel DMGs are self-contained and include both language manuals.
 - SHA-256 checksum files are published for every installer and DMG.
@@ -63,12 +73,12 @@ Offline preparation is another central goal. The application can review, edit, m
 
 - Illustrated full user guide in French and English covering the entire application.
 - Bilingual PDF quick starts.
-- General V3.08 presentation in French and English, with readable burned-in subtitles and separate SRT files.
+- General V3.09 presentation in French and English, with readable burned-in subtitles and separate SRT files.
 - Screenshots and videos produced only from a synthetic anonymized preset.
 
 ## Automated validation
 
-- 95 Core/Windows contract tests and 8 headless macOS UI tests pass in Release mode.
+- 100 Core/Windows contract tests and 9 headless macOS UI tests pass in Release mode.
 - WPF and Avalonia Release builds complete without warnings.
 - Tests cover selection, ranges, conflicts, replacement, rollback, persistence, matrix behavior, XML guards, atomic saves, namespaces, secondary interfaces and synthetic large presets.
 

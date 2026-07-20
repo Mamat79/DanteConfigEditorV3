@@ -1,4 +1,4 @@
-# Limites connues - V3.08
+# Limites connues - V3.09
 
 ## Compatibilité Dante
 
@@ -40,7 +40,7 @@
 
 - L'installateur Windows est autonome pour Windows x64 et inclut .NET 8. Les architectures Windows ARM64 et x86 ne sont pas distribuées.
 - L'installateur Windows n'est pas signé avec un certificat Authenticode public. Vérifier le SHA-256 publié avant distribution ; Windows peut afficher un avertissement de réputation.
-- La V3.08 est distribuée sur Windows x64, macOS Apple Silicon et macOS Intel. Windows ARM64 et x86 ne sont pas distribués.
+- La V3.09 est distribuée sur Windows x64, macOS Apple Silicon et macOS Intel. Windows ARM64 et x86 ne sont pas distribués.
 - Les DMG macOS sont signés ad hoc, sans certificat Apple Developer ID ni notarisation. Gatekeeper peut demander un clic droit puis `Ouvrir` au premier lancement.
 - Le moteur XML est partagé, mais l'interface Mac n'offre pas encore le nouvel onglet Windows `Easy patch` à l'identique. Elle conserve l'atelier visuel Avalonia avec sélection multiple, glisser-déposer et matrice.
 - Les tests Avalonia sans écran ne remplacent pas une validation manuelle sur plusieurs modèles de Mac, ni un contrôle VoiceOver réel.
@@ -48,4 +48,4 @@
 
 ## Statut de la version
 
-La V3.08 est la version officielle courante de `main` pour Windows et macOS. La V3.07 est conservée comme précédente Release. Les deux restent des outils tiers non officiels Audinate. Toujours travailler sur une copie, lire le rapport avant/après et valider le fichier généré dans l'outil Dante officiel avant une utilisation terrain.
+La V3.09 est la version officielle courante de `main` pour Windows et macOS. Les versions antérieures restent consultables dans l'historique Git mais ne sont plus distribuées comme version courante. Dante Config Editor reste un outil tiers non officiel Audinate. Toujours travailler sur une copie, lire le rapport avant/après et valider le fichier généré dans l'outil Dante officiel avant une utilisation terrain.

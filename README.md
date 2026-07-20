@@ -1,14 +1,14 @@
-# Dante Config Editor V3.08
+# Dante Config Editor V3.09
 
 **Français** | [English](README_EN.md)
 
-Version officielle Windows et macOS de la branche `main` pour éditer hors ligne des fichiers XML de configuration Dante.
+Version officielle V3.09 Windows et macOS de la branche `main` pour éditer hors ligne des fichiers XML de configuration Dante.
 
-**Téléchargement direct : [Windows x64](https://github.com/Mamat79/DanteConfigEditorV3/releases/download/v3.08/DanteConfigEditorV3_08_Installer.exe) | [macOS Apple Silicon](https://github.com/Mamat79/DanteConfigEditorV3/releases/download/v3.08/DanteConfigEditorV3_macOS_AppleSilicon.dmg) | [macOS Intel](https://github.com/Mamat79/DanteConfigEditorV3/releases/download/v3.08/DanteConfigEditorV3_macOS_Intel.dmg)**
+**Téléchargement direct : [Windows x64](https://github.com/Mamat79/DanteConfigEditorV3/releases/download/v3.09/DanteConfigEditorV3_09_Installer.exe) | [macOS Apple Silicon](https://github.com/Mamat79/DanteConfigEditorV3/releases/download/v3.09/DanteConfigEditorV3_macOS_AppleSilicon.dmg) | [macOS Intel](https://github.com/Mamat79/DanteConfigEditorV3/releases/download/v3.09/DanteConfigEditorV3_macOS_Intel.dmg)**
 
 **English summary:** Offline Dante XML configuration editor for Windows and macOS. Inspect devices and channels, rename TX/RX channels, edit subscriptions with Easy patch, merge presets and save with XML safety checks. This is an unofficial third-party tool and does not connect to a live Dante network.
 
-> **Statut : V3.08 officielle Windows et macOS. Outil tiers non officiel Audinate.**
+> **Statut : V3.09 officielle Windows et macOS. Outil tiers non officiel Audinate.**
 > Cette version peut encore contenir des bugs. Les anciennes versions ne sont plus proposées au téléchargement. Travaillez toujours sur une copie et validez le XML généré dans les outils Dante officiels.
 
 ## Origine et développement assisté
@@ -23,10 +23,10 @@ L'arrivée des agents de développement actuels a permis de faire évoluer ce si
 
 ## Présentation générale
 
-[![Présentation de Dante Config Editor V3.08 sur un preset synthétique anonymisé](docs/media/guide/fr/overview.png)](docs/media/dante-config-editor-v308-overview-fr.mp4)
+[![Présentation de Dante Config Editor V3.09 sur un preset synthétique anonymisé](docs/media/guide/fr/overview.png)](docs/media/dante-config-editor-v309-overview-fr.mp4)
 
-- **[Voir la présentation complète en français (MP4)](docs/media/dante-config-editor-v308-overview-fr.mp4)** - sous-titres lisibles intégrés à la vidéo ; [fichier SRT séparé](docs/media/dante-config-editor-v308-overview-fr.srt).
-- **[Voir la présentation complète en anglais (MP4)](docs/media/dante-config-editor-v308-overview-en.mp4)** - [fichier SRT séparé](docs/media/dante-config-editor-v308-overview-en.srt).
+- **[Voir la présentation complète en français (MP4)](docs/media/dante-config-editor-v309-overview-fr.mp4)** - sous-titres lisibles intégrés à la vidéo ; [fichier SRT séparé](docs/media/dante-config-editor-v309-overview-fr.srt).
+- **[Voir la présentation complète en anglais (MP4)](docs/media/dante-config-editor-v309-overview-en.mp4)** - [fichier SRT séparé](docs/media/dante-config-editor-v309-overview-en.srt).
 - **[Lire la notice complète en français (PDF)](docs/Notice_DanteConfigEditorV3_FR.pdf)** ou le [démarrage rapide](docs/QuickStart_DanteConfigEditorV3_FR.pdf).
 - **[Read the full English guide (PDF)](docs/Notice_DanteConfigEditorV3_EN.pdf)** or the [quick start](docs/QuickStart_DanteConfigEditorV3_EN.pdf).
 
@@ -74,6 +74,7 @@ Les captures, notices et vidéos utilisent uniquement un preset synthétique ano
 - Exporte un patchbook TXT organisé par device RX.
 - Exporte un patchbook CSV en lecture seule.
 - Affiche un rapport compatibilité Dante Controller et une topologie simple TX vers RX.
+- Génère, avec `Atomic Bomb`, un preset d'exercice volontairement désorganisé pour former au diagnostic : noms, patchs, modes réseau, Preferred Master, latences, fréquences, encodages et IP principales sont mélangés après trois confirmations.
 - Compare le fichier ouvert avec un autre XML.
 - Renomme des canaux en série.
 - Signale en gros les mélanges redondant/daisychain, les machines détectées en IP fixe et les formats audio mélangés.
@@ -94,18 +95,18 @@ Les captures, notices et vidéos utilisent uniquement un preset synthétique ano
 
 ## Télécharger / installer
 
-Le fichier recommandé est fourni dans la [Release GitHub V3.08](https://github.com/Mamat79/DanteConfigEditorV3/releases/tag/v3.08) :
+Le fichier recommandé est fourni dans la [Release GitHub V3.09](https://github.com/Mamat79/DanteConfigEditorV3/releases/tag/v3.09) :
 
-- [`DanteConfigEditorV3_08_Installer.exe`](https://github.com/Mamat79/DanteConfigEditorV3/releases/download/v3.08/DanteConfigEditorV3_08_Installer.exe) : installateur Windows autonome, avec installation par défaut dans Program Files, choix du dossier, raccourcis et désinstallation propre.
+- [`DanteConfigEditorV3_09_Installer.exe`](https://github.com/Mamat79/DanteConfigEditorV3/releases/download/v3.09/DanteConfigEditorV3_09_Installer.exe) : installateur Windows autonome, avec installation par défaut dans Program Files, choix du dossier, raccourcis menu Démarrer et Bureau, et désinstallation propre.
 
 La version autonome inclut le runtime .NET nécessaire. Sur une machine Windows x64, il ne devrait pas être nécessaire d'installer .NET séparément pour utiliser l'application.
 
 ### macOS
 
-La Release V3.08 fournit deux DMG autonomes :
+La Release V3.09 fournit deux DMG autonomes :
 
-- [`DanteConfigEditorV3_macOS_AppleSilicon.dmg`](https://github.com/Mamat79/DanteConfigEditorV3/releases/download/v3.08/DanteConfigEditorV3_macOS_AppleSilicon.dmg) pour les Mac M1, M2, M3, M4 et suivants ;
-- [`DanteConfigEditorV3_macOS_Intel.dmg`](https://github.com/Mamat79/DanteConfigEditorV3/releases/download/v3.08/DanteConfigEditorV3_macOS_Intel.dmg) pour les Mac Intel 64 bits.
+- [`DanteConfigEditorV3_macOS_AppleSilicon.dmg`](https://github.com/Mamat79/DanteConfigEditorV3/releases/download/v3.09/DanteConfigEditorV3_macOS_AppleSilicon.dmg) pour les Mac M1, M2, M3, M4 et suivants ;
+- [`DanteConfigEditorV3_macOS_Intel.dmg`](https://github.com/Mamat79/DanteConfigEditorV3/releases/download/v3.09/DanteConfigEditorV3_macOS_Intel.dmg) pour les Mac Intel 64 bits.
 
 Ouvrir le DMG, puis glisser `Dante Config Editor` dans `Applications`. Le runtime .NET 8 et les notices FR/EN sont inclus.
 
@@ -122,14 +123,14 @@ Notices fournies :
 
 Dans l'application, les boutons d'aide ouvrent automatiquement les fichiers FR ou EN selon la langue active.
 
-La V3.08 utilise un AppId, un dossier Program Files, un menu Démarrer et un stockage local distincts. Elle peut donc cohabiter avec une ancienne V3.07 déjà installée, même si cette ancienne version n'est plus distribuée sur GitHub. L'installateur officiel V3.08 remplace une précédente installation V3.08 Beta ou V3.08 sans toucher à la V3.07.
+La V3.09 utilise un AppId, un dossier Program Files, un menu Démarrer et un stockage local dédiés. Son installateur détecte les V3.07 et V3.08, demande leur remplacement en mode interactif, puis les désinstalle avant de poser la V3.09. Une seconde exécution met à niveau la V3.09 existante.
 
 ## Version distribuée
 
-- La branche `main` contient la V3.08 officielle pour Windows et macOS.
+- La branche `main` contient la V3.09 officielle pour Windows et macOS.
 - `main` est l'unique branche publiée sur GitHub.
-- La Release `v3.08` fournit un installateur Windows x64 et deux DMG macOS, Apple Silicon et Intel.
-- `v3.08` est l'unique tag et l'unique Release conservés sur GitHub.
+- La Release `v3.09` fournit un installateur Windows x64 et deux DMG macOS, Apple Silicon et Intel.
+- `v3.09` est l'unique tag et l'unique Release courants sur GitHub.
 - L'historique fonctionnel reste consultable dans les commits de `main` et dans `CHANGELOG_V3.md`.
 
 ## Utilisation rapide
@@ -145,6 +146,29 @@ La V3.08 utilise un AppId, un dossier Program Files, un menu Démarrer et un sto
 9. Si besoin, utiliser `Ajouter XML au projet` pour importer les devices d'un autre export XML.
 10. Sauvegarder sous un nouveau nom.
 11. Valider le fichier généré dans l'outil Dante officiel approprié avant usage terrain.
+
+## Atomic Bomb : exercice de dépannage
+
+`Atomic Bomb`, visible dans la colonne Projet et dans `Sécurité et journal`, sert à préparer un réseau volontairement en désordre pour une formation. Il agit uniquement sur la copie XML chargée en mémoire et demande trois confirmations successives.
+
+Les machines reçoivent des noms uniques choisis dans un catalogue mythologique, audio et volontairement décalé, comme `ATHENA`, `RAVENNA`, `PYRAMIX`, `INFERNO` ou `PATCHOS`. Les noms ne suivent donc pas un préfixe uniforme facilement reconnaissable.
+
+- Les noms des machines et des canaux TX/RX sont remplacés par des noms d'exercice.
+- Les modes redondant/daisy-chain, Preferred Master, latences, sample rates, encodages et modes IP sont volontairement mélangés.
+- Les patchs sont redistribués et environ un quart des RX sont laissés libres.
+- Une graine affichée dans le résumé permet de reproduire exactement un scénario pendant les tests automatisés.
+- Les identifiants techniques `device_id`, `danteId` et `mediaType`, ainsi que le DNS, les passerelles et les interfaces secondaires, restent protégés.
+- Toute l'opération correspond à une seule étape d'annulation.
+- Le fichier source n'est jamais écrit : utilisez `Enregistrer sous` pour créer le preset destiné aux stagiaires.
+
+Le résultat est volontairement incohérent sur le plan fonctionnel. Il reste indispensable de l'importer dans l'outil Dante officiel approprié avant de l'utiliser comme support d'exercice.
+
+## Nouveautés V3.09
+
+- Générateur d'exercice `Atomic Bomb` partagé par Windows et macOS, protégé par trois confirmations, une sauvegarde sous un autre nom et des tests de non-régression XML.
+- Mélange volontaire des noms, canaux, patchs, modes réseau, Preferred Master, latences, sample rates, encodages et IP principales.
+- Conservation des identifiants techniques Dante, namespaces, DNS, passerelles et interfaces secondaires.
+- Installation V3.09 remplaçant proprement les anciennes V3.07/V3.08.
 
 ## Nouveautés V3.08
 

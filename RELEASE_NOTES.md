@@ -1,12 +1,12 @@
-# Dante Config Editor V3.08
+# Dante Config Editor V3.09
 
 **Français** | [English](https://github.com/Mamat79/DanteConfigEditorV3/blob/main/RELEASE_NOTES_EN.md)
 
 ## Statut
 
-Version officielle V3.08 pour Windows x64, macOS Apple Silicon et macOS Intel. Il s'agit d'un outil tiers non officiel Audinate et cette application n'est pas exempte de bugs.
+Version officielle V3.09 pour Windows x64, macOS Apple Silicon et macOS Intel. Il s'agit d'un outil tiers non officiel Audinate et cette application n'est pas exempte de bugs.
 
-La V3.08 remplace la V3.07 comme version courante de la branche `main`. Les anciennes versions ne sont plus proposées au téléchargement, mais leur historique fonctionnel reste consultable dans les commits et le changelog. Travaillez toujours sur une copie de vos fichiers XML Dante et validez le résultat dans les outils Dante officiels avant toute utilisation réelle.
+La V3.09 remplace la V3.08 comme version courante de la branche `main`. Les anciennes versions ne sont plus proposées au téléchargement, mais leur historique fonctionnel reste consultable dans les commits et le changelog. Travaillez toujours sur une copie de vos fichiers XML Dante et validez le résultat dans les outils Dante officiels avant toute utilisation réelle.
 
 ## Pourquoi j'ai créé cet outil
 
@@ -15,6 +15,16 @@ J'ai créé Dante Config Editor pour pallier ce qui me manquait dans Dante Contr
 Je rencontrais aussi régulièrement le même problème sur des réseaux déjà patchés : renommer une machine ou des canaux TX pouvait imposer de reprendre les subscriptions et une partie du patch. L'éditeur met donc à jour les références XML reconnues lors de ces renommages afin de préserver le patch autant que la structure du preset le permet.
 
 La préparation hors ligne est enfin un besoin central du projet. L'application permet de contrôler, modifier, fusionner et préparer un preset sans connexion au réseau Dante, avant de valider le fichier final dans Dante Controller.
+
+## Atomic Bomb pour la formation
+
+- Ajout d'un gros bouton rouge dans `Sécurité et journal` pour générer un preset d'exercice volontairement en désordre.
+- Trois confirmations successives sont obligatoires avant l'opération.
+- Mélange contrôlé des noms, patchs, modes réseau, Preferred Master, latences, sample rates, encodages et IP principales.
+- Noms de machines uniques et variés issus d'un catalogue mythologique, audio et humoristique, sans préfixe uniforme.
+- Conservation des identifiants techniques, namespaces, DNS, passerelles et interfaces secondaires.
+- Le fichier original reste intact ; le résultat doit être créé avec `Enregistrer sous`.
+- Le scénario complet s'annule en une seule action et son numéro de graine est affiché.
 
 ## Nouvel onglet Easy patch
 
@@ -53,14 +63,14 @@ La préparation hors ligne est enfin un besoin central du projet. L'application 
 - Les patchs sont appliqués avant les renommages afin que toutes les références suivent les nouveaux noms.
 - Une réouverture de l'atelier permet de modifier ou d'annuler les patchs encore en attente.
 
-## Installation parallèle avec la V3.07
+## Installation et remplacement des anciennes versions
 
-- Nouvel AppId réservé à la famille V3.08.
-- Dossier par défaut : `C:\Program Files\Dante Config Editor V3.08\`.
-- Groupe Menu Démarrer et raccourci `Dante Config Editor V3.08` distincts.
-- Données locales V3.08 séparées : langue, fichiers récents, récupération et journaux.
-- L'installation ou la mise à niveau V3.08 ne remplace pas la V3.07.
-- L'installateur V3.08 met à niveau une précédente V3.08 Beta ou V3.08.
+- Nouvel AppId réservé à la famille V3.09.
+- Dossier par défaut : `C:\Program Files\Dante Config Editor V3.09\`.
+- Raccourcis `Dante Config Editor V3.09` dans le menu Démarrer et sur le Bureau.
+- Données locales V3.09 séparées : langue, fichiers récents, récupération et journaux.
+- L'installateur détecte et remplace les V3.07/V3.08 après confirmation.
+- L'installateur V3.09 met à niveau une précédente V3.09.
 - L'installateur inclut le runtime .NET 8 et les notices françaises/anglaises.
 - Une somme SHA-256 est régénérée après chaque construction de l'installateur.
 
@@ -77,12 +87,12 @@ La préparation hors ligne est enfin un besoin central du projet. L'application 
 
 - Notice complète illustrée en français et en anglais pour l'ensemble du logiciel.
 - Démarrage rapide PDF dans les deux langues.
-- Présentation générale V3.08 en français et en anglais, avec sous-titres lisibles intégrés et fichiers SRT séparés.
+- Présentation générale V3.09 en français et en anglais, avec sous-titres lisibles intégrés et fichiers SRT séparés.
 - Captures et vidéos réalisées uniquement avec un preset synthétique anonymisé.
 
 ## Validation automatisée
 
-- 95 tests Core et contrats Windows, plus 8 tests d'interface Mac sans écran, réussissent en Release.
+- 100 tests Core et contrats Windows, plus 9 tests d'interface Mac sans écran, réussissent en Release.
 - Les builds WPF et Avalonia Release réussissent sans warning.
 - Les tests couvrent la sélection, les plages, les conflits, le remplacement, l'annulation, le rollback, la persistance, la matrice et l'intégration au détail machine.
 - Le garde-fou XML, les sauvegardes atomiques, les namespaces, les interfaces réseau et les presets synthétiques restent couverts.
