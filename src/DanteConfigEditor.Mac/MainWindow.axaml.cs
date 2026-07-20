@@ -916,6 +916,48 @@ public partial class MainWindow : Window
         FindControl<TextBox>("ReportTextBox")!.Text = _project.Validate().ToDisplayText();
     }
 
+    private async void AtomicChaosButton_Click(object? sender, RoutedEventArgs e)
+    {
+        if (_project is null
+            || !await ConfirmAtomicChaosStageAsync("Dialog.AtomicChaosFirst")
+            || !await ConfirmAtomicChaosStageAsync("Dialog.AtomicChaosSecond")
+            || !await ConfirmAtomicChaosStageAsync("Dialog.AtomicChaosThird"))
+        {
+            return;
+        }
+
+        AtomicChaosResult? result = null;
+        await ExecuteMutationAsync(
+            LocalizationService.Text(_language, "Action.AtomicChaosApplied"),
+            LocalizationService.Text(_language, "Action.AtomicChaosApplied"),
+            project => result = project.ApplyAtomicChaos());
+        if (result is null || _project is null)
+        {
+            return;
+        }
+
+        string summary = LocalizationService.Format(
+            _language,
+            "Dialog.AtomicChaosCompleted",
+            result.Seed,
+            result.DeviceCount,
+            result.TxChannelCount,
+            result.PatchedRxCount,
+            result.DisconnectedRxCount,
+            result.StaticIpCount,
+            result.DynamicIpCount);
+        FindControl<TextBox>("ReportTextBox")!.Text = summary + Environment.NewLine + Environment.NewLine + _project.BuildCompatibilityReport();
+        await ShowInfoAsync(LocalizationService.Text(_language, "Dialog.AtomicChaosTitle"), summary);
+    }
+
+    private Task<bool> ConfirmAtomicChaosStageAsync(string key)
+    {
+        return ConfirmAsync(
+            LocalizationService.Text(_language, "Dialog.AtomicChaosTitle"),
+            LocalizationService.Text(_language, key),
+            L("ATOMISER LA COPIE", "ATOMIZE THE COPY"));
+    }
+
     private void CompatibilityButton_Click(object? sender, RoutedEventArgs e)
     {
         if (_project is null) return;
@@ -1360,6 +1402,7 @@ public partial class MainWindow : Window
         FindControl<Button>("EditButton")!.IsEnabled = loaded && !_editEnabled;
         FindControl<Button>("UndoButton")!.IsEnabled = loaded && _editEnabled && _project!.CanUndo;
         FindControl<Button>("RevertButton")!.IsEnabled = loaded && _project!.IsModified;
+        FindControl<Button>("AtomicChaosButton")!.IsEnabled = loaded;
         FindControl<TabControl>("MainTabs")!.IsEnabled = loaded;
         FindControl<TextBlock>("ModeText")!.Text = _editEnabled
             ? LocalizationService.Text(_language, "Status.EditMode")

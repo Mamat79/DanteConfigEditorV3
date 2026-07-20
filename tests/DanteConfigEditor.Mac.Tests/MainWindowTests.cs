@@ -125,6 +125,35 @@ public sealed class MainWindowTests
     }
 
     [AvaloniaFact]
+    public async Task AtomicButtonBecomesAvailableAfterProjectLoad()
+    {
+        string source = Path.Combine(AppContext.BaseDirectory, "Fixtures", "representative-preset.xml");
+        string temporaryXml = Path.Combine(Path.GetTempPath(), $"dante-mac-atomic-layout-{Guid.NewGuid():N}.xml");
+        File.Copy(source, temporaryXml);
+
+        MainWindow window = new() { Width = 1366, Height = 768 };
+        window.Show();
+        try
+        {
+            Button atomicButton = window.FindControl<Button>("AtomicChaosButton")!;
+            Assert.False(atomicButton.IsEnabled);
+
+            await window.OpenStartupFileAsync(temporaryXml);
+            window.FindControl<TabItem>("SafetyTab")!.IsSelected = true;
+            Dispatcher.UIThread.RunJobs();
+
+            Assert.True(atomicButton.IsEnabled);
+            AssertControlFits(window, atomicButton);
+        }
+        finally
+        {
+            window.Close();
+            SessionRecoveryService.Delete(temporaryXml);
+            File.Delete(temporaryXml);
+        }
+    }
+
+    [AvaloniaFact]
     public async Task TabKeyMovesFocusFromOpenToMergeAfterProjectLoad()
     {
         string source = Path.Combine(AppContext.BaseDirectory, "Fixtures", "representative-preset.xml");

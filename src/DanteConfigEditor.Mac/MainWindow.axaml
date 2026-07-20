@@ -307,7 +307,7 @@
                 </TabItem>
 
                 <TabItem x:Name="SafetyTab" Header="Sécurité et journal">
-                    <Grid RowDefinitions="Auto,*" RowSpacing="12" Margin="0,12,0,0">
+                    <Grid RowDefinitions="Auto,Auto,*" RowSpacing="12" Margin="0,12,0,0">
                         <Border Classes="panel">
                             <WrapPanel Orientation="Horizontal">
                                 <Button Margin="0,0,8,8" Classes="primary" Click="ValidateButton_Click">Vérifier le fichier</Button>
@@ -324,7 +324,28 @@
                             </WrapPanel>
                         </Border>
 
-                        <Grid Grid.Row="1" ColumnDefinitions="2*,*" ColumnSpacing="12">
+                        <Border Grid.Row="1" Classes="atomicPanel">
+                            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="18">
+                                <StackPanel VerticalAlignment="Center">
+                                    <TextBlock Text="GÉNÉRATEUR D'EXERCICE DE DÉPANNAGE"
+                                               Foreground="White"
+                                               FontSize="15"
+                                               FontWeight="Bold" />
+                                    <TextBlock Margin="0,5,0,0"
+                                               Foreground="#FECACA"
+                                               TextWrapping="Wrap"
+                                               Text="Désorganise volontairement la copie XML chargée pour créer un réseau d'entraînement à réparer. Le fichier original et les identifiants techniques restent protégés." />
+                                </StackPanel>
+                                <Button x:Name="AtomicChaosButton"
+                                        Grid.Column="1"
+                                        Classes="atomic"
+                                        Content="BOUTON ATOMIQUE"
+                                        Click="AtomicChaosButton_Click"
+                                        ToolTip.Tip="Crée un exercice hors ligne en mélangeant les noms, patchs, modes réseau, formats audio, horloges et IP principales. Trois confirmations sont requises." />
+                            </Grid>
+                        </Border>
+
+                        <Grid Grid.Row="2" ColumnDefinitions="2*,*" ColumnSpacing="12">
                             <TextBox x:Name="ReportTextBox"
                                      AcceptsReturn="True"
                                      IsReadOnly="True"

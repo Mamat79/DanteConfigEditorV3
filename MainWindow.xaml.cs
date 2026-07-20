@@ -1907,6 +1907,49 @@ public partial class MainWindow : Window
         MessageBox.Show(this, validation.ToDisplayText(), LocalizeLiteral("Vérification"), MessageBoxButton.OK, validation.HasErrors ? MessageBoxImage.Error : MessageBoxImage.Information);
     }
 
+    private void AtomicChaosButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (!EnsureProjectLoaded()
+            || !ConfirmAtomicChaosStage("Dialog.AtomicChaosFirst")
+            || !ConfirmAtomicChaosStage("Dialog.AtomicChaosSecond")
+            || !ConfirmAtomicChaosStage("Dialog.AtomicChaosThird"))
+        {
+            return;
+        }
+
+        AtomicChaosResult? result = null;
+        bool applied = RunProjectAction(
+            T("Action.AtomicChaosApplied"),
+            () => result = _project!.ApplyAtomicChaos());
+        if (!applied || result is null)
+        {
+            return;
+        }
+
+        string summary = Tf(
+            "Dialog.AtomicChaosCompleted",
+            result.Seed,
+            result.DeviceCount,
+            result.TxChannelCount,
+            result.PatchedRxCount,
+            result.DisconnectedRxCount,
+            result.StaticIpCount,
+            result.DynamicIpCount);
+        AddLog(summary);
+        SaveSummaryTextBox.Text = summary + Environment.NewLine + Environment.NewLine + _project!.BuildCompatibilityReport();
+        MessageBox.Show(this, summary, T("Dialog.AtomicChaosTitle"), MessageBoxButton.OK, MessageBoxImage.Information);
+    }
+
+    private bool ConfirmAtomicChaosStage(string key)
+    {
+        return MessageBox.Show(
+            this,
+            T(key),
+            T("Dialog.AtomicChaosTitle"),
+            MessageBoxButton.YesNo,
+            MessageBoxImage.Warning) == MessageBoxResult.Yes;
+    }
+
     private void CompatibilityReportButton_Click(object sender, RoutedEventArgs e)
     {
         if (!EnsureProjectLoaded())
@@ -3094,6 +3137,7 @@ public partial class MainWindow : Window
         yield return OpenVisualPatchButton;
         yield return RenamePatchRxChannelButton;
         yield return RenamePatchTxChannelButton;
+        yield return AtomicChaosButton;
     }
 
     private string BuildDefaultReportFileName(string extension)
