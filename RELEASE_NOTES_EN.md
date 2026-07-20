@@ -6,7 +6,7 @@
 
 Official V3.09 build for Windows x64, macOS Apple Silicon and macOS Intel. This is an unofficial third-party tool, not affiliated with Audinate, and it may still contain bugs.
 
-V3.09 replaces V3.08 as the current version on `main`. Older versions are no longer offered for download, while their functional history remains available in the commits and changelog. Always work on a copy of Dante XML files and validate the result with official Dante tools before production use.
+V3.09 replaces V3.08 as the current version on `main` and remains the `Latest` Release. Previous versions remain available in the Releases history with their own files. Always work on a copy of Dante XML files and validate the result with official Dante tools before production use.
 
 ## Why I created this tool
 

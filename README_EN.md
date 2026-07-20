@@ -7,7 +7,7 @@ Official V3.09 build for Windows and macOS. Dante Config Editor edits Dante Cont
 **Direct downloads: [Windows x64](https://github.com/Mamat79/DanteConfigEditorV3/releases/download/v3.09/DanteConfigEditorV3_09_Installer.exe) | [macOS Apple Silicon](https://github.com/Mamat79/DanteConfigEditorV3/releases/download/v3.09/DanteConfigEditorV3_macOS_AppleSilicon.dmg) | [macOS Intel](https://github.com/Mamat79/DanteConfigEditorV3/releases/download/v3.09/DanteConfigEditorV3_macOS_Intel.dmg)**
 
 > **Status: official V3.09 build for Windows and macOS. Unofficial third-party tool, not affiliated with Audinate.**
-> This software may still contain bugs. Older versions are no longer offered for download. Always work on a copy and validate generated XML with official Dante tools.
+> This software may still contain bugs. Previous versions remain available in the GitHub Releases history. Always work on a copy and validate generated XML with official Dante tools.
 
 ## Origin and agent-assisted development
 
@@ -91,8 +91,10 @@ The macOS builds are ad hoc signed but are not notarized with an Apple Developer
 ## Distributed version
 
 - `main` is the only published GitHub branch.
-- `v3.09` is the current retained tag and Release.
-- The Release contains one Windows installer and two macOS DMGs.
+- `v3.09` remains the newest version and the `Latest` Release.
+- The [historical `v3.08` Release](https://github.com/Mamat79/DanteConfigEditorV3/releases/tag/v3.08) retains its own installers and documentation.
+- Every version uses a separate immutable tag under the [release policy](RELEASE_POLICY.md).
+- Each Release contains the files built for its own tagged source.
 - Functional history remains available through the commits and `CHANGELOG_V3.md`.
 
 ## Quick start

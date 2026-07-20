@@ -1,0 +1,244 @@
+name: Versioned release
+
+on:
+  push:
+    tags:
+      - "v[0-9]*.[0-9]*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Existing immutable version tag to publish (for example v3.10)"
+        required: true
+        type: string
+      make_latest:
+        description: "Mark this release as Latest"
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: write
+
+concurrency:
+  group: versioned-release-${{ github.event_name == 'push' && github.ref_name || inputs.tag }}
+  cancel-in-progress: false
+
+jobs:
+  prepare:
+    name: Validate immutable tag
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.resolve.outputs.tag }}
+      make_latest: ${{ steps.resolve.outputs.make_latest }}
+
+    steps:
+      - name: Checkout repository and tags
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Resolve tag and publication policy
+        id: resolve
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REQUESTED_TAG: ${{ inputs.tag }}
+          REQUESTED_LATEST: ${{ inputs.make_latest }}
+        run: |
+          set -euo pipefail
+
+          if [[ "$GITHUB_EVENT_NAME" == "push" ]]; then
+            tag="$GITHUB_REF_NAME"
+          else
+            tag="$REQUESTED_TAG"
+          fi
+
+          if [[ ! "$tag" =~ ^v[0-9]+\.[0-9]+(\.[0-9]+)?$ ]]; then
+            echo "Unsupported release tag: $tag" >&2
+            exit 1
+          fi
+
+          git fetch --force --tags origin
+          git rev-parse --verify "refs/tags/${tag}^{commit}" >/dev/null
+
+          if gh release view "$tag" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "Release $tag already exists. Refusing to overwrite it." >&2
+            exit 1
+          fi
+
+          make_latest=false
+          if [[ "$GITHUB_EVENT_NAME" == "push" ]]; then
+            current_latest="$(gh release view --repo "$GITHUB_REPOSITORY" --json tagName --jq .tagName 2>/dev/null || true)"
+            if [[ -z "$current_latest" ]]; then
+              make_latest=true
+            else
+              newest="$(printf '%s\n%s\n' "${current_latest#v}" "${tag#v}" | sort -V | tail -n 1)"
+              if [[ "$newest" == "${tag#v}" && "$tag" != "$current_latest" ]]; then
+                make_latest=true
+              fi
+            fi
+          else
+            make_latest="$REQUESTED_LATEST"
+          fi
+
+          if [[ "$make_latest" != "true" && "$make_latest" != "false" ]]; then
+            echo "Invalid make_latest value: $make_latest" >&2
+            exit 1
+          fi
+
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "make_latest=$make_latest" >> "$GITHUB_OUTPUT"
+
+  windows:
+    name: Build Windows installer
+    needs: prepare
+    runs-on: windows-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout release tag
+        uses: actions/checkout@v7
+        with:
+          ref: refs/tags/${{ needs.prepare.outputs.tag }}
+          fetch-depth: 0
+
+      - name: Install .NET 8 SDK
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Install Inno Setup
+        shell: pwsh
+        run: |
+          choco install innosetup --no-progress -y
+          if ($LASTEXITCODE -ne 0) { throw "Inno Setup installation failed." }
+
+      - name: Test Windows and shared engine
+        shell: pwsh
+        run: dotnet test .\tests\DanteConfigEditorV3.Tests\DanteConfigEditorV3.Tests.csproj -c Release
+
+      - name: Build self-contained installer
+        shell: pwsh
+        run: .\installer\build_installer.ps1
+
+      - name: Upload Windows release files
+        uses: actions/upload-artifact@v7
+        with:
+          name: release-windows-${{ needs.prepare.outputs.tag }}
+          path: |
+            ./dist/*_Installer.exe
+            ./dist/*_Installer.exe.sha256
+          if-no-files-found: error
+          retention-days: 30
+
+  macos:
+    name: Build macOS packages
+    needs: prepare
+    runs-on: macos-latest
+    timeout-minutes: 40
+
+    steps:
+      - name: Checkout release tag
+        uses: actions/checkout@v7
+        with:
+          ref: refs/tags/${{ needs.prepare.outputs.tag }}
+          fetch-depth: 0
+
+      - name: Install .NET 8 SDK
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Test shared engine
+        run: dotnet test ./tests/DanteConfigEditorV3.Tests/DanteConfigEditorV3.Tests.csproj -c Release
+
+      - name: Test macOS interface
+        run: dotnet test ./tests/DanteConfigEditor.Mac.Tests/DanteConfigEditor.Mac.Tests.csproj -c Release
+
+      - name: Package Apple Silicon DMG
+        run: bash ./packaging/macos/build-macos.sh osx-arm64
+
+      - name: Package Intel DMG
+        run: bash ./packaging/macos/build-macos.sh osx-x64
+
+      - name: Upload macOS release files
+        uses: actions/upload-artifact@v7
+        with:
+          name: release-macos-${{ needs.prepare.outputs.tag }}
+          path: |
+            ./dist/macos/*.dmg
+            ./dist/macos/*.dmg.sha256
+          if-no-files-found: error
+          retention-days: 30
+
+  publish:
+    name: Create a new immutable GitHub Release
+    needs:
+      - prepare
+      - windows
+      - macos
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout release tag
+        uses: actions/checkout@v7
+        with:
+          ref: refs/tags/${{ needs.prepare.outputs.tag }}
+          fetch-depth: 0
+
+      - name: Download Windows files
+        uses: actions/download-artifact@v7
+        with:
+          name: release-windows-${{ needs.prepare.outputs.tag }}
+          path: release-assets/windows
+
+      - name: Download macOS files
+        uses: actions/download-artifact@v7
+        with:
+          name: release-macos-${{ needs.prepare.outputs.tag }}
+          path: release-assets/macos
+
+      - name: Add documentation and presentation files
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p release-assets/docs release-assets/media
+          find docs -maxdepth 1 -type f -name '*.pdf' -exec cp '{}' release-assets/docs/ \;
+          find docs/media -maxdepth 1 -type f \( -name '*-overview-*.mp4' -o -name '*-overview-*.srt' \) -exec cp '{}' release-assets/media/ \;
+
+      - name: Validate checksums and create release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ needs.prepare.outputs.tag }}
+          MAKE_LATEST: ${{ needs.prepare.outputs.make_latest }}
+        run: |
+          set -euo pipefail
+
+          if gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "Release $RELEASE_TAG already exists. Refusing to overwrite it." >&2
+            exit 1
+          fi
+
+          while IFS= read -r checksum; do
+            (cd "$(dirname "$checksum")" && sha256sum -c "$(basename "$checksum")")
+          done < <(find release-assets -type f -name '*.sha256' | sort)
+
+          mapfile -t assets < <(find release-assets -type f | sort)
+          if [[ "${#assets[@]}" -eq 0 ]]; then
+            echo "No release asset was produced." >&2
+            exit 1
+          fi
+
+          version="${RELEASE_TAG#v}"
+          gh release create "$RELEASE_TAG" "${assets[@]}" \
+            --repo "$GITHUB_REPOSITORY" \
+            --verify-tag \
+            --title "Dante Config Editor V${version} - Windows / macOS - FR / EN" \
+            --notes-file RELEASE_NOTES.md
+
+          release_id="$(gh api "repos/$GITHUB_REPOSITORY/releases/tags/$RELEASE_TAG" --jq .id)"
+          gh api --method PATCH "repos/$GITHUB_REPOSITORY/releases/$release_id" \
+            -f make_latest="$MAKE_LATEST" >/dev/null
+

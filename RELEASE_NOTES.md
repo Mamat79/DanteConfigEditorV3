@@ -6,7 +6,7 @@
 
 Version officielle V3.09 pour Windows x64, macOS Apple Silicon et macOS Intel. Il s'agit d'un outil tiers non officiel Audinate et cette application n'est pas exempte de bugs.
 
-La V3.09 remplace la V3.08 comme version courante de la branche `main`. Les anciennes versions ne sont plus proposées au téléchargement, mais leur historique fonctionnel reste consultable dans les commits et le changelog. Travaillez toujours sur une copie de vos fichiers XML Dante et validez le résultat dans les outils Dante officiels avant toute utilisation réelle.
+La V3.09 remplace la V3.08 comme version courante de la branche `main` et reste la Release `Latest`. Les versions précédentes restent disponibles dans l'historique des Releases avec leurs propres fichiers. Travaillez toujours sur une copie de vos fichiers XML Dante et validez le résultat dans les outils Dante officiels avant toute utilisation réelle.
 
 ## Pourquoi j'ai créé cet outil
 

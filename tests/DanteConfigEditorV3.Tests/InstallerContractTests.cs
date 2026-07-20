@@ -110,6 +110,20 @@ public sealed class InstallerContractTests
         Assert.Contains("workflow_dispatch:", workflow, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void VersionedReleaseWorkflowPreservesPublishedHistory()
+    {
+        string workflow = File.ReadAllText(RepositoryFile(".github", "workflows", "versioned-release.yml"));
+
+        Assert.Contains("refs/tags/${{ needs.prepare.outputs.tag }}", workflow, StringComparison.Ordinal);
+        Assert.Contains("Release $tag already exists. Refusing to overwrite it.", workflow, StringComparison.Ordinal);
+        Assert.Contains("gh release create", workflow, StringComparison.Ordinal);
+        Assert.Contains("--verify-tag", workflow, StringComparison.Ordinal);
+        Assert.Contains("make_latest", workflow, StringComparison.Ordinal);
+        Assert.DoesNotContain("gh release delete", workflow, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("--clobber", workflow, StringComparison.OrdinalIgnoreCase);
+    }
+
     private static string RepositoryFile(params string[] relativeParts)
     {
         DirectoryInfo? directory = new(AppContext.BaseDirectory);

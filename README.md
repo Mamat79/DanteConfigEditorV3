@@ -9,7 +9,7 @@ Version officielle V3.09 Windows et macOS de la branche `main` pour éditer hors
 **English summary:** Offline Dante XML configuration editor for Windows and macOS. Inspect devices and channels, rename TX/RX channels, edit subscriptions with Easy patch, merge presets and save with XML safety checks. This is an unofficial third-party tool and does not connect to a live Dante network.
 
 > **Statut : V3.09 officielle Windows et macOS. Outil tiers non officiel Audinate.**
-> Cette version peut encore contenir des bugs. Les anciennes versions ne sont plus proposées au téléchargement. Travaillez toujours sur une copie et validez le XML généré dans les outils Dante officiels.
+> Cette version peut encore contenir des bugs. Les versions précédentes restent accessibles dans l'historique des Releases GitHub. Travaillez toujours sur une copie et validez le XML généré dans les outils Dante officiels.
 
 ## Origine et développement assisté
 
@@ -130,8 +130,10 @@ La V3.09 utilise un AppId, un dossier Program Files, un menu Démarrer et un sto
 - La branche `main` contient la V3.09 officielle pour Windows et macOS.
 - `main` est l'unique branche publiée sur GitHub.
 - La Release `v3.09` fournit un installateur Windows x64 et deux DMG macOS, Apple Silicon et Intel.
-- `v3.09` est l'unique tag et l'unique Release courants sur GitHub.
-- L'historique fonctionnel reste consultable dans les commits de `main` et dans `CHANGELOG_V3.md`.
+- `v3.09` reste la version la plus récente et la Release `Latest`.
+- La [Release historique `v3.08`](https://github.com/Mamat79/DanteConfigEditorV3/releases/tag/v3.08) conserve ses propres installateurs et documents.
+- Chaque version utilise un tag immuable distinct selon [la politique de publication](RELEASE_POLICY.md).
+- L'historique fonctionnel reste également consultable dans les commits de `main` et dans `CHANGELOG_V3.md`.
 
 ## Utilisation rapide
 
