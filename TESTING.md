@@ -1,5 +1,41 @@
 # Tests et historique V3
 
+## Validation locale de la V3.09 officielle du 2026-07-20
+
+Source validée avant ajout de ce relevé :
+
+- branche : `main` ;
+- commit fonctionnel et documentaire : `30e38cd` ;
+- système local : Windows `10.0.26200`, `win-x64` ;
+- .NET SDK `8.0.423`, PowerShell `7.6.3`, Git `2.51.0.windows.1` ;
+- Inno Setup `6.7.3`.
+
+Résultats locaux :
+
+- 100 tests Core et contrats Windows réussis, 0 échec, 0 ignoré ;
+- 9 tests Avalonia sans écran réussis, 0 échec, 0 ignoré ;
+- build WPF Release réussi, 0 warning, 0 erreur ;
+- rendu réel Windows contrôlé en thème sombre, bouton `Atomic Bomb` rond rouge lisible et sans fond jaune ;
+- noms de machines Atomic Bomb uniques vérifiés sur un preset synthétique de 80 machines, sans préfixe `ATOM-` ;
+- Quick Start FR/EN : 1 page chacun ; notices complètes FR/EN : 10 pages chacune ;
+- extraction de texte PDF contrôlée sans ancienne appellation, caractère `Ø` parasite ni absence d'`Atomic Bomb` ;
+- présentations FR/EN : H.264, 1920 x 1080, 30 images/s, 67 secondes ; visuel Atomic Bomb contrôlé dans les deux langues.
+
+Installateur Windows :
+
+- fichier : `dist/DanteConfigEditorV3_09_Installer.exe` ;
+- taille : `68 751 519` octets ;
+- version produit : `3.09`, version fichier : `3.9.0.0` ;
+- SHA-256 : `EC49F279E02533640B11102D600C8377A47C067C5113B0FFF4CBB4178B7F50C8` ;
+- remplacement local de V3.08 par V3.09 réussi, puis mise à niveau V3.09 avec le paquet final réussie ;
+- une seule entrée V3 reste installée dans `C:\Program Files\Dante Config Editor V3.09\` ;
+- ancien registre et ancien dossier V3.08 absents ;
+- raccourcis menu Démarrer et Bureau présents ;
+- huit documents installés identiques bit à bit aux sources du dépôt ;
+- lancement réel de l'exécutable installé réussi, titre `Dante Config Editor V3.09`.
+
+La CI GitHub n'avait pas encore été relancée au moment de ce relevé local. Les DMG V3.09 doivent être produits et vérifiés par le workflow macOS avant publication de la Release. Aucun lancement manuel n'a été effectué sur un Mac physique, aucune notarisation Apple et aucun import dans Dante Controller n'ont été revendiqués.
+
 ## Validation de la V3.08 officielle du 2026-07-12
 
 Source validée avant ajout de ce relevé :
