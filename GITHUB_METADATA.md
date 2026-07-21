@@ -19,7 +19,7 @@ Dernière vérification : 2026-07-22
 
 - Branche publiée : `main`
 - Tag immuable : `v3.3`
-- Titre prévu : `Dante Config Editor V3.3 - Windows / macOS - FR / EN`
+- Titre GitHub : `DCE 3.3`
 - Statut : version officielle et Release `Latest`.
 - L'onglet `Import / Export` regroupe Labels, Rapports et patchbook et Synoptique.
 - Le synoptique visuel exporte un SVG en couleur sans écrire ses emplacements ou sa mise en page dans le XML Dante.
