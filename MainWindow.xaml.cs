@@ -1961,6 +1961,23 @@ public partial class MainWindow : Window
         }
     }
 
+    private void OpenDmtProjectButton_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            Process.Start(new ProcessStartInfo("https://github.com/togrupe/dlive-midi-tools")
+            {
+                UseShellExecute = true
+            });
+        }
+        catch (Exception ex)
+        {
+            ShowError(
+                LocalizeLiteral("Ouverture du projet DMT impossible"),
+                ex.Message);
+        }
+    }
+
     private void ExportChannelLabelsButton_Click(object sender, RoutedEventArgs e)
     {
         if (!EnsureProjectLoaded())
@@ -2146,7 +2163,7 @@ public partial class MainWindow : Window
         }
 
         SaveSummaryTextBox.Text = _project!.BuildCompatibilityReport();
-        MainTabs.SelectedIndex = 3;
+        MainTabs.SelectedItem = SafetyTab;
         SetStatus(LocalizeLiteral("Rapport compatibilité Dante Controller affiché."));
     }
 
@@ -2184,7 +2201,7 @@ public partial class MainWindow : Window
         builder.AppendLine();
         builder.AppendLine(_project.BuildCompatibilityReport());
         SaveSummaryTextBox.Text = builder.ToString();
-        MainTabs.SelectedIndex = 3;
+        MainTabs.SelectedItem = SafetyTab;
         SetStatus("Rapport final avant Dante affiché.");
     }
 
@@ -2213,7 +2230,7 @@ public partial class MainWindow : Window
         }
 
         SaveSummaryTextBox.Text = builder.ToString();
-        MainTabs.SelectedIndex = 3;
+        MainTabs.SelectedItem = SafetyTab;
         SetStatus("Historique des actions affiché.");
     }
 
@@ -2371,7 +2388,7 @@ public partial class MainWindow : Window
         }
 
         SaveSummaryTextBox.Text = _project!.BuildTopologyText();
-        MainTabs.SelectedIndex = 3;
+        MainTabs.SelectedItem = SafetyTab;
         SetStatus(T("Status.TopologyDisplayed"));
     }
 
@@ -2398,7 +2415,7 @@ public partial class MainWindow : Window
             DanteProject otherProject = DanteProject.Load(dialog.FileName);
             ComparisonDisplayRow[] comparisonRows = BuildComparisonRows(otherProject);
             SaveSummaryTextBox.Text = _project!.CompareWith(otherProject);
-            MainTabs.SelectedIndex = 3;
+            MainTabs.SelectedItem = SafetyTab;
             ComparisonResultWindow window = new(comparisonRows)
             {
                 Owner = this

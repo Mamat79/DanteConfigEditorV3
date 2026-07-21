@@ -12,10 +12,18 @@ public sealed class ChannelLabelUiContractTests
 
         Assert.Contains("ImportChannelLabelsButton", windowsXaml, StringComparison.Ordinal);
         Assert.Contains("ExportChannelLabelsButton", windowsXaml, StringComparison.Ordinal);
+        Assert.Contains("ChannelLabelsTab", windowsXaml, StringComparison.Ordinal);
+        Assert.Contains("DMT → Dante Config Editor", windowsXaml, StringComparison.Ordinal);
+        Assert.Contains("Dante Config Editor → DMT", windowsXaml, StringComparison.Ordinal);
+        Assert.Contains("https://github.com/togrupe/dlive-midi-tools", windowsCode, StringComparison.Ordinal);
         Assert.Contains("ChannelLabelImportWindow", windowsCode, StringComparison.Ordinal);
         Assert.Contains("ChannelLabelExportWindow", windowsCode, StringComparison.Ordinal);
         Assert.Contains("ImportChannelLabelsButton", macXaml, StringComparison.Ordinal);
         Assert.Contains("ExportChannelLabelsButton", macXaml, StringComparison.Ordinal);
+        Assert.Contains("ChannelLabelsTab", macXaml, StringComparison.Ordinal);
+        Assert.Contains("DMT → Dante Config Editor", macXaml, StringComparison.Ordinal);
+        Assert.Contains("Dante Config Editor → DMT", macXaml, StringComparison.Ordinal);
+        Assert.Contains("https://github.com/togrupe/dlive-midi-tools", macCode, StringComparison.Ordinal);
         Assert.Contains("ChannelLabelImportDialog", macCode, StringComparison.Ordinal);
         Assert.Contains("ChannelLabelExportDialog", macCode, StringComparison.Ordinal);
     }

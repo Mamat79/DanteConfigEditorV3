@@ -730,19 +730,6 @@
                                             </StackPanel>
                                         </Grid>
                                         <Button x:Name="BatchRenameButton" Content="Renommer la série" Style="{StaticResource SecondaryButtonStyle}" Click="BatchRenameButton_Click" />
-                                        <Separator Margin="0,6,0,6" />
-                                        <TextBlock Text="Échange de labels" FontWeight="SemiBold" />
-                                        <WrapPanel Margin="0,8,0,0">
-                                            <Button x:Name="ImportChannelLabelsButton"
-                                                    Content="Importer des labels"
-                                                    Click="ImportChannelLabelsButton_Click"
-                                                    ToolTip="Importe des labels JSON, CSV ou XLSX DMT vers une ou plusieurs machines, avec prévisualisation." />
-                                            <Button x:Name="ExportChannelLabelsButton"
-                                                    Content="Exporter des labels"
-                                                    Style="{StaticResource SecondaryButtonStyle}"
-                                                    Click="ExportChannelLabelsButton_Click"
-                                                    ToolTip="Exporte les labels TX/RX en JSON, CSV ou dans une copie d'un modèle XLSX DMT." />
-                                        </WrapPanel>
                                     </StackPanel>
                                 </GroupBox>
 
@@ -1170,7 +1157,79 @@
                     </ContentControl>
                 </TabItem>
 
-                <TabItem Header="Santé du fichier">
+                <TabItem x:Name="ChannelLabelsTab" Header="Labels / DMT">
+                    <Grid Margin="0,12,0,0">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+
+                        <Border Background="{DynamicResource SurfaceAltBrush}"
+                                BorderBrush="{DynamicResource BorderLineBrush}"
+                                BorderThickness="1"
+                                CornerRadius="6"
+                                Padding="18">
+                            <StackPanel>
+                                <TextBlock Text="Échange de labels avec dLive MIDI Tools (DMT)"
+                                           FontSize="18"
+                                           FontWeight="SemiBold" />
+                                <TextBlock Text="Échange hors ligne par fichiers. Choisissez le sens du transfert."
+                                           Margin="0,6,0,0"
+                                           Foreground="{DynamicResource MutedTextBrush}" />
+                            </StackPanel>
+                        </Border>
+
+                        <Grid Grid.Row="1"
+                              MaxWidth="1100"
+                              HorizontalAlignment="Center"
+                              VerticalAlignment="Center">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+                            <GroupBox Header="DMT → Dante Config Editor" Margin="0,0,10,0" Padding="22">
+                                <StackPanel>
+                                    <TextBlock Text="Importez les labels de la feuille Channels d'un fichier XLSX DMT, ou depuis un fichier JSON/CSV."
+                                               TextWrapping="Wrap"
+                                               Foreground="{DynamicResource MutedTextBrush}"
+                                               Margin="0,0,0,18" />
+                                    <Button x:Name="ImportChannelLabelsButton"
+                                            Content="Importer depuis DMT / JSON / CSV"
+                                            HorizontalAlignment="Stretch"
+                                            Click="ImportChannelLabelsButton_Click"
+                                            ToolTip="Lit un fichier DMT, JSON ou CSV, puis prévisualise les labels avant de les appliquer aux machines Dante." />
+                                </StackPanel>
+                            </GroupBox>
+
+                            <GroupBox Grid.Column="1" Header="Dante Config Editor → DMT" Margin="10,0,0,0" Padding="22">
+                                <StackPanel>
+                                    <TextBlock Text="Exportez les labels Dante en JSON/CSV, ou créez une copie d'un modèle XLSX DMT."
+                                               TextWrapping="Wrap"
+                                               Foreground="{DynamicResource MutedTextBrush}"
+                                               Margin="0,0,0,18" />
+                                    <Button x:Name="ExportChannelLabelsButton"
+                                            Content="Exporter vers DMT / JSON / CSV"
+                                            HorizontalAlignment="Stretch"
+                                            Click="ExportChannelLabelsButton_Click"
+                                            ToolTip="Exporte les labels TX/RX. Pour DMT, une copie du modèle XLSX choisi est créée et l'original reste intact." />
+                                </StackPanel>
+                            </GroupBox>
+                        </Grid>
+
+                        <Button x:Name="OpenDmtProjectButton"
+                                Grid.Row="2"
+                                Content="Ouvrir le projet dLive MIDI Tools (DMT)"
+                                Style="{StaticResource SecondaryButtonStyle}"
+                                HorizontalAlignment="Center"
+                                Margin="0,18,0,6"
+                                Click="OpenDmtProjectButton_Click"
+                                ToolTip="Ouvre la page GitHub officielle de dLive MIDI Tools par togrupe." />
+                    </Grid>
+                </TabItem>
+
+                <TabItem x:Name="HealthTab" Header="Santé du fichier">
                     <Grid Margin="0,12,0,0">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
@@ -1212,7 +1271,7 @@
                     </Grid>
                 </TabItem>
 
-                <TabItem Header="Sécurité et journal">
+                <TabItem x:Name="SafetyTab" Header="Sécurité et journal">
                     <Grid Margin="0,12,0,0">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />

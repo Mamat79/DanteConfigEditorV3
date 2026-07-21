@@ -1521,6 +1521,23 @@ public partial class MainWindow : Window
         }
     }
 
+    private async void OpenDmtProjectButton_Click(object? sender, RoutedEventArgs e)
+    {
+        try
+        {
+            Process.Start(new ProcessStartInfo("https://github.com/togrupe/dlive-midi-tools")
+            {
+                UseShellExecute = true
+            });
+        }
+        catch (Exception exception)
+        {
+            await ShowErrorAsync(
+                L("Ouverture du projet DMT impossible", "Cannot open the DMT project"),
+                exception);
+        }
+    }
+
     private async void ExportChannelLabelsButton_Click(object? sender, RoutedEventArgs e)
     {
         if (_project is null)

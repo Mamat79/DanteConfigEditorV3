@@ -1,5 +1,9 @@
 # Changelog V3
 
+## 2026-07-21 - Maintenance de main après V3.1
+
+- Nouvel onglet visible `Labels / DMT` sur Windows et macOS avec les deux sens d'échange et un accès direct au projet DMT.
+
 ## 2026-07-21 - Version 3.1 - échange de labels et collaboration DMT
 
 - Import et export des labels TX/RX pour une ou plusieurs machines, avec choix des plages et prévisualisation avant application.
