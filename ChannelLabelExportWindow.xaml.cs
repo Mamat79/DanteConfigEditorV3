@@ -24,8 +24,11 @@ public partial class ChannelLabelExportWindow : Window
         DevicesGrid.ItemsSource = _devices;
         PreviewGrid.ItemsSource = _preview;
         FormatComboBox.SelectedIndex = 1;
-        KindComboBox.SelectedIndex = 0;
+        DanteDevice? selectedDevice = project.Devices.FirstOrDefault(device =>
+            string.Equals(device.Name, initiallySelectedDevice, StringComparison.OrdinalIgnoreCase));
+        KindComboBox.SelectedIndex = selectedDevice is { TxCount: 0, RxCount: > 0 } ? 1 : 0;
         ApplyLanguage();
+        UpdateDeviceAvailability();
         RefreshPreview();
     }
 
@@ -47,8 +50,8 @@ public partial class ChannelLabelExportWindow : Window
     {
         Title = L("Exporter des labels de canaux", "Export channel labels");
         IntroTextBlock.Text = L(
-            "Sélectionnez les machines et le format. CSV et JSON créent un nouveau fichier ; les formats console copient un export existant pour préserver sa structure.",
-            "Select devices and a format. CSV and JSON create a new file; console formats copy an existing export to preserve its structure.");
+            "Sélectionnez les machines, les canaux TX/RX et le format. Les formats natifs sont créés directement depuis les modèles inclus dans DCE.",
+            "Select devices, TX/RX channels and a format. Native files are created directly from the templates included in DCE.");
         DevicesGroupBox.Header = L("Machines à exporter", "Devices to export");
         UseDeviceColumn.Header = L("Utiliser", "Use");
         DeviceNameColumn.Header = L("Machine", "Device");
@@ -56,9 +59,12 @@ public partial class ChannelLabelExportWindow : Window
         FormatLabel.Content = L("Format", "Format");
         JsonFormatItem.Content = L("JSON générique - nouveau fichier", "Generic JSON - new file");
         CsvFormatItem.Content = L("CSV générique - nouveau fichier", "Generic CSV - new file");
-        DmtFormatItem.Content = L("XLSX DMT - copie d'un classeur existant", "DMT XLSX - copy an existing workbook");
-        AllenHeathFormatItem.Content = L("CSV A&H - copie d'un export dLive / Avantis", "A&H CSV - copy a dLive / Avantis export");
-        YamahaFormatItem.Content = L("Yamaha CL / QL - copie d'un ZIP ou CSV", "Yamaha CL / QL - copy a ZIP or CSV");
+        DmtDLiveFormatItem.Content = "DMT XLSX - dLive";
+        DmtAvantisFormatItem.Content = "DMT XLSX - Avantis";
+        AllenHeathDLiveFormatItem.Content = L("A&H CSV natif - dLive", "Native A&H CSV - dLive");
+        AllenHeathAvantisFormatItem.Content = L("A&H CSV natif - Avantis", "Native A&H CSV - Avantis");
+        YamahaClFormatItem.Content = L("Yamaha ZIP natif - CL", "Native Yamaha ZIP - CL");
+        YamahaQlFormatItem.Content = L("Yamaha ZIP natif - QL", "Native Yamaha ZIP - QL");
         KindLabel.Content = L("Canaux", "Channels");
         StartLabel.Content = L("Premier canal", "First channel");
         CountLabel.Content = L("Nombre (0 = tous)", "Count (0 = all)");
@@ -91,6 +97,30 @@ public partial class ChannelLabelExportWindow : Window
         Dispatcher.BeginInvoke(RefreshPreview);
     }
 
+    private void KindComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        UpdateDeviceAvailability();
+        RefreshPreview();
+    }
+
+    private void UpdateDeviceAvailability()
+    {
+        if (!IsInitialized || KindComboBox is null)
+        {
+            return;
+        }
+
+        bool rx = KindComboBox.SelectedIndex == 1;
+        foreach (ChannelLabelDeviceSelection device in _devices)
+        {
+            device.IsAvailable = rx ? device.RxCount > 0 : device.TxCount > 0;
+            if (!device.IsAvailable)
+            {
+                device.IsSelected = false;
+            }
+        }
+    }
+
     private void UpdateFormatHelp()
     {
         if (!IsInitialized || FormatHelpTextBlock is null)
@@ -100,11 +130,11 @@ public partial class ChannelLabelExportWindow : Window
 
         FormatHelpTextBlock.Text = RequiresConsoleCompatibility(SelectedFormat())
             ? L(
-                "Ce format natif doit partir d'un fichier exporté par DMT ou la console. Vous choisirez ce modèle, puis le nom de la copie.",
-                "This native format must start from a file exported by DMT or the console. You will choose that template, then name the copy.")
+                "Le modèle dLive, Avantis, CL ou QL est inclus dans DCE. Seuls le nom et le dossier du nouveau fichier seront demandés.",
+                "The dLive, Avantis, CL or QL template is included in DCE. Only the new file name and folder will be requested.")
             : L(
-                "Un nouveau fichier sera créé : seul son nom et son dossier de destination seront demandés.",
-                "A new file will be created: only its name and destination folder will be requested.");
+                "Le CSV générique sert aux échanges avec DCE ; il ne doit pas être importé directement dans une console.",
+                "Generic CSV is intended for DCE exchanges; do not import it directly into a console.");
     }
 
     private void OptionsChanged(object sender, RoutedEventArgs e) => RefreshPreview();
@@ -121,10 +151,13 @@ public partial class ChannelLabelExportWindow : Window
         DevicesGrid.CommitEdit(DataGridEditingUnit.Cell, true);
         DevicesGrid.CommitEdit(DataGridEditingUnit.Row, true);
         _preview.Clear();
-        string[] selected = _devices.Where(device => device.IsSelected).Select(device => device.Name).ToArray();
+        string[] selected = _devices.Where(device => device.IsSelected && device.IsAvailable).Select(device => device.Name).ToArray();
         if (selected.Length == 0)
         {
-            SummaryTextBlock.Text = L("Sélectionnez au moins une machine.", "Select at least one device.");
+            SummaryTextBlock.Text = L(
+                "Sélectionnez au moins une machine disposant de canaux dans le sens TX/RX choisi.",
+                "Select at least one device with channels in the chosen TX/RX direction.");
+            ExportButton.IsEnabled = false;
             return;
         }
 
@@ -158,9 +191,19 @@ public partial class ChannelLabelExportWindow : Window
             }
         }
 
+        if (_preview.Count == 0)
+        {
+            SummaryTextBlock.Text = L(
+                "Aucun canal ne correspond à la plage demandée.",
+                "No channel matches the requested range.");
+            ExportButton.IsEnabled = false;
+            return;
+        }
+
         SummaryTextBlock.Text = IsEnglish
             ? $"{document.Sets.Count} device(s), {_preview.Count} label(s), {incompatible} console-incompatible label(s)."
             : $"{document.Sets.Count} machine(s), {_preview.Count} label(s), {incompatible} label(s) incompatible(s) avec la console.";
+        ExportButton.IsEnabled = true;
     }
 
     private void ExportButton_Click(object sender, RoutedEventArgs e)
@@ -168,7 +211,7 @@ public partial class ChannelLabelExportWindow : Window
         try
         {
             RefreshPreview();
-            DeviceNames = _devices.Where(device => device.IsSelected).Select(device => device.Name).ToArray();
+            DeviceNames = _devices.Where(device => device.IsSelected && device.IsAvailable).Select(device => device.Name).ToArray();
             if (DeviceNames.Count == 0)
             {
                 throw new InvalidOperationException(L("Sélectionnez au moins une machine.", "Select at least one device."));
@@ -196,7 +239,7 @@ public partial class ChannelLabelExportWindow : Window
 
     private string SelectedFormat() => (FormatComboBox.SelectedItem as ComboBoxItem)?.Tag as string ?? "json";
 
-    private static bool RequiresConsoleCompatibility(string format) => format is "xlsx" or "console-csv" or "yamaha";
+    private static bool RequiresConsoleCompatibility(string format) => BuiltInChannelLabelTemplateService.IsBuiltInFormat(format);
 
     private static int ParsePositive(string value, string label) =>
         int.TryParse(value.Trim(), out int parsed) && parsed > 0

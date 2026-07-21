@@ -59,9 +59,12 @@ internal sealed partial class ChannelLabelExportDialog : Window
         {
             new ChoiceValue("json", Local("JSON générique - nouveau fichier", "Generic JSON - new file")),
             new ChoiceValue("csv", Local("CSV générique - nouveau fichier", "Generic CSV - new file")),
-            new ChoiceValue("xlsx", Local("XLSX DMT - copie d'un classeur existant", "DMT XLSX - copy an existing workbook")),
-            new ChoiceValue("console-csv", Local("CSV A&H - copie d'un export dLive / Avantis", "A&H CSV - copy a dLive / Avantis export")),
-            new ChoiceValue("yamaha", Local("Yamaha CL / QL - copie d'un ZIP ou CSV", "Yamaha CL / QL - copy a ZIP or CSV"))
+            new ChoiceValue("dmt-dlive", "DMT XLSX - dLive"),
+            new ChoiceValue("dmt-avantis", "DMT XLSX - Avantis"),
+            new ChoiceValue("ah-dlive", Local("A&H CSV natif - dLive", "Native A&H CSV - dLive")),
+            new ChoiceValue("ah-avantis", Local("A&H CSV natif - Avantis", "Native A&H CSV - Avantis")),
+            new ChoiceValue("yamaha-cl", Local("Yamaha ZIP natif - CL", "Native Yamaha ZIP - CL")),
+            new ChoiceValue("yamaha-ql", Local("Yamaha ZIP natif - QL", "Native Yamaha ZIP - QL"))
         };
         FindControl<ComboBox>("FormatCombo")!.SelectedIndex = 1;
         FindControl<ComboBox>("KindCombo")!.ItemsSource = new ChoiceValue[]
@@ -69,15 +72,18 @@ internal sealed partial class ChannelLabelExportDialog : Window
             new("tx", "TX"),
             new("rx", "RX")
         };
-        FindControl<ComboBox>("KindCombo")!.SelectedIndex = 0;
+        DanteDevice? selectedDevice = _project.Devices.FirstOrDefault(device =>
+            string.Equals(device.Name, initiallySelectedDevice, StringComparison.OrdinalIgnoreCase));
+        FindControl<ComboBox>("KindCombo")!.SelectedIndex = selectedDevice is { TxCount: 0, RxCount: > 0 } ? 1 : 0;
+        UpdateDeviceAvailability();
     }
 
     private void ApplyLanguage()
     {
         Title = Local("Exporter des labels de canaux", "Export channel labels");
         FindControl<TextBlock>("IntroText")!.Text = Local(
-            "Sélectionnez les machines et le format. CSV et JSON créent un nouveau fichier ; les formats console copient un export existant pour préserver sa structure.",
-            "Select devices and a format. CSV and JSON create a new file; console formats copy an existing export to preserve its structure.");
+            "Sélectionnez les machines, les canaux TX/RX et le format. Les formats natifs sont créés directement depuis les modèles inclus dans DCE.",
+            "Select devices, TX/RX channels and a format. Native files are created directly from the templates included in DCE.");
         FindControl<TextBlock>("DevicesTitle")!.Text = Local("Machines à exporter", "Devices to export");
         DataGrid devices = FindControl<DataGrid>("DevicesGrid")!;
         devices.Columns[0].Header = Local("Utiliser", "Use");
@@ -116,11 +122,36 @@ internal sealed partial class ChannelLabelExportDialog : Window
             adapt.IsChecked = false;
         }
         UpdateFormatHelp();
+        RefreshPreview();
     }
 
     private void DeviceSelectionCheckBox_Click(object? sender, RoutedEventArgs e)
     {
         Avalonia.Threading.Dispatcher.UIThread.Post(RefreshPreview);
+    }
+
+    private void KindCombo_SelectionChanged(object? sender, SelectionChangedEventArgs e)
+    {
+        UpdateDeviceAvailability();
+        RefreshPreview();
+    }
+
+    private void UpdateDeviceAvailability()
+    {
+        if (FindControl<ComboBox>("KindCombo") is not { } kindCombo)
+        {
+            return;
+        }
+
+        bool rx = SelectedValue("KindCombo") == "rx" || kindCombo.SelectedIndex == 1;
+        foreach (MacChannelLabelDeviceSelection device in _devices)
+        {
+            device.IsAvailable = rx ? device.RxCount > 0 : device.TxCount > 0;
+            if (!device.IsAvailable)
+            {
+                device.IsSelected = false;
+            }
+        }
     }
 
     private void UpdateFormatHelp()
@@ -132,11 +163,11 @@ internal sealed partial class ChannelLabelExportDialog : Window
 
         help.Text = RequiresConsoleCompatibility(SelectedValue("FormatCombo"))
             ? Local(
-                "Ce format natif doit partir d'un fichier exporté par DMT ou la console. Vous choisirez ce modèle, puis le nom de la copie.",
-                "This native format must start from a file exported by DMT or the console. You will choose that template, then name the copy.")
+                "Le modèle dLive, Avantis, CL ou QL est inclus dans DCE. Seuls le nom et le dossier du nouveau fichier seront demandés.",
+                "The dLive, Avantis, CL or QL template is included in DCE. Only the new file name and folder will be requested.")
             : Local(
-                "Un nouveau fichier sera créé : seul son nom et son dossier de destination seront demandés.",
-                "A new file will be created: only its name and destination folder will be requested.");
+                "Le CSV générique sert aux échanges avec DCE ; il ne doit pas être importé directement dans une console.",
+                "Generic CSV is intended for DCE exchanges; do not import it directly into a console.");
     }
 
     private async void PreviewButton_Click(object? sender, RoutedEventArgs e)
@@ -154,10 +185,13 @@ internal sealed partial class ChannelLabelExportDialog : Window
     private void RefreshPreview()
     {
         _preview.Clear();
-        string[] selected = _devices.Where(device => device.IsSelected).Select(device => device.Name).ToArray();
+        string[] selected = _devices.Where(device => device.IsSelected && device.IsAvailable).Select(device => device.Name).ToArray();
         if (selected.Length == 0)
         {
-            FindControl<TextBlock>("SummaryText")!.Text = Local("Sélectionnez au moins une machine.", "Select at least one device.");
+            FindControl<TextBlock>("SummaryText")!.Text = Local(
+                "Sélectionnez au moins une machine disposant de canaux dans le sens TX/RX choisi.",
+                "Select at least one device with channels in the chosen TX/RX direction.");
+            FindControl<Button>("ExportButton")!.IsEnabled = false;
             return;
         }
 
@@ -188,9 +222,19 @@ internal sealed partial class ChannelLabelExportDialog : Window
             }
         }
 
+        if (_preview.Count == 0)
+        {
+            FindControl<TextBlock>("SummaryText")!.Text = Local(
+                "Aucun canal ne correspond à la plage demandée.",
+                "No channel matches the requested range.");
+            FindControl<Button>("ExportButton")!.IsEnabled = false;
+            return;
+        }
+
         FindControl<TextBlock>("SummaryText")!.Text = _language == UiLanguage.English
             ? $"{document.Sets.Count} device(s), {_preview.Count} label(s), {incompatible} console-incompatible label(s)."
             : $"{document.Sets.Count} machine(s), {_preview.Count} label(s), {incompatible} label(s) incompatible(s) avec la console.";
+        FindControl<Button>("ExportButton")!.IsEnabled = true;
     }
 
     private async void ExportButton_Click(object? sender, RoutedEventArgs e)
@@ -198,7 +242,7 @@ internal sealed partial class ChannelLabelExportDialog : Window
         try
         {
             RefreshPreview();
-            string[] devices = _devices.Where(device => device.IsSelected).Select(device => device.Name).ToArray();
+            string[] devices = _devices.Where(device => device.IsSelected && device.IsAvailable).Select(device => device.Name).ToArray();
             if (devices.Length == 0)
             {
                 throw new InvalidOperationException(Local("Sélectionnez au moins une machine.", "Select at least one device."));
@@ -232,7 +276,7 @@ internal sealed partial class ChannelLabelExportDialog : Window
     private string SelectedValue(string controlName) =>
         (FindControl<ComboBox>(controlName)!.SelectedItem as ChoiceValue)?.Value ?? string.Empty;
 
-    private static bool RequiresConsoleCompatibility(string format) => format is "xlsx" or "console-csv" or "yamaha";
+    private static bool RequiresConsoleCompatibility(string format) => BuiltInChannelLabelTemplateService.IsBuiltInFormat(format);
 
     private static int ParsePositive(string? value, string label) =>
         int.TryParse(value?.Trim(), out int parsed) && parsed > 0

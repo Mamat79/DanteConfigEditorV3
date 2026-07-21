@@ -39,7 +39,6 @@ public static class DmtChannelWorkbookService
 
     public static void WriteCopy(string templatePath, string outputPath, ChannelLabelSet labels, bool adaptLabels)
     {
-        ArgumentNullException.ThrowIfNull(labels);
         string sourceFullPath = Path.GetFullPath(templatePath);
         string outputFullPath = Path.GetFullPath(outputPath);
         if (string.Equals(sourceFullPath, outputFullPath, StringComparison.OrdinalIgnoreCase))
@@ -47,6 +46,60 @@ public static class DmtChannelWorkbookService
             throw new InvalidOperationException("Le fichier de sortie doit être différent du modèle DMT original.");
         }
 
+        using FileStream source = File.OpenRead(sourceFullPath);
+        WriteFromTemplate(source, outputFullPath, labels, adaptLabels);
+    }
+
+    public static void WriteFromTemplate(
+        Stream templateStream,
+        string outputPath,
+        ChannelLabelSet labels,
+        bool adaptLabels,
+        bool replaceChannelSet = false)
+    {
+        ArgumentNullException.ThrowIfNull(templateStream);
+        ArgumentNullException.ThrowIfNull(labels);
+        if (!templateStream.CanRead)
+        {
+            throw new InvalidOperationException("Le modèle DMT ne peut pas être lu.");
+        }
+
+        Dictionary<int, string> namesByChannel = PrepareNames(labels, adaptLabels);
+        string outputFullPath = Path.GetFullPath(outputPath);
+        string directory = Path.GetDirectoryName(outputFullPath) ?? Environment.CurrentDirectory;
+        Directory.CreateDirectory(directory);
+        string temporaryPath = Path.Combine(directory, $".{Path.GetFileName(outputFullPath)}.{Guid.NewGuid():N}.tmp");
+        try
+        {
+            using (FileStream temporary = new(temporaryPath, FileMode.CreateNew, FileAccess.Write, FileShare.None))
+            {
+                templateStream.CopyTo(temporary);
+            }
+
+            using (FileStream stream = new(temporaryPath, FileMode.Open, FileAccess.ReadWrite, FileShare.None))
+            using (ZipArchive archive = new(stream, ZipArchiveMode.Update))
+            {
+                string worksheetPath = ResolveWorksheetPath(archive, "Channels");
+                ZipArchiveEntry sheetEntry = archive.GetEntry(worksheetPath)
+                    ?? throw new InvalidDataException("La feuille Channels du modèle DMT est introuvable.");
+                XDocument sheet = LoadXml(sheetEntry);
+                IReadOnlyList<string> sharedStrings = ReadSharedStrings(archive);
+                UpdateChannelNames(sheet, sharedStrings, namesByChannel, replaceChannelSet);
+                SaveXml(sheetEntry, sheet);
+            }
+            File.Move(temporaryPath, outputFullPath, true);
+        }
+        finally
+        {
+            if (File.Exists(temporaryPath))
+            {
+                File.Delete(temporaryPath);
+            }
+        }
+    }
+
+    private static Dictionary<int, string> PrepareNames(ChannelLabelSet labels, bool adaptLabels)
+    {
         Dictionary<int, string> namesByChannel = [];
         foreach (ChannelLabelEntry channel in labels.Channels)
         {
@@ -78,26 +131,7 @@ public static class DmtChannelWorkbookService
         {
             throw new InvalidOperationException("Aucun label non vide à exporter vers DMT.");
         }
-
-        Directory.CreateDirectory(Path.GetDirectoryName(outputFullPath) ?? Environment.CurrentDirectory);
-        File.Copy(sourceFullPath, outputFullPath, true);
-        try
-        {
-            using FileStream stream = new(outputFullPath, FileMode.Open, FileAccess.ReadWrite, FileShare.None);
-            using ZipArchive archive = new(stream, ZipArchiveMode.Update);
-            string worksheetPath = ResolveWorksheetPath(archive, "Channels");
-            ZipArchiveEntry sheetEntry = archive.GetEntry(worksheetPath)
-                ?? throw new InvalidDataException("La feuille Channels du modèle DMT est introuvable.");
-            XDocument sheet = LoadXml(sheetEntry);
-            IReadOnlyList<string> sharedStrings = ReadSharedStrings(archive);
-            UpdateChannelNames(sheet, sharedStrings, namesByChannel);
-            SaveXml(sheetEntry, sheet);
-        }
-        catch
-        {
-            File.Delete(outputFullPath);
-            throw;
-        }
+        return namesByChannel;
     }
 
     public static DmtLabelCompatibility CheckCompatibility(string label)
@@ -197,23 +231,39 @@ public static class DmtChannelWorkbookService
     private static void UpdateChannelNames(
         XDocument sheet,
         IReadOnlyList<string> sharedStrings,
-        IReadOnlyDictionary<int, string> namesByChannel)
+        IReadOnlyDictionary<int, string> namesByChannel,
+        bool replaceChannelSet)
     {
         XElement[] rows = sheet.Descendants(SpreadsheetNamespace + "row").ToArray();
         HeaderLocation header = FindHeaders(rows, sharedStrings, ["Channel", "Name"]);
+        int enabledColumn = header.Columns.TryGetValue("Enabled", out int enabled) ? enabled : -1;
         HashSet<int> written = [];
         foreach (XElement row in rows.Skip(header.RowIndex + 1))
         {
             Dictionary<int, string> values = ReadRow(row, sharedStrings);
             if (!values.TryGetValue(header.Columns["Channel"], out string? channelValue)
-                || !int.TryParse(channelValue, NumberStyles.Integer, CultureInfo.InvariantCulture, out int channelNumber)
-                || !namesByChannel.TryGetValue(channelNumber, out string? label))
+                || !int.TryParse(channelValue, NumberStyles.Integer, CultureInfo.InvariantCulture, out int channelNumber))
             {
                 continue;
             }
 
-            SetInlineStringCell(row, header.Columns["Name"], label);
-            written.Add(channelNumber);
+            if (namesByChannel.TryGetValue(channelNumber, out string? label))
+            {
+                SetInlineStringCell(row, header.Columns["Name"], label);
+                if (replaceChannelSet && enabledColumn >= 0)
+                {
+                    SetInlineStringCell(row, enabledColumn, "yes");
+                }
+                written.Add(channelNumber);
+            }
+            else if (replaceChannelSet)
+            {
+                SetInlineStringCell(row, header.Columns["Name"], "-");
+                if (enabledColumn >= 0)
+                {
+                    SetInlineStringCell(row, enabledColumn, "no");
+                }
+            }
         }
 
         int[] missing = namesByChannel.Keys.Where(channel => !written.Contains(channel)).OrderBy(channel => channel).ToArray();

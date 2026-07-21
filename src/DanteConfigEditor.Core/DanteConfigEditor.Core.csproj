@@ -18,4 +18,10 @@
     <Compile Include="..\..\Models\**\*.cs" Link="Models\%(RecursiveDir)%(Filename)%(Extension)" />
     <Compile Include="..\..\Services\**\*.cs" Link="Services\%(RecursiveDir)%(Filename)%(Extension)" />
   </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="..\..\Resources\ChannelLabelTemplates\*.xlsx;..\..\Resources\ChannelLabelTemplates\*.csv;..\..\Resources\ChannelLabelTemplates\*.zip">
+      <LogicalName>DanteConfigEditor.ChannelLabelTemplates.%(Filename)%(Extension)</LogicalName>
+    </EmbeddedResource>
+  </ItemGroup>
 </Project>

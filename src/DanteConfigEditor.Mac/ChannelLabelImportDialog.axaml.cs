@@ -303,6 +303,7 @@ internal sealed record MacChannelLabelSetChoice(ChannelLabelSet Set)
 internal sealed class MacChannelLabelDeviceSelection : INotifyPropertyChanged
 {
     private bool _isSelected;
+    private bool _isAvailable = true;
 
     public MacChannelLabelDeviceSelection(string name, int txCount, int rxCount, bool isSelected)
     {
@@ -326,6 +327,19 @@ internal sealed class MacChannelLabelDeviceSelection : INotifyPropertyChanged
             }
             _isSelected = value;
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsSelected)));
+        }
+    }
+    public bool IsAvailable
+    {
+        get => _isAvailable;
+        set
+        {
+            if (_isAvailable == value)
+            {
+                return;
+            }
+            _isAvailable = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsAvailable)));
         }
     }
     public string Counts => $"{TxCount} / {RxCount}";

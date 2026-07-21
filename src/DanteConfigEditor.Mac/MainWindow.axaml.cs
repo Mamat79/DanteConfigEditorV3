@@ -1574,14 +1574,9 @@ public partial class MainWindow : Window
                 result.Kind,
                 result.StartChannel,
                 result.Count);
-            if (result.Format == "xlsx")
+            if (BuiltInChannelLabelTemplateService.IsBuiltInFormat(result.Format))
             {
-                await ExportDmtWorkbooksAsync(document, result.AdaptConsoleLabels);
-                return;
-            }
-            if (result.Format is "console-csv" or "yamaha")
-            {
-                await ExportConsoleTemplateCopiesAsync(document, result.Format, result.AdaptConsoleLabels);
+                await ExportBuiltInTemplateCopiesAsync(document, result.Format, result.AdaptConsoleLabels);
                 return;
             }
 
@@ -1605,82 +1600,17 @@ public partial class MainWindow : Window
         }
     }
 
-    private async Task ExportDmtWorkbooksAsync(ChannelLabelDocument document, bool adaptLabels)
+    private async Task ExportBuiltInTemplateCopiesAsync(ChannelLabelDocument document, string format, bool adaptLabels)
     {
-        string? template = await PickOpenPathAsync(
-            L("Choisir le modèle DMT original", "Choose the original DMT template"),
-            DmtWorkbookFileType);
-        if (template is null)
-        {
-            return;
-        }
-        DmtWorkbookReadResult templateInfo = DmtChannelWorkbookService.Read(template);
+        BuiltInChannelLabelTemplateInfo template = BuiltInChannelLabelTemplateService.Get(format);
+        string extension = template.OutputExtension.TrimStart('.');
         string suggestedName = document.Sets.Count == 1
-            ? $"{SafeFileNameSegment(document.Sets[0].DeviceName)}_DMT.xlsx"
-            : "Dante_labels_DMT.xlsx";
-        IStorageFile? target = await PickSaveFileAsync(suggestedName, "xlsx", "DMT Excel workbook", ["*.xlsx"]);
-        string? selectedOutput = target?.TryGetLocalPath();
-        if (selectedOutput is null)
-        {
-            return;
-        }
-
-        string directory = Path.GetDirectoryName(selectedOutput) ?? Environment.CurrentDirectory;
-        string baseName = Path.GetFileNameWithoutExtension(selectedOutput);
-        string[] outputs = document.Sets.Select(set => document.Sets.Count == 1
-            ? selectedOutput
-            : Path.Combine(directory, $"{baseName}-{SafeFileNameSegment(set.DeviceName)}.xlsx")).ToArray();
-        int existing = outputs.Count(File.Exists);
-        if (existing > 0 && !await ConfirmAsync(
-                L("Remplacer les copies DMT", "Replace DMT copies"),
-                L(
-                    $"{existing} classeur(s) généré(s) existent déjà et seront remplacés.",
-                    $"{existing} generated workbook(s) already exist and will be replaced."),
-                L("Remplacer", "Replace")))
-        {
-            return;
-        }
-
-        for (int index = 0; index < document.Sets.Count; index++)
-        {
-            DmtChannelWorkbookService.WriteCopy(template, outputs[index], document.Sets[index], adaptLabels);
-        }
-        string version = string.IsNullOrWhiteSpace(templateInfo.TemplateVersion) ? "?" : templateInfo.TemplateVersion;
-        SetStatus(L(
-            $"{outputs.Length} copie(s) DMT exportée(s) (modèle {version}).",
-            $"{outputs.Length} DMT workbook copy/copies exported (template {version})."));
-    }
-
-    private async Task ExportConsoleTemplateCopiesAsync(ChannelLabelDocument document, string format, bool adaptLabels)
-    {
-        bool yamaha = format == "yamaha";
-        string? template = await PickOpenPathAsync(
-            yamaha
-                ? L("Choisir un export Yamaha CL/QL", "Choose a Yamaha CL/QL export package")
-                : L("Choisir un CSV A&H dLive/Avantis", "Choose an A&H dLive/Avantis CSV"),
-            yamaha ? YamahaLabelFileType : AllenHeathCsvFileType);
-        if (template is null)
-        {
-            return;
-        }
-
-        ConsoleChannelFileReadResult templateInfo = ConsoleChannelFileService.Read(template);
-        if (yamaha != templateInfo.TemplateName.StartsWith("Yamaha", StringComparison.OrdinalIgnoreCase))
-        {
-            throw new InvalidDataException(yamaha
-                ? "Le fichier choisi n'est pas un export Yamaha CL/QL."
-                : "Le fichier choisi n'est pas un CSV A&H dLive/Avantis.");
-        }
-
-        string extension = Path.GetExtension(template).TrimStart('.').ToLowerInvariant();
-        string suffix = yamaha ? "Yamaha" : "AH";
-        string suggestedName = document.Sets.Count == 1
-            ? $"{SafeFileNameSegment(document.Sets[0].DeviceName)}_{suffix}.{extension}"
-            : $"Dante_labels_{suffix}.{extension}";
+            ? $"{SafeFileNameSegment(document.Sets[0].DeviceName)}_{template.FileSuffix}.{extension}"
+            : $"Dante_labels_{template.FileSuffix}.{extension}";
         IStorageFile? target = await PickSaveFileAsync(
             suggestedName,
             extension,
-            yamaha ? "Yamaha CL/QL label package" : "Allen & Heath console CSV",
+            template.DisplayName,
             [$"*.{extension}"]);
         string? selectedOutput = target?.TryGetLocalPath();
         if (selectedOutput is null)
@@ -1706,11 +1636,11 @@ public partial class MainWindow : Window
 
         for (int index = 0; index < document.Sets.Count; index++)
         {
-            ConsoleChannelFileService.WriteCopy(template, outputs[index], document.Sets[index], adaptLabels);
+            BuiltInChannelLabelTemplateService.Write(format, outputs[index], document.Sets[index], adaptLabels);
         }
         SetStatus(L(
-            $"{outputs.Length} copie(s) {templateInfo.TemplateName} exportée(s).",
-            $"{outputs.Length} {templateInfo.TemplateName} copy/copies exported."));
+            $"{outputs.Length} fichier(s) {template.DisplayName} exporté(s).",
+            $"{outputs.Length} {template.DisplayName} file(s) exported."));
     }
 
     private void ScheduleRecovery()

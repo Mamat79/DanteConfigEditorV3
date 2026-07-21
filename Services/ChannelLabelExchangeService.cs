@@ -61,6 +61,14 @@ public static class ChannelLabelExchangeService
             throw new InvalidOperationException("Sélectionnez au moins une machine à exporter.");
         }
 
+        string[] missing = requested
+            .Where(name => project.Devices.All(device => !string.Equals(device.Name, name, StringComparison.OrdinalIgnoreCase)))
+            .ToArray();
+        if (missing.Length > 0)
+        {
+            throw new InvalidOperationException($"Machine(s) introuvable(s) : {string.Join(", ", missing)}.");
+        }
+
         List<ChannelLabelSet> sets = [];
         foreach (DanteDevice device in project.Devices.Where(device => requested.Contains(device.Name)))
         {
@@ -71,16 +79,24 @@ public static class ChannelLabelExchangeService
                 selected = selected.Take(count.Value);
             }
 
+            ChannelLabelEntry[] entries = selected
+                .Select(channel => new ChannelLabelEntry(channel.DanteId, channel.DisplayName, channel.DanteId))
+                .ToArray();
+            if (entries.Length == 0)
+            {
+                continue;
+            }
+
             sets.Add(new ChannelLabelSet(
                 device.Name,
                 kind == DanteChannelKind.Tx ? ChannelLabelDirection.Tx : ChannelLabelDirection.Rx,
-                selected.Select(channel => new ChannelLabelEntry(channel.DanteId, channel.DisplayName, channel.DanteId)).ToArray()));
+                entries));
         }
 
-        string[] missing = requested.Where(name => sets.All(set => !string.Equals(set.DeviceName, name, StringComparison.OrdinalIgnoreCase))).ToArray();
-        if (missing.Length > 0)
+        if (sets.Count == 0)
         {
-            throw new InvalidOperationException($"Machine(s) introuvable(s) : {string.Join(", ", missing)}.");
+            string direction = kind == DanteChannelKind.Tx ? "TX" : "RX";
+            throw new InvalidOperationException($"Aucune machine sélectionnée ne contient de canal {direction} dans la plage demandée.");
         }
 
         return new ChannelLabelDocument(FormatName, CurrentSchemaVersion, "Dante Config Editor", "3.2", sets.ToArray());

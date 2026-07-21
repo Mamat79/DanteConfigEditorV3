@@ -32,7 +32,6 @@ public static class ConsoleChannelFileService
 
     public static void WriteCopy(string templatePath, string outputPath, ChannelLabelSet labels, bool adaptLabels)
     {
-        ArgumentNullException.ThrowIfNull(labels);
         string sourceFullPath = Path.GetFullPath(templatePath);
         string outputFullPath = Path.GetFullPath(outputPath);
         if (string.Equals(sourceFullPath, outputFullPath, StringComparison.OrdinalIgnoreCase))
@@ -40,35 +39,69 @@ public static class ConsoleChannelFileService
             throw new InvalidOperationException("Le fichier de sortie doit être différent du modèle console original.");
         }
 
+        using FileStream source = File.OpenRead(sourceFullPath);
+        WriteFromTemplateCore(source, Path.GetExtension(sourceFullPath), outputFullPath, labels, adaptLabels);
+    }
+
+    public static void WriteFromTemplate(Stream templateStream, string outputPath, ChannelLabelSet labels, bool adaptLabels)
+    {
+        WriteFromTemplateCore(templateStream, Path.GetExtension(outputPath), outputPath, labels, adaptLabels);
+    }
+
+    private static void WriteFromTemplateCore(
+        Stream templateStream,
+        string templateExtension,
+        string outputPath,
+        ChannelLabelSet labels,
+        bool adaptLabels)
+    {
+        ArgumentNullException.ThrowIfNull(templateStream);
+        ArgumentNullException.ThrowIfNull(labels);
+        if (!templateStream.CanRead)
+        {
+            throw new InvalidOperationException("Le modèle console ne peut pas être lu.");
+        }
+
         Dictionary<int, string> names = PrepareNames(labels, adaptLabels);
-        Directory.CreateDirectory(Path.GetDirectoryName(outputFullPath) ?? Environment.CurrentDirectory);
-        File.Copy(sourceFullPath, outputFullPath, true);
+        string outputFullPath = Path.GetFullPath(outputPath);
+        string directory = Path.GetDirectoryName(outputFullPath) ?? Environment.CurrentDirectory;
+        Directory.CreateDirectory(directory);
+        string temporaryPath = Path.Combine(directory, $".{Path.GetFileName(outputFullPath)}.{Guid.NewGuid():N}.tmp");
         try
         {
-            string extension = Path.GetExtension(sourceFullPath).ToLowerInvariant();
+            using (FileStream temporary = new(temporaryPath, FileMode.CreateNew, FileAccess.Write, FileShare.None))
+            {
+                templateStream.CopyTo(temporary);
+            }
+
+            string extension = templateExtension.ToLowerInvariant();
             if (extension == ".zip")
             {
-                UpdateYamahaZip(outputFullPath, names);
+                UpdateYamahaZip(temporaryPath, names);
             }
             else if (extension == ".csv")
             {
-                SourceText source = ReadSource(sourceFullPath);
+                SourceText source = ReadSource(temporaryPath);
                 string updated = ContainsSection(source.Text, "[Channels]")
                     ? UpdateAllenHeathCsv(source.Text, names)
                     : ContainsSection(source.Text, "[InName]")
                         ? UpdateYamahaInputCsv(source.Text, names)
                         : throw new InvalidDataException("Le CSV choisi n'est ni un fichier A&H [Channels], ni un fichier Yamaha [InName].");
-                WriteSource(outputFullPath, updated, source);
+                WriteSource(temporaryPath, updated, source);
             }
             else
             {
                 throw new InvalidDataException("Le modèle console doit être un CSV ou un ZIP.");
             }
+
+            File.Move(temporaryPath, outputFullPath, true);
         }
-        catch
+        finally
         {
-            File.Delete(outputFullPath);
-            throw;
+            if (File.Exists(temporaryPath))
+            {
+                File.Delete(temporaryPath);
+            }
         }
     }
 

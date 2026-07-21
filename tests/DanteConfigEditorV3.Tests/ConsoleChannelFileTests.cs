@@ -83,12 +83,13 @@ public sealed class ConsoleChannelFileTests
         string source = directory.PathFor("Avantis.csv");
         string output = directory.PathFor("output.csv");
         File.WriteAllText(source, AllenHeathCsv(), Encoding.Latin1);
+        File.WriteAllText(output, "existing destination", Encoding.UTF8);
 
         InvalidOperationException error = Assert.Throws<InvalidOperationException>(() =>
             ConsoleChannelFileService.WriteCopy(source, output, Labels((99, "Missing")), adaptLabels: false));
 
         Assert.Contains("99", error.Message, StringComparison.Ordinal);
-        Assert.False(File.Exists(output));
+        Assert.Equal("existing destination", File.ReadAllText(output, Encoding.UTF8));
     }
 
     private static string AllenHeathCsv(string source = "SLink") =>

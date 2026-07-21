@@ -21,6 +21,13 @@
   </ItemGroup>
 
   <ItemGroup>
+    <EmbeddedResource Include="Resources\ChannelLabelTemplates\*.xlsx;Resources\ChannelLabelTemplates\*.csv;Resources\ChannelLabelTemplates\*.zip">
+      <LogicalName>DanteConfigEditor.ChannelLabelTemplates.%(Filename)%(Extension)</LogicalName>
+    </EmbeddedResource>
+    <None Update="Resources\ChannelLabelTemplates\DMT_LICENSE.txt" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Compile Remove="tmp\**\*.cs" />
     <Compile Remove="tests\**\*.cs" />
     <Compile Remove="benchmarks\**\*.cs" />

@@ -21,6 +21,7 @@
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
                                         <CheckBox IsChecked="{Binding IsSelected, Mode=TwoWay}"
+                                                  IsEnabled="{Binding IsAvailable}"
                                                   HorizontalAlignment="Center"
                                                   VerticalAlignment="Center"
                                                   Click="DeviceSelectionCheckBox_Click" />
@@ -43,7 +44,7 @@
                     </StackPanel>
                     <StackPanel Grid.Row="2" Spacing="3">
                         <TextBlock x:Name="KindLabel" Classes="muted" />
-                        <ComboBox x:Name="KindCombo" />
+                        <ComboBox x:Name="KindCombo" SelectionChanged="KindCombo_SelectionChanged" />
                     </StackPanel>
                     <StackPanel Grid.Row="2" Grid.Column="1" Spacing="3">
                         <TextBlock x:Name="StartLabel" Classes="muted" />

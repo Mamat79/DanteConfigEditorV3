@@ -95,6 +95,26 @@ public sealed class ChannelLabelExchangeTests
     }
 
     [Fact]
+    public void DeviceWithoutTxCanStillExportItsRxChannels()
+    {
+        using TemporaryDirectory temp = new();
+        string xml = System.IO.Path.Combine(temp.Path, "rx-only.xml");
+        SyntheticPresetFactory.Create(xml, 1, txPerDevice: 0, rxPerDevice: 2);
+        DanteProject project = DanteProject.Load(xml);
+
+        InvalidOperationException error = Assert.Throws<InvalidOperationException>(() =>
+            ChannelLabelExchangeService.CreateFromProject(project, ["DEVICE-001"], DanteChannelKind.Tx));
+        ChannelLabelDocument rx = ChannelLabelExchangeService.CreateFromProject(
+            project,
+            ["DEVICE-001"],
+            DanteChannelKind.Rx);
+
+        Assert.Contains("TX", error.Message, StringComparison.Ordinal);
+        Assert.Equal(2, rx.Sets.Single().Channels.Count);
+        Assert.Equal(ChannelLabelDirection.Rx, rx.Sets.Single().Direction);
+    }
+
+    [Fact]
     public void TransferPlannerMapsOneSourceRangeToSeveralDevices()
     {
         using TemporaryDirectory temp = new();

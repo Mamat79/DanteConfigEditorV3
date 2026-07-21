@@ -16,7 +16,7 @@
         </Grid.RowDefinitions>
 
         <TextBlock x:Name="IntroTextBlock"
-                   Text="Sélectionnez les machines et le format. CSV et JSON créent un nouveau fichier ; les formats console copient un export existant pour préserver sa structure."
+                   Text="Sélectionnez les machines, les canaux TX/RX et le format. Les formats natifs sont créés directement depuis les modèles inclus dans DCE."
                    TextWrapping="Wrap"
                    Margin="0,0,0,12" />
 
@@ -33,6 +33,7 @@
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <CheckBox IsChecked="{Binding IsSelected, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                              IsEnabled="{Binding IsAvailable}"
                                               HorizontalAlignment="Center"
                                               VerticalAlignment="Center"
                                               Click="DeviceSelectionCheckBox_Click" />
@@ -63,14 +64,17 @@
                         <ComboBox x:Name="FormatComboBox" SelectionChanged="FormatComboBox_SelectionChanged">
                             <ComboBoxItem x:Name="JsonFormatItem" Content="JSON générique - nouveau fichier" Tag="json" />
                             <ComboBoxItem x:Name="CsvFormatItem" Content="CSV générique - nouveau fichier" Tag="csv" />
-                            <ComboBoxItem x:Name="DmtFormatItem" Content="XLSX DMT - copie d'un classeur existant" Tag="xlsx" />
-                            <ComboBoxItem x:Name="AllenHeathFormatItem" Content="CSV A&amp;H - copie d'un export dLive / Avantis" Tag="console-csv" />
-                            <ComboBoxItem x:Name="YamahaFormatItem" Content="Yamaha CL / QL - copie d'un ZIP ou CSV" Tag="yamaha" />
+                            <ComboBoxItem x:Name="DmtDLiveFormatItem" Content="DMT XLSX - dLive" Tag="dmt-dlive" />
+                            <ComboBoxItem x:Name="DmtAvantisFormatItem" Content="DMT XLSX - Avantis" Tag="dmt-avantis" />
+                            <ComboBoxItem x:Name="AllenHeathDLiveFormatItem" Content="A&amp;H CSV natif - dLive" Tag="ah-dlive" />
+                            <ComboBoxItem x:Name="AllenHeathAvantisFormatItem" Content="A&amp;H CSV natif - Avantis" Tag="ah-avantis" />
+                            <ComboBoxItem x:Name="YamahaClFormatItem" Content="Yamaha ZIP natif - CL" Tag="yamaha-cl" />
+                            <ComboBoxItem x:Name="YamahaQlFormatItem" Content="Yamaha ZIP natif - QL" Tag="yamaha-ql" />
                         </ComboBox>
                     </StackPanel>
                     <StackPanel Grid.Row="1" Margin="0,6,6,0">
                         <Label x:Name="KindLabel" Content="Canaux" />
-                        <ComboBox x:Name="KindComboBox" SelectionChanged="OptionsChanged"><ComboBoxItem Content="TX"/><ComboBoxItem Content="RX"/></ComboBox>
+                        <ComboBox x:Name="KindComboBox" SelectionChanged="KindComboBox_SelectionChanged"><ComboBoxItem Content="TX"/><ComboBoxItem Content="RX"/></ComboBox>
                     </StackPanel>
                     <StackPanel Grid.Row="1" Grid.Column="1" Margin="6,6,0,0">
                         <Label x:Name="StartLabel" Content="Premier canal" />

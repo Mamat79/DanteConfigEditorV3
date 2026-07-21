@@ -49,6 +49,7 @@ Source: "{#SourceRoot}\README_EN.md"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#SourceRoot}\CHANGELOG_V3.md"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#SourceRoot}\RELEASE_NOTES.md"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#SourceRoot}\RELEASE_NOTES_EN.md"; DestDir: "{app}"; Flags: ignoreversion
+Source: "{#SourceRoot}\Resources\ChannelLabelTemplates\DMT_LICENSE.txt"; DestDir: "{app}\Licenses"; Flags: ignoreversion
 Source: "{#SourceRoot}\docs\QuickStart_DanteConfigEditorV3_FR.pdf"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#SourceRoot}\docs\QuickStart_DanteConfigEditorV3_EN.pdf"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#SourceRoot}\docs\Notice_DanteConfigEditorV3_FR.pdf"; DestDir: "{app}"; Flags: ignoreversion

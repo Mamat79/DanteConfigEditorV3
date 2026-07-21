@@ -273,6 +273,7 @@ public partial class ChannelLabelImportWindow : Window
 public sealed class ChannelLabelDeviceSelection : INotifyPropertyChanged
 {
     private bool _isSelected;
+    private bool _isAvailable = true;
 
     public ChannelLabelDeviceSelection(string name, int txCount, int rxCount, bool isSelected)
     {
@@ -300,6 +301,21 @@ public sealed class ChannelLabelDeviceSelection : INotifyPropertyChanged
 
             _isSelected = value;
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsSelected)));
+        }
+    }
+
+    public bool IsAvailable
+    {
+        get => _isAvailable;
+        set
+        {
+            if (_isAvailable == value)
+            {
+                return;
+            }
+
+            _isAvailable = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsAvailable)));
         }
     }
 
