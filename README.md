@@ -1,15 +1,15 @@
-# Dante Config Editor V3.1
+# Dante Config Editor V3.2
 
 ## Français
 
-Version officielle V3.1 Windows et macOS de la branche `main` pour éditer hors ligne des fichiers XML de configuration Dante.
+Version V3.2 officielle pour Windows et macOS. Le code publié se trouve dans `main`.
 
-**Téléchargement direct : [Windows x64](https://github.com/Mamat79/DanteConfigEditorV3/releases/download/v3.1/DanteConfigEditorV3_1_Installer.exe) | [macOS Apple Silicon](https://github.com/Mamat79/DanteConfigEditorV3/releases/download/v3.1/DanteConfigEditorV3_macOS_AppleSilicon.dmg) | [macOS Intel](https://github.com/Mamat79/DanteConfigEditorV3/releases/download/v3.1/DanteConfigEditorV3_macOS_Intel.dmg)**
+**Version stable : [Release V3.2 Windows et macOS](https://github.com/Mamat79/DanteConfigEditorV3/releases/tag/v3.2)**
 
-> **Statut : V3.1 officielle Windows et macOS. Outil tiers non officiel Audinate.**
+> **Statut : V3.2 officielle. Outil tiers non officiel Audinate.**
 > Cette version peut encore contenir des bugs. Les versions précédentes restent accessibles dans l'historique des Releases GitHub. Travaillez toujours sur une copie et validez le XML généré dans les outils Dante officiels.
 
-> **Import et export de labels en JSON, CSV et XLSX.** Le format XLSX utilise une copie d'un modèle **[dLive MIDI Tools (DMT)](https://github.com/togrupe/dlive-midi-tools)** compatible dLive / Avantis. Cette passerelle fonctionne hors ligne.
+> **Import et export de labels en JSON, CSV, DMT XLSX pour dLive et Avantis, A&H CSV et Yamaha CL/QL ZIP/CSV.** Cette passerelle fonctionne hors ligne et ne modifie jamais le modèle console original.
 
 ## Origine et développement assisté
 
@@ -23,15 +23,23 @@ L'arrivée des agents de développement actuels a permis de faire évoluer ce si
 
 ## Import et export de labels
 
-La V3.1 ajoute un échange de noms de canaux pour une ou plusieurs machines. L'utilisateur peut exporter les labels TX ou RX en JSON ou CSV, les réimporter avec choix des machines et des plages, puis vérifier chaque correspondance avant application. Les renommages TX continuent de mettre à jour les subscriptions XML reconnues.
+L'espace `Import / Export` regroupe l'échange de noms de canaux pour une ou plusieurs machines. L'utilisateur peut exporter les labels TX ou RX en JSON ou CSV, les réimporter avec choix des machines et des plages, puis vérifier chaque correspondance avant application. Les renommages TX continuent de mettre à jour les subscriptions XML reconnues.
 
-Les formats JSON et CSV sont génériques. Le format XLSX assure en plus la compatibilité avec les modèles **[dLive MIDI Tools (DMT)](https://github.com/togrupe/dlive-midi-tools)** pour dLive et Avantis, dans les deux sens :
+Les formats JSON et CSV restent génériques. Des profils natifs permettent aussi les échanges avec les consoles et outils suivants :
 
 - **DMT → Dante Config Editor** : lecture de la feuille `Channels` d'un classeur XLSX DMT, puis affectation des labels aux TX ou RX d'une ou plusieurs machines Dante.
 - **Dante Config Editor → DMT** : création d'une copie du modèle XLSX DMT choisi, contenant les labels exportés depuis les machines Dante sélectionnées.
 - **Projet DMT** : [togrupe/dlive-midi-tools](https://github.com/togrupe/dlive-midi-tools).
+- **Allen & Heath dLive / Avantis** : lecture ou création d'une copie de l'export CSV console ; seule la colonne des noms `Input` est modifiée.
+- **Yamaha CL / QL** : lecture ou création d'une copie du package ZIP, ou du fichier `InName.csv` seul ; les autres CSV du package restent inchangés.
 
-Le classeur DMT original n'est jamais modifié. DMT limitant ses noms à huit caractères ASCII, toute adaptation est affichée dans l'aperçu et doit être activée explicitement ; JSON et CSV conservent les labels complets Unicode. Il s'agit d'une passerelle de fichiers hors ligne, pas d'une connexion directe ou temps réel entre les deux logiciels.
+Le classeur DMT et les exports console originaux ne sont jamais modifiés. Toute adaptation en ASCII sur huit caractères est affichée dans l'aperçu et doit être activée explicitement ; JSON et CSV génériques conservent les labels complets Unicode. Il s'agit d'une passerelle de fichiers hors ligne, pas d'une connexion directe ou temps réel entre les logiciels.
+
+## Synoptique visuel
+
+La V3.2 ajoute un synoptique en couleur dans `Import / Export > Synoptique`. Chaque machine peut recevoir un emplacement physique, être affichée ou masquée et être réordonnée. Les subscriptions consécutives entre deux machines sont regroupées dans un seul câble, par exemple `TX 1-32 vers RX 1-32`, afin d'éviter un dessin illisible composé de dizaines de traits.
+
+Les emplacements et choix de présentation sont enregistrés dans un petit fichier local séparé. Ils ne sont jamais ajoutés au XML Dante. L'export SVG contient les machines, les câbles numérotés et une légende détaillée ; il peut être ouvert dans un navigateur, imprimé ou intégré à un dossier technique.
 
 ## Présentation générale
 
@@ -52,7 +60,10 @@ Les captures, notices et vidéos utilisent uniquement un preset synthétique ano
 - Propose de renommer automatiquement ou manuellement les machines en doublon pendant l'import XML.
 - Renomme les canaux TX/RX.
 - Renomme des plages de canaux en série.
-- Importe et exporte des labels de canaux pour une ou plusieurs machines en JSON, CSV ou classeur XLSX DMT, avec plages et prévisualisation.
+- Importe et exporte des labels de canaux pour une ou plusieurs machines en JSON, CSV, classeur DMT XLSX, CSV A&H dLive/Avantis ou package Yamaha CL/QL, avec plages et prévisualisation.
+- Regroupe les échanges de labels, les rapports, les patchbooks et le synoptique dans un onglet `Import / Export` organisé en trois sous-onglets.
+- Produit un synoptique SVG en couleur, avec emplacements, machines masquables, ordre personnalisable et câbles consécutifs regroupés.
+- Conserve les informations de mise en page du synoptique hors du XML Dante dans un fichier local séparé.
 - Réinitialise les noms de canaux.
 - Modifie les paramètres réseau et audio exposés par les fichiers XML reconnus.
 - Affiche une page Patch pour visualiser et modifier les abonnements RX vers TX lorsque le format XML le permet.
@@ -106,18 +117,18 @@ Les captures, notices et vidéos utilisent uniquement un preset synthétique ano
 
 ## Télécharger / installer
 
-Le fichier recommandé est fourni dans la [Release GitHub V3.1](https://github.com/Mamat79/DanteConfigEditorV3/releases/tag/v3.1) :
+Téléchargez la [Release GitHub V3.2](https://github.com/Mamat79/DanteConfigEditorV3/releases/tag/v3.2).
 
-- [`DanteConfigEditorV3_1_Installer.exe`](https://github.com/Mamat79/DanteConfigEditorV3/releases/download/v3.1/DanteConfigEditorV3_1_Installer.exe) : installateur Windows autonome, avec installation par défaut dans Program Files, choix du dossier, raccourcis menu Démarrer et Bureau, et désinstallation propre.
+- Pour Windows x64, utilisez `DanteConfigEditorV3_2_Installer.exe`, un installateur autonome qui remplace les anciennes installations V3.
 
 La version autonome inclut le runtime .NET nécessaire. Sur une machine Windows x64, il ne devrait pas être nécessaire d'installer .NET séparément pour utiliser l'application.
 
 ### macOS
 
-La Release V3.1 fournit deux DMG autonomes :
+Deux DMG autonomes sont fournis :
 
-- [`DanteConfigEditorV3_macOS_AppleSilicon.dmg`](https://github.com/Mamat79/DanteConfigEditorV3/releases/download/v3.1/DanteConfigEditorV3_macOS_AppleSilicon.dmg) pour les Mac M1, M2, M3, M4 et suivants ;
-- [`DanteConfigEditorV3_macOS_Intel.dmg`](https://github.com/Mamat79/DanteConfigEditorV3/releases/download/v3.1/DanteConfigEditorV3_macOS_Intel.dmg) pour les Mac Intel 64 bits.
+- `DanteConfigEditorV3_macOS_AppleSilicon.dmg` pour les Mac M1, M2, M3, M4 et suivants ;
+- `DanteConfigEditorV3_macOS_Intel.dmg` pour les Mac Intel 64 bits.
 
 Ouvrir le DMG, puis glisser `Dante Config Editor` dans `Applications`. Le runtime .NET 8 et les notices FR/EN sont inclus.
 
@@ -134,14 +145,13 @@ Notices fournies :
 
 Dans l'application, les boutons d'aide ouvrent automatiquement les fichiers FR ou EN selon la langue active.
 
-La V3.1 utilise un AppId, un dossier Program Files, un menu Démarrer et un stockage local dédiés. Son installateur détecte les V3.07, V3.08 et V3.09, demande leur remplacement en mode interactif, puis les désinstalle avant de poser la V3.1. Une seconde exécution met à niveau la V3.1 existante.
+L'installateur V3.2 retire les anciennes installations V3.1, V3.09, V3.08, V3.07 et V3.2 Beta détectées, puis installe une seule V3.2. Les données locales de travail ne sont pas supprimées par cette mise à niveau.
 
 ## Version distribuée
 
-- La branche `main` contient la V3.1 officielle pour Windows et macOS.
-- `main` est l'unique branche publiée sur GitHub.
-- La Release `v3.1` fournit un installateur Windows x64 et deux DMG macOS, Apple Silicon et Intel.
-- `v3.1` devient la version la plus récente et la Release `Latest`.
+- La branche `main` contient la V3.2 officielle pour Windows et macOS.
+- Le tag immuable `v3.2` correspond exactement aux fichiers de la Release V3.2, marquée `Latest`.
+- La Release V3.1 est retirée à la demande du mainteneur ; son historique source reste dans Git.
 - Les Releases historiques [`v3.09`](https://github.com/Mamat79/DanteConfigEditorV3/releases/tag/v3.09) et [`v3.08`](https://github.com/Mamat79/DanteConfigEditorV3/releases/tag/v3.08) restent accessibles avec leurs propres fichiers.
 - La [Release historique `v3.08`](https://github.com/Mamat79/DanteConfigEditorV3/releases/tag/v3.08) conserve ses propres installateurs et documents.
 - Chaque version utilise un tag immuable distinct selon [la politique de publication](RELEASE_POLICY.md).
@@ -178,6 +188,17 @@ Les machines reçoivent des noms uniques choisis dans un catalogue mythologique,
 - Le fichier source n'est jamais écrit : utilisez `Enregistrer sous` pour créer le preset destiné aux stagiaires.
 
 Le résultat est volontairement incohérent sur le plan fonctionnel. Il reste indispensable de l'importer dans l'outil Dante officiel approprié avant de l'utiliser comme support d'exercice.
+
+## Nouveautés V3.2
+
+- Nouvel onglet principal `Import / Export`, organisé en `Labels`, `Rapports et patchbook` et `Synoptique`.
+- Création d'un synoptique visuel en couleur à partir du projet ouvert.
+- Affectation d'emplacements physiques, affichage/masquage et ordre personnalisé des machines.
+- Regroupement des subscriptions consécutives en câbles synthétiques avec une légende séparée.
+- Routage orthogonal, troncs partagés et légende sur deux colonnes pour les synoptiques denses.
+- Export SVG autonome ; les informations de mise en page restent dans un fichier local séparé et ne modifient jamais le XML Dante.
+- Import/export natif A&H dLive/Avantis CSV et Yamaha CL/QL ZIP/CSV, en plus de DMT XLSX et des formats génériques.
+- Installateur V3.2 officiel remplaçant les anciennes installations V3.
 
 ## Nouveautés V3.1
 
@@ -403,6 +424,6 @@ Remerciement à **Charles Bouticourt** pour l'idée de la fonction `Atomic Bomb`
 The complete English presentation is kept in a separate section so that both languages remain easy to read:
 
 - **[Open the complete English README](README_EN.md)**
-- **[Download Dante Config Editor V3.1](https://github.com/Mamat79/DanteConfigEditorV3/releases/tag/v3.1)**
+- **[Download the stable Dante Config Editor V3.2](https://github.com/Mamat79/DanteConfigEditorV3/releases/tag/v3.2)**
 - **[Read the full English guide (PDF)](docs/Notice_DanteConfigEditorV3_EN.pdf)** or the [English quick start](docs/QuickStart_DanteConfigEditorV3_EN.pdf).
 - **[Open the dLive MIDI Tools (DMT) project](https://github.com/togrupe/dlive-midi-tools)**

@@ -11,7 +11,7 @@ modifiés en ligne.
 ## Règles
 
 - Ne jamais déplacer un tag de version déjà publié.
-- Ne jamais supprimer une ancienne Release pour publier la suivante.
+- Ne jamais supprimer une ancienne Release pour publier la suivante. Exception historique documentée : la Release V3.1 a été retirée manuellement à la demande explicite du mainteneur lors de la promotion V3.2, sans supprimer son tag ni son historique source.
 - Ne jamais utiliser `gh release upload --clobber` sur une Release publiée.
 - Ne jamais modifier automatiquement le titre ou la description d'une Release existante.
 - Ne jamais remplacer la description « About » du dépôt lors d'un push Git.

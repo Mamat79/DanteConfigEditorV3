@@ -1,12 +1,12 @@
-# Dante Config Editor V3.1
+# Dante Config Editor V3.2
 
 [English release notes](RELEASE_NOTES_EN.md)
 
 ## Statut
 
-Version officielle V3.1 pour Windows x64, macOS Apple Silicon et macOS Intel. Il s'agit d'un outil tiers non officiel Audinate et cette application peut encore contenir des bugs.
+V3.2 est la version officielle courante pour Windows et macOS. Il s'agit toujours d'un outil tiers non officiel Audinate et cette application peut encore contenir des bugs. Travaillez sur une copie des XML Dante et validez le résultat dans les outils Dante officiels avant toute utilisation réelle.
 
-La V3.1 devient la version courante de `main` et la Release `Latest`. Les Releases `v3.08` et `v3.09` restent disponibles avec leurs tags et leurs propres fichiers ; aucun de leurs installateurs n'est remplacé. Travaillez toujours sur une copie des XML Dante et validez le résultat dans les outils Dante officiels avant toute utilisation réelle.
+La V3.2 remplace la V3.1 sur `main` et devient la Release `Latest`. Les Releases historiques `v3.09` et `v3.08` restent disponibles avec leurs tags immuables et leurs propres fichiers.
 
 ## Pourquoi cet outil existe
 
@@ -14,57 +14,60 @@ Dante Config Editor est né pour répondre à ce qui me manquait dans Dante Cont
 
 Il répond aussi au besoin de renommer une machine ou ses canaux TX sur un réseau déjà patché sans devoir reconstruire manuellement toutes les subscriptions reconnues. L'application reste un éditeur XML hors ligne et ne pilote jamais le réseau Dante en direct.
 
-## Import et export de labels
+## Import / Export réorganisé
 
-Cette V3.1 importe et exporte des labels en JSON, CSV ou XLSX. JSON et CSV sont génériques ; XLSX utilise une copie d'un modèle **[dLive MIDI Tools (DMT) de togrupe](https://github.com/togrupe/dlive-midi-tools)** compatible dLive / Avantis. La communication se fait par fichiers, et non par une connexion temps réel :
+Les fonctions qui produisent ou lisent des fichiers sont regroupées dans un onglet principal `Import / Export` :
 
-- **DMT → Dante Config Editor** : lecture de la feuille `Channels` d'un classeur XLSX DMT et affectation de ses labels aux canaux Dante choisis.
-- **Dante Config Editor → DMT** : création d'une copie du modèle XLSX DMT contenant les labels Dante exportés.
-- **Lien du logiciel DMT** : [github.com/togrupe/dlive-midi-tools](https://github.com/togrupe/dlive-midi-tools).
+- `Labels` : import et export pour une ou plusieurs machines.
+- `Rapports et patchbook` : rapport TXT/PDF, patchbooks TXT/CSV et topologie simple.
+- `Synoptique` : préparation et export d'un schéma visuel en couleur.
 
-- Import et export des labels TX ou RX pour une ou plusieurs machines.
-- Choix de la liste source, des machines cibles, du premier canal et du nombre de canaux.
-- Prévisualisation ligne par ligne avant toute modification du XML.
-- Mise à jour des subscriptions reconnues lors d'un renommage TX.
-- JSON versionné pour les échanges complets et CSV lisible par les tableurs.
-- Lecture des classeurs XLSX de [dLive MIDI Tools (DMT)](https://github.com/togrupe/dlive-midi-tools).
-- Export DMT en créant une copie du modèle choisi ; le classeur original n'est jamais modifié.
-- Adaptation ASCII et huit caractères visible dans l'aperçu et activée uniquement sur demande explicite.
+`Sécurité et journal` conserve les contrôles du fichier, les comparaisons, l'historique et l'accès aux notices.
 
-Cette fonction a été pensée dans un premier temps pour faciliter les échanges de labels avec DMT. Merci à **togrupe** pour la proposition de collaboration et le format de référence. Le classeur original reste inchangé et chaque adaptation imposée par DMT est visible avant export.
+## Labels et consoles
 
-## Atomic Bomb
+- JSON et CSV génériques pour les échanges avec d'autres outils.
+- XLSX compatible avec **[dLive MIDI Tools (DMT) de togrupe](https://github.com/togrupe/dlive-midi-tools)** : lecture de la feuille `Channels` et export vers une copie d'un modèle dLive ou Avantis.
+- CSV natif Allen & Heath dLive/Avantis : lecture et création d'une copie d'un export console, en ne remplaçant que les labels `Input`.
+- Yamaha CL/QL : lecture et création d'une copie d'un package ZIP ou d'un fichier `InName.csv`; les autres CSV du package restent inchangés.
+- Prévisualisation des labels et adaptation ASCII sur huit caractères uniquement sur demande explicite.
+- Les modèles et exports console originaux ne sont jamais modifiés.
 
-- Le gros bouton quitte la colonne latérale et `Sécurité et journal`.
-- Un onglet `Atomic Bomb` dédié est placé après `Sécurité et journal` sur Windows et macOS.
-- Trois confirmations restent obligatoires.
-- Le fichier source, les identifiants techniques, le DNS, les passerelles et les interfaces secondaires restent protégés.
+Les essais ont couvert les exemples fournis : DMT Avantis/dLive, CSV Avantis/dLive, Yamaha CL5 avec 72 entrées et Yamaha QL5 avec 64 entrées.
 
-Merci à **Charles Bouticourt** pour l'idée de cette fonction de formation.
+## Synoptique visuel
+
+- Affectation d'un emplacement physique à chaque machine.
+- Affichage, masquage et réorganisation des machines sans modifier le preset.
+- Regroupement des subscriptions consécutives en un seul câble, par exemple `TX 1-32 vers RX 1-32`.
+- Routes orthogonales, troncs partagés et câbles colorés pour limiter les croisements.
+- Légende séparée sur deux colonnes pour les projets denses.
+- Export SVG autonome, adapté à l'impression et aux dossiers techniques.
+- Stockage des emplacements et de la présentation dans un fichier local séparé du XML Dante.
+
+La création, l'aperçu et l'export du synoptique ne modifient jamais le document XML chargé.
 
 ## Installation
 
-- Installateur Windows autonome : `DanteConfigEditorV3_1_Installer.exe`.
-- Dossier par défaut : `C:\Program Files\Dante Config Editor V3.1\`.
-- Nouveau raccourci `Dante Config Editor V3.1` dans le menu Démarrer et sur le Bureau.
-- Le runtime .NET 8 et les notices françaises/anglaises sont inclus.
-- L'installateur remplace les V3.07, V3.08 ou V3.09 détectées, puis sait mettre à niveau une V3.1 existante.
-- Deux DMG autonomes sont construits pour macOS Apple Silicon et Intel.
-- Les DMG sont signés ad hoc mais ne sont pas notariés par Apple.
+- Installateur Windows autonome : `DanteConfigEditorV3_2_Installer.exe`.
+- Dossier par défaut : `C:\Program Files\Dante Config Editor V3.2\`.
+- Runtime .NET 8 et notices françaises/anglaises inclus.
+- Remplacement des anciennes installations V3 détectées, sans suppression des données locales de travail.
+- DMG autonomes macOS Apple Silicon et Intel.
 
 ## Sécurité XML
 
-- Les modifications de labels passent par l'identité stable des machines et les Dante Id des canaux.
-- Les imports sont préparés puis appliqués en une seule mutation groupée et une seule étape d'annulation.
-- Les valeurs et chemins XML inconnus restent préservés ou bloqués conformément au garde-fou existant.
-- Les exports JSON/CSV/XLSX ne modifient pas le projet Dante chargé.
-- `Enregistrer sous` reste atomique et protège une destination existante par une sauvegarde.
+- Les informations de synoptique restent dans un fichier annexe local et n'ajoutent aucune balise au XML Dante.
+- Les modifications utilisent l'identité stable des machines et les Dante Id des canaux.
+- Les valeurs et chemins XML inconnus restent préservés ou bloqués par le garde-fou existant.
+- Les exports n'altèrent pas le projet chargé.
+- `Enregistrer sous` reste atomique et sauvegarde une destination existante.
 
 ## Limites
 
-- La compatibilité finale ne peut être confirmée que par un import réussi dans Dante Controller ou l'outil Dante officiel adapté.
-- Le format XLSX DMT pris en charge correspond à la feuille `Channels` observée dans DMT 2.13.0 ; une évolution future du modèle peut demander une adaptation.
-- Le transfert de labels est basé sur des canaux et des plages, pas sur une connexion directe entre les deux applications.
+- Seul un import réussi dans Dante Controller ou l'outil Dante officiel adapté confirme la compatibilité finale.
+- Le synoptique représente les subscriptions présentes dans le fichier ; il ne découvre pas le câblage physique réel.
+- Les formats console pris en charge correspondent aux exemples réellement testés ; une évolution d'un format fabricant peut demander une mise à jour.
 - L'installateur Windows n'est pas signé Authenticode et les DMG ne sont pas notariés.
 
 ## Crédit

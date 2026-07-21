@@ -1,15 +1,15 @@
-# Dante Config Editor V3.1
+# Dante Config Editor V3.2
 
 [Français](README.md) | **English**
 
-Official V3.1 build for Windows and macOS. Dante Config Editor edits Dante Controller XML configuration files offline.
+V3.2 is the official Windows and macOS version. Published source is available on `main`.
 
-**Direct downloads: [Windows x64](https://github.com/Mamat79/DanteConfigEditorV3/releases/download/v3.1/DanteConfigEditorV3_1_Installer.exe) | [macOS Apple Silicon](https://github.com/Mamat79/DanteConfigEditorV3/releases/download/v3.1/DanteConfigEditorV3_macOS_AppleSilicon.dmg) | [macOS Intel](https://github.com/Mamat79/DanteConfigEditorV3/releases/download/v3.1/DanteConfigEditorV3_macOS_Intel.dmg)**
+**Stable version: [V3.2 Release for Windows and macOS](https://github.com/Mamat79/DanteConfigEditorV3/releases/tag/v3.2)**
 
-> **Status: official V3.1 build for Windows and macOS. Unofficial third-party tool, not affiliated with Audinate.**
+> **Status: official V3.2. Unofficial third-party tool, not affiliated with Audinate.**
 > This software may still contain bugs. Previous versions remain available in the GitHub Releases history. Always work on a copy and validate generated XML with official Dante tools.
 
-> **Import and export labels through JSON, CSV, and XLSX.** XLSX uses a copy of a **[dLive MIDI Tools (DMT)](https://github.com/togrupe/dlive-midi-tools)** template compatible with dLive / Avantis. This bridge works offline.
+> **Importing and exporting labels through JSON, CSV, DMT XLSX for dLive and Avantis, A&H CSV, and Yamaha CL/QL ZIP/CSV.** This bridge works offline and never modifies the original console template.
 
 ## Origin and agent-assisted development
 
@@ -23,15 +23,23 @@ Modern development agents then enabled a much larger step forward: safer saving,
 
 ## Importing and exporting labels
 
-V3.1 adds channel-label exchange for one or several devices. TX or RX labels can be exported to JSON or CSV, imported with explicit device and range mapping, and checked row by row before application. TX renames still update recognized XML subscriptions.
+The `Import / Export` workspace contains channel-label exchange for one or several devices. TX or RX labels can be exported to JSON or CSV, imported with explicit device and range mapping, and checked row by row before application. TX renames still update recognized XML subscriptions.
 
-JSON and CSV are generic exchange formats. XLSX additionally supports **[dLive MIDI Tools (DMT)](https://github.com/togrupe/dlive-midi-tools)** templates for dLive and Avantis in both directions:
+JSON and CSV remain generic exchange formats. Native profiles also support these console and tool formats:
 
 - **DMT → Dante Config Editor**: read the `Channels` sheet from a DMT XLSX workbook, then map its labels to the TX or RX channels of one or several Dante devices.
 - **Dante Config Editor → DMT**: create a copy of the selected DMT XLSX template containing labels exported from the selected Dante devices.
 - **DMT project**: [togrupe/dlive-midi-tools](https://github.com/togrupe/dlive-midi-tools).
+- **Allen & Heath dLive / Avantis**: read or create a copy of a console CSV export; only `Input` name fields are changed.
+- **Yamaha CL / QL**: read or create a copy of the ZIP package, or an individual `InName.csv`; every other CSV in the package remains unchanged.
 
-The original DMT workbook is never modified. Because DMT limits names to eight ASCII characters, every adaptation is visible in the preview and must be enabled explicitly; JSON and CSV retain full Unicode labels. This is an offline file bridge, not a direct or real-time connection between the two applications.
+Original DMT workbooks and console exports are never modified. Every eight-character ASCII adaptation is visible in the preview and must be enabled explicitly; generic JSON and CSV retain full Unicode labels. This is an offline file bridge, not a direct or real-time connection between applications.
+
+## Visual synoptic
+
+V3.2 adds a colored synoptic under `Import / Export > Synoptic`. Each device can be assigned to a physical location, shown or hidden, and reordered. Consecutive subscriptions between two devices are compressed into one cable, for example `TX 1-32 to RX 1-32`, instead of drawing dozens of unreadable lines.
+
+Locations and presentation choices are saved in a separate local sidecar file. They are never inserted into Dante XML. The SVG export contains devices, numbered cables, and a detailed legend and can be opened in a browser, printed, or included in technical documentation.
 
 ## General presentation
 
@@ -49,7 +57,10 @@ The screenshots, manuals and videos use only a synthetic anonymized preset. They
 - Opens Dante XML configuration files offline.
 - Displays devices, TX/RX channels, latency, network mode and Preferred Master state.
 - Renames devices and TX/RX channels, including channel ranges.
-- Imports and exports channel labels for one or several devices through JSON, CSV, or DMT XLSX workbooks, with range mapping and preview.
+- Imports and exports channel labels for one or several devices through JSON, CSV, DMT XLSX, A&H dLive/Avantis CSV, or Yamaha CL/QL packages, with range mapping and preview.
+- Groups label exchange, reports, patchbooks, and the synoptic in one `Import / Export` tab with three clear subtabs.
+- Generates a colored SVG synoptic with locations, optional devices, custom ordering, and compressed consecutive cable ranges.
+- Keeps synoptic layout information outside Dante XML in a separate local file.
 - Updates recognized RX subscriptions when a referenced TX channel is renamed.
 - Resets channel names.
 - Deletes a device and removes recognized subscriptions that reference it.
@@ -86,18 +97,18 @@ The screenshots, manuals and videos use only a synthetic anonymized preset. They
 
 ## Download and install
 
-The recommended files are available in the [V3.1 GitHub Release](https://github.com/Mamat79/DanteConfigEditorV3/releases/tag/v3.1).
+Download the [V3.2 GitHub Release](https://github.com/Mamat79/DanteConfigEditorV3/releases/tag/v3.2).
 
 ### Windows x64
 
-Download [`DanteConfigEditorV3_1_Installer.exe`](https://github.com/Mamat79/DanteConfigEditorV3/releases/download/v3.1/DanteConfigEditorV3_1_Installer.exe).
+For Windows x64, use `DanteConfigEditorV3_2_Installer.exe`, a self-contained installer that replaces older V3 installations.
 
-The self-contained installer includes the required .NET 8 runtime, French and English documentation, Start menu and desktop shortcuts, destination selection and clean uninstall support. It installs by default in `C:\Program Files\Dante Config Editor V3.1\`, replaces detected V3.07/V3.08/V3.09 installations, and upgrades an existing V3.1 installation.
+The self-contained installer includes the required .NET 8 runtime, French and English documentation, Start menu and desktop shortcuts, destination selection, and clean uninstall support. It installs by default in `C:\Program Files\Dante Config Editor V3.2\` and removes detected V3.1, V3.09, V3.08, V3.07, and V3.2 Beta installations.
 
 ### macOS
 
-- [`DanteConfigEditorV3_macOS_AppleSilicon.dmg`](https://github.com/Mamat79/DanteConfigEditorV3/releases/download/v3.1/DanteConfigEditorV3_macOS_AppleSilicon.dmg) for Apple Silicon Macs.
-- [`DanteConfigEditorV3_macOS_Intel.dmg`](https://github.com/Mamat79/DanteConfigEditorV3/releases/download/v3.1/DanteConfigEditorV3_macOS_Intel.dmg) for Intel 64-bit Macs.
+- `DanteConfigEditorV3_macOS_AppleSilicon.dmg` supports Apple Silicon Macs.
+- `DanteConfigEditorV3_macOS_Intel.dmg` supports Intel 64-bit Macs.
 
 Open the DMG and drag `Dante Config Editor` into `Applications`. The .NET runtime and both language manuals are included.
 
@@ -105,8 +116,9 @@ The macOS builds are ad hoc signed but are not notarized with an Apple Developer
 
 ## Distributed version
 
-- `main` is the only published GitHub branch.
-- `v3.1` becomes the newest version and the `Latest` Release.
+- `main` contains the official V3.2 source for Windows and macOS.
+- Immutable tag `v3.2` exactly matches the V3.2 Release assets and is marked `Latest`.
+- The V3.1 Release is removed at the maintainer's request; its source history remains in Git.
 - The historical [`v3.09`](https://github.com/Mamat79/DanteConfigEditorV3/releases/tag/v3.09) and [`v3.08`](https://github.com/Mamat79/DanteConfigEditorV3/releases/tag/v3.08) Releases retain their own installers and documentation.
 - Every version uses a separate immutable tag under the [release policy](RELEASE_POLICY.md).
 - Each Release contains the files built for its own tagged source.
@@ -141,6 +153,17 @@ Devices receive unique names from a mythological, audio-themed, and deliberately
 - The source file is never overwritten: use `Save as` to create the trainee preset.
 
 The result is intentionally inconsistent at the functional level. Import it into the appropriate official Dante tool before using it as a training exercise.
+
+## What's new in V3.2
+
+- New `Import / Export` main tab organized into `Labels`, `Reports and patchbook`, and `Synoptic`.
+- Colored visual synoptic generated from the open project.
+- Physical locations, device visibility, and custom device ordering.
+- Consecutive subscriptions compressed into synthetic cables with a separate legend.
+- Orthogonal routes, shared trunks, and a two-column legend for dense synoptics.
+- Standalone SVG export; layout data stays in a separate local sidecar and never modifies Dante XML.
+- Native A&H dLive/Avantis CSV and Yamaha CL/QL ZIP/CSV label exchange alongside DMT XLSX and generic formats.
+- Official V3.2 installer that replaces older V3 installations.
 
 ## What's new in V3.1
 

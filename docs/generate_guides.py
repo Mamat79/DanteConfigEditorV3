@@ -26,8 +26,8 @@ ROOT = Path(__file__).resolve().parent
 MEDIA = ROOT / "media" / "guide"
 # Les quatre PDF sont générés depuis une source unique pour garder les versions
 # française et anglaise synchronisées avec l'application et l'installateur.
-PRODUCT = "Dante Config Editor V3.1"
-VERSION = "3.1"
+PRODUCT = "Dante Config Editor V3.2"
+VERSION = "3.2"
 GITHUB = "github.com/Mamat79/DanteConfigEditorV3"
 
 INK = colors.HexColor("#172033")
@@ -333,9 +333,9 @@ def quick_start(language: str) -> None:
         else "Quick start - offline editing of Dante XML files"
     )
     warning = (
-        "<b>Outil tiers non officiel Audinate.</b> La V3.1 est la version officielle courante pour Windows et macOS, mais elle peut encore contenir des bugs. Les Releases V3.08 et V3.09 restent disponibles. Travaillez sur une copie et validez toujours le XML final par un import dans l'outil Dante officiel adapté avant toute utilisation réelle."
+        "<b>Outil tiers non officiel Audinate.</b> Cette V3.2 est la version officielle courante du projet et peut encore contenir des bugs. Travaillez sur une copie et validez toujours le XML final par un import dans l'outil Dante officiel adapté avant toute utilisation réelle."
         if french
-        else "<b>Third-party tool, not an official Audinate product.</b> V3.1 is the current official version for Windows and macOS, but it may still contain bugs. Releases V3.08 and V3.09 remain available. Work on a copy and always validate the final XML by importing it into the appropriate official Dante tool before real use."
+        else "<b>Third-party tool, not an official Audinate product.</b> V3.2 is the project's current official version and may still contain bugs. Work on a copy and always validate the final XML by importing it into the appropriate official Dante tool before real use."
     )
     steps = (
         [
@@ -360,15 +360,15 @@ def quick_start(language: str) -> None:
         [
             ("Patch visuel", "Sous Windows, chaque prévisualisation rejoint un lot cumulatif et la grille compacte accepte les séries par glissement. Sur Mac, utilisez l'atelier visuel Avalonia."),
             ("Récupération", "Une copie est écrite en arrière-plan après un court délai. La nouvelle destination devient la référence après Enregistrer sous."),
-            ("Sous-projet", "Ajouter XML au projet importe les machines uniques et ne propose un renommage que pour les doublons."),
-            ("Import et export de labels", "Importez ou exportez une ou plusieurs machines en JSON ou CSV, ou utilisez un modèle XLSX DMT compatible dLive et Avantis, avec prévisualisation et plages."),
+            ("Import / Export", "Labels JSON/CSV, XLSX DMT, CSV A&H et ZIP/CSV Yamaha, rapports et synoptique sont regroupés dans un espace organisé."),
+            ("Synoptique", "Regroupez les machines par emplacement et exportez un SVG en couleur sans modifier le XML Dante."),
         ]
         if french
         else [
             ("Visual patch", "On Windows, every preview joins a cumulative batch and the compact matrix supports drag ranges. On Mac, use the Avalonia visual workshop."),
             ("Recovery", "A copy is written in the background after a short delay. Save as makes the new destination the session reference."),
-            ("Sub-project", "Add XML to project imports unique devices and only asks about conflicting names."),
-            ("Importing and exporting labels", "Import or export one or several devices through JSON or CSV, or use a DMT XLSX template compatible with dLive and Avantis, with preview and ranges."),
+            ("Import / Export", "JSON/CSV, DMT XLSX, A&H CSV and Yamaha ZIP/CSV labels, reports, and the synoptic are grouped in one workspace."),
+            ("Synoptic", "Group devices by location and export a colored SVG without changing Dante XML."),
         ]
     )
 
@@ -427,13 +427,13 @@ def full_guide(language: str) -> None:
     if french:
         page1 = [
             para("1. Installation et démarrage", "h1"),
-            callout("<b>Important :</b> cette application est un outil tiers non officiel Audinate. La V3.1 est la version officielle courante pour Windows et macOS, mais elle peut encore contenir des bugs. Elle édite des XML hors ligne, sans connexion au réseau Dante ni API Audinate. Conservez l'original et validez le fichier généré dans Dante Controller avant toute utilisation en production."),
+            callout("<b>Important :</b> cette application est un outil tiers non officiel Audinate. La V3.2 est la version officielle courante du projet et peut encore contenir des bugs. Elle édite des XML hors ligne, sans connexion au réseau Dante ni API Audinate. Conservez l'original et validez le fichier généré dans Dante Controller avant toute utilisation en production."),
             para("L'installateur Windows x64 contient l'application et le runtime .NET 8 nécessaire. Il n'est normalement pas nécessaire d'installer .NET séparément."),
             *bullets([
                 "L'installation proposée par défaut se trouve dans Program Files et crée des raccourcis dans le menu Démarrer et sur le Bureau.",
-                "La V3.1 utilise son propre dossier Program Files, son propre raccourci et son propre AppId.",
-                "L'installateur remplace les V3.07/V3.08/V3.09 détectées et met à niveau une précédente V3.1.",
-                "Deux DMG autonomes V3.1 sont fournis pour macOS : Apple Silicon et Intel. Ils sont signés ad hoc mais non notariés par Apple.",
+                "La V3.2 utilise son propre dossier Program Files et crée des raccourcis au nom de la version officielle.",
+                "L'installateur V3.2 remplace les anciennes installations V3 détectées et conserve les données locales de travail.",
+                "Deux DMG autonomes sont distribués pour les Mac Apple Silicon et Intel.",
                 "Les quatre notices PDF françaises et anglaises sont installées et restent accessibles depuis l'application.",
             ]),
             para("2. Principes de sécurité", "h1"),
@@ -505,8 +505,8 @@ def full_guide(language: str) -> None:
             *bullets([
                 "Les canaux TX/RX peuvent être renommés individuellement ou par plage avec {00}, {000}, {n} et {device}.",
                 "Le renommage d'un TX met à jour tous les alias de subscription reconnus dans le projet.",
-                "Import et export de labels traite les TX/RX d'une ou plusieurs machines en JSON ou CSV, ou avec un modèle XLSX DMT compatible dLive et Avantis. La plage et chaque changement sont prévisualisés avant application.",
-                "Le modèle XLSX DMT original n'est jamais modifié. L'adaptation ASCII et huit caractères n'est appliquée qu'après activation explicite.",
+                "Import et export de labels traite les TX/RX d'une ou plusieurs machines en JSON/CSV générique, XLSX DMT, CSV Allen & Heath dLive/Avantis ou ZIP/CSV Yamaha CL/QL. La plage et chaque changement sont prévisualisés avant application.",
+                "Les modèles DMT et exports console originaux ne sont jamais modifiés. Une copie est créée et l'adaptation ASCII sur huit caractères n'est appliquée qu'après activation explicite.",
                 "Les Dante Id ne sont pas renumérotés. Le marqueur local subscribed_device=\".\" est conservé.",
                 "L'onglet Easy patch affiche les RX à gauche et les TX à droite. Les menus et flèches permettent de changer rapidement de machine.",
                 "Sélectionnez autant de TX que de RX pour un appariement un-à-un, ou un seul TX pour alimenter plusieurs RX.",
@@ -532,11 +532,12 @@ def full_guide(language: str) -> None:
                 "Sample rate et bits sont modifiables par machine, globalement ou via un profil.",
             ]),
             callout("Un mauvais réglage peut rendre une machine injoignable ou incompatible. Contrôlez les capacités réelles du matériel.", PALE_RED),
-            para("11. Santé, comparaison et exports", "h1"),
+            para("11. Santé, comparaison et Import / Export", "h1"),
             *bullets([
                 "Santé du fichier regroupe statistiques, erreurs, warnings, patchs libres/locaux et compatibilité.",
                 "La comparaison XML affiche les différences dans un tableau.",
                 "Les exports TXT/PDF portent la version du logiciel et la signature By Mamat et ses agents.",
+                "Import / Export regroupe Labels, Rapports et patchbook et Synoptique. Le synoptique affecte les emplacements, masque ou réordonne les machines, regroupe les plages TX/RX en câbles numérotés et exporte un SVG ; sa mise en page locale ne modifie jamais le XML Dante.",
             ]),
         ]
         page5 = [
@@ -562,7 +563,7 @@ def full_guide(language: str) -> None:
                 [48, 122],
             ),
             para("14. Tests de non-régression", "h1"),
-            para("La suite V3.1 exécute 114 tests Core et contrats Windows, plus 9 tests Avalonia sans écran : identités techniques, chemins inconnus, sauvegarde atomique, récupération, interfaces IPv4, alias de subscription, namespace par défaut, presets synthétiques, échange de labels JSON/CSV/XLSX DMT, scénario Atomic Bomb, lot cumulatif, gestes de matrice, conflits, rollback, persistance, Easy patch, détail machine et identité Mac. GitHub Actions les rejoue sur Windows et macOS."),
+            para("La suite V3.2 exécute 129 tests Core et contrats Windows, plus 9 tests Avalonia sans écran : identités techniques, chemins inconnus, sauvegarde atomique, récupération, interfaces IPv4, alias de subscription, namespace par défaut, presets synthétiques, échange de labels JSON/CSV/XLSX DMT/CSV A&H/ZIP ou CSV Yamaha, synoptique et stockage séparé, scénario Atomic Bomb, lot cumulatif, gestes de matrice, conflits, rollback, persistance, Easy patch, détail machine et identité Mac."),
             para("15. Limites connues", "h1"),
             *bullets([
                 "Aucun pilotage en temps réel et aucune communication avec les appareils.",
@@ -617,13 +618,13 @@ def full_guide(language: str) -> None:
     else:
         page1 = [
             para("1. Installation and startup", "h1"),
-            callout("<b>Important:</b> this is a third-party tool, not an official Audinate product. V3.1 is the current official version for Windows and macOS, but it may still contain bugs. It edits XML files offline without connecting to a Dante network or using an Audinate API. Keep the original and validate the generated file in Dante Controller before production use."),
+            callout("<b>Important:</b> this is a third-party tool, not an official Audinate product. V3.2 is the project's current official version and may still contain bugs. It edits XML files offline without connecting to a Dante network or using an Audinate API. Keep the original and validate the generated file in Dante Controller before production use."),
             para("The Windows x64 installer includes the application and the required .NET 8 runtime. A separate .NET installation is normally not required."),
             *bullets([
                 "The default location is Program Files, with Start menu and desktop shortcuts.",
-                "V3.1 uses its own Program Files folder, shortcut, and AppId.",
-                "The installer replaces detected V3.07/V3.08/V3.09 installations and upgrades an earlier V3.1 installation.",
-                "Two standalone V3.1 DMGs are provided for macOS: Apple Silicon and Intel. They are ad hoc signed but not notarized by Apple.",
+                "V3.2 uses its own Program Files folder and creates shortcuts under the official version name.",
+                "The V3.2 installer replaces detected older V3 installations and preserves local working data.",
+                "Two self-contained DMGs are distributed for Apple Silicon and Intel Macs.",
                 "All four French and English PDFs are installed and remain available from the application.",
             ]),
             para("2. Safety principles", "h1"),
@@ -695,8 +696,8 @@ def full_guide(language: str) -> None:
             *bullets([
                 "TX/RX channels can be renamed individually or by range with {00}, {000}, {n}, and {device}.",
                 "Renaming a Tx channel updates every recognized subscription alias in the project.",
-                "Importing and exporting labels handles Tx/Rx labels for one or several devices through JSON or CSV, or with a DMT XLSX template compatible with dLive and Avantis. Ranges and every change are previewed before apply.",
-                "The original DMT XLSX template is never modified. ASCII/eight-character adaptation is used only after explicit opt-in.",
+                "Importing and exporting labels handles Tx/Rx labels for one or several devices through generic JSON/CSV, DMT XLSX, Allen & Heath dLive/Avantis CSV, or Yamaha CL/QL ZIP/CSV. Ranges and every change are previewed before apply.",
+                "Original DMT templates and console exports are never modified. A copy is created, and ASCII/eight-character adaptation is used only after explicit opt-in.",
                 "Dante IDs are not renumbered. The local subscribed_device=\".\" marker is preserved.",
                 "The Easy patch tab shows Rx channels on the left and Tx channels on the right. Menus and arrows switch devices quickly.",
                 "Select equal Tx and Rx counts for one-to-one mapping, or one Tx to feed several Rx channels.",
@@ -722,11 +723,12 @@ def full_guide(language: str) -> None:
                 "Sample rate and bits per sample are editable per device, globally, or through a profile.",
             ]),
             callout("Incorrect settings can make a device unreachable or incompatible. Verify actual hardware capabilities.", PALE_RED),
-            para("11. File health, comparison, and exports", "h1"),
+            para("11. File health, comparison, and Import / Export", "h1"),
             *bullets([
                 "File health combines statistics, errors, warnings, free/local subscriptions, and compatibility checks.",
                 "XML comparison displays differences in a table.",
                 "TXT/PDF exports include the application version and the By Mamat et ses agents signature.",
+                "Import / Export groups Labels, Reports and patchbook, and Synoptic. The synoptic assigns locations, hides or reorders devices, compresses TX/RX ranges into numbered cables, and exports an SVG; its local layout sidecar never changes Dante XML.",
             ]),
         ]
         page5 = [
@@ -752,7 +754,7 @@ def full_guide(language: str) -> None:
                 [48, 122],
             ),
             para("14. Regression tests", "h1"),
-            para("The V3.1 suite runs 114 Core and Windows contract tests plus 9 headless Avalonia tests covering technical identities, unknown paths, atomic save, recovery, IPv4 interfaces, subscription aliases, default namespaces, synthetic presets, JSON/CSV/DMT XLSX label exchange, the Atomic Bomb scenario, cumulative batches, matrix gestures, conflicts, rollback, persistence, Easy patch, Device details integration, and Mac identity. GitHub Actions reruns them on Windows and macOS."),
+            para("The V3.2 suite runs 129 Core and Windows contract tests plus 9 headless Avalonia tests covering technical identities, unknown paths, atomic save, recovery, IPv4 interfaces, subscription aliases, default namespaces, synthetic presets, JSON/CSV/DMT XLSX/A&H CSV/Yamaha ZIP or CSV label exchange, synoptic sidecar isolation, the Atomic Bomb scenario, cumulative batches, matrix gestures, conflicts, rollback, persistence, Easy patch, Device details integration, and Mac identity."),
             para("15. Known limitations", "h1"),
             *bullets([
                 "No real-time Dante control and no communication with devices.",

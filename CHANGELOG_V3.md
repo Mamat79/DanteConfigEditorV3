@@ -1,5 +1,24 @@
 # Changelog V3
 
+## 2026-07-21 - Version 3.2 officielle - Import / Export et synoptique visuel
+
+- Regroupement logique des fonctions de fichiers dans un onglet principal `Import / Export`.
+- Ajout des sous-onglets `Labels`, `Rapports et patchbook` et `Synoptique` sur Windows et macOS.
+- Déplacement des exports TXT/PDF, patchbooks et topologie simple hors de `Sécurité et journal`.
+- Ajout d'un synoptique visuel en couleur construit depuis les subscriptions du projet.
+- Affectation d'emplacements physiques, affichage/masquage et réorganisation des machines.
+- Regroupement des séries TX/RX consécutives en câbles numérotés avec légende séparée.
+- Export du synoptique au format SVG autonome.
+- Stockage des emplacements et préférences de présentation dans un fichier local séparé, sans ajout de balise au XML Dante.
+- Ajout de tests de non-régression pour le regroupement des câbles, l'identité stable après renommage, les fichiers annexes corrompus et l'absence de mutation XML.
+- Ajout de l'import/export natif des labels Allen & Heath dLive/Avantis au format CSV console.
+- Ajout de l'import/export natif des labels Yamaha CL/QL depuis un package ZIP ou un fichier `InName.csv`, sans modifier les autres fichiers du package.
+- Conservation de l'échange XLSX avec dLive MIDI Tools (DMT), avec lecture des modèles dLive et Avantis observés en version 2.13.0.
+- Amélioration du synoptique avec routes orthogonales, troncs partagés et légende sur deux colonnes pour les projets denses.
+- Passage de l'application, des paquets Windows/macOS, des notices et de l'installateur à la V3.2.
+- L'installateur V3.2 remplace les anciennes installations V3 détectées et conserve les données locales de travail.
+- Promotion de la V3.2 sur `main` avec un tag immuable `v3.2` ; les Releases historiques `v3.08` et `v3.09` restent intactes.
+
 ## 2026-07-21 - Maintenance de main après V3.1
 
 - Nouvel onglet générique `Labels` sur Windows et macOS pour importer ou exporter en JSON, CSV ou XLSX, avec compatibilité DMT dLive / Avantis clairement indiquée au niveau du format.

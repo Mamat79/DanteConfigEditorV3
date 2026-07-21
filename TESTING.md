@@ -1,5 +1,54 @@
 # Tests et historique V3
 
+## Validation locale de la V3.2 officielle du 2026-07-21
+
+Source validée avant promotion du tag immuable `v3.2` :
+
+- système local : Windows `10.0.26200`, `win-x64` ;
+- .NET SDK `8.0.423` ;
+- Inno Setup `6.7.3`.
+
+Résultats locaux :
+
+- 129 tests Core et contrats Windows réussis, 0 échec, 0 ignoré ;
+- 9 tests Avalonia sans écran réussis, 0 échec, 0 ignoré ;
+- builds WPF et Avalonia Release réussis, 0 warning, 0 erreur ;
+- publication autonome Windows `win-x64` réussie et exécutable maintenu actif pendant le contrôle de lancement ;
+- aucun package vulnérable signalé pour les applications Windows et macOS avec les sources NuGet consultées le 2026-07-21 ;
+- Quick Start FR/EN : 1 page chacun ; notices complètes FR/EN : 10 pages chacune ;
+- extraction de texte et rendu Poppler des PDF contrôlés sans caractère `Ø` parasite, caractère Unicode de remplacement, texte coupé ni chevauchement visible.
+
+Échange de labels avec les exemples fournis :
+
+- quatre modèles XLSX DMT lus et exportés dans des copies : Avantis 48 canaux, Avantis Mat 64, dLive 48 et dLive Mat 128 ;
+- CSV Allen & Heath lus et exportés dans des copies : Avantis 96 entrées et dLive 122 entrées nommées ;
+- packages Yamaha lus et exportés dans des copies : CL5 V4.1 avec 72 entrées et QL5 V4.1 avec 64 entrées ;
+- premiers labels relus avec les nouvelles valeurs dans chaque copie ;
+- hashes SHA-256 des huit modèles et exports originaux inchangés après les essais ;
+- tests automatisés de conservation des autres fichiers Yamaha, dont `DCAName.csv`.
+
+Synoptique :
+
+- tests de regroupement de câbles, routes orthogonales, troncs partagés, identité stable et légende dense réussis ;
+- rendu réel contrôlé sur une copie en lecture seule d'un preset de 20 machines et 36 câbles ;
+- SVG produit en `1988 x 2090` avec légende sur deux colonnes et sans ajout de donnée au XML Dante.
+
+Installateur Windows local :
+
+- fichier : `dist/DanteConfigEditorV3_2_Installer.exe` ;
+- taille : `68 815 173` octets ;
+- version produit : `3.2`, version fichier : `3.2.0` ;
+- SHA-256 : `E1926527DBDF844C5E272313B70503E135BF58BA637A4C9BA8832049833598AD` ;
+- signature Authenticode : absente (`NotSigned`) ;
+- installation propre puis mise à niveau de contrôle réussies avec code retour 0 ;
+- une seule entrée V3 présente dans `C:\Program Files\Dante Config Editor V3.2\` ;
+- désinstalleur stable `unins000.exe`, sans `unins001.exe` après la mise à niveau ;
+- ancienne installation et ancien dossier V3.1 absents ;
+- raccourcis V3.2 Menu Démarrer et Bureau présents ;
+- lancement réel de l'exécutable installé réussi, processus répondant et titre `Dante Config Editor V3.2`.
+
+Limites de cette validation : les DMG doivent être assemblés et vérifiés sur le runner macOS du workflow de Release. Aucun lancement manuel n'a été effectué sur un Mac physique, aucune notarisation Apple et aucun import dans Dante Controller ou test sur matériel Dante réel ne sont revendiqués.
+
 ## Validation locale de la V3.1 officielle du 2026-07-21
 
 Source validée avant création du tag `v3.1` :
