@@ -42,6 +42,16 @@ Installateur Windows :
 - commandes `Importer des labels` et `Exporter des labels` actives ; fenêtre d'export contrôlée avec choix multi-machine, JSON, CSV, XLSX DMT, aperçu et adaptation DMT explicite ;
 - onglet `Atomic Bomb` présent après `Sécurité et journal`, avec bouton dédié et trois confirmations annoncées.
 
+Publication GitHub :
+
+- workflows `Windows CI` `29814000720`, `macOS CI` `29814000620` et `Versioned release` `29814002843` réussis ;
+- Release `v3.1` publiée comme `Latest`, sans modification des Releases `v3.08` et `v3.09` ;
+- installateur Windows public : `68 791 161` octets, SHA-256 `EA91DCF8BB68A304C7A856E78580D3C6CF2E46C8A238A2FF3DCDF7778676BD90` ;
+- l'installateur public a été retéléchargé, comparé à son fichier `.sha256`, puis installé avec succès par-dessus la construction locale ;
+- DMG Apple Silicon : `52 218 759` octets, SHA-256 `DA6850D27DB8C3FF4CEAFA5A61225AB234BD4680D794D89C87216AEA2AABEF3C` ;
+- DMG Intel : `52 974 183` octets, SHA-256 `89A00AA1D9A88CC1A1E798554971D83FAF72E6D07C6060A3989783237B1BED5A` ;
+- le workflow a été rendu sensible au numéro de version des présentations ; les anciennes vidéos V3.09 jointes initialement à V3.1 ont été retirées uniquement de V3.1.
+
 Limites de cette validation : les publications macOS ont été produites depuis Windows, mais les DMG signés ad hoc doivent encore être assemblés et vérifiés par le workflow macOS. Aucun lancement manuel n'a été effectué sur un Mac physique, aucune notarisation Apple et aucun import dans Dante Controller ou test sur matériel Dante réel ne sont revendiqués.
 
 ## Validation locale de la V3.09 officielle du 2026-07-20

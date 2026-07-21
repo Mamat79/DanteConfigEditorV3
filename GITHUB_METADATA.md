@@ -11,8 +11,8 @@ Dernière vérification : 2026-07-21
 
 - Nom : `DanteConfigEditorV3`
 - Dépôt : https://github.com/Mamat79/DanteConfigEditorV3
-- Description : `FR : vérifier, modifier et préparer hors ligne des presets XML Dante, avec renommages cohérents | EN: review, edit and prepare Dante XML presets offline. Windows/macOS. Outil tiers non officiel.`
-- Page principale : https://github.com/Mamat79/DanteConfigEditorV3/releases/tag/v3.08
+- Description : `FR : vérifier, modifier et préparer hors ligne des presets XML Dante, avec renommages cohérents et échange de labels JSON/CSV/XLSX DMT | EN: review, edit and prepare Dante XML presets offline. Windows/macOS. Outil tiers non officiel.`
+- Page principale : https://github.com/Mamat79/DanteConfigEditorV3/releases/tag/v3.1
 - Branche de travail : `main`
 
 ## Releases conservées
@@ -29,7 +29,16 @@ Dernière vérification : 2026-07-21
 - Tag : `v3.09`
 - Titre GitHub : `DCE V3.09 - Windows / macOS - FR / EN`
 - URL : https://github.com/Mamat79/DanteConfigEditorV3/releases/tag/v3.09
+- Statut : publiée, ancienne version conservée, non Latest
+
+### V3.1
+
+- Tag : `v3.1`
+- Titre GitHub : `Dante Config Editor V3.1 - Windows / macOS - FR / EN`
+- URL : https://github.com/Mamat79/DanteConfigEditorV3/releases/tag/v3.1
 - Statut : publiée et Latest
+- Fichiers : installateur Windows autonome, DMG Apple Silicon, DMG Intel, sommes SHA-256 et quatre notices PDF FR/EN.
+- Les anciennes vidéos V3.09 ont été retirées de cette Release V3.1 ; elles restent attachées uniquement à leur Release d'origine.
 
 Les descriptions complètes des Releases restent dans GitHub. Elles ne sont pas
 reconstruites ni remplacées par le workflow de publication.

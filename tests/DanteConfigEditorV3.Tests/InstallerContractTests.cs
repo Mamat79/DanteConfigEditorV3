@@ -126,6 +126,8 @@ public sealed class InstallerContractTests
         Assert.Contains("gh release create", workflow, StringComparison.Ordinal);
         Assert.Contains("--verify-tag", workflow, StringComparison.Ordinal);
         Assert.Contains("make_latest", workflow, StringComparison.Ordinal);
+        Assert.Contains("media_token=\"${RELEASE_TAG#v}\"", workflow, StringComparison.Ordinal);
+        Assert.Contains("*-v${media_token}-overview-*.mp4", workflow, StringComparison.Ordinal);
         Assert.DoesNotContain("gh release delete", workflow, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("--clobber", workflow, StringComparison.OrdinalIgnoreCase);
     }
