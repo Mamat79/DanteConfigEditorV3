@@ -1,12 +1,10 @@
 # Dante Config Editor V3.1
 
-**Français** | [English](README_EN.md)
+## Français
 
 Version officielle V3.1 Windows et macOS de la branche `main` pour éditer hors ligne des fichiers XML de configuration Dante.
 
 **Téléchargement direct : [Windows x64](https://github.com/Mamat79/DanteConfigEditorV3/releases/download/v3.1/DanteConfigEditorV3_1_Installer.exe) | [macOS Apple Silicon](https://github.com/Mamat79/DanteConfigEditorV3/releases/download/v3.1/DanteConfigEditorV3_macOS_AppleSilicon.dmg) | [macOS Intel](https://github.com/Mamat79/DanteConfigEditorV3/releases/download/v3.1/DanteConfigEditorV3_macOS_Intel.dmg)**
-
-**English summary:** Offline Dante XML configuration editor for Windows and macOS. Inspect devices and channels, rename TX/RX channels, exchange labels through JSON, CSV or DMT workbooks, edit subscriptions, merge presets and save with XML safety checks. This is an unofficial third-party tool and does not connect to a live Dante network.
 
 > **Statut : V3.1 officielle Windows et macOS. Outil tiers non officiel Audinate.**
 > Cette version peut encore contenir des bugs. Les versions précédentes restent accessibles dans l'historique des Releases GitHub. Travaillez toujours sur une copie et validez le XML généré dans les outils Dante officiels.
@@ -40,9 +38,7 @@ Le classeur DMT original n'est jamais modifié. DMT limitant ses noms à huit ca
 [![Présentation de Dante Config Editor V3.09 sur un preset synthétique anonymisé](docs/media/guide/fr/overview.png)](docs/media/dante-config-editor-v309-overview-fr.mp4)
 
 - **[Voir la présentation complète en français (MP4)](docs/media/dante-config-editor-v309-overview-fr.mp4)** - sous-titres lisibles intégrés à la vidéo ; [fichier SRT séparé](docs/media/dante-config-editor-v309-overview-fr.srt).
-- **[Voir la présentation complète en anglais (MP4)](docs/media/dante-config-editor-v309-overview-en.mp4)** - [fichier SRT séparé](docs/media/dante-config-editor-v309-overview-en.srt).
 - **[Lire la notice complète en français (PDF)](docs/Notice_DanteConfigEditorV3_FR.pdf)** ou le [démarrage rapide](docs/QuickStart_DanteConfigEditorV3_FR.pdf).
-- **[Read the full English guide (PDF)](docs/Notice_DanteConfigEditorV3_EN.pdf)** or the [quick start](docs/QuickStart_DanteConfigEditorV3_EN.pdf).
 
 Les captures, notices et vidéos utilisent uniquement un preset synthétique anonymisé. Elles ne contiennent aucun nom de machine, fichier ou chemin de production.
 
@@ -399,3 +395,14 @@ Pour lancer les tests automatiques :
 <sub>et ses agents</sub>
 
 Remerciement à **Charles Bouticourt** pour l'idée de la fonction `Atomic Bomb`.
+
+---
+
+## English
+
+The complete English presentation is kept in a separate section so that both languages remain easy to read:
+
+- **[Open the complete English README](README_EN.md)**
+- **[Download Dante Config Editor V3.1](https://github.com/Mamat79/DanteConfigEditorV3/releases/tag/v3.1)**
+- **[Read the full English guide (PDF)](docs/Notice_DanteConfigEditorV3_EN.pdf)** or the [English quick start](docs/QuickStart_DanteConfigEditorV3_EN.pdf).
+- **[Open the dLive MIDI Tools (DMT) project](https://github.com/togrupe/dlive-midi-tools)**
