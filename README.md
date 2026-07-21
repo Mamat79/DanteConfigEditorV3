@@ -9,7 +9,7 @@ Version V3.2 officielle pour Windows et macOS. Le code publié se trouve dans `m
 > **Statut : V3.2 officielle. Outil tiers non officiel Audinate.**
 > Cette version peut encore contenir des bugs. Les versions précédentes restent accessibles dans l'historique des Releases GitHub. Travaillez toujours sur une copie et validez le XML généré dans les outils Dante officiels.
 
-> **Import et export de labels en JSON, CSV, DMT XLSX pour dLive et Avantis, A&H CSV et Yamaha CL/QL ZIP/CSV.** Cette passerelle fonctionne hors ligne et ne modifie jamais le modèle console original.
+> **Import et export de labels en JSON, CSV, DMT XLSX pour dLive et Avantis, A&H CSV et Yamaha CL/QL ZIP/CSV.** Les modèles natifs sont inclus dans l'application : aucun fichier modèle externe n'est nécessaire pour exporter.
 
 ## Origine et développement assisté
 
@@ -25,17 +25,17 @@ L'arrivée des agents de développement actuels a permis de faire évoluer ce si
 
 L'espace `Import / Export` regroupe l'échange de noms de canaux pour une ou plusieurs machines. L'utilisateur peut exporter les labels TX ou RX en JSON ou CSV, les réimporter avec choix des machines et des plages, puis vérifier chaque correspondance avant application. Les renommages TX continuent de mettre à jour les subscriptions XML reconnues.
 
-Le CSV générique est proposé en premier et demande uniquement un nom de fichier et un dossier de destination. Les formats natifs DMT, A&H et Yamaha demandent en plus un export d'origine : Dante Config Editor en crée une copie et conserve ainsi les feuilles, colonnes ou fichiers annexes attendus par le logiciel ou la console.
+Le CSV générique est proposé en premier et demande uniquement un nom de fichier et un dossier de destination. Il sert aux échanges avec Dante Config Editor et d'autres outils génériques ; il ne doit pas être importé directement dans dLive Director. Les formats natifs DMT, A&H et Yamaha utilisent les modèles dLive, Avantis, CL ou QL inclus dans l'application et demandent seulement le nom du nouveau fichier.
 
 Les formats JSON et CSV restent génériques. Des profils natifs permettent aussi les échanges avec les consoles et outils suivants :
 
 - **DMT → Dante Config Editor** : lecture de la feuille `Channels` d'un classeur XLSX DMT, puis affectation des labels aux TX ou RX d'une ou plusieurs machines Dante.
-- **Dante Config Editor → DMT** : création d'une copie du modèle XLSX DMT choisi, contenant les labels exportés depuis les machines Dante sélectionnées.
+- **Dante Config Editor → DMT** : création directe d'un classeur XLSX dLive ou Avantis depuis le modèle DMT inclus, avec désactivation des lignes absentes de la sélection.
 - **Projet DMT** : [togrupe/dlive-midi-tools](https://github.com/togrupe/dlive-midi-tools).
-- **Allen & Heath dLive / Avantis** : lecture ou création d'une copie de l'export CSV console ; seule la colonne des noms `Input` est modifiée.
-- **Yamaha CL / QL** : lecture ou création d'une copie du package ZIP, ou du fichier `InName.csv` seul ; les autres CSV du package restent inchangés.
+- **Allen & Heath dLive / Avantis** : lecture d'un export CSV existant ou création directe d'un nouveau CSV natif depuis le modèle inclus ; seule la colonne des noms `Input` est modifiée.
+- **Yamaha CL / QL** : lecture d'un package ZIP ou d'un fichier `InName.csv`, et création directe d'un nouveau ZIP complet depuis le modèle inclus ; les huit autres CSV du package restent inchangés.
 
-Le classeur DMT et les exports console originaux ne sont jamais modifiés. Toute adaptation en ASCII sur huit caractères est affichée dans l'aperçu et doit être activée explicitement ; JSON et CSV génériques conservent les labels complets Unicode. Il s'agit d'une passerelle de fichiers hors ligne, pas d'une connexion directe ou temps réel entre les logiciels.
+Les modèles internes ne sont jamais modifiés : chaque export crée un nouveau fichier. Une machine sans TX mais avec des RX bascule automatiquement sur RX, et les machines sans canal dans le sens choisi ne sont pas sélectionnables. Toute adaptation en ASCII sur huit caractères est affichée dans l'aperçu et doit être activée explicitement ; JSON et CSV génériques conservent les labels complets Unicode. Il s'agit d'une passerelle de fichiers hors ligne, pas d'une connexion directe ou temps réel entre les logiciels.
 
 ## Synoptique visuel
 
@@ -208,7 +208,7 @@ Le résultat est volontairement incohérent sur le plan fonctionnel. Il reste in
 
 - Échange de labels TX/RX pour une ou plusieurs machines avec sélection des plages et aperçu avant application.
 - Formats JSON et CSV documentés pour les échanges génériques et les collaborations avec d'autres outils.
-- Lecture et export par copie de classeurs XLSX issus de [dLive MIDI Tools](https://github.com/togrupe/dlive-midi-tools), avec adaptation DMT ASCII/8 caractères uniquement sur demande explicite.
+- Lecture de classeurs XLSX issus de [dLive MIDI Tools](https://github.com/togrupe/dlive-midi-tools) et export direct d'un modèle dLive ou Avantis inclus, avec adaptation DMT ASCII/8 caractères uniquement sur demande explicite.
 - Même workflow de labels sur Windows et macOS, fondé sur le moteur XML partagé.
 - Déplacement d'`Atomic Bomb` dans un onglet dédié afin qu'il ne monopolise plus la navigation principale.
 - Installateur V3.1 remplaçant proprement les V3.07, V3.08 et V3.09 installées.

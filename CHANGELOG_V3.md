@@ -6,7 +6,9 @@
 - Maintenance V3.2 : répartition automatique des nombreuses liaisons sur des ports distincts afin d'éviter la superposition des flèches.
 - Maintenance V3.2 : cases `Voir` activables en un clic et liste réutilisable des emplacements déjà saisis.
 - Maintenance V3.2 : correction du dialogue d'import de labels dont le bouton de prévisualisation pouvait être masqué ; association par nom désormais disponible avec une seule liste et plage proposée limitée à la capacité de la machine cible.
-- Maintenance V3.2 : le CSV générique devient le choix d'export initial et crée directement un nouveau fichier ; les formats natifs indiquent explicitement qu'ils nécessitent un export DMT/console comme modèle afin d'en préserver la structure.
+- Maintenance V3.2 : intégration des modèles natifs DMT dLive/Avantis, CSV dLive/Avantis et ZIP Yamaha CL/QL ; l'export ne demande plus de choisir un fichier modèle existant.
+- Maintenance V3.2 : distinction explicite entre CSV générique DCE et CSV natif console, bascule automatique TX vers RX pour les machines sans TX et blocage des machines sans canal dans le sens choisi.
+- Maintenance V3.2 : écriture atomique des exports natifs afin de conserver une destination existante si la génération échoue.
 - Regroupement logique des fonctions de fichiers dans un onglet principal `Import / Export`.
 - Ajout des sous-onglets `Labels`, `Rapports et patchbook` et `Synoptique` sur Windows et macOS.
 - Déplacement des exports TXT/PDF, patchbooks et topologie simple hors de `Sécurité et journal`.

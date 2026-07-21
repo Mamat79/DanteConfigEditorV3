@@ -15,7 +15,8 @@ La V3.2 remplace la V3.1 sur `main` et devient la Release `Latest`. Les Releases
 - Cases d'affichage utilisables en un clic et emplacements déjà saisis réutilisables depuis une liste.
 - Import de labels directement sélectionnable, prévisualisable et limité à la capacité TX/RX des machines choisies.
 - CSV générique proposé par défaut : seul le nom du nouveau fichier et son dossier sont demandés.
-- Formats natifs DMT, Allen & Heath et Yamaha créés à partir d'une copie d'un export existant afin d'en préserver la structure.
+- Modèles natifs DMT dLive/Avantis, Allen & Heath dLive/Avantis et Yamaha CL/QL inclus : l'export demande seulement un nom de fichier.
+- Bascule automatique sur RX pour une machine sans TX, et distinction explicite entre CSV générique DCE et CSV natif console.
 - Notices française et anglaise mises à jour.
 
 ## Pourquoi cet outil existe
@@ -37,11 +38,11 @@ Les fonctions qui produisent ou lisent des fichiers sont regroupées dans un ong
 ## Labels et consoles
 
 - JSON et CSV génériques pour les échanges avec d'autres outils.
-- XLSX compatible avec **[dLive MIDI Tools (DMT) de togrupe](https://github.com/togrupe/dlive-midi-tools)** : lecture de la feuille `Channels` et export vers une copie d'un modèle dLive ou Avantis.
-- CSV natif Allen & Heath dLive/Avantis : lecture et création d'une copie d'un export console, en ne remplaçant que les labels `Input`.
-- Yamaha CL/QL : lecture et création d'une copie d'un package ZIP ou d'un fichier `InName.csv`; les autres CSV du package restent inchangés.
+- XLSX compatible avec **[dLive MIDI Tools (DMT) de togrupe](https://github.com/togrupe/dlive-midi-tools)** : lecture de la feuille `Channels` et création directe d'un classeur dLive ou Avantis depuis les modèles inclus sous licence MIT.
+- CSV natif Allen & Heath dLive/Avantis : lecture d'un export existant ou création directe depuis le modèle inclus, en ne remplaçant que les labels `Input`.
+- Yamaha CL/QL : lecture d'un package ZIP ou d'un fichier `InName.csv`, et création directe d'un ZIP complet ; les huit autres CSV du package restent inchangés.
 - Prévisualisation des labels et adaptation ASCII sur huit caractères uniquement sur demande explicite.
-- Les modèles et exports console originaux ne sont jamais modifiés.
+- Les modèles internes ne sont jamais modifiés et chaque sortie est écrite atomiquement dans un nouveau fichier.
 
 Les essais ont couvert les exemples fournis : DMT Avantis/dLive, CSV Avantis/dLive, Yamaha CL5 avec 72 entrées et Yamaha QL5 avec 64 entrées.
 

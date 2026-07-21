@@ -360,14 +360,14 @@ def quick_start(language: str) -> None:
         [
             ("Patch visuel", "Sous Windows, chaque prévisualisation rejoint un lot cumulatif et la grille compacte accepte les séries par glissement. Sur Mac, utilisez l'atelier visuel Avalonia."),
             ("Récupération", "Une copie est écrite en arrière-plan après un court délai. La nouvelle destination devient la référence après Enregistrer sous."),
-            ("Import / Export", "Labels JSON/CSV, XLSX DMT, CSV A&H et ZIP/CSV Yamaha, rapports et synoptique sont regroupés dans un espace organisé."),
+            ("Import / Export", "Labels JSON/CSV, XLSX DMT, CSV A&H et ZIP Yamaha sont regroupés avec des modèles dLive, Avantis, CL et QL inclus."),
             ("Synoptique", "Regroupez les machines par emplacement et exportez un SVG ou PDF en couleur sans modifier le XML Dante."),
         ]
         if french
         else [
             ("Visual patch", "On Windows, every preview joins a cumulative batch and the compact matrix supports drag ranges. On Mac, use the Avalonia visual workshop."),
             ("Recovery", "A copy is written in the background after a short delay. Save as makes the new destination the session reference."),
-            ("Import / Export", "JSON/CSV, DMT XLSX, A&H CSV and Yamaha ZIP/CSV labels, reports, and the synoptic are grouped in one workspace."),
+            ("Import / Export", "JSON/CSV, DMT XLSX, A&H CSV, and Yamaha ZIP labels are grouped with bundled dLive, Avantis, CL, and QL templates."),
             ("Synoptic", "Group devices by location and export a colored SVG or PDF without changing Dante XML."),
         ]
     )
@@ -418,7 +418,12 @@ def quick_start(language: str) -> None:
         if french
         else "<b>Exercise:</b> Atomic Bomb has its own tab after Safety and log. It asks for three confirmations and then scrambles the XML copy in memory. Technical identifiers remain protected; use Save as to create the trainee file."
     )
-    story.extend([feature_table, Spacer(1, 2.5 * mm), callout(atomic_note, PALE_RED), Spacer(1, 2 * mm), callout(reminder, PALE_GREEN), Spacer(1, 2 * mm), para(("Dépôt public : " if french else "Public repository: ") + GITHUB, "small")])
+    labels_note = (
+        "<b>Labels console :</b> choisissez A&H CSV natif - dLive/Avantis, Yamaha ZIP natif - CL/QL ou DMT XLSX. Les modèles sont inclus. Le CSV générique DCE n'est pas un fichier dLive Director."
+        if french
+        else "<b>Console labels:</b> choose Native A&H CSV - dLive/Avantis, Native Yamaha ZIP - CL/QL, or DMT XLSX. Templates are bundled. Generic DCE CSV is not a dLive Director file."
+    )
+    story.extend([feature_table, Spacer(1, 2.5 * mm), callout(labels_note), Spacer(1, 2 * mm), callout(atomic_note, PALE_RED), Spacer(1, 2 * mm), callout(reminder, PALE_GREEN), Spacer(1, 2 * mm), para(("Dépôt public : " if french else "Public repository: ") + GITHUB, "small")])
     build_document(ROOT / f"QuickStart_DanteConfigEditorV3_{language}.pdf", story)
 
 
@@ -505,8 +510,6 @@ def full_guide(language: str) -> None:
             *bullets([
                 "Les canaux TX/RX peuvent être renommés individuellement ou par plage avec {00}, {000}, {n} et {device}.",
                 "Le renommage d'un TX met à jour tous les alias de subscription reconnus dans le projet.",
-                "Import et export de labels traite les TX/RX d'une ou plusieurs machines en JSON/CSV générique, XLSX DMT, CSV Allen & Heath dLive/Avantis ou ZIP/CSV Yamaha CL/QL. Le CSV générique crée un nouveau fichier ; les formats natifs copient un export existant pour préserver sa structure. La plage et chaque changement sont prévisualisés avant application.",
-                "Les modèles DMT et exports console originaux ne sont jamais modifiés. Une copie est créée et l'adaptation ASCII sur huit caractères n'est appliquée qu'après activation explicite.",
                 "Les Dante Id ne sont pas renumérotés. Le marqueur local subscribed_device=\".\" est conservé.",
                 "L'onglet Easy patch affiche les RX à gauche et les TX à droite. Les menus et flèches permettent de changer rapidement de machine.",
                 "Sélectionnez autant de TX que de RX pour un appariement un-à-un, ou un seul TX pour alimenter plusieurs RX.",
@@ -540,6 +543,32 @@ def full_guide(language: str) -> None:
                 "Import / Export regroupe Labels, Rapports et patchbook et Synoptique. Le synoptique mémorise les emplacements, affiche ou masque les machines en un clic, espace les arrivées denses et exporte un SVG ou un PDF ; sa mise en page locale ne modifie jamais le XML Dante.",
             ]),
         ]
+        label_page = [
+            para("Échanger les labels sans modèle externe", "h1"),
+            callout("Les modèles dLive, Avantis, Yamaha CL/QL et DMT sont inclus dans Dante Config Editor. Un export natif demande seulement le nom et le dossier du nouveau fichier."),
+            para("Choisir le bon format", "h1"),
+            data_table(
+                ["Format", "Destination", "Contenu"],
+                [
+                    ["JSON / CSV générique", "DCE ou outil tiers", "Unicode complet. Ne pas importer dans dLive Director."],
+                    ["DMT XLSX dLive / Avantis", "dLive MIDI Tools", "Classeur officiel DMT ; lignes hors sélection désactivées."],
+                    ["A&H CSV natif dLive", "dLive Director", "Structure [Version]/[Channels] dLive et noms Input."],
+                    ["A&H CSV natif Avantis", "Avantis Director", "Structure [Version]/[Channels] Avantis et noms Input."],
+                    ["Yamaha ZIP natif CL / QL", "CL/QL Editor", "Paquet complet de neuf CSV ; seul InName.csv reçoit les labels."],
+                ],
+                [42, 44, 84],
+            ),
+            para("Procédure", "h1"),
+            *bullets([
+                "Dans Import / Export > Labels, cliquez sur Exporter des labels.",
+                "Choisissez TX ou RX, les machines, le premier canal et le nombre. Une machine sans TX mais avec des RX bascule automatiquement sur RX.",
+                "Choisissez le format natif correspondant au modèle réel. Les machines sans canal dans le sens choisi ne peuvent pas être cochées.",
+                "Contrôlez l'aperçu. Activez l'adaptation ASCII/8 caractères uniquement si la destination l'exige, puis cliquez sur Exporter.",
+                "DCE ouvre directement Enregistrer sous. La destination est écrite atomiquement et un échec ne détruit pas un fichier existant.",
+            ]),
+            callout("Avant utilisation, ouvrez toujours le fichier généré dans DMT, dLive Director, Avantis Director ou Yamaha CL/QL Editor et vérifiez les labels et le modèle ciblé.", PALE_RED),
+            para("Les classeurs DMT inclus proviennent du projet MIT dLive MIDI Tools de Tobias Grupe. Le fichier DMT_LICENSE.txt est fourni avec l'application.", "small"),
+        ]
         page5 = [
             para("12. Atomic Bomb : créer un exercice", "h1"),
             *bullets([
@@ -563,7 +592,7 @@ def full_guide(language: str) -> None:
                 [48, 122],
             ),
             para("14. Tests de non-régression", "h1"),
-            para("La suite V3.2 exécute 130 tests Core et contrats Windows, plus 9 tests Avalonia sans écran : identités techniques, chemins inconnus, sauvegarde atomique, récupération, interfaces IPv4, alias de subscription, namespace par défaut, presets synthétiques, échange de labels JSON/CSV/XLSX DMT/CSV A&H/ZIP ou CSV Yamaha, synoptique SVG/PDF et stockage séparé, scénario Atomic Bomb, lot cumulatif, gestes de matrice, conflits, rollback, persistance, Easy patch, détail machine et identité Mac."),
+            para("La suite V3.2 exécute 143 tests Core/Windows et 9 tests Mac sans écran. Ils couvrent notamment les garde-fous XML, sauvegarde et récupération, interfaces IPv4, subscriptions, gros presets, modèles natifs, labels, synoptique, Atomic Bomb, Easy patch et détail machine."),
             para("15. Limites connues", "h1"),
             *bullets([
                 "Aucun pilotage en temps réel et aucune communication avec les appareils.",
@@ -574,7 +603,7 @@ def full_guide(language: str) -> None:
                 "Les DMG Mac sont signés ad hoc mais non notariés ; le premier lancement peut nécessiter un clic droit puis Ouvrir.",
                 "L'onglet Windows Easy patch n'est pas reproduit à l'identique sur Mac, qui conserve l'atelier visuel Avalonia.",
                 "Des noms TX dupliqués sont ambigus dans les subscriptions Dante et doivent être renommés avant Easy patch.",
-                "Le classeur DMT pris en charge correspond à la feuille Channels observée dans DMT 2.13.0 ; une évolution du modèle peut demander une mise à jour.",
+                "Les modèles natifs correspondent à DMT 2.13.0 et aux exemples dLive, Avantis, CL5 et QL5 fournis. Une évolution des formats peut demander une mise à jour ; validez toujours dans l'éditeur officiel.",
             ]),
             para("16. Aide et informations", "h1"),
             para(
@@ -696,8 +725,6 @@ def full_guide(language: str) -> None:
             *bullets([
                 "TX/RX channels can be renamed individually or by range with {00}, {000}, {n}, and {device}.",
                 "Renaming a Tx channel updates every recognized subscription alias in the project.",
-                "Importing and exporting labels handles Tx/Rx labels for one or several devices through generic JSON/CSV, DMT XLSX, Allen & Heath dLive/Avantis CSV, or Yamaha CL/QL ZIP/CSV. Generic CSV creates a new file; native formats copy an existing export to preserve its structure. Ranges and every change are previewed before apply.",
-                "Original DMT templates and console exports are never modified. A copy is created, and ASCII/eight-character adaptation is used only after explicit opt-in.",
                 "Dante IDs are not renumbered. The local subscribed_device=\".\" marker is preserved.",
                 "The Easy patch tab shows Rx channels on the left and Tx channels on the right. Menus and arrows switch devices quickly.",
                 "Select equal Tx and Rx counts for one-to-one mapping, or one Tx to feed several Rx channels.",
@@ -731,6 +758,32 @@ def full_guide(language: str) -> None:
                 "Import / Export groups Labels, Reports and patchbook, and Synoptic. The synoptic remembers locations, shows or hides devices with one click, spaces dense connection ports, and exports SVG or PDF; its local layout sidecar never changes Dante XML.",
             ]),
         ]
+        label_page = [
+            para("Exchange labels without an external template", "h1"),
+            callout("dLive, Avantis, Yamaha CL/QL, and DMT templates are bundled with Dante Config Editor. Native export only asks for the new file name and folder."),
+            para("Choose the correct format", "h1"),
+            data_table(
+                ["Format", "Destination", "Content"],
+                [
+                    ["Generic JSON / CSV", "DCE or third-party tool", "Full Unicode. Do not import into dLive Director."],
+                    ["DMT XLSX dLive / Avantis", "dLive MIDI Tools", "Official DMT workbook; rows outside the selection are disabled."],
+                    ["Native A&H CSV dLive", "dLive Director", "dLive [Version]/[Channels] structure and Input names."],
+                    ["Native A&H CSV Avantis", "Avantis Director", "Avantis [Version]/[Channels] structure and Input names."],
+                    ["Native Yamaha ZIP CL / QL", "CL/QL Editor", "Complete nine-CSV package; only InName.csv receives labels."],
+                ],
+                [42, 44, 84],
+            ),
+            para("Workflow", "h1"),
+            *bullets([
+                "Under Import / Export > Labels, choose Export labels.",
+                "Choose TX or RX, devices, first channel, and count. A device with RX but no TX automatically switches to RX.",
+                "Choose the native format matching the real model. Devices without channels in the selected direction cannot be checked.",
+                "Review the preview. Enable ASCII/eight-character adaptation only when required, then choose Export.",
+                "DCE opens Save as directly. Output is written atomically, so a failed export does not destroy an existing file.",
+            ]),
+            callout("Before use, always open the generated file in DMT, dLive Director, Avantis Director, or Yamaha CL/QL Editor and verify labels and the selected model.", PALE_RED),
+            para("Bundled DMT workbooks come from Tobias Grupe's MIT-licensed dLive MIDI Tools project. DMT_LICENSE.txt is included with the application.", "small"),
+        ]
         page5 = [
             para("12. Atomic Bomb: create an exercise", "h1"),
             *bullets([
@@ -754,7 +807,7 @@ def full_guide(language: str) -> None:
                 [48, 122],
             ),
             para("14. Regression tests", "h1"),
-            para("The V3.2 suite runs 130 Core and Windows contract tests plus 9 headless Avalonia tests covering technical identities, unknown paths, atomic save, recovery, IPv4 interfaces, subscription aliases, default namespaces, synthetic presets, JSON/CSV/DMT XLSX/A&H CSV/Yamaha ZIP or CSV label exchange, SVG/PDF synoptic isolation, the Atomic Bomb scenario, cumulative batches, matrix gestures, conflicts, rollback, persistence, Easy patch, Device details integration, and Mac identity."),
+            para("The V3.2 suite runs 143 Core/Windows tests and 9 headless Mac tests. Coverage includes XML guards, save and recovery, IPv4 interfaces, subscriptions, large presets, native templates, labels, synoptic export, Atomic Bomb, Easy patch, and Device details."),
             para("15. Known limitations", "h1"),
             *bullets([
                 "No real-time Dante control and no communication with devices.",
@@ -765,7 +818,7 @@ def full_guide(language: str) -> None:
                 "Mac DMGs are ad hoc signed but not notarized; first launch may require right-clicking the application and choosing Open.",
                 "The Windows Easy patch tab is not reproduced identically on Mac, which keeps the Avalonia visual patch workshop.",
                 "Duplicate Tx names are ambiguous in Dante subscriptions and must be renamed before using Easy patch.",
-                "The supported DMT workbook matches the Channels sheet observed in DMT 2.13.0; a future template change may require an update.",
+                "Native models match DMT 2.13.0 and the supplied dLive, Avantis, CL5, and QL5 examples. Future format changes may require an update; always validate in the official editor.",
             ]),
             para("16. Help and information", "h1"),
             para(
@@ -817,6 +870,7 @@ def full_guide(language: str) -> None:
         page3,
         visual_patch,
         page4,
+        label_page,
         visual_health,
         page5,
     ]

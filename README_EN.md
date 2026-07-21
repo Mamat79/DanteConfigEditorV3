@@ -9,7 +9,7 @@ V3.2 is the official Windows and macOS version. Published source is available on
 > **Status: official V3.2. Unofficial third-party tool, not affiliated with Audinate.**
 > This software may still contain bugs. Previous versions remain available in the GitHub Releases history. Always work on a copy and validate generated XML with official Dante tools.
 
-> **Importing and exporting labels through JSON, CSV, DMT XLSX for dLive and Avantis, A&H CSV, and Yamaha CL/QL ZIP/CSV.** This bridge works offline and never modifies the original console template.
+> **Importing and exporting labels through JSON, CSV, DMT XLSX for dLive and Avantis, A&H CSV, and Yamaha CL/QL ZIP/CSV.** Native templates are bundled with the application, so no external template file is required for export.
 
 ## Origin and agent-assisted development
 
@@ -25,17 +25,17 @@ Modern development agents then enabled a much larger step forward: safer saving,
 
 The `Import / Export` workspace contains channel-label exchange for one or several devices. TX or RX labels can be exported to JSON or CSV, imported with explicit device and range mapping, and checked row by row before application. TX renames still update recognized XML subscriptions.
 
-Generic CSV is selected by default and only asks for an output name and destination folder. Native DMT, A&H, and Yamaha formats additionally require an existing export: Dante Config Editor copies it so the sheets, columns, and companion files expected by the application or console are preserved.
+Generic CSV is selected by default and only asks for an output name and destination folder. It is intended for Dante Config Editor and generic data exchange; it must not be imported directly into dLive Director. Native DMT, A&H, and Yamaha formats use the bundled dLive, Avantis, CL, or QL template and only ask for the new output file name.
 
 JSON and CSV remain generic exchange formats. Native profiles also support these console and tool formats:
 
 - **DMT → Dante Config Editor**: read the `Channels` sheet from a DMT XLSX workbook, then map its labels to the TX or RX channels of one or several Dante devices.
-- **Dante Config Editor → DMT**: create a copy of the selected DMT XLSX template containing labels exported from the selected Dante devices.
+- **Dante Config Editor → DMT**: directly create a dLive or Avantis XLSX workbook from the bundled DMT template, disabling rows absent from the selection.
 - **DMT project**: [togrupe/dlive-midi-tools](https://github.com/togrupe/dlive-midi-tools).
-- **Allen & Heath dLive / Avantis**: read or create a copy of a console CSV export; only `Input` name fields are changed.
-- **Yamaha CL / QL**: read or create a copy of the ZIP package, or an individual `InName.csv`; every other CSV in the package remains unchanged.
+- **Allen & Heath dLive / Avantis**: read an existing console CSV or directly create a new native CSV from the bundled template; only `Input` name fields are changed.
+- **Yamaha CL / QL**: read a ZIP package or an individual `InName.csv`, and directly create a complete ZIP from the bundled template; the eight other CSV files remain unchanged.
 
-Original DMT workbooks and console exports are never modified. Every eight-character ASCII adaptation is visible in the preview and must be enabled explicitly; generic JSON and CSV retain full Unicode labels. This is an offline file bridge, not a direct or real-time connection between applications.
+Bundled templates are never modified: every export creates a new file. A device with RX but no TX automatically switches to RX, and devices without channels in the selected direction cannot be selected. Every eight-character ASCII adaptation is visible in the preview and must be enabled explicitly; generic JSON and CSV retain full Unicode labels. This is an offline file bridge, not a direct or real-time connection between applications.
 
 ## Visual synoptic
 
@@ -173,7 +173,7 @@ The result is intentionally inconsistent at the functional level. Import it into
 
 - TX/RX label exchange for one or several devices, with range selection and preview before application.
 - Documented JSON and CSV formats for generic exchange and collaboration with external tools.
-- Read and copy-based export of [dLive MIDI Tools](https://github.com/togrupe/dlive-midi-tools) XLSX workbooks, with optional explicit DMT ASCII/eight-character adaptation.
+- Read [dLive MIDI Tools](https://github.com/togrupe/dlive-midi-tools) XLSX workbooks and directly export a bundled dLive or Avantis model, with optional explicit DMT ASCII/eight-character adaptation.
 - The same label workflow on Windows and macOS through the shared XML engine.
 - `Atomic Bomb` moved into a dedicated tab so it no longer dominates the main navigation.
 - V3.1 installer cleanly replacing installed V3.07, V3.08 and V3.09 versions.

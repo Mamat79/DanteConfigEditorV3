@@ -15,7 +15,8 @@ V3.2 replaces V3.1 on `main` and becomes the `Latest` Release. Historical Releas
 - Toggle device visibility with one click and reuse previously entered locations from a list.
 - Select and preview label imports directly, with the proposed range limited to the TX/RX capacity of selected devices.
 - Use generic CSV by default: only the new file name and destination folder are requested.
-- Build native DMT, Allen & Heath, and Yamaha outputs from a copy of an existing export so its structure is preserved.
+- Bundle native DMT dLive/Avantis, Allen & Heath dLive/Avantis, and Yamaha CL/QL templates: export only asks for a file name.
+- Automatically switch to RX for a device without TX channels and clearly distinguish generic DCE CSV from native console CSV.
 - Updated French and English manuals.
 
 ## Why this tool exists
@@ -37,11 +38,11 @@ Features that read or produce files are grouped under one main `Import / Export`
 ## Labels and consoles
 
 - Generic JSON and CSV for exchange with other tools.
-- XLSX support for **[togrupe dLive MIDI Tools (DMT)](https://github.com/togrupe/dlive-midi-tools)**: read the `Channels` sheet and export to a copy of a dLive or Avantis template.
-- Native Allen & Heath dLive/Avantis CSV: read and create a copy of a console export while replacing only `Input` labels.
-- Yamaha CL/QL: read and create a copy of a ZIP package or an individual `InName.csv`; every other CSV in the package remains unchanged.
+- XLSX support for **[togrupe dLive MIDI Tools (DMT)](https://github.com/togrupe/dlive-midi-tools)**: read the `Channels` sheet and directly create a dLive or Avantis workbook from the bundled MIT-licensed templates.
+- Native Allen & Heath dLive/Avantis CSV: read an existing export or directly create a new file from the bundled template while replacing only `Input` labels.
+- Yamaha CL/QL: read a ZIP package or an individual `InName.csv`, and directly create a complete ZIP; the eight other CSV files remain unchanged.
 - Label preview and eight-character ASCII adaptation only after explicit opt-in.
-- Original templates and console exports are never modified.
+- Bundled templates are never modified, and every output is written atomically to a new file.
 
 Tests covered the supplied samples: DMT Avantis/dLive, Avantis/dLive CSV, Yamaha CL5 with 72 inputs, and Yamaha QL5 with 64 inputs.
 
