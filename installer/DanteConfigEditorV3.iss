@@ -1,21 +1,21 @@
-#define MyAppName "Dante Config Editor V3.09"
-#define MyAppVersion "3.09"
+#define MyAppName "Dante Config Editor V3.1"
+#define MyAppVersion "3.1"
 #define MyAppPublisher "Mamat"
 #define MyAppExeName "DanteConfigEditorV3.exe"
-#define MyAppShortcutName "Dante Config Editor V3.09"
+#define MyAppShortcutName "Dante Config Editor V3.1"
 #define SourceRoot ".."
 
 [Setup]
-AppId={{C72399DF-AC3B-4FFA-A503-D79A4D6D9380}
+AppId={{76E68F80-5C89-4415-A090-370CA60EB3AD}
 AppName={#MyAppName}
 AppVersion={#MyAppVersion}
 AppPublisher={#MyAppPublisher}
-DefaultDirName={autopf}\Dante Config Editor V3.09
-DefaultGroupName=Dante Config Editor V3.09
+DefaultDirName={autopf}\Dante Config Editor V3.1
+DefaultGroupName=Dante Config Editor V3.1
 DisableProgramGroupPage=no
 AllowNoIcons=yes
 OutputDir={#SourceRoot}\dist
-OutputBaseFilename=DanteConfigEditorV3_09_Installer
+OutputBaseFilename=DanteConfigEditorV3_1_Installer
 SetupIconFile={#SourceRoot}\DanteEdit.ico
 Compression=lzma2
 SolidCompression=yes
@@ -24,9 +24,9 @@ ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
 PrivilegesRequired=admin
 UninstallDisplayIcon={app}\{#MyAppExeName}
-VersionInfoVersion=3.9.0
+VersionInfoVersion=3.1.0
 VersionInfoCompany={#MyAppPublisher}
-VersionInfoDescription=Dante Config Editor V3.09 installer
+VersionInfoDescription=Dante Config Editor V3.1 installer
 VersionInfoProductName={#MyAppName}
 SetupLogging=yes
 CloseApplications=yes
@@ -74,7 +74,7 @@ Name: "{group}\Désinstaller {code:GetShortcutAppName}"; Filename: "{uninstallex
 Name: "{autodesktop}\{code:GetShortcutAppName}"; Filename: "{app}\{#MyAppExeName}"; WorkingDir: "{app}"; IconFilename: "{app}\DanteEdit.ico"; Tasks: desktopicon
 
 [Run]
-Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,Dante Config Editor V3.09}"; Flags: nowait postinstall skipifsilent
+Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,Dante Config Editor V3.1}"; Flags: nowait postinstall skipifsilent
 Filename: "{app}\RELEASE_NOTES.md"; Description: "Ouvrir les notes de version"; Flags: postinstall shellexec unchecked skipifsilent; Check: IsFrenchLanguage
 Filename: "{app}\RELEASE_NOTES_EN.md"; Description: "Open the release notes"; Flags: postinstall shellexec unchecked skipifsilent; Check: IsEnglishLanguage
 Filename: "{app}\QuickStart_DanteConfigEditorV3_FR.pdf"; Description: "Ouvrir le démarrage rapide en français"; Flags: postinstall shellexec unchecked skipifsilent; Check: IsFrenchLanguage
@@ -90,6 +90,7 @@ var
   ExistingInstallDir: String;
   ExistingInstallVersion: String;
   ExistingInstallIsCurrent: Boolean;
+  LegacyV309Uninstaller: String;
   LegacyV308Uninstaller: String;
   LegacyV307Uninstaller: String;
 
@@ -134,19 +135,26 @@ begin
   ExistingInstallDir := '';
   ExistingInstallVersion := '';
   ExistingInstallIsCurrent := False;
+  LegacyV309Uninstaller := '';
   LegacyV308Uninstaller := '';
   LegacyV307Uninstaller := '';
 
+  QueryInstallValue('C72399DF-AC3B-4FFA-A503-D79A4D6D9380', 'UninstallString', LegacyV309Uninstaller);
   QueryInstallValue('23FF6543-561B-4C55-B733-817C9F92F5AA', 'UninstallString', LegacyV308Uninstaller);
   QueryInstallValue('D9A22EA8-8370-4C6D-9E7C-DBC5A59F53A1', 'UninstallString', LegacyV307Uninstaller);
 
-  Result := QueryInstallValue('C72399DF-AC3B-4FFA-A503-D79A4D6D9380', 'InstallLocation', ExistingInstallDir);
+  Result := QueryInstallValue('76E68F80-5C89-4415-A090-370CA60EB3AD', 'InstallLocation', ExistingInstallDir);
   ExistingInstallIsCurrent := Result;
 
   if not Result then
   begin
     LegacyInstallDir := '';
-    if QueryInstallValue('23FF6543-561B-4C55-B733-817C9F92F5AA', 'InstallLocation', LegacyInstallDir) then
+    if QueryInstallValue('C72399DF-AC3B-4FFA-A503-D79A4D6D9380', 'InstallLocation', LegacyInstallDir) then
+    begin
+      ExistingInstallDir := LegacyInstallDir;
+      Result := True;
+    end
+    else if QueryInstallValue('23FF6543-561B-4C55-B733-817C9F92F5AA', 'InstallLocation', LegacyInstallDir) then
     begin
       ExistingInstallDir := LegacyInstallDir;
       Result := True;
@@ -161,6 +169,8 @@ begin
   if Result then
   begin
     if ExistingInstallIsCurrent then
+      QueryInstallValue('76E68F80-5C89-4415-A090-370CA60EB3AD', 'DisplayVersion', ExistingInstallVersion)
+    else if LegacyV309Uninstaller <> '' then
       QueryInstallValue('C72399DF-AC3B-4FFA-A503-D79A4D6D9380', 'DisplayVersion', ExistingInstallVersion)
     else if LegacyV308Uninstaller <> '' then
       QueryInstallValue('23FF6543-561B-4C55-B733-817C9F92F5AA', 'DisplayVersion', ExistingInstallVersion)
@@ -248,9 +258,33 @@ begin
     ResultCode) and (ResultCode = 0);
 end;
 
+procedure DeleteLegacyShortcutVersion(VersionName: String);
+begin
+  { Les anciennes versions ont parfois créé leurs raccourcis hors du groupe attendu. }
+  DeleteFile(ExpandConstant('{userprograms}\Dante Config Editor ' + VersionName + '.lnk'));
+  DeleteFile(ExpandConstant('{commonprograms}\Dante Config Editor ' + VersionName + '.lnk'));
+  DeleteFile(ExpandConstant('{userdesktop}\Dante Config Editor ' + VersionName + '.lnk'));
+  DeleteFile(ExpandConstant('{commondesktop}\Dante Config Editor ' + VersionName + '.lnk'));
+  DelTree(ExpandConstant('{userprograms}\Dante Config Editor ' + VersionName), True, True, True);
+  DelTree(ExpandConstant('{commonprograms}\Dante Config Editor ' + VersionName), True, True, True);
+end;
+
+procedure DeleteLegacyShortcuts();
+begin
+  DeleteLegacyShortcutVersion('V3.07');
+  DeleteLegacyShortcutVersion('V3.08');
+  DeleteLegacyShortcutVersion('V3.09');
+end;
+
 function PrepareToInstall(var NeedsRestart: Boolean): String;
 begin
   Result := '';
+
+  if not RunLegacyUninstaller(LegacyV309Uninstaller) then
+  begin
+    Result := 'Impossible de remplacer automatiquement Dante Config Editor V3.09. Fermez l''application puis réessayez.';
+    Exit;
+  end;
 
   if not RunLegacyUninstaller(LegacyV308Uninstaller) then
   begin
@@ -261,7 +295,10 @@ begin
   if not RunLegacyUninstaller(LegacyV307Uninstaller) then
   begin
     Result := 'Impossible de remplacer automatiquement Dante Config Editor V3.07. Fermez l''application puis réessayez.';
+    Exit;
   end;
+
+  DeleteLegacyShortcuts();
 end;
 
 function InitializeSetup(): Boolean;

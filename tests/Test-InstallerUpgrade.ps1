@@ -1,6 +1,6 @@
 param(
     [string]$InstallerPath = "",
-    [string]$ExpectedVersion = "3.09",
+    [string]$ExpectedVersion = "3.1",
     [switch]$AllowCustomInstallLocation
 )
 
@@ -8,7 +8,7 @@ $ErrorActionPreference = "Stop"
 
 $root = Split-Path $PSScriptRoot -Parent
 if ([string]::IsNullOrWhiteSpace($InstallerPath)) {
-    $InstallerPath = Join-Path $root "dist\DanteConfigEditorV3_09_Installer.exe"
+    $InstallerPath = Join-Path $root "dist\DanteConfigEditorV3_1_Installer.exe"
 }
 
 $installer = (Resolve-Path -LiteralPath $InstallerPath -ErrorAction Stop).Path
@@ -19,11 +19,13 @@ if (-not $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administra
 }
 
 $targetRegistryPaths = @(
-    "HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\{C72399DF-AC3B-4FFA-A503-D79A4D6D9380}_is1",
-    "HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\{C72399DF-AC3B-4FFA-A503-D79A4D6D9380}_is1"
+    "HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\{76E68F80-5C89-4415-A090-370CA60EB3AD}_is1",
+    "HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\{76E68F80-5C89-4415-A090-370CA60EB3AD}_is1"
 )
 
 $legacyRegistryPaths = @(
+    "HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\{C72399DF-AC3B-4FFA-A503-D79A4D6D9380}_is1",
+    "HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\{C72399DF-AC3B-4FFA-A503-D79A4D6D9380}_is1",
     "HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\{23FF6543-561B-4C55-B733-817C9F92F5AA}_is1",
     "HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\{23FF6543-561B-4C55-B733-817C9F92F5AA}_is1",
     "HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\{D9A22EA8-8370-4C6D-9E7C-DBC5A59F53A1}_is1",
@@ -65,6 +67,31 @@ function Get-AllV3InstallRecords {
     )
 }
 
+function Get-LegacyShortcutPaths {
+    $roots = @(
+        [Environment]::GetFolderPath([Environment+SpecialFolder]::Programs),
+        [Environment]::GetFolderPath([Environment+SpecialFolder]::CommonPrograms),
+        [Environment]::GetFolderPath([Environment+SpecialFolder]::DesktopDirectory),
+        [Environment]::GetFolderPath([Environment+SpecialFolder]::CommonDesktopDirectory)
+    ) | Where-Object { -not [string]::IsNullOrWhiteSpace($_) } | Select-Object -Unique
+
+    return @(
+        foreach ($rootPath in $roots) {
+            foreach ($version in @("V3.07", "V3.08", "V3.09")) {
+                $directShortcut = Join-Path $rootPath "Dante Config Editor $version.lnk"
+                if (Test-Path -LiteralPath $directShortcut) {
+                    $directShortcut
+                }
+
+                $legacyGroup = Join-Path $rootPath "Dante Config Editor $version"
+                if (Test-Path -LiteralPath $legacyGroup) {
+                    $legacyGroup
+                }
+            }
+        }
+    )
+}
+
 function Invoke-InstallerPass {
     param([Parameter(Mandatory = $true)][string]$Name)
 
@@ -85,12 +112,17 @@ function Assert-InstalledState {
 
     $targetRecords = @(Get-TargetInstallRecords)
     if ($targetRecords.Count -ne 1) {
-        throw "$Step : une seule entrée V3.09 était attendue, trouvé $($targetRecords.Count)."
+        throw "$Step : une seule entrée V3.1 était attendue, trouvé $($targetRecords.Count)."
     }
 
     $legacyRecords = @(Get-LegacyInstallRecords)
     if ($legacyRecords.Count -ne 0) {
-        throw "$Step : $($legacyRecords.Count) ancienne(s) installation(s) V3.07/V3.08 subsistent."
+        throw "$Step : $($legacyRecords.Count) ancienne(s) installation(s) V3.07/V3.08/V3.09 subsistent."
+    }
+
+    $legacyShortcuts = @(Get-LegacyShortcutPaths)
+    if ($legacyShortcuts.Count -ne 0) {
+        throw "$Step : $($legacyShortcuts.Count) ancien(s) raccourci(s) V3.07/V3.08/V3.09 subsistent : $($legacyShortcuts -join ', ')"
     }
 
     $allRecords = @(Get-AllV3InstallRecords)
@@ -132,14 +164,14 @@ function Assert-InstalledState {
         }
     }
 
-    $shortcut = Join-Path ([Environment]::GetFolderPath([Environment+SpecialFolder]::CommonPrograms)) "Dante Config Editor V3.09\Dante Config Editor V3.09.lnk"
+    $shortcut = Join-Path ([Environment]::GetFolderPath([Environment+SpecialFolder]::CommonPrograms)) "Dante Config Editor V3.1\Dante Config Editor V3.1.lnk"
     if (-not (Test-Path -LiteralPath $shortcut)) {
         throw "$Step : raccourci Menu Démarrer manquant : $shortcut"
     }
 
     $desktopShortcutCandidates = @(
-        (Join-Path ([Environment]::GetFolderPath([Environment+SpecialFolder]::DesktopDirectory)) "Dante Config Editor V3.09.lnk"),
-        (Join-Path ([Environment]::GetFolderPath([Environment+SpecialFolder]::CommonDesktopDirectory)) "Dante Config Editor V3.09.lnk")
+        (Join-Path ([Environment]::GetFolderPath([Environment+SpecialFolder]::DesktopDirectory)) "Dante Config Editor V3.1.lnk"),
+        (Join-Path ([Environment]::GetFolderPath([Environment+SpecialFolder]::CommonDesktopDirectory)) "Dante Config Editor V3.1.lnk")
     ) | Select-Object -Unique
     if (-not ($desktopShortcutCandidates | Where-Object { Test-Path -LiteralPath $_ })) {
         throw "$Step : raccourci Bureau manquant. Chemins vérifiés : $($desktopShortcutCandidates -join ', ')"
@@ -148,7 +180,7 @@ function Assert-InstalledState {
     return $record
 }
 
-# Le premier passage remplace les anciennes versions ; le second prouve que la V3.09 se met à niveau elle-même.
+# Le premier passage remplace les anciennes versions ; le second prouve que la V3.1 se met à niveau elle-même.
 Invoke-InstallerPass -Name "Installation ou remplacement initial"
 $firstRecord = Assert-InstalledState -Step "Après le premier passage"
 

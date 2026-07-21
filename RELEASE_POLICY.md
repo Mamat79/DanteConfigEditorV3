@@ -1,6 +1,6 @@
 # Politique de publication GitHub
 
-Chaque version publique de Dante Config Editor possède son propre tag Git immuable et sa propre Release GitHub. Le format historique du projet est `v3.08`, `v3.09`, puis `v3.10` pour la version suivante.
+Chaque version publique de Dante Config Editor possède son propre tag Git immuable et sa propre Release GitHub. Le format historique du projet est `v3.08`, `v3.09`, puis `v3.1` pour la version suivante demandée.
 
 Les métadonnées éditoriales réglées sur GitHub sont également conservées : nom,
 description du dépôt, titre et description de chaque Release publiée. Le dépôt

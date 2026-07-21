@@ -4,9 +4,9 @@ namespace DanteConfigEditor.Services;
 
 public static class ApplicationStoragePaths
 {
-    // La V3.09 utilise son propre espace afin de ne pas reprendre par erreur une
+    // La V3.1 utilise son propre espace afin de ne pas reprendre par erreur une
     // récupération créée par une ancienne version installée sur la machine.
-    public const string RootFolderName = "DanteConfigEditorV3.09";
+    public const string RootFolderName = "DanteConfigEditorV3.1";
 
     public static string RootPath { get; } = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),

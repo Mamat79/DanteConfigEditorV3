@@ -1,5 +1,18 @@
 # Changelog V3
 
+## 2026-07-21 - Version 3.1 - échange de labels et collaboration DMT
+
+- Import et export des labels TX/RX pour une ou plusieurs machines, avec choix des plages et prévisualisation avant application.
+- Ajout d'un format JSON versionné et d'un CSV lisible par les tableurs.
+- Lecture de la feuille `Channels` des classeurs [dLive MIDI Tools](https://github.com/togrupe/dlive-midi-tools).
+- Export vers une copie d'un modèle XLSX DMT ; le modèle original n'est jamais modifié.
+- Adaptation DMT ASCII et huit caractères visible et activée uniquement sur demande explicite.
+- Mise à jour groupée des labels et des subscriptions TX reconnues avec une seule étape d'annulation.
+- Interface d'échange disponible sur Windows et macOS.
+- Déplacement d'`Atomic Bomb` dans un onglet dédié après `Sécurité et journal` sur les deux plateformes.
+- Passage de l'application, des installateurs, des données locales et des paquets macOS en V3.1.
+- Conservation des Releases immuables `v3.08` et `v3.09` avec leurs propres artefacts.
+
 ## 2026-07-20 - Version 3.09 - exercice de dépannage atomique
 
 - Ajout d'`Atomic Bomb` dans la colonne Projet et dans `Sécurité et journal` sur Windows et macOS.

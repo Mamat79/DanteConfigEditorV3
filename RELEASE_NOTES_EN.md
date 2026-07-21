@@ -1,107 +1,70 @@
-# Dante Config Editor V3.09
+# Dante Config Editor V3.1
 
-[Français](https://github.com/Mamat79/DanteConfigEditorV3/blob/main/RELEASE_NOTES.md) | **English**
+[Notes de version en français](RELEASE_NOTES.md)
 
 ## Status
 
-Official V3.09 build for Windows x64, macOS Apple Silicon and macOS Intel. This is an unofficial third-party tool, not affiliated with Audinate, and it may still contain bugs.
+Official V3.1 build for Windows x64, macOS Apple Silicon and macOS Intel. This is an unofficial third-party tool, not affiliated with Audinate, and it may still contain bugs.
 
-V3.09 replaces V3.08 as the current version on `main` and remains the `Latest` Release. Previous versions remain available in the Releases history with their own files. Always work on a copy of Dante XML files and validate the result with official Dante tools before production use.
+V3.1 becomes the current `main` version and the `Latest` Release. Releases `v3.08` and `v3.09` remain available with their own immutable tags and files; none of their installers are replaced. Always work on a copy of Dante XML files and validate the result with official Dante tools before production use.
 
-## Why I created this tool
+## Why this tool exists
 
-I created Dante Config Editor to provide what I personally was missing in Dante Controller: a quick way to review an entire configuration without opening every page dedicated to devices, latency, sample rates, network modes, IP settings or clock status. I wanted one overview from which I could inspect the preset and correct values when necessary.
+Dante Config Editor was created to provide what I personally was missing in Dante Controller: a quick review of a complete configuration without opening every page for devices, latency, sample rates, network modes, Preferred Master state or IP settings. It provides one overview, allows required corrections and supports offline preparation.
 
-I also repeatedly encountered the same problem on already patched networks: renaming a device or TX channels could require rebuilding subscriptions and part of the patch. The editor therefore updates recognized XML references during those renames, preserving the patch as far as the preset structure allows.
+It also addresses a recurring need on already patched networks: renaming a device or TX channels without manually rebuilding every recognized subscription. The application remains an offline XML editor and never controls the live Dante network.
 
-Offline preparation is another central goal. The application can review, edit, merge and prepare a preset without connecting to the Dante network, before the final file is validated in Dante Controller.
+## Channel-label exchange and DMT
 
-## Atomic Bomb for training
+- Import and export TX or RX labels for one or several devices.
+- Choose the source set, target devices, first channel and channel count.
+- Review every mapping before the XML is changed.
+- Update recognized subscriptions when imported TX labels rename their sources.
+- Versioned JSON for complete exchange and spreadsheet-friendly CSV.
+- Read XLSX workbooks from [dLive MIDI Tools (DMT)](https://github.com/togrupe/dlive-midi-tools).
+- Export to a copy of a selected DMT template; the original workbook is never modified.
+- Show ASCII/eight-character changes in the preview and apply them only after explicit opt-in.
 
-- Thanks to **Charles Bouticourt** for the idea behind this training feature.
-- Adds a large red button in `Safety and log` to generate a deliberately disordered troubleshooting preset.
-- Three successive confirmations are required before the operation.
-- Controlled mixing of names, subscriptions, network modes, Preferred Master states, latencies, sample rates, encodings, and primary IP settings.
-- Unique, varied device names from a mythological, audio-themed, and playful catalogue, without a uniform prefix.
-- Technical identifiers, namespaces, DNS, gateways, and secondary interfaces remain protected.
-- The original file stays intact; the result must be created with `Save as`.
-- The complete scenario is one undoable action and its random seed is displayed.
+This feature was initially designed to simplify label exchange with DMT. Thanks to **togrupe** for proposing the collaboration and providing the reference format.
 
-## Easy patch
+## Atomic Bomb
 
-- The classic `Patch` view remains available.
-- `Easy patch` is a main Windows tab with RX devices/channels on the left and TX devices/channels on the right.
-- Previous/next navigation is available on both sides.
-- TX and RX lists support independent multiple selection with `Ctrl` or `Shift`.
-- Equal selection sizes are paired one-to-one.
-- One TX may feed several selected RX channels.
-- Several TX sources cannot be assigned to one RX channel.
-- Range patching uses an exact first TX, first RX and channel count.
-- Oversized ranges are fully blocked instead of being partially applied.
-- Each preview automatically joins one cumulative pending batch without changing the XML.
-- `Apply the whole batch` commits every pending operation as one XML change and one undo step.
-- Direct apply remains available for the current selection or range.
-- Existing subscriptions require an explicit replace, skip or cancel choice.
-- The compact matrix displays full TX names in tooltips.
-- Horizontal, vertical and exact diagonal gestures prepare safe patch series.
+- The large button no longer occupies the project sidebar or `Safety and log`.
+- A dedicated `Atomic Bomb` tab now follows `Safety and log` on Windows and macOS.
+- Three confirmations remain mandatory.
+- The source file, technical identifiers, DNS, gateways and secondary interfaces remain protected.
 
-## Device details
-
-- A device selector allows navigation without closing the details window.
-- Pending settings are protected by apply/discard/cancel confirmation.
-- The `RX patch` tab is locked to the displayed receiver device.
-- Compatible project TX devices remain available as sources.
-- Patch changes are applied before device/channel renaming so references follow new names.
+Special thanks to **Charles Bouticourt** for the idea behind this training feature.
 
 ## Installation
 
-- Windows defaults to `C:\Program Files\Dante Config Editor V3.09\` and creates Start menu and desktop shortcuts.
-- The V3.09 installer replaces detected V3.07/V3.08 installations and upgrades an existing V3.09 installation.
-- The Windows installer is self-contained and includes .NET 8 and both language manuals.
-- Apple Silicon and Intel DMGs are self-contained and include both language manuals.
-- SHA-256 checksum files are published for every installer and DMG.
+- Self-contained Windows installer: `DanteConfigEditorV3_1_Installer.exe`.
+- Default folder: `C:\Program Files\Dante Config Editor V3.1\`.
+- `Dante Config Editor V3.1` Start menu and desktop shortcuts.
+- .NET 8 runtime and both French/English manuals are included.
+- The installer replaces detected V3.07, V3.08 or V3.09 installations and upgrades an existing V3.1 installation.
+- Two self-contained DMGs are built for Apple Silicon and Intel Macs.
+- DMGs are ad hoc signed but are not Apple-notarized.
 
-## Platforms
+## XML safety
 
-- Windows x64: self-contained installer with the WPF interface and Easy patch.
-- macOS Apple Silicon: self-contained DMG.
-- macOS Intel: self-contained DMG.
-- The XML engine and safety guards are shared across platforms.
-- macOS retains its Avalonia visual patch workshop; the Windows Easy patch layout is not reproduced identically.
-- macOS packages are ad hoc signed and not notarized.
+- Label changes use stable device identity and channel Dante IDs.
+- Imports are staged and applied as one grouped mutation and one undo step.
+- Unknown XML values and paths remain preserved or blocked by the existing guard.
+- JSON/CSV/XLSX exports do not modify the loaded Dante project.
+- `Save as` remains atomic and backs up an existing destination.
 
-## Documentation and presentation
+## Limitations
 
-- Illustrated full user guide in French and English covering the entire application.
-- Bilingual PDF quick starts.
-- General V3.09 presentation in French and English, with readable burned-in subtitles and separate SRT files.
-- Screenshots and videos produced only from a synthetic anonymized preset.
+- Final compatibility can only be confirmed by a successful import into Dante Controller or the appropriate official Dante tool.
+- DMT XLSX support targets the `Channels` sheet observed in DMT 2.13.0; a future template change may require an update.
+- Label exchange is file and range based, not a live connection between both applications.
+- The Windows installer is not Authenticode signed and the DMGs are not notarized.
 
-## Automated validation
+## Credit
 
-- 100 Core/Windows contract tests and 9 headless macOS UI tests pass in Release mode.
-- WPF and Avalonia Release builds complete without warnings.
-- Tests cover selection, ranges, conflicts, replacement, rollback, persistence, matrix behavior, XML guards, atomic saves, namespaces, secondary interfaces and synthetic large presets.
-
-## Important limitations
-
-- The application does not control a live Dante network.
-- It does not use an Audinate SDK or API.
-- It only edits offline XML files.
-- Compatibility depends on the actual preset structure.
-- Duplicate TX names on one device remain ambiguous.
-- Only a successful Dante Controller import can provide final compatibility proof.
-- The Windows installer is not Authenticode signed.
-- The macOS DMGs are not Apple-notarized.
-
-## Origin and credit
-
-The project started as a small personal XML editor written manually by Mamat. Modern development agents then enabled a substantial evolution of the interface, XML safeguards, automated tests, documentation and packaging, under Mamat's functional direction.
+The project started as a small personal XML editor written manually by Mamat. Modern development agents then accelerated the interface, XML safeguards, automated tests, documentation and packaging under Mamat's functional direction.
 
 **By Mamat et ses agents**
 
-Special thanks to **Charles Bouticourt** for the idea behind the `Atomic Bomb` feature.
-
-## Public repository
-
-https://github.com/Mamat79/DanteConfigEditorV3
+Public repository: https://github.com/Mamat79/DanteConfigEditorV3

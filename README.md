@@ -1,14 +1,14 @@
-# Dante Config Editor V3.09
+# Dante Config Editor V3.1
 
 **Français** | [English](README_EN.md)
 
-Version officielle V3.09 Windows et macOS de la branche `main` pour éditer hors ligne des fichiers XML de configuration Dante.
+Version officielle V3.1 Windows et macOS de la branche `main` pour éditer hors ligne des fichiers XML de configuration Dante.
 
-**Téléchargement direct : [Windows x64](https://github.com/Mamat79/DanteConfigEditorV3/releases/download/v3.09/DanteConfigEditorV3_09_Installer.exe) | [macOS Apple Silicon](https://github.com/Mamat79/DanteConfigEditorV3/releases/download/v3.09/DanteConfigEditorV3_macOS_AppleSilicon.dmg) | [macOS Intel](https://github.com/Mamat79/DanteConfigEditorV3/releases/download/v3.09/DanteConfigEditorV3_macOS_Intel.dmg)**
+**Téléchargement direct : [Windows x64](https://github.com/Mamat79/DanteConfigEditorV3/releases/download/v3.1/DanteConfigEditorV3_1_Installer.exe) | [macOS Apple Silicon](https://github.com/Mamat79/DanteConfigEditorV3/releases/download/v3.1/DanteConfigEditorV3_macOS_AppleSilicon.dmg) | [macOS Intel](https://github.com/Mamat79/DanteConfigEditorV3/releases/download/v3.1/DanteConfigEditorV3_macOS_Intel.dmg)**
 
-**English summary:** Offline Dante XML configuration editor for Windows and macOS. Inspect devices and channels, rename TX/RX channels, edit subscriptions with Easy patch, merge presets and save with XML safety checks. This is an unofficial third-party tool and does not connect to a live Dante network.
+**English summary:** Offline Dante XML configuration editor for Windows and macOS. Inspect devices and channels, rename TX/RX channels, exchange labels through JSON, CSV or DMT workbooks, edit subscriptions, merge presets and save with XML safety checks. This is an unofficial third-party tool and does not connect to a live Dante network.
 
-> **Statut : V3.09 officielle Windows et macOS. Outil tiers non officiel Audinate.**
+> **Statut : V3.1 officielle Windows et macOS. Outil tiers non officiel Audinate.**
 > Cette version peut encore contenir des bugs. Les versions précédentes restent accessibles dans l'historique des Releases GitHub. Travaillez toujours sur une copie et validez le XML généré dans les outils Dante officiels.
 
 ## Origine et développement assisté
@@ -20,6 +20,12 @@ Un autre problème récurrent concernait les renommages sur un réseau déjà pa
 Enfin, le workflow hors ligne disponible dans Dante Controller ne répondait pas au besoin d'une préparation globale et rapide. Pouvoir contrôler, modifier, fusionner et préparer un preset sans être connecté au réseau Dante est ainsi devenu l'un des objectifs centraux du projet.
 
 L'arrivée des agents de développement actuels a permis de faire évoluer ce simple éditeur XML beaucoup plus rapidement : sécurisation des sauvegardes, tests de non-régression, interface bilingue, installateurs autonomes, version macOS, rapports et outils de patch plus élaborés. Les besoins métier, les choix fonctionnels et la validation d'usage restent dirigés par Mamat ; les agents participent à l'analyse, au développement, aux tests et à la documentation.
+
+## Échange de labels et collaboration DMT
+
+La V3.1 ajoute un échange de noms de canaux pour une ou plusieurs machines. L'utilisateur peut exporter les labels TX ou RX en JSON ou CSV, les réimporter avec choix des machines et des plages, puis vérifier chaque correspondance avant application. Les renommages TX continuent de mettre à jour les subscriptions XML reconnues.
+
+Cette passerelle a d'abord été pensée pour une collaboration avec [dLive MIDI Tools (DMT) de togrupe](https://github.com/togrupe/dlive-midi-tools). Dante Config Editor sait lire la feuille `Channels` d'un classeur XLSX DMT et créer une copie de ce modèle avec les labels exportés. Le modèle original n'est jamais modifié. DMT limitant ses noms à huit caractères ASCII, toute adaptation est affichée dans l'aperçu et doit être activée explicitement ; JSON et CSV conservent les labels complets Unicode.
 
 ## Présentation générale
 
@@ -42,6 +48,7 @@ Les captures, notices et vidéos utilisent uniquement un preset synthétique ano
 - Propose de renommer automatiquement ou manuellement les machines en doublon pendant l'import XML.
 - Renomme les canaux TX/RX.
 - Renomme des plages de canaux en série.
+- Importe et exporte des labels de canaux pour une ou plusieurs machines en JSON, CSV ou classeur XLSX DMT, avec plages et prévisualisation.
 - Réinitialise les noms de canaux.
 - Modifie les paramètres réseau et audio exposés par les fichiers XML reconnus.
 - Affiche une page Patch pour visualiser et modifier les abonnements RX vers TX lorsque le format XML le permet.
@@ -95,18 +102,18 @@ Les captures, notices et vidéos utilisent uniquement un preset synthétique ano
 
 ## Télécharger / installer
 
-Le fichier recommandé est fourni dans la [Release GitHub V3.09](https://github.com/Mamat79/DanteConfigEditorV3/releases/tag/v3.09) :
+Le fichier recommandé est fourni dans la [Release GitHub V3.1](https://github.com/Mamat79/DanteConfigEditorV3/releases/tag/v3.1) :
 
-- [`DanteConfigEditorV3_09_Installer.exe`](https://github.com/Mamat79/DanteConfigEditorV3/releases/download/v3.09/DanteConfigEditorV3_09_Installer.exe) : installateur Windows autonome, avec installation par défaut dans Program Files, choix du dossier, raccourcis menu Démarrer et Bureau, et désinstallation propre.
+- [`DanteConfigEditorV3_1_Installer.exe`](https://github.com/Mamat79/DanteConfigEditorV3/releases/download/v3.1/DanteConfigEditorV3_1_Installer.exe) : installateur Windows autonome, avec installation par défaut dans Program Files, choix du dossier, raccourcis menu Démarrer et Bureau, et désinstallation propre.
 
 La version autonome inclut le runtime .NET nécessaire. Sur une machine Windows x64, il ne devrait pas être nécessaire d'installer .NET séparément pour utiliser l'application.
 
 ### macOS
 
-La Release V3.09 fournit deux DMG autonomes :
+La Release V3.1 fournit deux DMG autonomes :
 
-- [`DanteConfigEditorV3_macOS_AppleSilicon.dmg`](https://github.com/Mamat79/DanteConfigEditorV3/releases/download/v3.09/DanteConfigEditorV3_macOS_AppleSilicon.dmg) pour les Mac M1, M2, M3, M4 et suivants ;
-- [`DanteConfigEditorV3_macOS_Intel.dmg`](https://github.com/Mamat79/DanteConfigEditorV3/releases/download/v3.09/DanteConfigEditorV3_macOS_Intel.dmg) pour les Mac Intel 64 bits.
+- [`DanteConfigEditorV3_macOS_AppleSilicon.dmg`](https://github.com/Mamat79/DanteConfigEditorV3/releases/download/v3.1/DanteConfigEditorV3_macOS_AppleSilicon.dmg) pour les Mac M1, M2, M3, M4 et suivants ;
+- [`DanteConfigEditorV3_macOS_Intel.dmg`](https://github.com/Mamat79/DanteConfigEditorV3/releases/download/v3.1/DanteConfigEditorV3_macOS_Intel.dmg) pour les Mac Intel 64 bits.
 
 Ouvrir le DMG, puis glisser `Dante Config Editor` dans `Applications`. Le runtime .NET 8 et les notices FR/EN sont inclus.
 
@@ -123,14 +130,15 @@ Notices fournies :
 
 Dans l'application, les boutons d'aide ouvrent automatiquement les fichiers FR ou EN selon la langue active.
 
-La V3.09 utilise un AppId, un dossier Program Files, un menu Démarrer et un stockage local dédiés. Son installateur détecte les V3.07 et V3.08, demande leur remplacement en mode interactif, puis les désinstalle avant de poser la V3.09. Une seconde exécution met à niveau la V3.09 existante.
+La V3.1 utilise un AppId, un dossier Program Files, un menu Démarrer et un stockage local dédiés. Son installateur détecte les V3.07, V3.08 et V3.09, demande leur remplacement en mode interactif, puis les désinstalle avant de poser la V3.1. Une seconde exécution met à niveau la V3.1 existante.
 
 ## Version distribuée
 
-- La branche `main` contient la V3.09 officielle pour Windows et macOS.
+- La branche `main` contient la V3.1 officielle pour Windows et macOS.
 - `main` est l'unique branche publiée sur GitHub.
-- La Release `v3.09` fournit un installateur Windows x64 et deux DMG macOS, Apple Silicon et Intel.
-- `v3.09` reste la version la plus récente et la Release `Latest`.
+- La Release `v3.1` fournit un installateur Windows x64 et deux DMG macOS, Apple Silicon et Intel.
+- `v3.1` devient la version la plus récente et la Release `Latest`.
+- Les Releases historiques [`v3.09`](https://github.com/Mamat79/DanteConfigEditorV3/releases/tag/v3.09) et [`v3.08`](https://github.com/Mamat79/DanteConfigEditorV3/releases/tag/v3.08) restent accessibles avec leurs propres fichiers.
 - La [Release historique `v3.08`](https://github.com/Mamat79/DanteConfigEditorV3/releases/tag/v3.08) conserve ses propres installateurs et documents.
 - Chaque version utilise un tag immuable distinct selon [la politique de publication](RELEASE_POLICY.md).
 - L'historique fonctionnel reste également consultable dans les commits de `main` et dans `CHANGELOG_V3.md`.
@@ -151,7 +159,7 @@ La V3.09 utilise un AppId, un dossier Program Files, un menu Démarrer et un sto
 
 ## Atomic Bomb : exercice de dépannage
 
-`Atomic Bomb`, visible dans la colonne Projet et dans `Sécurité et journal`, sert à préparer un réseau volontairement en désordre pour une formation. Il agit uniquement sur la copie XML chargée en mémoire et demande trois confirmations successives.
+`Atomic Bomb`, rangé dans son propre onglet après `Sécurité et journal`, sert à préparer un réseau volontairement en désordre pour une formation. Il agit uniquement sur la copie XML chargée en mémoire et demande trois confirmations successives.
 
 Merci à **Charles Bouticourt** pour l'idée de cette fonction de formation.
 
@@ -166,6 +174,16 @@ Les machines reçoivent des noms uniques choisis dans un catalogue mythologique,
 - Le fichier source n'est jamais écrit : utilisez `Enregistrer sous` pour créer le preset destiné aux stagiaires.
 
 Le résultat est volontairement incohérent sur le plan fonctionnel. Il reste indispensable de l'importer dans l'outil Dante officiel approprié avant de l'utiliser comme support d'exercice.
+
+## Nouveautés V3.1
+
+- Échange de labels TX/RX pour une ou plusieurs machines avec sélection des plages et aperçu avant application.
+- Formats JSON et CSV documentés pour les échanges génériques et les collaborations avec d'autres outils.
+- Lecture et export par copie de classeurs XLSX issus de [dLive MIDI Tools](https://github.com/togrupe/dlive-midi-tools), avec adaptation DMT ASCII/8 caractères uniquement sur demande explicite.
+- Même workflow de labels sur Windows et macOS, fondé sur le moteur XML partagé.
+- Déplacement d'`Atomic Bomb` dans un onglet dédié afin qu'il ne monopolise plus la navigation principale.
+- Installateur V3.1 remplaçant proprement les V3.07, V3.08 et V3.09 installées.
+- Nouveau tag immuable `v3.1` ; les Releases `v3.08` et `v3.09` restent intactes.
 
 ## Nouveautés V3.09
 

@@ -2,7 +2,7 @@
 
 ## Objectif
 
-La V3.09 conserve le projet existant et extrait progressivement les responsabilités risquées. Il n'y a pas de réécriture générale : chaque déplacement doit préserver le XML produit, rester couvert par les tests et faire l'objet d'un commit isolé.
+La V3.1 conserve le projet existant et extrait progressivement les responsabilités risquées. Il n'y a pas de réécriture générale : chaque déplacement doit préserver le XML produit, rester couvert par les tests et faire l'objet d'un commit isolé.
 
 ## Projets
 
@@ -28,6 +28,7 @@ La V3.09 conserve le projet existant et extrait progressivement les responsabili
 | récupération | `MainWindow.Recovery.cs`, `Services/SessionRecoveryService.cs` | écriture asynchrone temporisée liée à la destination active |
 | garde-fou XML | `Services/DanteXmlChangeGuardService.cs` | chemins inconnus bloqués et identités techniques protégées |
 | patch visuel partagé | `Services/PatchAssignmentPlanner.cs`, `Services/PatchWorkspaceSession.cs` | changements en attente puis lot unique et annulable |
+| échange de labels | `Services/ChannelLabelExchangeService.cs`, `Services/DmtChannelWorkbookService.cs`, `Services/ChannelLabelTransferPlanner.cs` | aperçu avant application, modèle DMT original intact, lot unique et références TX mises à jour |
 
 Les interfaces `PatchWorkspaceWindow` (WPF) et `PatchWorkspaceDialog` (Avalonia) restent propres à chaque plateforme, mais utilisent le même planificateur et la même session partagée.
 

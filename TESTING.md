@@ -1,5 +1,49 @@
 # Tests et historique V3
 
+## Validation locale de la V3.1 officielle du 2026-07-21
+
+Source validée avant création du tag `v3.1` :
+
+- branche : `main` ;
+- système local : Windows `10.0.26200`, `win-x64` ;
+- .NET SDK `8.0.423` ;
+- Inno Setup `6.7.3`.
+
+Résultats locaux :
+
+- 114 tests Core et contrats Windows réussis, 0 échec, 0 ignoré ;
+- 9 tests Avalonia sans écran réussis, 0 échec, 0 ignoré ;
+- builds WPF et Avalonia Release réussis, 0 warning, 0 erreur ;
+- publications autonomes `win-x64`, `osx-arm64` et `osx-x64` réussies ;
+- aucun package vulnérable signalé pour les applications Windows et macOS avec les sources NuGet consultées le 2026-07-21 ;
+- Quick Start FR/EN : 1 page chacun ; notices complètes FR/EN : 10 pages chacune ;
+- extraction de texte PDF contrôlée avec `V3.1`, `DMT`, `Atomic Bomb` et `By Mamat et ses agents`, sans caractère `Ø` parasite ni caractère Unicode de remplacement.
+
+Échange de labels DMT :
+
+- JSON et CSV testés avec plusieurs machines, directions TX/RX, Unicode et champs CSV protégés ;
+- plages appliquées à plusieurs machines et renommage TX avec mise à jour des subscriptions testés ;
+- lecture réussie des cinq modèles locaux DMT 2.13.0 : Avantis, Avantis Mat, dLive, dLive Mat et Mixing Station ;
+- export réel dans une copie temporaire de `dLiveChannelList.xlsx` réussi avec adaptation explicite `TrèsLongLabel` vers `TresLong` et `Chœur` vers `Choeur` ;
+- hash SHA-256 du modèle DMT source inchangé après l'export ; la copie temporaire a été supprimée après le contrôle.
+
+Installateur Windows :
+
+- fichier : `dist/DanteConfigEditorV3_1_Installer.exe` ;
+- taille : `68 782 698` octets ;
+- version produit : `3.1`, version fichier : `3.1.0` ;
+- SHA-256 : `DFA2634F035C0522961AC7A00CD26476260E22FAF460CD46FFAAB820749D7E1B` ;
+- deux passages silencieux successifs réussis avec code retour 0 ;
+- une seule installation présente dans `C:\Program Files\Dante Config Editor V3.1\` ;
+- ancienne V3.09 supprimée et aucun raccourci V3.07/V3.08/V3.09 restant dans les menus Démarrer ou sur le Bureau ;
+- raccourcis V3.1 Menu Démarrer et Bureau présents ;
+- lancement réel de l'exécutable installé réussi, titre `Dante Config Editor V3.1` ;
+- preset synthétique `representative-preset.xml` chargé : 3 devices, 3 TX, 4 RX et 3 patchs actifs ;
+- commandes `Importer des labels` et `Exporter des labels` actives ; fenêtre d'export contrôlée avec choix multi-machine, JSON, CSV, XLSX DMT, aperçu et adaptation DMT explicite ;
+- onglet `Atomic Bomb` présent après `Sécurité et journal`, avec bouton dédié et trois confirmations annoncées.
+
+Limites de cette validation : les publications macOS ont été produites depuis Windows, mais les DMG signés ad hoc doivent encore être assemblés et vérifiés par le workflow macOS. Aucun lancement manuel n'a été effectué sur un Mac physique, aucune notarisation Apple et aucun import dans Dante Controller ou test sur matériel Dante réel ne sont revendiqués.
+
 ## Validation locale de la V3.09 officielle du 2026-07-20
 
 Source validée avant ajout de ce relevé :
