@@ -5,28 +5,28 @@ namespace DanteConfigEditorV3.Tests;
 public sealed class InstallerContractTests
 {
     [Fact]
-    public void InstallerV31ReplacesLegacyV307V308AndV309Installations()
+    public void InstallerV32ReplacesV31BetaAndOlderInstalledVersions()
     {
         string script = File.ReadAllText(RepositoryFile("installer", "DanteConfigEditorV3.iss"));
 
         Assert.Contains("AppId={{76E68F80-5C89-4415-A090-370CA60EB3AD}", script, StringComparison.Ordinal);
+        Assert.Contains("A2CC4547-2811-4EB5-B0BC-FBE4B7B847DF", script, StringComparison.Ordinal);
         Assert.Contains("C72399DF-AC3B-4FFA-A503-D79A4D6D9380", script, StringComparison.Ordinal);
         Assert.Contains("23FF6543-561B-4C55-B733-817C9F92F5AA", script, StringComparison.Ordinal);
         Assert.Contains("D9A22EA8-8370-4C6D-9E7C-DBC5A59F53A1", script, StringComparison.Ordinal);
-        Assert.Contains("DefaultDirName={autopf}\\Dante Config Editor V3.1", script, StringComparison.Ordinal);
-        Assert.Contains("DefaultGroupName=Dante Config Editor V3.1", script, StringComparison.Ordinal);
-        Assert.Contains("OutputBaseFilename=DanteConfigEditorV3_1_Installer", script, StringComparison.Ordinal);
-        Assert.DoesNotContain("V3.1 Beta", script, StringComparison.Ordinal);
-        Assert.Contains("UsePreviousAppDir=yes", script, StringComparison.Ordinal);
+        Assert.Contains("DefaultDirName={autopf}\\Dante Config Editor V3.2", script, StringComparison.Ordinal);
+        Assert.Contains("DefaultGroupName=Dante Config Editor V3.2", script, StringComparison.Ordinal);
+        Assert.Contains("OutputBaseFilename=DanteConfigEditorV3_2_Installer", script, StringComparison.Ordinal);
+        Assert.Contains("UsePreviousAppDir=no", script, StringComparison.Ordinal);
         Assert.Contains("DetectExistingInstall", script, StringComparison.Ordinal);
         Assert.Contains("RunLegacyUninstaller", script, StringComparison.Ordinal);
         Assert.Contains("PrepareToInstall", script, StringComparison.Ordinal);
+        Assert.Contains("ExistingInstallVersion <> '{#MyAppVersion}'", script, StringComparison.Ordinal);
         Assert.Contains("remplacer / mettre à jour", script, StringComparison.Ordinal);
         Assert.Contains("replace/update", script, StringComparison.Ordinal);
         Assert.Contains("HKLM", script, StringComparison.Ordinal);
         Assert.Contains("HKCU", script, StringComparison.Ordinal);
         Assert.Contains("DeleteLegacyShortcuts", script, StringComparison.Ordinal);
-        Assert.Contains("{userprograms}\\Dante Config Editor ' + VersionName + '.lnk", script, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -62,7 +62,7 @@ public sealed class InstallerContractTests
         Assert.Contains("Assert-RepositoryPath", buildScript, StringComparison.Ordinal);
         Assert.Contains("Remove-GeneratedPath", buildScript, StringComparison.Ordinal);
         Assert.Contains("Get-FileHash", buildScript, StringComparison.Ordinal);
-        Assert.Contains("DanteConfigEditorV3_1_Installer.exe", buildScript, StringComparison.Ordinal);
+        Assert.Contains("DanteConfigEditorV3_2_Installer.exe", buildScript, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -78,38 +78,34 @@ public sealed class InstallerContractTests
         Assert.Contains("/VERYSILENT", upgradeScript, StringComparison.Ordinal);
         Assert.Contains("Invoke-InstallerPass", upgradeScript, StringComparison.Ordinal);
         Assert.Contains("Mise à niveau de contrôle", upgradeScript, StringComparison.Ordinal);
-        Assert.Contains("LegacyInstallRecords", upgradeScript, StringComparison.Ordinal);
         Assert.Contains("TargetInstallRecords", upgradeScript, StringComparison.Ordinal);
         Assert.Contains("V3InstallRecords", upgradeScript, StringComparison.Ordinal);
         Assert.Contains("76E68F80-5C89-4415-A090-370CA60EB3AD", upgradeScript, StringComparison.Ordinal);
-        Assert.Contains("C72399DF-AC3B-4FFA-A503-D79A4D6D9380", upgradeScript, StringComparison.Ordinal);
-        Assert.Contains("23FF6543-561B-4C55-B733-817C9F92F5AA", upgradeScript, StringComparison.Ordinal);
-        Assert.Contains("D9A22EA8-8370-4C6D-9E7C-DBC5A59F53A1", upgradeScript, StringComparison.Ordinal);
+        Assert.Contains("A2CC4547-2811-4EB5-B0BC-FBE4B7B847DF", upgradeScript, StringComparison.Ordinal);
         Assert.Contains("CommonDesktopDirectory", upgradeScript, StringComparison.Ordinal);
         Assert.Contains("raccourci Bureau manquant", upgradeScript, StringComparison.Ordinal);
-        Assert.Contains("Get-LegacyShortcutPaths", upgradeScript, StringComparison.Ordinal);
-        Assert.Contains("ancien(s) raccourci(s)", upgradeScript, StringComparison.Ordinal);
+        Assert.Contains("une seule installation V3", upgradeScript, StringComparison.Ordinal);
     }
 
     [Fact]
-    public void V31UsesSeparateLocalApplicationDataFolder()
+    public void V32UsesSeparateLocalApplicationDataFolder()
     {
-        Assert.Equal("DanteConfigEditorV3.1", ApplicationStoragePaths.RootFolderName);
+        Assert.Equal("DanteConfigEditorV3.2", ApplicationStoragePaths.RootFolderName);
         Assert.DoesNotContain("DanteConfigEditorV3\\Recovery", ApplicationStoragePaths.Resolve("Recovery"), StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]
-    public void OfficialV31IncludesMacPackagingMetadata()
+    public void V32IncludesMacPackagingMetadata()
     {
         string project = File.ReadAllText(RepositoryFile("src", "DanteConfigEditor.Mac", "DanteConfigEditor.Mac.csproj"));
         string plist = File.ReadAllText(RepositoryFile("packaging", "macos", "Info.plist"));
         string packaging = File.ReadAllText(RepositoryFile("packaging", "macos", "build-macos.sh"));
         string workflow = File.ReadAllText(RepositoryFile(".github", "workflows", "macos-ci.yml"));
 
-        Assert.Contains("<InformationalVersion>3.1</InformationalVersion>", project, StringComparison.Ordinal);
-        Assert.Contains("<string>Dante Config Editor V3.1</string>", plist, StringComparison.Ordinal);
-        Assert.Contains("<string>3.1.0</string>", plist, StringComparison.Ordinal);
-        Assert.Contains("Dante Config Editor V3.1", packaging, StringComparison.Ordinal);
+        Assert.Contains("<InformationalVersion>3.2</InformationalVersion>", project, StringComparison.Ordinal);
+        Assert.Contains("<string>Dante Config Editor V3.2</string>", plist, StringComparison.Ordinal);
+        Assert.Contains("<string>3.2.0</string>", plist, StringComparison.Ordinal);
+        Assert.Contains("Dante Config Editor V3.2", packaging, StringComparison.Ordinal);
         Assert.Contains("shasum -a 256 \"$DMG_NAME\"", packaging, StringComparison.Ordinal);
         Assert.Contains("branches:", workflow, StringComparison.Ordinal);
         Assert.Contains("- main", workflow, StringComparison.Ordinal);

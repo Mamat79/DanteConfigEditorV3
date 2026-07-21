@@ -15,7 +15,7 @@ namespace DanteConfigEditor.Mac.Tests;
 public sealed class MainWindowTests
 {
     [AvaloniaFact]
-    public void OfficialV31VersionIsShownInMacApplication()
+    public void OfficialV32VersionIsShownInMacApplication()
     {
         string version = typeof(MainWindow).Assembly
             .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?
@@ -24,8 +24,8 @@ public sealed class MainWindowTests
         window.Show();
         try
         {
-            Assert.Equal("3.1", version);
-            Assert.Equal("Dante Config Editor V3.1 - macOS", window.Title);
+            Assert.Equal("3.2", version);
+            Assert.Equal("Dante Config Editor V3.2 - macOS", window.Title);
         }
         finally
         {
