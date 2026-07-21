@@ -2,7 +2,7 @@
 
 ## 2026-07-21 - Maintenance de main après V3.1
 
-- Nouvel onglet visible `Labels / DMT` sur Windows et macOS avec les deux sens d'échange et un accès direct au projet DMT.
+- Nouvel onglet générique `Labels` sur Windows et macOS pour importer ou exporter en JSON, CSV ou XLSX, avec compatibilité DMT dLive / Avantis clairement indiquée au niveau du format.
 
 ## 2026-07-21 - Version 3.1 - échange de labels et collaboration DMT
 

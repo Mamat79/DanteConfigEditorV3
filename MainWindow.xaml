@@ -1157,7 +1157,7 @@
                     </ContentControl>
                 </TabItem>
 
-                <TabItem x:Name="ChannelLabelsTab" Header="Labels / DMT">
+                <TabItem x:Name="ChannelLabelsTab" Header="Labels">
                     <Grid Margin="0,12,0,0">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
@@ -1171,10 +1171,10 @@
                                 CornerRadius="6"
                                 Padding="18">
                             <StackPanel>
-                                <TextBlock Text="Échange de labels avec dLive MIDI Tools (DMT)"
+                                <TextBlock Text="Import et export de labels"
                                            FontSize="18"
                                            FontWeight="SemiBold" />
-                                <TextBlock Text="Échange hors ligne par fichiers. Choisissez le sens du transfert."
+                                <TextBlock Text="Formats JSON et CSV, plus XLSX compatible DMT pour dLive / Avantis."
                                            Margin="0,6,0,0"
                                            Foreground="{DynamicResource MutedTextBrush}" />
                             </StackPanel>
@@ -1189,43 +1189,43 @@
                                 <ColumnDefinition Width="*" />
                             </Grid.ColumnDefinitions>
 
-                            <GroupBox Header="DMT → Dante Config Editor" Margin="0,0,10,0" Padding="22">
+                            <GroupBox Header="Importer des labels" Margin="0,0,10,0" Padding="22">
                                 <StackPanel>
-                                    <TextBlock Text="Importez les labels de la feuille Channels d'un fichier XLSX DMT, ou depuis un fichier JSON/CSV."
+                                    <TextBlock Text="Importez un fichier JSON, CSV ou XLSX. Les modèles DMT dLive et Avantis sont pris en charge."
                                                TextWrapping="Wrap"
                                                Foreground="{DynamicResource MutedTextBrush}"
                                                Margin="0,0,0,18" />
                                     <Button x:Name="ImportChannelLabelsButton"
-                                            Content="Importer depuis DMT / JSON / CSV"
+                                            Content="Importer des labels"
                                             HorizontalAlignment="Stretch"
                                             Click="ImportChannelLabelsButton_Click"
-                                            ToolTip="Lit un fichier DMT, JSON ou CSV, puis prévisualise les labels avant de les appliquer aux machines Dante." />
+                                            ToolTip="Lit un fichier JSON, CSV ou XLSX compatible DMT, puis prévisualise les labels avant de les appliquer aux machines Dante." />
                                 </StackPanel>
                             </GroupBox>
 
-                            <GroupBox Grid.Column="1" Header="Dante Config Editor → DMT" Margin="10,0,0,0" Padding="22">
+                            <GroupBox Grid.Column="1" Header="Exporter des labels" Margin="10,0,0,0" Padding="22">
                                 <StackPanel>
-                                    <TextBlock Text="Exportez les labels Dante en JSON/CSV, ou créez une copie d'un modèle XLSX DMT."
+                                    <TextBlock Text="Exportez en JSON ou CSV, ou créez une copie d'un modèle XLSX DMT dLive / Avantis."
                                                TextWrapping="Wrap"
                                                Foreground="{DynamicResource MutedTextBrush}"
                                                Margin="0,0,0,18" />
                                     <Button x:Name="ExportChannelLabelsButton"
-                                            Content="Exporter vers DMT / JSON / CSV"
+                                            Content="Exporter des labels"
                                             HorizontalAlignment="Stretch"
                                             Click="ExportChannelLabelsButton_Click"
-                                            ToolTip="Exporte les labels TX/RX. Pour DMT, une copie du modèle XLSX choisi est créée et l'original reste intact." />
+                                            ToolTip="Exporte les labels TX/RX en JSON, CSV ou XLSX. Pour DMT, une copie du modèle choisi est créée et l'original reste intact." />
                                 </StackPanel>
                             </GroupBox>
                         </Grid>
 
                         <Button x:Name="OpenDmtProjectButton"
                                 Grid.Row="2"
-                                Content="Ouvrir le projet dLive MIDI Tools (DMT)"
+                                Content="Compatibilité DMT dLive / Avantis - ouvrir le projet"
                                 Style="{StaticResource SecondaryButtonStyle}"
                                 HorizontalAlignment="Center"
                                 Margin="0,18,0,6"
                                 Click="OpenDmtProjectButton_Click"
-                                ToolTip="Ouvre la page GitHub officielle de dLive MIDI Tools par togrupe." />
+                                ToolTip="Ouvre la page GitHub de dLive MIDI Tools par togrupe, dont les modèles dLive et Avantis sont compatibles." />
                     </Grid>
                 </TabItem>
 

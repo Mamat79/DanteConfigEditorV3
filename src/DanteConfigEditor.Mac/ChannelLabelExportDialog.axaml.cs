@@ -59,7 +59,7 @@ internal sealed partial class ChannelLabelExportDialog : Window
         {
             new ChoiceValue("json", Local("JSON - échange recommandé", "JSON - recommended exchange")),
             new ChoiceValue("csv", Local("CSV - tableau universel", "CSV - universal table")),
-            new ChoiceValue("xlsx", Local("XLSX - copie d'un modèle DMT", "XLSX - copy of a DMT template"))
+            new ChoiceValue("xlsx", Local("XLSX - modèle DMT dLive / Avantis", "XLSX - DMT template for dLive / Avantis"))
         };
         FindControl<ComboBox>("FormatCombo")!.SelectedIndex = 0;
         FindControl<ComboBox>("KindCombo")!.ItemsSource = new ChoiceValue[]
@@ -74,8 +74,8 @@ internal sealed partial class ChannelLabelExportDialog : Window
     {
         Title = Local("Exporter des labels de canaux", "Export channel labels");
         FindControl<TextBlock>("IntroText")!.Text = Local(
-            "Sélectionnez les machines et le format. JSON et CSV conservent les labels complets ; XLSX DMT utilise une copie de son modèle.",
-            "Select devices and a format. JSON and CSV preserve full labels; DMT XLSX uses a copy of its template.");
+            "Sélectionnez les machines et le format. JSON et CSV sont génériques ; XLSX utilise une copie d'un modèle DMT dLive / Avantis.",
+            "Select devices and a format. JSON and CSV are generic; XLSX uses a copy of a DMT template for dLive / Avantis.");
         FindControl<TextBlock>("DevicesTitle")!.Text = Local("Machines à exporter", "Devices to export");
         DataGrid devices = FindControl<DataGrid>("DevicesGrid")!;
         devices.Columns[0].Header = Local("Utiliser", "Use");
@@ -86,8 +86,8 @@ internal sealed partial class ChannelLabelExportDialog : Window
         FindControl<TextBlock>("StartLabel")!.Text = Local("Premier canal", "First channel");
         FindControl<TextBlock>("CountLabel")!.Text = Local("Nombre (0 = tous)", "Count (0 = all)");
         FindControl<CheckBox>("AdaptDmtCheckBox")!.Content = Local(
-            "Adapter explicitement à DMT : ASCII et 8 caractères",
-            "Explicitly adapt for DMT: ASCII and 8 characters");
+            "Adapter au format DMT : ASCII et 8 caractères",
+            "Adapt to DMT format: ASCII and 8 characters");
         FindControl<Button>("PreviewButton")!.Content = Local("Actualiser l'aperçu", "Refresh preview");
         FindControl<TextBlock>("PreviewTitle")!.Text = Local("Labels exportés", "Exported labels");
         DataGrid preview = FindControl<DataGrid>("PreviewGrid")!;

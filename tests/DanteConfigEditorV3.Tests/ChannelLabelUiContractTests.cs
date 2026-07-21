@@ -13,16 +13,20 @@ public sealed class ChannelLabelUiContractTests
         Assert.Contains("ImportChannelLabelsButton", windowsXaml, StringComparison.Ordinal);
         Assert.Contains("ExportChannelLabelsButton", windowsXaml, StringComparison.Ordinal);
         Assert.Contains("ChannelLabelsTab", windowsXaml, StringComparison.Ordinal);
-        Assert.Contains("DMT → Dante Config Editor", windowsXaml, StringComparison.Ordinal);
-        Assert.Contains("Dante Config Editor → DMT", windowsXaml, StringComparison.Ordinal);
+        Assert.Contains("Header=\"Labels\"", windowsXaml, StringComparison.Ordinal);
+        Assert.Contains("Importer des labels", windowsXaml, StringComparison.Ordinal);
+        Assert.Contains("Exporter des labels", windowsXaml, StringComparison.Ordinal);
+        Assert.Contains("dLive / Avantis", windowsXaml, StringComparison.Ordinal);
         Assert.Contains("https://github.com/togrupe/dlive-midi-tools", windowsCode, StringComparison.Ordinal);
         Assert.Contains("ChannelLabelImportWindow", windowsCode, StringComparison.Ordinal);
         Assert.Contains("ChannelLabelExportWindow", windowsCode, StringComparison.Ordinal);
         Assert.Contains("ImportChannelLabelsButton", macXaml, StringComparison.Ordinal);
         Assert.Contains("ExportChannelLabelsButton", macXaml, StringComparison.Ordinal);
         Assert.Contains("ChannelLabelsTab", macXaml, StringComparison.Ordinal);
-        Assert.Contains("DMT → Dante Config Editor", macXaml, StringComparison.Ordinal);
-        Assert.Contains("Dante Config Editor → DMT", macXaml, StringComparison.Ordinal);
+        Assert.Contains("Header=\"Labels\"", macXaml, StringComparison.Ordinal);
+        Assert.Contains("Importer des labels", macXaml, StringComparison.Ordinal);
+        Assert.Contains("Exporter des labels", macXaml, StringComparison.Ordinal);
+        Assert.Contains("dLive / Avantis", macXaml, StringComparison.Ordinal);
         Assert.Contains("https://github.com/togrupe/dlive-midi-tools", macCode, StringComparison.Ordinal);
         Assert.Contains("ChannelLabelImportDialog", macCode, StringComparison.Ordinal);
         Assert.Contains("ChannelLabelExportDialog", macCode, StringComparison.Ordinal);
@@ -38,8 +42,10 @@ public sealed class ChannelLabelUiContractTests
 
         Assert.Contains("PreviewGrid", windowsImport, StringComparison.Ordinal);
         Assert.Contains("AdaptDmtCheckBox", windowsExport, StringComparison.Ordinal);
+        Assert.Contains("XLSX - modèle DMT dLive / Avantis", windowsExport, StringComparison.Ordinal);
         Assert.Contains("PreviewGrid", macImport, StringComparison.Ordinal);
         Assert.Contains("AdaptDmtCheckBox", macExport, StringComparison.Ordinal);
+        Assert.Contains("DMT template for dLive / Avantis", Read("src", "DanteConfigEditor.Mac", "ChannelLabelExportDialog.axaml.cs"), StringComparison.Ordinal);
     }
 
     [Fact]
@@ -51,10 +57,10 @@ public sealed class ChannelLabelUiContractTests
 
         Assert.Contains("https://github.com/togrupe/dlive-midi-tools", readmeFr, StringComparison.Ordinal);
         Assert.Contains("https://github.com/togrupe/dlive-midi-tools", readmeEn, StringComparison.Ordinal);
-        Assert.Contains("DMT → Dante Config Editor", readmeFr, StringComparison.Ordinal);
-        Assert.Contains("Dante Config Editor → DMT", readmeFr, StringComparison.Ordinal);
-        Assert.Contains("DMT → Dante Config Editor", readmeEn, StringComparison.Ordinal);
-        Assert.Contains("Dante Config Editor → DMT", readmeEn, StringComparison.Ordinal);
+        Assert.Contains("Import et export de labels", readmeFr, StringComparison.Ordinal);
+        Assert.Contains("dLive et Avantis", readmeFr, StringComparison.Ordinal);
+        Assert.Contains("Importing and exporting labels", readmeEn, StringComparison.Ordinal);
+        Assert.Contains("dLive and Avantis", readmeEn, StringComparison.Ordinal);
         Assert.Contains("Refusing to overwrite it", workflow, StringComparison.Ordinal);
         Assert.DoesNotContain("gh release delete", workflow, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("--clobber", workflow, StringComparison.OrdinalIgnoreCase);

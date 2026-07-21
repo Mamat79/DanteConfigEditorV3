@@ -16,7 +16,7 @@
         </Grid.RowDefinitions>
 
         <TextBlock x:Name="IntroTextBlock"
-                   Text="Sélectionnez les machines et le format d'échange. JSON et CSV conservent les labels complets ; XLSX DMT utilise une copie de son modèle."
+                   Text="Sélectionnez les machines et le format d'échange. JSON et CSV sont génériques ; XLSX utilise une copie d'un modèle DMT dLive / Avantis."
                    TextWrapping="Wrap"
                    Margin="0,0,0,12" />
 
@@ -53,7 +53,7 @@
                         <ComboBox x:Name="FormatComboBox" SelectionChanged="FormatComboBox_SelectionChanged">
                             <ComboBoxItem x:Name="JsonFormatItem" Content="JSON - échange recommandé" Tag="json" />
                             <ComboBoxItem x:Name="CsvFormatItem" Content="CSV - tableau universel" Tag="csv" />
-                            <ComboBoxItem x:Name="DmtFormatItem" Content="XLSX - copie d'un modèle DMT" Tag="xlsx" />
+                            <ComboBoxItem x:Name="DmtFormatItem" Content="XLSX - modèle DMT dLive / Avantis" Tag="xlsx" />
                         </ComboBox>
                     </StackPanel>
                     <StackPanel Grid.Row="1" Margin="0,6,6,0">
@@ -72,7 +72,7 @@
                               Grid.Row="3"
                               Grid.ColumnSpan="2"
                               Margin="0,10,0,0"
-                              Content="Adapter explicitement à DMT : ASCII et 8 caractères"
+                              Content="Adapter au format DMT : ASCII et 8 caractères"
                               Checked="OptionsChanged"
                               Unchecked="OptionsChanged" />
                 </Grid>

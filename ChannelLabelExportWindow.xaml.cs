@@ -47,8 +47,8 @@ public partial class ChannelLabelExportWindow : Window
     {
         Title = L("Exporter des labels de canaux", "Export channel labels");
         IntroTextBlock.Text = L(
-            "Sélectionnez les machines et le format d'échange. JSON et CSV conservent les labels complets ; XLSX DMT utilise une copie de son modèle.",
-            "Select devices and an exchange format. JSON and CSV preserve full labels; DMT XLSX uses a copy of its template.");
+            "Sélectionnez les machines et le format d'échange. JSON et CSV sont génériques ; XLSX utilise une copie d'un modèle DMT dLive / Avantis.",
+            "Select devices and an exchange format. JSON and CSV are generic; XLSX uses a copy of a DMT template for dLive / Avantis.");
         DevicesGroupBox.Header = L("Machines à exporter", "Devices to export");
         UseDeviceColumn.Header = L("Utiliser", "Use");
         DeviceNameColumn.Header = L("Machine", "Device");
@@ -56,11 +56,11 @@ public partial class ChannelLabelExportWindow : Window
         FormatLabel.Content = L("Format", "Format");
         JsonFormatItem.Content = L("JSON - échange recommandé", "JSON - recommended exchange");
         CsvFormatItem.Content = L("CSV - tableau universel", "CSV - universal table");
-        DmtFormatItem.Content = L("XLSX - copie d'un modèle DMT", "XLSX - copy of a DMT template");
+        DmtFormatItem.Content = L("XLSX - modèle DMT dLive / Avantis", "XLSX - DMT template for dLive / Avantis");
         KindLabel.Content = L("Canaux", "Channels");
         StartLabel.Content = L("Premier canal", "First channel");
         CountLabel.Content = L("Nombre (0 = tous)", "Count (0 = all)");
-        AdaptDmtCheckBox.Content = L("Adapter explicitement à DMT : ASCII et 8 caractères", "Explicitly adapt for DMT: ASCII and 8 characters");
+        AdaptDmtCheckBox.Content = L("Adapter au format DMT : ASCII et 8 caractères", "Adapt to DMT format: ASCII and 8 characters");
         PreviewGroupBox.Header = L("Labels exportés", "Exported labels");
         PreviewDeviceColumn.Header = L("Machine", "Device");
         PreviewChannelColumn.Header = L("Canal", "Channel");
