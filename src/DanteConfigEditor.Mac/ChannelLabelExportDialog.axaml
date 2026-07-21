@@ -8,7 +8,7 @@
         ShowInTaskbar="False"
         WindowStartupLocation="CenterOwner"
         Background="{DynamicResource AppBackgroundBrush}">
-    <Grid RowDefinitions="Auto,220,*,Auto" Margin="18" RowSpacing="12">
+    <Grid RowDefinitions="Auto,260,*,Auto" Margin="18" RowSpacing="12">
         <TextBlock x:Name="IntroText" TextWrapping="Wrap" />
 
         <Grid Grid.Row="1" ColumnDefinitions="1.3*,*" ColumnSpacing="12">
@@ -17,7 +17,16 @@
                     <TextBlock x:Name="DevicesTitle" Classes="section" />
                     <DataGrid x:Name="DevicesGrid" Grid.Row="1" AutoGenerateColumns="False">
                         <DataGrid.Columns>
-                            <DataGridCheckBoxColumn Binding="{Binding IsSelected, Mode=TwoWay}" Width="75" />
+                            <DataGridTemplateColumn Width="75">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <CheckBox IsChecked="{Binding IsSelected, Mode=TwoWay}"
+                                                  HorizontalAlignment="Center"
+                                                  VerticalAlignment="Center"
+                                                  Click="DeviceSelectionCheckBox_Click" />
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
                             <DataGridTextColumn Binding="{Binding Name}" IsReadOnly="True" Width="*" />
                             <DataGridTextColumn Header="TX / RX" Binding="{Binding Counts}" IsReadOnly="True" Width="90" />
                         </DataGrid.Columns>
@@ -26,7 +35,7 @@
             </Border>
 
             <Border Grid.Column="1" Classes="panel">
-                <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto" ColumnDefinitions="*,*" ColumnSpacing="8" RowSpacing="7">
+                <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto" ColumnDefinitions="*,*" ColumnSpacing="8" RowSpacing="7">
                     <TextBlock x:Name="OptionsTitle" Grid.ColumnSpan="2" Classes="section" />
                     <StackPanel Grid.Row="1" Grid.ColumnSpan="2" Spacing="3">
                         <TextBlock x:Name="FormatLabel" Classes="muted" />
@@ -46,6 +55,11 @@
                     </StackPanel>
                     <CheckBox x:Name="AdaptDmtCheckBox" Grid.Row="4" Grid.ColumnSpan="2" />
                     <Button x:Name="PreviewButton" Grid.Row="5" Grid.ColumnSpan="2" Click="PreviewButton_Click" />
+                    <TextBlock x:Name="FormatHelpText"
+                               Grid.Row="6"
+                               Grid.ColumnSpan="2"
+                               Classes="muted"
+                               TextWrapping="Wrap" />
                 </Grid>
             </Border>
         </Grid>

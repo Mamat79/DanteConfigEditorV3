@@ -22,6 +22,12 @@ public sealed class ExportWorkspaceUiContractTests
         Assert.Equal("Rapports et patchbook", reports.Attribute("Header")?.Value);
         Assert.Equal("Synoptique", synoptic.Attribute("Header")?.Value);
 
+        string synopticMarkup = synoptic.ToString(SaveOptions.DisableFormatting);
+        Assert.Contains("ExportSynopticPdfButton", synopticMarkup, StringComparison.Ordinal);
+        Assert.Contains("Exporter le synoptique PDF", synopticMarkup, StringComparison.Ordinal);
+        Assert.Contains("SynopticVisibilityCheckBox_Click", synopticMarkup, StringComparison.Ordinal);
+        Assert.Contains("SynopticLocation", synopticMarkup, StringComparison.Ordinal);
+
         string reportsMarkup = reports.ToString(SaveOptions.DisableFormatting);
         Assert.Contains("Exporter TXT", reportsMarkup, StringComparison.Ordinal);
         Assert.Contains("Exporter PDF", reportsMarkup, StringComparison.Ordinal);

@@ -57,13 +57,13 @@ internal sealed partial class ChannelLabelExportDialog : Window
         FindControl<DataGrid>("PreviewGrid")!.ItemsSource = _preview;
         FindControl<ComboBox>("FormatCombo")!.ItemsSource = new ChoiceValue[]
         {
-            new ChoiceValue("json", Local("JSON - échange recommandé", "JSON - recommended exchange")),
-            new ChoiceValue("csv", Local("CSV - tableau universel", "CSV - universal table")),
-            new ChoiceValue("xlsx", Local("XLSX - modèle DMT dLive / Avantis", "XLSX - DMT template for dLive / Avantis")),
-            new ChoiceValue("console-csv", Local("CSV console - A&H dLive / Avantis", "Console CSV - A&H dLive / Avantis")),
-            new ChoiceValue("yamaha", Local("ZIP/CSV console - Yamaha CL / QL", "Console ZIP/CSV - Yamaha CL / QL"))
+            new ChoiceValue("json", Local("JSON générique - nouveau fichier", "Generic JSON - new file")),
+            new ChoiceValue("csv", Local("CSV générique - nouveau fichier", "Generic CSV - new file")),
+            new ChoiceValue("xlsx", Local("XLSX DMT - copie d'un classeur existant", "DMT XLSX - copy an existing workbook")),
+            new ChoiceValue("console-csv", Local("CSV A&H - copie d'un export dLive / Avantis", "A&H CSV - copy a dLive / Avantis export")),
+            new ChoiceValue("yamaha", Local("Yamaha CL / QL - copie d'un ZIP ou CSV", "Yamaha CL / QL - copy a ZIP or CSV"))
         };
-        FindControl<ComboBox>("FormatCombo")!.SelectedIndex = 0;
+        FindControl<ComboBox>("FormatCombo")!.SelectedIndex = 1;
         FindControl<ComboBox>("KindCombo")!.ItemsSource = new ChoiceValue[]
         {
             new("tx", "TX"),
@@ -76,8 +76,8 @@ internal sealed partial class ChannelLabelExportDialog : Window
     {
         Title = Local("Exporter des labels de canaux", "Export channel labels");
         FindControl<TextBlock>("IntroText")!.Text = Local(
-            "Sélectionnez les machines et le format. Les formats DMT, A&H et Yamaha utilisent une copie du modèle choisi et conservent ses autres réglages.",
-            "Select devices and a format. DMT, A&H and Yamaha formats use a copy of the selected template and preserve its other settings.");
+            "Sélectionnez les machines et le format. CSV et JSON créent un nouveau fichier ; les formats console copient un export existant pour préserver sa structure.",
+            "Select devices and a format. CSV and JSON create a new file; console formats copy an existing export to preserve its structure.");
         FindControl<TextBlock>("DevicesTitle")!.Text = Local("Machines à exporter", "Devices to export");
         DataGrid devices = FindControl<DataGrid>("DevicesGrid")!;
         devices.Columns[0].Header = Local("Utiliser", "Use");
@@ -100,6 +100,7 @@ internal sealed partial class ChannelLabelExportDialog : Window
         preview.Columns[5].Header = Local("Contrôle", "Check");
         FindControl<Button>("CancelButton")!.Content = Local("Annuler", "Cancel");
         FindControl<Button>("ExportButton")!.Content = Local("Exporter", "Export");
+        UpdateFormatHelp();
     }
 
     private void FormatCombo_SelectionChanged(object? sender, SelectionChangedEventArgs e)
@@ -114,6 +115,28 @@ internal sealed partial class ChannelLabelExportDialog : Window
         {
             adapt.IsChecked = false;
         }
+        UpdateFormatHelp();
+    }
+
+    private void DeviceSelectionCheckBox_Click(object? sender, RoutedEventArgs e)
+    {
+        Avalonia.Threading.Dispatcher.UIThread.Post(RefreshPreview);
+    }
+
+    private void UpdateFormatHelp()
+    {
+        if (FindControl<TextBlock>("FormatHelpText") is not { } help)
+        {
+            return;
+        }
+
+        help.Text = RequiresConsoleCompatibility(SelectedValue("FormatCombo"))
+            ? Local(
+                "Ce format natif doit partir d'un fichier exporté par DMT ou la console. Vous choisirez ce modèle, puis le nom de la copie.",
+                "This native format must start from a file exported by DMT or the console. You will choose that template, then name the copy.")
+            : Local(
+                "Un nouveau fichier sera créé : seul son nom et son dossier de destination seront demandés.",
+                "A new file will be created: only its name and destination folder will be requested.");
     }
 
     private async void PreviewButton_Click(object? sender, RoutedEventArgs e)

@@ -13,8 +13,9 @@ public static class SynopticExportService
     private const double LocationWidth = 300;
     private const double LocationGap = 280;
     private const double NodeWidth = 240;
-    private const double NodeHeight = 82;
+    private const double MinimumNodeHeight = 82;
     private const double NodeGap = 34;
+    private const double ConnectionPortSpacing = 12;
     private const double BaseTopMargin = 88;
     private const double OverheadLaneSpacing = 10;
     private const double LegendSingleWidth = 420;
@@ -160,6 +161,12 @@ public static class SynopticExportService
             .OrderBy(group => group.Key.Source, StringComparer.OrdinalIgnoreCase)
             .ThenBy(group => group.Key.Target, StringComparer.OrdinalIgnoreCase)
             .ToArray();
+        Dictionary<string, int> sourceCableCounts = subscriptionGroups
+            .GroupBy(group => group.Key.Source, StringComparer.OrdinalIgnoreCase)
+            .ToDictionary(group => group.Key, group => group.Count(), StringComparer.OrdinalIgnoreCase);
+        Dictionary<string, int> targetCableCounts = subscriptionGroups
+            .GroupBy(group => group.Key.Target, StringComparer.OrdinalIgnoreCase)
+            .ToDictionary(group => group.Key, group => group.Count(), StringComparer.OrdinalIgnoreCase);
 
         string[] overheadBundleKeys = subscriptionGroups
             .Where(group => Math.Abs(locationIndexByDevice[group.Key.Source] - locationIndexByDevice[group.Key.Target]) > 1)
@@ -179,14 +186,17 @@ public static class SynopticExportService
             IGrouping<string, SynopticDevicePlacement> group = locationGroups[locationIndex];
             SynopticDevicePlacement[] placements = group.OrderBy(item => item.Order).ThenBy(item => item.DeviceName, StringComparer.OrdinalIgnoreCase).ToArray();
             double x = 34 + locationIndex * (LocationWidth + LocationGap);
-            double locationHeight = Math.Max(190, 70 + placements.Length * (NodeHeight + NodeGap));
             string color = Palette[locationIndex % Palette.Length];
-            locations.Add(new SynopticLocationArea(group.Key, color, x, topMargin, LocationWidth, locationHeight));
+            double nodeY = topMargin + 52;
 
             for (int deviceIndex = 0; deviceIndex < placements.Length; deviceIndex++)
             {
                 SynopticDevicePlacement placement = placements[deviceIndex];
                 DanteDevice device = devicesByName[placement.DeviceName];
+                int connectionCount = Math.Max(
+                    sourceCableCounts.GetValueOrDefault(device.Name),
+                    targetCableCounts.GetValueOrDefault(device.Name));
+                double nodeHeight = Math.Max(MinimumNodeHeight, 28 + connectionCount * ConnectionPortSpacing);
                 nodes.Add(new SynopticDeviceNode(
                     placement.DeviceIdentity,
                     device.Name,
@@ -196,10 +206,14 @@ public static class SynopticExportService
                     device.TxCount,
                     device.RxCount,
                     x + (LocationWidth - NodeWidth) / 2,
-                    topMargin + 52 + deviceIndex * (NodeHeight + NodeGap),
+                    nodeY,
                     NodeWidth,
-                    NodeHeight));
+                    nodeHeight));
+                nodeY += nodeHeight + NodeGap;
             }
+
+            double locationHeight = Math.Max(190, nodeY - topMargin - NodeGap + 18);
+            locations.Add(new SynopticLocationArea(group.Key, color, x, topMargin, LocationWidth, locationHeight));
         }
 
         Dictionary<string, SynopticDeviceNode> nodesByName = nodes
@@ -317,6 +331,11 @@ public static class SynopticExportService
         File.WriteAllText(path, BuildSvg(diagram, english), new UTF8Encoding(false));
     }
 
+    public static void ExportPdf(string path, SynopticDiagram diagram, bool english = false)
+    {
+        SynopticPdfExportService.Export(path, diagram, english);
+    }
+
     public static string BuildSvg(SynopticDiagram diagram, bool english = false)
     {
         ArgumentNullException.ThrowIfNull(diagram);
@@ -333,7 +352,7 @@ public static class SynopticExportService
         for (int index = 0; index < diagram.Cables.Count; index++)
         {
             SynopticCable cable = diagram.Cables[index];
-            svg.AppendLine($"  <defs><marker id=\"arrow-{index}\" markerWidth=\"10\" markerHeight=\"8\" refX=\"9\" refY=\"4\" orient=\"auto\"><path d=\"M0,0 L10,4 L0,8 z\" fill=\"{cable.Color}\"/></marker></defs>");
+            svg.AppendLine($"  <defs><marker id=\"arrow-{index}\" markerWidth=\"8\" markerHeight=\"6\" refX=\"7\" refY=\"3\" orient=\"auto\"><path d=\"M0,0 L8,3 L0,6 z\" fill=\"{cable.Color}\"/></marker></defs>");
         }
 
         foreach (SynopticLocationArea location in diagram.Locations)
@@ -484,7 +503,9 @@ public static class SynopticExportService
         }
 
         int index = Array.IndexOf(related, current);
-        double spread = Math.Min(44, (related.Length - 1) * 6);
+        SynopticDeviceNode node = source ? current.Source : current.Target;
+        double availableSpread = Math.Max(0, node.Height - 24);
+        double spread = Math.Min(availableSpread, (related.Length - 1) * ConnectionPortSpacing);
         return -spread / 2 + index * spread / (related.Length - 1);
     }
 

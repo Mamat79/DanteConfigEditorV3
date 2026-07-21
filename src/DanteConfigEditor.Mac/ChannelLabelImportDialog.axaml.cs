@@ -1,6 +1,8 @@
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
+using Avalonia.Threading;
 using DanteConfigEditor.Models;
 using DanteConfigEditor.Services;
 
@@ -46,7 +48,8 @@ internal sealed partial class ChannelLabelImportDialog : Window
                 device.Name,
                 device.TxCount,
                 device.RxCount,
-                string.Equals(device.Name, initiallySelectedDevice, StringComparison.OrdinalIgnoreCase)));
+                string.Equals(device.Name, initiallySelectedDevice, StringComparison.OrdinalIgnoreCase)
+                    || string.IsNullOrWhiteSpace(initiallySelectedDevice) && _project.Devices.Count == 1));
         }
 
         FindControl<DataGrid>("TargetDevicesGrid")!.ItemsSource = _targetDevices;
@@ -60,8 +63,10 @@ internal sealed partial class ChannelLabelImportDialog : Window
         };
         FindControl<ComboBox>("KindCombo")!.SelectedIndex = document.Sets[0].Direction == ChannelLabelDirection.Rx ? 1 : 0;
         CheckBox autoMatch = FindControl<CheckBox>("AutoMatchCheckBox")!;
-        autoMatch.IsEnabled = document.Sets.Count > 1;
-        autoMatch.IsChecked = document.Sets.Count > 1;
+        autoMatch.IsEnabled = document.Sets.Any(set => !string.IsNullOrWhiteSpace(set.DeviceName));
+        autoMatch.IsChecked = document.Sets.Count > 1
+            && document.Sets.All(set => _project.Devices.Any(device =>
+                string.Equals(device.Name, set.DeviceName, StringComparison.OrdinalIgnoreCase)));
         FindControl<TextBlock>("SourceInfoText")!.Text = $"{document.SourceApplication} {document.SourceVersion} - {document.Sets.Count} {Local("liste(s)", "set(s)")}".Trim();
         UpdateRangeDefaults();
         UpdateAutoMatchState();
@@ -71,8 +76,8 @@ internal sealed partial class ChannelLabelImportDialog : Window
     {
         Title = Local("Importer des labels de canaux", "Import channel labels");
         FindControl<TextBlock>("IntroText")!.Text = Local(
-            "Choisissez la liste source, les machines Dante cibles et la plage. Aucun XML n'est modifié avant Appliquer.",
-            "Choose the source list, target Dante devices and range. No XML is changed before Apply.");
+            "Cochez une ou plusieurs machines, réglez la plage, puis cliquez sur Prévisualiser. Aucun XML n'est modifié avant Appliquer.",
+            "Select one or more devices, set the range, then click Preview. No XML is changed before Apply.");
         FindControl<TextBlock>("SourceTitle")!.Text = Local("Source", "Source");
         FindControl<TextBlock>("SourceSetLabel")!.Text = Local("Liste de labels", "Label set");
         FindControl<CheckBox>("AutoMatchCheckBox")!.Content = Local(
@@ -119,6 +124,25 @@ internal sealed partial class ChannelLabelImportDialog : Window
         ClearPreview();
     }
 
+    private void TargetDeviceCheckBox_Click(object? sender, RoutedEventArgs e)
+    {
+        Dispatcher.UIThread.Post(() =>
+        {
+            UpdateSuggestedCount();
+            ClearPreview();
+        });
+    }
+
+    private void KindCombo_SelectionChanged(object? sender, SelectionChangedEventArgs e)
+    {
+        if (_project is null)
+        {
+            return;
+        }
+        UpdateSuggestedCount();
+        ClearPreview();
+    }
+
     private void UpdateAutoMatchState()
     {
         bool automatic = FindControl<CheckBox>("AutoMatchCheckBox")?.IsChecked == true;
@@ -136,8 +160,34 @@ internal sealed partial class ChannelLabelImportDialog : Window
 
         FindControl<TextBox>("SourceStartTextBox")!.Text = choice.Set.Channels.Min(channel => channel.ChannelNumber).ToString();
         FindControl<TextBox>("TargetStartTextBox")!.Text = "1";
-        FindControl<TextBox>("CountTextBox")!.Text = choice.Set.Channels.Count.ToString();
+        UpdateSuggestedCount();
         ClearPreview();
+    }
+
+    private void UpdateSuggestedCount()
+    {
+        if (FindControl<ComboBox>("SourceSetCombo")?.SelectedItem is not MacChannelLabelSetChoice choice
+            || choice.Set.Channels.Count == 0)
+        {
+            return;
+        }
+
+        int suggested = choice.Set.Channels.Count;
+        if (FindControl<CheckBox>("AutoMatchCheckBox")?.IsChecked != true)
+        {
+            int targetStart = int.TryParse(FindControl<TextBox>("TargetStartTextBox")?.Text, out int parsedStart) && parsedStart > 0 ? parsedStart : 1;
+            bool tx = SelectedValue("KindCombo") != "rx";
+            int[] capacities = _targetDevices
+                .Where(device => device.IsSelected)
+                .Select(device => tx ? device.TxCount : device.RxCount)
+                .ToArray();
+            if (capacities.Length > 0)
+            {
+                suggested = Math.Min(suggested, Math.Max(1, capacities.Min() - targetStart + 1));
+            }
+        }
+
+        FindControl<TextBox>("CountTextBox")!.Text = Math.Max(1, suggested).ToString();
     }
 
     private async void PreviewButton_Click(object? sender, RoutedEventArgs e)
@@ -250,21 +300,37 @@ internal sealed record MacChannelLabelSetChoice(ChannelLabelSet Set)
     public override string ToString() => Set.DisplayName;
 }
 
-internal sealed class MacChannelLabelDeviceSelection
+internal sealed class MacChannelLabelDeviceSelection : INotifyPropertyChanged
 {
+    private bool _isSelected;
+
     public MacChannelLabelDeviceSelection(string name, int txCount, int rxCount, bool isSelected)
     {
         Name = name;
         TxCount = txCount;
         RxCount = rxCount;
-        IsSelected = isSelected;
+        _isSelected = isSelected;
     }
 
     public string Name { get; }
     public int TxCount { get; }
     public int RxCount { get; }
-    public bool IsSelected { get; set; }
+    public bool IsSelected
+    {
+        get => _isSelected;
+        set
+        {
+            if (_isSelected == value)
+            {
+                return;
+            }
+            _isSelected = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsSelected)));
+        }
+    }
     public string Counts => $"{TxCount} / {RxCount}";
+
+    public event PropertyChangedEventHandler? PropertyChanged;
 }
 
 internal sealed record MacChannelLabelPreviewRow(ChannelLabelTransferPreviewRow Source, UiLanguage Language)

@@ -23,7 +23,7 @@ public partial class ChannelLabelExportWindow : Window
                 string.Equals(device.Name, initiallySelectedDevice, StringComparison.OrdinalIgnoreCase))));
         DevicesGrid.ItemsSource = _devices;
         PreviewGrid.ItemsSource = _preview;
-        FormatComboBox.SelectedIndex = 0;
+        FormatComboBox.SelectedIndex = 1;
         KindComboBox.SelectedIndex = 0;
         ApplyLanguage();
         RefreshPreview();
@@ -47,18 +47,18 @@ public partial class ChannelLabelExportWindow : Window
     {
         Title = L("Exporter des labels de canaux", "Export channel labels");
         IntroTextBlock.Text = L(
-            "Sélectionnez les machines et le format. Les formats DMT, A&H et Yamaha utilisent une copie du modèle choisi et conservent ses autres réglages.",
-            "Select devices and a format. DMT, A&H and Yamaha formats use a copy of the selected template and preserve its other settings.");
+            "Sélectionnez les machines et le format. CSV et JSON créent un nouveau fichier ; les formats console copient un export existant pour préserver sa structure.",
+            "Select devices and a format. CSV and JSON create a new file; console formats copy an existing export to preserve its structure.");
         DevicesGroupBox.Header = L("Machines à exporter", "Devices to export");
         UseDeviceColumn.Header = L("Utiliser", "Use");
         DeviceNameColumn.Header = L("Machine", "Device");
         OptionsGroupBox.Header = L("Options", "Options");
         FormatLabel.Content = L("Format", "Format");
-        JsonFormatItem.Content = L("JSON - échange recommandé", "JSON - recommended exchange");
-        CsvFormatItem.Content = L("CSV - tableau universel", "CSV - universal table");
-        DmtFormatItem.Content = L("XLSX - modèle DMT dLive / Avantis", "XLSX - DMT template for dLive / Avantis");
-        AllenHeathFormatItem.Content = L("CSV console - A&H dLive / Avantis", "Console CSV - A&H dLive / Avantis");
-        YamahaFormatItem.Content = L("ZIP/CSV console - Yamaha CL / QL", "Console ZIP/CSV - Yamaha CL / QL");
+        JsonFormatItem.Content = L("JSON générique - nouveau fichier", "Generic JSON - new file");
+        CsvFormatItem.Content = L("CSV générique - nouveau fichier", "Generic CSV - new file");
+        DmtFormatItem.Content = L("XLSX DMT - copie d'un classeur existant", "DMT XLSX - copy an existing workbook");
+        AllenHeathFormatItem.Content = L("CSV A&H - copie d'un export dLive / Avantis", "A&H CSV - copy a dLive / Avantis export");
+        YamahaFormatItem.Content = L("Yamaha CL / QL - copie d'un ZIP ou CSV", "Yamaha CL / QL - copy a ZIP or CSV");
         KindLabel.Content = L("Canaux", "Channels");
         StartLabel.Content = L("Premier canal", "First channel");
         CountLabel.Content = L("Nombre (0 = tous)", "Count (0 = all)");
@@ -71,6 +71,7 @@ public partial class ChannelLabelExportWindow : Window
         PreviewWarningColumn.Header = L("Contrôle", "Check");
         CancelButton.Content = L("Annuler", "Cancel");
         ExportButton.Content = L("Exporter", "Export");
+        UpdateFormatHelp();
     }
 
     private void FormatComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -81,7 +82,29 @@ public partial class ChannelLabelExportWindow : Window
         {
             AdaptDmtCheckBox.IsChecked = false;
         }
+        UpdateFormatHelp();
         RefreshPreview();
+    }
+
+    private void DeviceSelectionCheckBox_Click(object sender, RoutedEventArgs e)
+    {
+        Dispatcher.BeginInvoke(RefreshPreview);
+    }
+
+    private void UpdateFormatHelp()
+    {
+        if (!IsInitialized || FormatHelpTextBlock is null)
+        {
+            return;
+        }
+
+        FormatHelpTextBlock.Text = RequiresConsoleCompatibility(SelectedFormat())
+            ? L(
+                "Ce format natif doit partir d'un fichier exporté par DMT ou la console. Vous choisirez ce modèle, puis le nom de la copie.",
+                "This native format must start from a file exported by DMT or the console. You will choose that template, then name the copy.")
+            : L(
+                "Un nouveau fichier sera créé : seul son nom et son dossier de destination seront demandés.",
+                "A new file will be created: only its name and destination folder will be requested.");
     }
 
     private void OptionsChanged(object sender, RoutedEventArgs e) => RefreshPreview();

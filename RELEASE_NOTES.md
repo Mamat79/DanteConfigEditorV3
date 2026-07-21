@@ -38,11 +38,12 @@ Les essais ont couvert les exemples fournis : DMT Avantis/dLive, CSV Avantis/dLi
 ## Synoptique visuel
 
 - Affectation d'un emplacement physique à chaque machine.
-- Affichage, masquage et réorganisation des machines sans modifier le preset.
+- Affichage en un clic, masquage et réorganisation des machines sans modifier le preset.
+- Réutilisation des emplacements déjà saisis depuis une liste.
 - Regroupement des subscriptions consécutives en un seul câble, par exemple `TX 1-32 vers RX 1-32`.
-- Routes orthogonales, troncs partagés et câbles colorés pour limiter les croisements.
+- Routes orthogonales, troncs partagés, câbles colorés et ports espacés automatiquement pour limiter les croisements et les flèches superposées.
 - Légende séparée sur deux colonnes pour les projets denses.
-- Export SVG autonome, adapté à l'impression et aux dossiers techniques.
+- Exports SVG et PDF vectoriels, adaptés à l'impression et aux dossiers techniques.
 - Stockage des emplacements et de la présentation dans un fichier local séparé du XML Dante.
 
 La création, l'aperçu et l'export du synoptique ne modifient jamais le document XML chargé.

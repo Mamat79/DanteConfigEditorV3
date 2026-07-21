@@ -27,6 +27,8 @@ public partial class MainWindow
             _synopticLayout = null;
             _synopticLayoutPath = null;
             SynopticCanvas.Children.Clear();
+            SynopticLocationComboBox.ItemsSource = null;
+            SynopticLocationComboBox.Text = string.Empty;
             SynopticSummaryTextBlock.Text = T("Status.NoFileLoaded");
             UpdateSynopticCommandState(false);
             return;
@@ -70,6 +72,7 @@ public partial class MainWindow
             SynopticDeviceGrid.SelectedItems.Add(row);
         }
 
+        RefreshSynopticLocationChoices();
         RenderSynopticPreview();
         UpdateSynopticCommandState(true);
     }
@@ -330,11 +333,32 @@ public partial class MainWindow
             return;
         }
 
+        string location = SynopticLocationComboBox.Text.Trim();
         foreach (SynopticDeviceRow row in selected)
         {
-            row.Location = SynopticLocationTextBox.Text.Trim();
+            row.Location = location;
         }
         SaveAndRefreshSynoptic();
+    }
+
+    private void SynopticVisibilityCheckBox_Click(object sender, RoutedEventArgs e)
+    {
+        // Le clic doit rester immédiat : on attend seulement que le binding ait
+        // copié la nouvelle valeur avant de sauvegarder le fichier annexe.
+        Dispatcher.BeginInvoke(SaveAndRefreshSynoptic);
+    }
+
+    private void RefreshSynopticLocationChoices()
+    {
+        string currentText = SynopticLocationComboBox.Text;
+        string[] locations = _synopticRows
+            .Select(row => row.Location.Trim())
+            .Where(location => !string.IsNullOrWhiteSpace(location))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .OrderBy(location => location, StringComparer.CurrentCultureIgnoreCase)
+            .ToArray();
+        SynopticLocationComboBox.ItemsSource = locations;
+        SynopticLocationComboBox.Text = currentText;
     }
 
     private void ShowAllSynopticDevicesButton_Click(object sender, RoutedEventArgs e)
@@ -399,6 +423,7 @@ public partial class MainWindow
         {
             CaptureSynopticRows();
             SynopticExportService.SaveLayout(_project, _synopticLayout);
+            RefreshSynopticLocationChoices();
             RenderSynopticPreview();
         }
         catch (Exception ex)
@@ -408,17 +433,29 @@ public partial class MainWindow
     }
 
     private void ExportSynopticButton_Click(object sender, RoutedEventArgs e)
+        => ExportSynoptic("svg");
+
+    private void ExportSynopticPdfButton_Click(object sender, RoutedEventArgs e)
+        => ExportSynoptic("pdf");
+
+    private void ExportSynoptic(string format)
     {
         if (!EnsureProjectLoaded() || _synopticLayout is null)
         {
             return;
         }
 
-        string defaultName = Path.GetFileNameWithoutExtension(_project!.OriginalFilePath) + "_synoptique.svg";
+        bool pdf = string.Equals(format, "pdf", StringComparison.OrdinalIgnoreCase);
+        string extension = pdf ? ".pdf" : ".svg";
+        string defaultName = Path.GetFileNameWithoutExtension(_project!.OriginalFilePath) + "_synoptique" + extension;
         SaveFileDialog dialog = new()
         {
-            Filter = "Image vectorielle SVG (*.svg)|*.svg|Tous les fichiers (*.*)|*.*",
-            Title = "Exporter le synoptique",
+            Filter = pdf
+                ? "Document PDF (*.pdf)|*.pdf|Tous les fichiers (*.*)|*.*"
+                : "Image vectorielle SVG (*.svg)|*.svg|Tous les fichiers (*.*)|*.*",
+            DefaultExt = extension,
+            AddExtension = true,
+            Title = pdf ? "Exporter le synoptique PDF" : "Exporter le synoptique SVG",
             FileName = defaultName,
             InitialDirectory = Path.GetDirectoryName(_project.OriginalFilePath)
         };
@@ -432,9 +469,18 @@ public partial class MainWindow
             CaptureSynopticRows();
             SynopticExportService.SaveLayout(_project, _synopticLayout);
             SynopticDiagram diagram = SynopticExportService.BuildDiagram(_project, _synopticLayout, _language == UiLanguage.English);
-            SynopticExportService.ExportSvg(dialog.FileName, diagram, _language == UiLanguage.English);
+            if (pdf)
+            {
+                SynopticExportService.ExportPdf(dialog.FileName, diagram, _language == UiLanguage.English);
+            }
+            else
+            {
+                SynopticExportService.ExportSvg(dialog.FileName, diagram, _language == UiLanguage.English);
+            }
             AddLog((_language == UiLanguage.English ? "Synoptic exported: " : "Synoptique exporté : ") + dialog.FileName);
-            SetStatus(_language == UiLanguage.English ? "Synoptic exported." : "Synoptique exporté.");
+            SetStatus(_language == UiLanguage.English
+                ? $"Synoptic {format.ToUpperInvariant()} exported."
+                : $"Synoptique {format.ToUpperInvariant()} exporté.");
             if (OpenSynopticAfterExportCheckBox.IsChecked == true)
             {
                 Process.Start(new ProcessStartInfo(dialog.FileName) { UseShellExecute = true });
@@ -449,7 +495,7 @@ public partial class MainWindow
     private void UpdateSynopticCommandState(bool enabled)
     {
         SynopticDeviceGrid.IsEnabled = enabled;
-        SynopticLocationTextBox.IsEnabled = enabled;
+        SynopticLocationComboBox.IsEnabled = enabled;
         ApplySynopticLocationButton.IsEnabled = enabled;
         ShowAllSynopticDevicesButton.IsEnabled = enabled;
         HideSelectedSynopticDevicesButton.IsEnabled = enabled;
@@ -457,6 +503,7 @@ public partial class MainWindow
         MoveSynopticDeviceDownButton.IsEnabled = enabled;
         RefreshSynopticButton.IsEnabled = enabled;
         ExportSynopticButton.IsEnabled = enabled;
+        ExportSynopticPdfButton.IsEnabled = enabled;
     }
 
     private static string FriendlyLine(SynopticDeviceNode node)

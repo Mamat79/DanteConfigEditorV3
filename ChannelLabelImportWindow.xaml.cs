@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -30,13 +31,18 @@ public partial class ChannelLabelImportWindow : Window
                 device.Name,
                 device.TxCount,
                 device.RxCount,
-                string.Equals(device.Name, initiallySelectedDevice, StringComparison.OrdinalIgnoreCase))));
+                string.Equals(device.Name, initiallySelectedDevice, StringComparison.OrdinalIgnoreCase)
+                    || string.IsNullOrWhiteSpace(initiallySelectedDevice) && project.Devices.Count == 1)));
 
         SourceSetComboBox.ItemsSource = document.Sets;
         SourceSetComboBox.SelectedIndex = 0;
         TargetDevicesGrid.ItemsSource = _targetDevices;
         PreviewGrid.ItemsSource = _previewRows;
-        AutoMatchCheckBox.IsEnabled = document.Sets.Count > 1;
+        bool canMatchByName = document.Sets.Any(set => !string.IsNullOrWhiteSpace(set.DeviceName));
+        AutoMatchCheckBox.IsEnabled = canMatchByName;
+        AutoMatchCheckBox.IsChecked = document.Sets.Count > 1
+            && document.Sets.All(set => project.Devices.Any(device =>
+                string.Equals(device.Name, set.DeviceName, StringComparison.OrdinalIgnoreCase)));
         TargetKindComboBox.SelectedIndex = document.Sets[0].Direction == ChannelLabelDirection.Tx ? 0 : 1;
         SourceInfoTextBlock.Text = $"{document.SourceApplication} {document.SourceVersion} - {document.Sets.Count} liste(s)".Trim();
         ApplyLanguage();
@@ -51,8 +57,8 @@ public partial class ChannelLabelImportWindow : Window
     {
         Title = L("Importer des labels de canaux", "Import channel labels");
         IntroTextBlock.Text = L(
-            "Choisissez la liste source, les machines Dante cibles et la plage. Aucun XML n'est modifié avant Appliquer.",
-            "Choose the source list, target Dante devices and range. No XML is changed before Apply.");
+            "Cochez une ou plusieurs machines, réglez la plage, puis cliquez sur Prévisualiser. Aucun XML n'est modifié avant Appliquer.",
+            "Select one or more devices, set the range, then click Preview. No XML is changed before Apply.");
         SourceGroupBox.Header = L("Source", "Source");
         SourceSetLabel.Content = L("Liste de labels", "Label set");
         AutoMatchCheckBox.Content = L("Associer automatiquement les listes aux machines de même nom", "Automatically match sets to devices with the same name");
@@ -100,6 +106,26 @@ public partial class ChannelLabelImportWindow : Window
         ClearPreview();
     }
 
+    private void TargetDeviceCheckBox_Click(object sender, RoutedEventArgs e)
+    {
+        Dispatcher.BeginInvoke(() =>
+        {
+            UpdateSuggestedCount();
+            ClearPreview();
+        });
+    }
+
+    private void TargetKindComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (!IsInitialized)
+        {
+            return;
+        }
+
+        UpdateSuggestedCount();
+        ClearPreview();
+    }
+
     private void UpdateRangeDefaults()
     {
         if (SourceSetComboBox.SelectedItem is not ChannelLabelSet set || set.Channels.Count == 0)
@@ -108,9 +134,35 @@ public partial class ChannelLabelImportWindow : Window
         }
 
         SourceStartTextBox.Text = set.Channels.Min(channel => channel.ChannelNumber).ToString();
-        CountTextBox.Text = set.Channels.Count.ToString();
         TargetStartTextBox.Text = "1";
+        UpdateSuggestedCount();
         ClearPreview();
+    }
+
+    private void UpdateSuggestedCount()
+    {
+        if (SourceSetComboBox.SelectedItem is not ChannelLabelSet set || set.Channels.Count == 0)
+        {
+            return;
+        }
+
+        int suggested = set.Channels.Count;
+        if (AutoMatchCheckBox.IsChecked != true)
+        {
+            int targetStart = int.TryParse(TargetStartTextBox.Text, out int parsedStart) && parsedStart > 0 ? parsedStart : 1;
+            bool tx = TargetKindComboBox.SelectedIndex == 0;
+            int[] capacities = _targetDevices
+                .Where(device => device.IsSelected)
+                .Select(device => tx ? device.TxCount : device.RxCount)
+                .ToArray();
+            if (capacities.Length > 0)
+            {
+                int available = Math.Max(1, capacities.Min() - targetStart + 1);
+                suggested = Math.Min(suggested, available);
+            }
+        }
+
+        CountTextBox.Text = Math.Max(1, suggested).ToString();
     }
 
     private void PreviewButton_Click(object sender, RoutedEventArgs e)
@@ -218,14 +270,16 @@ public partial class ChannelLabelImportWindow : Window
     private string L(string french, string english) => IsEnglish ? english : french;
 }
 
-public sealed class ChannelLabelDeviceSelection
+public sealed class ChannelLabelDeviceSelection : INotifyPropertyChanged
 {
+    private bool _isSelected;
+
     public ChannelLabelDeviceSelection(string name, int txCount, int rxCount, bool isSelected)
     {
         Name = name;
         TxCount = txCount;
         RxCount = rxCount;
-        IsSelected = isSelected;
+        _isSelected = isSelected;
     }
 
     public string Name { get; }
@@ -234,7 +288,22 @@ public sealed class ChannelLabelDeviceSelection
 
     public int RxCount { get; }
 
-    public bool IsSelected { get; set; }
+    public bool IsSelected
+    {
+        get => _isSelected;
+        set
+        {
+            if (_isSelected == value)
+            {
+                return;
+            }
+
+            _isSelected = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsSelected)));
+        }
+    }
 
     public string Counts => $"{TxCount} / {RxCount}";
+
+    public event PropertyChangedEventHandler? PropertyChanged;
 }

@@ -2,6 +2,11 @@
 
 ## 2026-07-21 - Version 3.2 officielle - Import / Export et synoptique visuel
 
+- Maintenance V3.2 : ajout de l'export PDF vectoriel du synoptique, en complément du SVG.
+- Maintenance V3.2 : répartition automatique des nombreuses liaisons sur des ports distincts afin d'éviter la superposition des flèches.
+- Maintenance V3.2 : cases `Voir` activables en un clic et liste réutilisable des emplacements déjà saisis.
+- Maintenance V3.2 : correction du dialogue d'import de labels dont le bouton de prévisualisation pouvait être masqué ; association par nom désormais disponible avec une seule liste et plage proposée limitée à la capacité de la machine cible.
+- Maintenance V3.2 : le CSV générique devient le choix d'export initial et crée directement un nouveau fichier ; les formats natifs indiquent explicitement qu'ils nécessitent un export DMT/console comme modèle afin d'en préserver la structure.
 - Regroupement logique des fonctions de fichiers dans un onglet principal `Import / Export`.
 - Ajout des sous-onglets `Labels`, `Rapports et patchbook` et `Synoptique` sur Windows et macOS.
 - Déplacement des exports TXT/PDF, patchbooks et topologie simple hors de `Sécurité et journal`.

@@ -8,7 +8,7 @@
         ShowInTaskbar="False"
         WindowStartupLocation="CenterOwner"
         Background="{DynamicResource AppBackgroundBrush}">
-    <Grid RowDefinitions="Auto,210,*,Auto" Margin="18" RowSpacing="12">
+    <Grid RowDefinitions="Auto,260,*,Auto" Margin="18" RowSpacing="12">
         <Border Classes="panel">
             <StackPanel Spacing="5">
                 <TextBlock x:Name="IntroText" TextWrapping="Wrap" />
@@ -35,7 +35,16 @@
                               Grid.Row="1"
                               AutoGenerateColumns="False">
                         <DataGrid.Columns>
-                            <DataGridCheckBoxColumn Binding="{Binding IsSelected, Mode=TwoWay}" Width="75" />
+                            <DataGridTemplateColumn Width="75">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <CheckBox IsChecked="{Binding IsSelected, Mode=TwoWay}"
+                                                  HorizontalAlignment="Center"
+                                                  VerticalAlignment="Center"
+                                                  Click="TargetDeviceCheckBox_Click" />
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
                             <DataGridTextColumn Binding="{Binding Name}" IsReadOnly="True" Width="*" />
                             <DataGridTextColumn Header="TX / RX" Binding="{Binding Counts}" IsReadOnly="True" Width="90" />
                         </DataGrid.Columns>
@@ -48,7 +57,7 @@
                     <TextBlock x:Name="MappingTitle" Grid.ColumnSpan="2" Classes="section" />
                     <StackPanel Grid.Row="1" Grid.ColumnSpan="2" Spacing="3">
                         <TextBlock x:Name="KindLabel" Classes="muted" />
-                        <ComboBox x:Name="KindCombo" />
+                        <ComboBox x:Name="KindCombo" SelectionChanged="KindCombo_SelectionChanged" />
                     </StackPanel>
                     <StackPanel Grid.Row="2" Spacing="3">
                         <TextBlock x:Name="SourceStartLabel" Classes="muted" />

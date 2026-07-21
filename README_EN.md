@@ -25,6 +25,8 @@ Modern development agents then enabled a much larger step forward: safer saving,
 
 The `Import / Export` workspace contains channel-label exchange for one or several devices. TX or RX labels can be exported to JSON or CSV, imported with explicit device and range mapping, and checked row by row before application. TX renames still update recognized XML subscriptions.
 
+Generic CSV is selected by default and only asks for an output name and destination folder. Native DMT, A&H, and Yamaha formats additionally require an existing export: Dante Config Editor copies it so the sheets, columns, and companion files expected by the application or console are preserved.
+
 JSON and CSV remain generic exchange formats. Native profiles also support these console and tool formats:
 
 - **DMT → Dante Config Editor**: read the `Channels` sheet from a DMT XLSX workbook, then map its labels to the TX or RX channels of one or several Dante devices.
@@ -37,7 +39,9 @@ Original DMT workbooks and console exports are never modified. Every eight-chara
 
 ## Visual synoptic
 
-V3.2 adds a colored synoptic under `Import / Export > Synoptic`. Each device can be assigned to a physical location, shown or hidden, and reordered. Consecutive subscriptions between two devices are compressed into one cable, for example `TX 1-32 to RX 1-32`, instead of drawing dozens of unreadable lines.
+V3.2 adds a colored synoptic under `Import / Export > Synoptic`. Each device can be assigned to a physical location, shown or hidden with one click, and reordered. Previously entered locations remain available in a list. Consecutive subscriptions between two devices are compressed into one cable, for example `TX 1-32 to RX 1-32`, while dense connections are distributed across distinct connection ports.
+
+The synoptic can be exported as vector SVG or PDF. Neither export nor the local layout sidecar modifies the loaded Dante XML.
 
 Locations and presentation choices are saved in a separate local sidecar file. They are never inserted into Dante XML. The SVG export contains devices, numbered cables, and a detailed legend and can be opened in a browser, printed, or included in technical documentation.
 

@@ -25,6 +25,8 @@ L'arrivée des agents de développement actuels a permis de faire évoluer ce si
 
 L'espace `Import / Export` regroupe l'échange de noms de canaux pour une ou plusieurs machines. L'utilisateur peut exporter les labels TX ou RX en JSON ou CSV, les réimporter avec choix des machines et des plages, puis vérifier chaque correspondance avant application. Les renommages TX continuent de mettre à jour les subscriptions XML reconnues.
 
+Le CSV générique est proposé en premier et demande uniquement un nom de fichier et un dossier de destination. Les formats natifs DMT, A&H et Yamaha demandent en plus un export d'origine : Dante Config Editor en crée une copie et conserve ainsi les feuilles, colonnes ou fichiers annexes attendus par le logiciel ou la console.
+
 Les formats JSON et CSV restent génériques. Des profils natifs permettent aussi les échanges avec les consoles et outils suivants :
 
 - **DMT → Dante Config Editor** : lecture de la feuille `Channels` d'un classeur XLSX DMT, puis affectation des labels aux TX ou RX d'une ou plusieurs machines Dante.
@@ -37,7 +39,9 @@ Le classeur DMT et les exports console originaux ne sont jamais modifiés. Toute
 
 ## Synoptique visuel
 
-La V3.2 ajoute un synoptique en couleur dans `Import / Export > Synoptique`. Chaque machine peut recevoir un emplacement physique, être affichée ou masquée et être réordonnée. Les subscriptions consécutives entre deux machines sont regroupées dans un seul câble, par exemple `TX 1-32 vers RX 1-32`, afin d'éviter un dessin illisible composé de dizaines de traits.
+La V3.2 ajoute un synoptique en couleur dans `Import / Export > Synoptique`. Chaque machine peut recevoir un emplacement physique, être affichée ou masquée en un clic et être réordonnée. Les emplacements déjà saisis restent disponibles dans une liste. Les subscriptions consécutives entre deux machines sont regroupées dans un seul câble, par exemple `TX 1-32 vers RX 1-32`, et les liaisons nombreuses sont réparties sur des points d'arrivée distincts.
+
+Le synoptique peut être exporté en SVG ou en PDF vectoriel. Ces exports et le fichier local de mise en page ne modifient jamais le XML Dante chargé.
 
 Les emplacements et choix de présentation sont enregistrés dans un petit fichier local séparé. Ils ne sont jamais ajoutés au XML Dante. L'export SVG contient les machines, les câbles numérotés et une légende détaillée ; il peut être ouvert dans un navigateur, imprimé ou intégré à un dossier technique.
 

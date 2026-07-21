@@ -1350,9 +1350,12 @@
                                                 <ColumnDefinition Width="*" />
                                                 <ColumnDefinition Width="Auto" />
                                             </Grid.ColumnDefinitions>
-                                            <TextBox x:Name="SynopticLocationTextBox"
-                                                     VerticalAlignment="Center"
-                                                     ToolTip="Exemples : Scène, Régie, Local amplis, Studio A." />
+                                            <ComboBox x:Name="SynopticLocationComboBox"
+                                                      IsEditable="True"
+                                                      IsTextSearchEnabled="True"
+                                                      StaysOpenOnEdit="True"
+                                                      VerticalAlignment="Center"
+                                                      ToolTip="Saisissez une nouvelle zone ou choisissez une zone déjà utilisée." />
                                             <Button x:Name="ApplySynopticLocationButton"
                                                     Grid.Column="1"
                                                     Content="Affecter"
@@ -1372,7 +1375,16 @@
                                           SelectionUnit="FullRow"
                                           CellEditEnding="SynopticDeviceGrid_CellEditEnding">
                                     <DataGrid.Columns>
-                                        <DataGridCheckBoxColumn Header="Voir" Binding="{Binding IsVisible, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="52" />
+                                        <DataGridTemplateColumn Header="Voir" Width="52">
+                                            <DataGridTemplateColumn.CellTemplate>
+                                                <DataTemplate>
+                                                    <CheckBox IsChecked="{Binding IsVisible, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                              HorizontalAlignment="Center"
+                                                              VerticalAlignment="Center"
+                                                              Click="SynopticVisibilityCheckBox_Click" />
+                                                </DataTemplate>
+                                            </DataGridTemplateColumn.CellTemplate>
+                                        </DataGridTemplateColumn>
                                         <DataGridTextColumn Header="Machine" Binding="{Binding DeviceName}" IsReadOnly="True" Width="1.35*" />
                                         <DataGridTextColumn Header="Emplacement" Binding="{Binding Location, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="1.25*" />
                                         <DataGridTextColumn Header="TX/RX" Binding="{Binding ChannelCount}" IsReadOnly="True" Width="72" />
@@ -1402,6 +1414,7 @@
                                 <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
@@ -1445,6 +1458,11 @@
                                     Content="Exporter le synoptique SVG"
                                     Click="ExportSynopticButton_Click"
                                     ToolTip="Crée un fichier vectoriel en couleur sans modifier le XML Dante." />
+                            <Button x:Name="ExportSynopticPdfButton"
+                                    Grid.Column="7"
+                                    Content="Exporter le synoptique PDF"
+                                    Click="ExportSynopticPdfButton_Click"
+                                    ToolTip="Crée un PDF vectoriel en couleur sans modifier le XML Dante." />
                         </Grid>
                             </Grid>
                         </TabItem>

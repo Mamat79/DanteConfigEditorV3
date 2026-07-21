@@ -101,11 +101,43 @@ public sealed class SynopticExportTests
     }
 
     [Fact]
+    public void DenseIncomingCablesUseDistinctReadablePorts()
+    {
+        using TestDirectory directory = new();
+        string source = directory.PathFor("dense-ports.xml");
+        SyntheticPresetFactory.Create(source, deviceCount: 12, txPerDevice: 16, rxPerDevice: 16);
+        DanteProject project = DanteProject.Load(source);
+        for (int index = 1; index <= 10; index++)
+        {
+            project.ApplyPatch("DEVICE-012", index, $"DEVICE-{index:D3}", "TX-01");
+        }
+
+        SynopticLayoutDocument layout = SynopticExportService.LoadOrCreate(project, directory.PathFor("layout"));
+        foreach (SynopticDevicePlacement placement in layout.Devices)
+        {
+            placement.Location = placement.DeviceName == "DEVICE-012" ? "Destination" : "Sources";
+        }
+
+        SynopticDiagram diagram = SynopticExportService.BuildDiagram(project, layout);
+        SynopticCable[] incoming = diagram.Cables
+            .Where(cable => cable.TargetDevice == "DEVICE-012")
+            .OrderBy(cable => cable.EndY)
+            .ToArray();
+        SynopticDeviceNode target = diagram.Devices.Single(device => device.Name == "DEVICE-012");
+
+        Assert.True(incoming.Length >= 10);
+        Assert.True(target.Height > 82);
+        Assert.Equal(incoming.Length, incoming.Select(cable => Math.Round(cable.EndY, 3)).Distinct().Count());
+        Assert.All(incoming.Zip(incoming.Skip(1)), pair => Assert.True(pair.Second.EndY - pair.First.EndY >= 11.9));
+    }
+
+    [Fact]
     public void LayoutAndSvgExportNeverModifyTheDanteXml()
     {
         using TestDirectory directory = new();
         string source = directory.PathFor("source.xml");
         string svgPath = directory.PathFor("exports", "synoptic.svg");
+        string pdfPath = directory.PathFor("exports", "synoptic.pdf");
         SyntheticPresetFactory.Create(source, deviceCount: 3, txPerDevice: 8, rxPerDevice: 8);
         DanteProject project = DanteProject.Load(source);
         string before = project.Document.ToString(SaveOptions.DisableFormatting);
@@ -117,6 +149,7 @@ public sealed class SynopticExportTests
         string sidecar = SynopticExportService.SaveLayout(project, layout, directory.PathFor("layout"));
         SynopticDiagram diagram = SynopticExportService.BuildDiagram(project, layout);
         SynopticExportService.ExportSvg(svgPath, diagram);
+        SynopticExportService.ExportPdf(pdfPath, diagram);
 
         Assert.Equal(before, project.Document.ToString(SaveOptions.DisableFormatting));
         Assert.False(project.IsModified);
@@ -128,6 +161,10 @@ public sealed class SynopticExportTests
         Assert.Contains("Plateau", svg, StringComparison.Ordinal);
         Assert.Contains("By Mamat et ses agents", svg, StringComparison.Ordinal);
         Assert.DoesNotContain("DEVICE-003</text>", svg, StringComparison.Ordinal);
+        byte[] pdf = File.ReadAllBytes(pdfPath);
+        Assert.True(pdf.Length > 1_000);
+        Assert.Equal("%PDF-1.4", System.Text.Encoding.ASCII.GetString(pdf, 0, 8));
+        Assert.EndsWith("%%EOF", System.Text.Encoding.ASCII.GetString(pdf), StringComparison.Ordinal);
     }
 
     [Fact]

@@ -10,7 +10,7 @@
     <Grid Margin="16">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
-            <RowDefinition Height="210" />
+            <RowDefinition Height="260" />
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
@@ -49,9 +49,19 @@
                           CanUserAddRows="False"
                           CanUserDeleteRows="False"
                           HeadersVisibility="Column"
-                          SelectionMode="Extended">
+                          SelectionMode="Extended"
+                          SelectionUnit="FullRow">
                     <DataGrid.Columns>
-                        <DataGridCheckBoxColumn x:Name="UseTargetColumn" Header="Utiliser" Binding="{Binding IsSelected, UpdateSourceTrigger=PropertyChanged}" Width="75" />
+                        <DataGridTemplateColumn x:Name="UseTargetColumn" Header="Utiliser" Width="75">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <CheckBox IsChecked="{Binding IsSelected, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                              HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"
+                                              Click="TargetDeviceCheckBox_Click" />
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
                         <DataGridTextColumn x:Name="TargetNameColumn" Header="Machine" Binding="{Binding Name}" IsReadOnly="True" Width="*" />
                         <DataGridTextColumn x:Name="TargetCountsColumn" Header="TX / RX" Binding="{Binding Counts}" IsReadOnly="True" Width="90" />
                     </DataGrid.Columns>
@@ -72,7 +82,7 @@
                     </Grid.RowDefinitions>
                     <StackPanel Grid.ColumnSpan="2">
                         <Label x:Name="TargetKindLabel" Content="Type de canal Dante" />
-                        <ComboBox x:Name="TargetKindComboBox">
+                        <ComboBox x:Name="TargetKindComboBox" SelectionChanged="TargetKindComboBox_SelectionChanged">
                             <ComboBoxItem Content="TX" Tag="tx" />
                             <ComboBoxItem Content="RX" Tag="rx" />
                         </ComboBox>
@@ -95,6 +105,7 @@
                             Margin="0,12,0,0"
                             Padding="10,7"
                             Content="Prévisualiser"
+                            ToolTip="Construit la liste des renommages sans modifier le XML."
                             Click="PreviewButton_Click" />
                 </Grid>
             </GroupBox>

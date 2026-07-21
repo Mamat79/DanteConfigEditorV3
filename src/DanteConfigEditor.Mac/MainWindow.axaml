@@ -404,11 +404,15 @@
                                 <Border Classes="panel">
                                     <Grid RowDefinitions="Auto,Auto" RowSpacing="7">
                                         <TextBlock Text="Emplacement de la sélection" FontWeight="SemiBold" />
-                                        <Grid Grid.Row="1" ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                                        <Grid Grid.Row="1" ColumnDefinitions="*,150,Auto" ColumnSpacing="8">
                                             <TextBox x:Name="SynopticLocationTextBox"
                                                      Watermark="Scène, Régie, Studio A…" />
+                                            <ComboBox x:Name="SynopticKnownLocationComboBox"
+                                                      Grid.Column="1"
+                                                      SelectionChanged="SynopticKnownLocationComboBox_SelectionChanged"
+                                                      ToolTip.Tip="Zones déjà utilisées" />
                                             <Button x:Name="ApplySynopticLocationButton"
-                                                    Grid.Column="1"
+                                                    Grid.Column="2"
                                                     Classes="primary"
                                                     Click="ApplySynopticLocationButton_Click">Affecter</Button>
                                         </Grid>
@@ -420,7 +424,16 @@
                                           AutoGenerateColumns="False"
                                       SelectionMode="Extended">
                                     <DataGrid.Columns>
-                                        <DataGridCheckBoxColumn Header="Voir" Binding="{Binding IsVisible, Mode=TwoWay}" Width="54" />
+                                        <DataGridTemplateColumn Header="Voir" Width="54">
+                                            <DataGridTemplateColumn.CellTemplate>
+                                                <DataTemplate>
+                                                    <CheckBox IsChecked="{Binding IsVisible, Mode=TwoWay}"
+                                                              HorizontalAlignment="Center"
+                                                              VerticalAlignment="Center"
+                                                              Click="SynopticVisibilityCheckBox_Click" />
+                                                </DataTemplate>
+                                            </DataGridTemplateColumn.CellTemplate>
+                                        </DataGridTemplateColumn>
                                         <DataGridTextColumn Header="Machine" Binding="{Binding DeviceName}" IsReadOnly="True" Width="1.3*" />
                                         <DataGridTextColumn Header="Emplacement" Binding="{Binding Location, Mode=TwoWay}" Width="1.2*" />
                                         <DataGridTextColumn Header="TX/RX" Binding="{Binding ChannelCount}" IsReadOnly="True" Width="72" />
@@ -443,7 +456,7 @@
                             </Border>
                         </Grid>
 
-                        <Grid Grid.Row="2" ColumnDefinitions="Auto,Auto,Auto,Auto,*,Auto,Auto" ColumnSpacing="8">
+                        <Grid Grid.Row="2" ColumnDefinitions="Auto,Auto,Auto,Auto,*,Auto,Auto,Auto" ColumnSpacing="8">
                             <Button x:Name="ShowAllSynopticDevicesButton" Click="ShowAllSynopticDevicesButton_Click">Tout afficher</Button>
                             <Button x:Name="HideSelectedSynopticDevicesButton" Grid.Column="1" Click="HideSelectedSynopticDevicesButton_Click">Masquer sélection</Button>
                             <Button x:Name="MoveSynopticDeviceUpButton" Grid.Column="2" Width="42" Click="MoveSynopticDeviceUpButton_Click" ToolTip.Tip="Place la machine plus haut.">↑</Button>
@@ -456,6 +469,7 @@
                                       VerticalAlignment="Center" />
                             <Button x:Name="RefreshSynopticButton" Grid.Column="5" Click="RefreshSynopticButton_Click">Actualiser l’aperçu</Button>
                             <Button x:Name="ExportSynopticButton" Grid.Column="6" Classes="primary" Click="ExportSynopticButton_Click">Exporter le synoptique SVG</Button>
+                            <Button x:Name="ExportSynopticPdfButton" Grid.Column="7" Classes="primary" Click="ExportSynopticPdfButton_Click">Exporter le synoptique PDF</Button>
                         </Grid>
                             </Grid>
                         </TabItem>

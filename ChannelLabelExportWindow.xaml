@@ -10,13 +10,13 @@
     <Grid Margin="16">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
-            <RowDefinition Height="220" />
+            <RowDefinition Height="250" />
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
         <TextBlock x:Name="IntroTextBlock"
-                   Text="Sélectionnez les machines et le format d'échange. JSON et CSV sont génériques ; XLSX utilise une copie d'un modèle DMT dLive / Avantis."
+                   Text="Sélectionnez les machines et le format. CSV et JSON créent un nouveau fichier ; les formats console copient un export existant pour préserver sa structure."
                    TextWrapping="Wrap"
                    Margin="0,0,0,12" />
 
@@ -29,7 +29,16 @@
                 <DataGrid x:Name="DevicesGrid" AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False"
                           CurrentCellChanged="DevicesGrid_CurrentCellChanged">
                     <DataGrid.Columns>
-                        <DataGridCheckBoxColumn x:Name="UseDeviceColumn" Header="Utiliser" Binding="{Binding IsSelected, UpdateSourceTrigger=PropertyChanged}" Width="75" />
+                        <DataGridTemplateColumn x:Name="UseDeviceColumn" Header="Utiliser" Width="75">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <CheckBox IsChecked="{Binding IsSelected, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                              HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"
+                                              Click="DeviceSelectionCheckBox_Click" />
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
                         <DataGridTextColumn x:Name="DeviceNameColumn" Header="Machine" Binding="{Binding Name}" IsReadOnly="True" Width="*" />
                         <DataGridTextColumn Header="TX / RX" Binding="{Binding Counts}" IsReadOnly="True" Width="90" />
                     </DataGrid.Columns>
@@ -47,15 +56,16 @@
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
                     <StackPanel Grid.ColumnSpan="2">
                         <Label x:Name="FormatLabel" Content="Format" />
                         <ComboBox x:Name="FormatComboBox" SelectionChanged="FormatComboBox_SelectionChanged">
-                            <ComboBoxItem x:Name="JsonFormatItem" Content="JSON - échange recommandé" Tag="json" />
-                            <ComboBoxItem x:Name="CsvFormatItem" Content="CSV - tableau universel" Tag="csv" />
-                            <ComboBoxItem x:Name="DmtFormatItem" Content="XLSX - modèle DMT dLive / Avantis" Tag="xlsx" />
-                            <ComboBoxItem x:Name="AllenHeathFormatItem" Content="CSV console - A&amp;H dLive / Avantis" Tag="console-csv" />
-                            <ComboBoxItem x:Name="YamahaFormatItem" Content="ZIP/CSV console - Yamaha CL / QL" Tag="yamaha" />
+                            <ComboBoxItem x:Name="JsonFormatItem" Content="JSON générique - nouveau fichier" Tag="json" />
+                            <ComboBoxItem x:Name="CsvFormatItem" Content="CSV générique - nouveau fichier" Tag="csv" />
+                            <ComboBoxItem x:Name="DmtFormatItem" Content="XLSX DMT - copie d'un classeur existant" Tag="xlsx" />
+                            <ComboBoxItem x:Name="AllenHeathFormatItem" Content="CSV A&amp;H - copie d'un export dLive / Avantis" Tag="console-csv" />
+                            <ComboBoxItem x:Name="YamahaFormatItem" Content="Yamaha CL / QL - copie d'un ZIP ou CSV" Tag="yamaha" />
                         </ComboBox>
                     </StackPanel>
                     <StackPanel Grid.Row="1" Margin="0,6,6,0">
@@ -77,6 +87,12 @@
                               Content="Adapter au format console : ASCII et 8 caractères"
                               Checked="OptionsChanged"
                               Unchecked="OptionsChanged" />
+                    <TextBlock x:Name="FormatHelpTextBlock"
+                               Grid.Row="4"
+                               Grid.ColumnSpan="2"
+                               Margin="0,8,0,0"
+                               Foreground="#475569"
+                               TextWrapping="Wrap" />
                 </Grid>
             </GroupBox>
         </Grid>

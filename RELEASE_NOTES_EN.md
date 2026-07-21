@@ -38,11 +38,12 @@ Tests covered the supplied samples: DMT Avantis/dLive, Avantis/dLive CSV, Yamaha
 ## Visual synoptic
 
 - Assign a physical location to every device.
-- Show, hide, and reorder devices without changing the preset.
+- Show devices with one click, hide them, and reorder them without changing the preset.
+- Reuse previously entered locations from a list.
 - Compress consecutive subscriptions into one cable, for example `TX 1-32 to RX 1-32`.
-- Use orthogonal routes, shared trunks, and colored cables to reduce crossings.
+- Use orthogonal routes, shared trunks, colored cables, and automatically spaced ports to reduce crossings and overlapping arrows.
 - Use a separate two-column legend for dense projects.
-- Export a standalone SVG suitable for printing and technical documentation.
+- Export vector SVG and PDF files suitable for printing and technical documentation.
 - Store locations and presentation choices in a local sidecar file separate from Dante XML.
 
 Building, previewing, or exporting the synoptic never changes the loaded XML document.

@@ -6,6 +6,7 @@ using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.Platform.Storage;
+using Avalonia.Threading;
 using DanteConfigEditor.Models;
 using DanteConfigEditor.Services;
 
@@ -28,6 +29,8 @@ public partial class MainWindow
             canvas.Children.Clear();
             _synopticLayout = null;
             _synopticLayoutPath = null;
+            FindControl<ComboBox>("SynopticKnownLocationComboBox")!.ItemsSource = null;
+            FindControl<TextBox>("SynopticLocationTextBox")!.Text = string.Empty;
             FindControl<TextBlock>("SynopticSummaryText")!.Text = LocalizationService.Text(_language, "Status.NoFileLoaded");
             return;
         }
@@ -64,6 +67,7 @@ public partial class MainWindow
         {
             grid.SelectedItems.Add(row);
         }
+        RefreshSynopticLocationChoices();
         RenderSynopticPreview();
     }
 
@@ -218,6 +222,29 @@ public partial class MainWindow
         SaveAndRefreshSynoptic();
     }
 
+    private void SynopticKnownLocationComboBox_SelectionChanged(object? sender, SelectionChangedEventArgs e)
+    {
+        if (FindControl<ComboBox>("SynopticKnownLocationComboBox")?.SelectedItem is string location)
+        {
+            FindControl<TextBox>("SynopticLocationTextBox")!.Text = location;
+        }
+    }
+
+    private void SynopticVisibilityCheckBox_Click(object? sender, RoutedEventArgs e)
+    {
+        Dispatcher.UIThread.Post(SaveAndRefreshSynoptic);
+    }
+
+    private void RefreshSynopticLocationChoices()
+    {
+        FindControl<ComboBox>("SynopticKnownLocationComboBox")!.ItemsSource = _synopticRows
+            .Select(row => row.Location.Trim())
+            .Where(location => !string.IsNullOrWhiteSpace(location))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .OrderBy(location => location, StringComparer.CurrentCultureIgnoreCase)
+            .ToArray();
+    }
+
     private void ShowAllSynopticDevicesButton_Click(object? sender, RoutedEventArgs e)
     {
         foreach (SynopticDeviceRow row in _synopticRows)
@@ -270,6 +297,7 @@ public partial class MainWindow
         {
             CaptureSynopticRows();
             SynopticExportService.SaveLayout(_project, _synopticLayout);
+            RefreshSynopticLocationChoices();
             RenderSynopticPreview();
         }
         catch (Exception exception)
@@ -279,16 +307,24 @@ public partial class MainWindow
     }
 
     private async void ExportSynopticButton_Click(object? sender, RoutedEventArgs e)
+        => await ExportSynopticAsync("svg");
+
+    private async void ExportSynopticPdfButton_Click(object? sender, RoutedEventArgs e)
+        => await ExportSynopticAsync("pdf");
+
+    private async Task ExportSynopticAsync(string format)
     {
         if (_project is null || _synopticLayout is null)
         {
             return;
         }
+        bool pdf = string.Equals(format, "pdf", StringComparison.OrdinalIgnoreCase);
+        string extension = pdf ? "pdf" : "svg";
         IStorageFile? file = await PickSaveFileAsync(
-            Path.GetFileNameWithoutExtension(_project.OriginalFilePath) + "_synoptique.svg",
-            "svg",
-            "SVG",
-            ["*.svg"]);
+            Path.GetFileNameWithoutExtension(_project.OriginalFilePath) + "_synoptique." + extension,
+            extension,
+            extension.ToUpperInvariant(),
+            [$"*.{extension}"]);
         string? path = file?.TryGetLocalPath();
         if (string.IsNullOrWhiteSpace(path))
         {
@@ -300,8 +336,17 @@ public partial class MainWindow
             CaptureSynopticRows();
             SynopticExportService.SaveLayout(_project, _synopticLayout);
             SynopticDiagram diagram = SynopticExportService.BuildDiagram(_project, _synopticLayout, _language == UiLanguage.English);
-            SynopticExportService.ExportSvg(path, diagram, _language == UiLanguage.English);
-            SetStatus(L("Synoptique exporté.", "Synoptic exported."));
+            if (pdf)
+            {
+                SynopticExportService.ExportPdf(path, diagram, _language == UiLanguage.English);
+            }
+            else
+            {
+                SynopticExportService.ExportSvg(path, diagram, _language == UiLanguage.English);
+            }
+            SetStatus(_language == UiLanguage.English
+                ? $"Synoptic {format.ToUpperInvariant()} exported."
+                : $"Synoptique {format.ToUpperInvariant()} exporté.");
             if (FindControl<CheckBox>("OpenSynopticAfterExportCheckBox")!.IsChecked == true)
             {
                 Process.Start(new ProcessStartInfo(path) { UseShellExecute = true });

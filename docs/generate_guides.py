@@ -361,14 +361,14 @@ def quick_start(language: str) -> None:
             ("Patch visuel", "Sous Windows, chaque prévisualisation rejoint un lot cumulatif et la grille compacte accepte les séries par glissement. Sur Mac, utilisez l'atelier visuel Avalonia."),
             ("Récupération", "Une copie est écrite en arrière-plan après un court délai. La nouvelle destination devient la référence après Enregistrer sous."),
             ("Import / Export", "Labels JSON/CSV, XLSX DMT, CSV A&H et ZIP/CSV Yamaha, rapports et synoptique sont regroupés dans un espace organisé."),
-            ("Synoptique", "Regroupez les machines par emplacement et exportez un SVG en couleur sans modifier le XML Dante."),
+            ("Synoptique", "Regroupez les machines par emplacement et exportez un SVG ou PDF en couleur sans modifier le XML Dante."),
         ]
         if french
         else [
             ("Visual patch", "On Windows, every preview joins a cumulative batch and the compact matrix supports drag ranges. On Mac, use the Avalonia visual workshop."),
             ("Recovery", "A copy is written in the background after a short delay. Save as makes the new destination the session reference."),
             ("Import / Export", "JSON/CSV, DMT XLSX, A&H CSV and Yamaha ZIP/CSV labels, reports, and the synoptic are grouped in one workspace."),
-            ("Synoptic", "Group devices by location and export a colored SVG without changing Dante XML."),
+            ("Synoptic", "Group devices by location and export a colored SVG or PDF without changing Dante XML."),
         ]
     )
 
@@ -505,7 +505,7 @@ def full_guide(language: str) -> None:
             *bullets([
                 "Les canaux TX/RX peuvent être renommés individuellement ou par plage avec {00}, {000}, {n} et {device}.",
                 "Le renommage d'un TX met à jour tous les alias de subscription reconnus dans le projet.",
-                "Import et export de labels traite les TX/RX d'une ou plusieurs machines en JSON/CSV générique, XLSX DMT, CSV Allen & Heath dLive/Avantis ou ZIP/CSV Yamaha CL/QL. La plage et chaque changement sont prévisualisés avant application.",
+                "Import et export de labels traite les TX/RX d'une ou plusieurs machines en JSON/CSV générique, XLSX DMT, CSV Allen & Heath dLive/Avantis ou ZIP/CSV Yamaha CL/QL. Le CSV générique crée un nouveau fichier ; les formats natifs copient un export existant pour préserver sa structure. La plage et chaque changement sont prévisualisés avant application.",
                 "Les modèles DMT et exports console originaux ne sont jamais modifiés. Une copie est créée et l'adaptation ASCII sur huit caractères n'est appliquée qu'après activation explicite.",
                 "Les Dante Id ne sont pas renumérotés. Le marqueur local subscribed_device=\".\" est conservé.",
                 "L'onglet Easy patch affiche les RX à gauche et les TX à droite. Les menus et flèches permettent de changer rapidement de machine.",
@@ -537,7 +537,7 @@ def full_guide(language: str) -> None:
                 "Santé du fichier regroupe statistiques, erreurs, warnings, patchs libres/locaux et compatibilité.",
                 "La comparaison XML affiche les différences dans un tableau.",
                 "Les exports TXT/PDF portent la version du logiciel et la signature By Mamat et ses agents.",
-                "Import / Export regroupe Labels, Rapports et patchbook et Synoptique. Le synoptique affecte les emplacements, masque ou réordonne les machines, regroupe les plages TX/RX en câbles numérotés et exporte un SVG ; sa mise en page locale ne modifie jamais le XML Dante.",
+                "Import / Export regroupe Labels, Rapports et patchbook et Synoptique. Le synoptique mémorise les emplacements, affiche ou masque les machines en un clic, espace les arrivées denses et exporte un SVG ou un PDF ; sa mise en page locale ne modifie jamais le XML Dante.",
             ]),
         ]
         page5 = [
@@ -563,7 +563,7 @@ def full_guide(language: str) -> None:
                 [48, 122],
             ),
             para("14. Tests de non-régression", "h1"),
-            para("La suite V3.2 exécute 129 tests Core et contrats Windows, plus 9 tests Avalonia sans écran : identités techniques, chemins inconnus, sauvegarde atomique, récupération, interfaces IPv4, alias de subscription, namespace par défaut, presets synthétiques, échange de labels JSON/CSV/XLSX DMT/CSV A&H/ZIP ou CSV Yamaha, synoptique et stockage séparé, scénario Atomic Bomb, lot cumulatif, gestes de matrice, conflits, rollback, persistance, Easy patch, détail machine et identité Mac."),
+            para("La suite V3.2 exécute 130 tests Core et contrats Windows, plus 9 tests Avalonia sans écran : identités techniques, chemins inconnus, sauvegarde atomique, récupération, interfaces IPv4, alias de subscription, namespace par défaut, presets synthétiques, échange de labels JSON/CSV/XLSX DMT/CSV A&H/ZIP ou CSV Yamaha, synoptique SVG/PDF et stockage séparé, scénario Atomic Bomb, lot cumulatif, gestes de matrice, conflits, rollback, persistance, Easy patch, détail machine et identité Mac."),
             para("15. Limites connues", "h1"),
             *bullets([
                 "Aucun pilotage en temps réel et aucune communication avec les appareils.",
@@ -696,7 +696,7 @@ def full_guide(language: str) -> None:
             *bullets([
                 "TX/RX channels can be renamed individually or by range with {00}, {000}, {n}, and {device}.",
                 "Renaming a Tx channel updates every recognized subscription alias in the project.",
-                "Importing and exporting labels handles Tx/Rx labels for one or several devices through generic JSON/CSV, DMT XLSX, Allen & Heath dLive/Avantis CSV, or Yamaha CL/QL ZIP/CSV. Ranges and every change are previewed before apply.",
+                "Importing and exporting labels handles Tx/Rx labels for one or several devices through generic JSON/CSV, DMT XLSX, Allen & Heath dLive/Avantis CSV, or Yamaha CL/QL ZIP/CSV. Generic CSV creates a new file; native formats copy an existing export to preserve its structure. Ranges and every change are previewed before apply.",
                 "Original DMT templates and console exports are never modified. A copy is created, and ASCII/eight-character adaptation is used only after explicit opt-in.",
                 "Dante IDs are not renumbered. The local subscribed_device=\".\" marker is preserved.",
                 "The Easy patch tab shows Rx channels on the left and Tx channels on the right. Menus and arrows switch devices quickly.",
@@ -728,7 +728,7 @@ def full_guide(language: str) -> None:
                 "File health combines statistics, errors, warnings, free/local subscriptions, and compatibility checks.",
                 "XML comparison displays differences in a table.",
                 "TXT/PDF exports include the application version and the By Mamat et ses agents signature.",
-                "Import / Export groups Labels, Reports and patchbook, and Synoptic. The synoptic assigns locations, hides or reorders devices, compresses TX/RX ranges into numbered cables, and exports an SVG; its local layout sidecar never changes Dante XML.",
+                "Import / Export groups Labels, Reports and patchbook, and Synoptic. The synoptic remembers locations, shows or hides devices with one click, spaces dense connection ports, and exports SVG or PDF; its local layout sidecar never changes Dante XML.",
             ]),
         ]
         page5 = [
@@ -754,7 +754,7 @@ def full_guide(language: str) -> None:
                 [48, 122],
             ),
             para("14. Regression tests", "h1"),
-            para("The V3.2 suite runs 129 Core and Windows contract tests plus 9 headless Avalonia tests covering technical identities, unknown paths, atomic save, recovery, IPv4 interfaces, subscription aliases, default namespaces, synthetic presets, JSON/CSV/DMT XLSX/A&H CSV/Yamaha ZIP or CSV label exchange, synoptic sidecar isolation, the Atomic Bomb scenario, cumulative batches, matrix gestures, conflicts, rollback, persistence, Easy patch, Device details integration, and Mac identity."),
+            para("The V3.2 suite runs 130 Core and Windows contract tests plus 9 headless Avalonia tests covering technical identities, unknown paths, atomic save, recovery, IPv4 interfaces, subscription aliases, default namespaces, synthetic presets, JSON/CSV/DMT XLSX/A&H CSV/Yamaha ZIP or CSV label exchange, SVG/PDF synoptic isolation, the Atomic Bomb scenario, cumulative batches, matrix gestures, conflicts, rollback, persistence, Easy patch, Device details integration, and Mac identity."),
             para("15. Known limitations", "h1"),
             *bullets([
                 "No real-time Dante control and no communication with devices.",

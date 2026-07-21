@@ -42,10 +42,17 @@ public sealed class ChannelLabelUiContractTests
 
         Assert.Contains("PreviewGrid", windowsImport, StringComparison.Ordinal);
         Assert.Contains("AdaptDmtCheckBox", windowsExport, StringComparison.Ordinal);
-        Assert.Contains("XLSX - modèle DMT dLive / Avantis", windowsExport, StringComparison.Ordinal);
+        Assert.Contains("CSV générique - nouveau fichier", windowsExport, StringComparison.Ordinal);
+        Assert.Contains("copie d'un classeur existant", windowsExport, StringComparison.Ordinal);
+        Assert.Contains("Height=\"260\"", windowsImport, StringComparison.Ordinal);
+        Assert.Contains("TargetDeviceCheckBox_Click", windowsImport, StringComparison.Ordinal);
         Assert.Contains("PreviewGrid", macImport, StringComparison.Ordinal);
         Assert.Contains("AdaptDmtCheckBox", macExport, StringComparison.Ordinal);
-        Assert.Contains("DMT template for dLive / Avantis", Read("src", "DanteConfigEditor.Mac", "ChannelLabelExportDialog.axaml.cs"), StringComparison.Ordinal);
+        Assert.Contains("RowDefinitions=\"Auto,260,*,Auto\"", macImport, StringComparison.Ordinal);
+        Assert.Contains("TargetDeviceCheckBox_Click", macImport, StringComparison.Ordinal);
+        Assert.Contains("copy an existing workbook", Read("src", "DanteConfigEditor.Mac", "ChannelLabelExportDialog.axaml.cs"), StringComparison.Ordinal);
+        Assert.Contains("SelectedIndex = 1", Read("ChannelLabelExportWindow.xaml.cs"), StringComparison.Ordinal);
+        Assert.DoesNotContain("AutoMatchCheckBox.IsEnabled = document.Sets.Count > 1", Read("ChannelLabelImportWindow.xaml.cs"), StringComparison.Ordinal);
     }
 
     [Fact]
