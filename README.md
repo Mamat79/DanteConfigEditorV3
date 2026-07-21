@@ -1,15 +1,15 @@
-# Dante Config Editor V3.2
+# Dante Config Editor V3.3
 
 ## Français
 
-Version V3.2 officielle pour Windows et macOS. Le code publié se trouve dans `main`.
+Version V3.3 officielle pour Windows et macOS. Le code publié se trouve dans `main`.
 
-**Version stable : [Release V3.2 Windows et macOS](https://github.com/Mamat79/DanteConfigEditorV3/releases/tag/v3.2)**
+**Version stable : [Release V3.3 Windows et macOS](https://github.com/Mamat79/DanteConfigEditorV3/releases/tag/v3.3)**
 
-> **Statut : V3.2 officielle. Outil tiers non officiel Audinate.**
-> Cette version peut encore contenir des bugs. Les versions précédentes restent accessibles dans l'historique des Releases GitHub. Travaillez toujours sur une copie et validez le XML généré dans les outils Dante officiels.
+> **Statut : V3.3 officielle. Outil tiers non officiel Audinate.**
+> Cette version peut encore contenir des bugs. La V3.2 reste accessible comme version historique dans les Releases GitHub. Travaillez toujours sur une copie et validez le XML généré dans les outils Dante officiels.
 
-> **Import et export de labels en JSON, CSV, DMT XLSX pour dLive et Avantis, A&H CSV et Yamaha CL/QL ZIP/CSV.** Les modèles natifs sont inclus dans l'application : aucun fichier modèle externe n'est nécessaire pour exporter.
+> **Import et export de labels en JSON, CSV, DMT XLSX/ODS pour dLive et Avantis, A&H CSV et Yamaha CL/QL ZIP/CSV.** Les modèles natifs sont inclus dans l'application : aucun fichier modèle externe n'est nécessaire pour exporter.
 
 ## Origine et développement assisté
 
@@ -29,8 +29,8 @@ Le CSV générique est proposé en premier et demande uniquement un nom de fichi
 
 Les formats JSON et CSV restent génériques. Des profils natifs permettent aussi les échanges avec les consoles et outils suivants :
 
-- **DMT → Dante Config Editor** : lecture de la feuille `Channels` d'un classeur XLSX DMT, puis affectation des labels aux TX ou RX d'une ou plusieurs machines Dante.
-- **Dante Config Editor → DMT** : création directe d'un classeur XLSX dLive ou Avantis depuis le modèle DMT inclus, avec désactivation des lignes absentes de la sélection.
+- **DMT → Dante Config Editor** : lecture directe de la feuille `Channels` d'un classeur XLSX ou ODS DMT, puis affectation des labels aux TX ou RX d'une ou plusieurs machines Dante.
+- **Dante Config Editor → DMT** : création directe d'un classeur XLSX ou ODS dLive/Avantis depuis l'un des quatre modèles DMT inclus, avec désactivation des lignes absentes de la sélection.
 - **Projet DMT** : [togrupe/dlive-midi-tools](https://github.com/togrupe/dlive-midi-tools).
 - **Allen & Heath dLive / Avantis** : lecture d'un export CSV existant ou création directe d'un nouveau CSV natif depuis le modèle inclus ; seule la colonne des noms `Input` est modifiée.
 - **Yamaha CL / QL** : lecture d'un package ZIP ou d'un fichier `InName.csv`, et création directe d'un nouveau ZIP complet depuis le modèle inclus ; les huit autres CSV du package restent inchangés.
@@ -45,14 +45,12 @@ Le synoptique peut être exporté en SVG ou en PDF vectoriel. Ces exports et le 
 
 Les emplacements et choix de présentation sont enregistrés dans un petit fichier local séparé. Ils ne sont jamais ajoutés au XML Dante. L'export SVG contient les machines, les câbles numérotés et une légende détaillée ; il peut être ouvert dans un navigateur, imprimé ou intégré à un dossier technique.
 
-## Présentation générale
+## Notices
 
-[![Présentation de Dante Config Editor V3.09 sur un preset synthétique anonymisé](docs/media/guide/fr/overview.png)](docs/media/dante-config-editor-v309-overview-fr.mp4)
-
-- **[Voir la présentation complète en français (MP4)](docs/media/dante-config-editor-v309-overview-fr.mp4)** - sous-titres lisibles intégrés à la vidéo ; [fichier SRT séparé](docs/media/dante-config-editor-v309-overview-fr.srt).
 - **[Lire la notice complète en français (PDF)](docs/Notice_DanteConfigEditorV3_FR.pdf)** ou le [démarrage rapide](docs/QuickStart_DanteConfigEditorV3_FR.pdf).
+- **[Read the full English guide (PDF)](docs/Notice_DanteConfigEditorV3_EN.pdf)** or the [English quick start](docs/QuickStart_DanteConfigEditorV3_EN.pdf).
 
-Les captures, notices et vidéos utilisent uniquement un preset synthétique anonymisé. Elles ne contiennent aucun nom de machine, fichier ou chemin de production.
+Les captures et notices utilisent uniquement un preset synthétique anonymisé. Elles ne contiennent aucun nom de machine, fichier ou chemin de production.
 
 ## Ce que fait l'application
 
@@ -64,7 +62,7 @@ Les captures, notices et vidéos utilisent uniquement un preset synthétique ano
 - Propose de renommer automatiquement ou manuellement les machines en doublon pendant l'import XML.
 - Renomme les canaux TX/RX.
 - Renomme des plages de canaux en série.
-- Importe et exporte des labels de canaux pour une ou plusieurs machines en JSON, CSV, classeur DMT XLSX, CSV A&H dLive/Avantis ou package Yamaha CL/QL, avec plages et prévisualisation.
+- Importe et exporte des labels de canaux pour une ou plusieurs machines en JSON, CSV, classeur DMT XLSX/ODS, CSV A&H dLive/Avantis ou package Yamaha CL/QL, avec plages et prévisualisation.
 - Regroupe les échanges de labels, les rapports, les patchbooks et le synoptique dans un onglet `Import / Export` organisé en trois sous-onglets.
 - Produit un synoptique SVG en couleur, avec emplacements, machines masquables, ordre personnalisable et câbles consécutifs regroupés.
 - Conserve les informations de mise en page du synoptique hors du XML Dante dans un fichier local séparé.
@@ -100,7 +98,7 @@ Les captures, notices et vidéos utilisent uniquement un preset synthétique ano
 - Exporte un patchbook TXT organisé par device RX.
 - Exporte un patchbook CSV en lecture seule.
 - Affiche un rapport compatibilité Dante Controller et une topologie simple TX vers RX.
-- Génère, avec `Atomic Bomb`, un preset d'exercice volontairement désorganisé pour former au diagnostic : noms, patchs, modes réseau, Preferred Master, latences, fréquences, encodages et IP principales sont mélangés après trois confirmations.
+- Génère, avec `Atomic Bomb`, un preset d'exercice volontairement désorganisé après trois confirmations ; chaque catégorie peut être décochée pour protéger les éléments que le formateur veut conserver.
 - Compare le fichier ouvert avec un autre XML.
 - Renomme des canaux en série.
 - Signale en gros les mélanges redondant/daisychain, les machines détectées en IP fixe et les formats audio mélangés.
@@ -121,9 +119,9 @@ Les captures, notices et vidéos utilisent uniquement un preset synthétique ano
 
 ## Télécharger / installer
 
-Téléchargez la [Release GitHub V3.2](https://github.com/Mamat79/DanteConfigEditorV3/releases/tag/v3.2).
+Téléchargez la [Release GitHub V3.3](https://github.com/Mamat79/DanteConfigEditorV3/releases/tag/v3.3).
 
-- Pour Windows x64, utilisez `DanteConfigEditorV3_2_Installer.exe`, un installateur autonome qui remplace les anciennes installations V3.
+- Pour Windows x64, utilisez `DanteConfigEditorV3_3_Installer.exe`, un installateur autonome qui remplace les anciennes installations V3.
 
 La version autonome inclut le runtime .NET nécessaire. Sur une machine Windows x64, il ne devrait pas être nécessaire d'installer .NET séparément pour utiliser l'application.
 
@@ -149,15 +147,15 @@ Notices fournies :
 
 Dans l'application, les boutons d'aide ouvrent automatiquement les fichiers FR ou EN selon la langue active.
 
-L'installateur V3.2 retire les anciennes installations V3.1, V3.09, V3.08, V3.07 et V3.2 Beta détectées, puis installe une seule V3.2. Les données locales de travail ne sont pas supprimées par cette mise à niveau.
+L'installateur V3.3 retire les anciennes installations V3 détectées, notamment la V3.2, puis installe une seule V3.3. Les données locales de travail ne sont pas supprimées par cette mise à niveau.
 
 ## Version distribuée
 
-- La branche `main` contient la V3.2 officielle pour Windows et macOS.
-- Le tag immuable `v3.2` correspond exactement aux fichiers de la Release V3.2, marquée `Latest`.
+- La branche `main` contient la V3.3 officielle pour Windows et macOS.
+- Le tag immuable `v3.3` correspond exactement aux fichiers de la Release V3.3, marquée `Latest`.
+- La Release historique [`v3.2`](https://github.com/Mamat79/DanteConfigEditorV3/releases/tag/v3.2) reste téléchargeable avec ses propres fichiers.
 - La Release V3.1 est retirée à la demande du mainteneur ; son historique source reste dans Git.
-- Les Releases historiques [`v3.09`](https://github.com/Mamat79/DanteConfigEditorV3/releases/tag/v3.09) et [`v3.08`](https://github.com/Mamat79/DanteConfigEditorV3/releases/tag/v3.08) restent accessibles avec leurs propres fichiers.
-- La [Release historique `v3.08`](https://github.com/Mamat79/DanteConfigEditorV3/releases/tag/v3.08) conserve ses propres installateurs et documents.
+- Les pages de Releases V3.08 et V3.09 ont été retirées à la demande du mainteneur ; leurs tags et commits restent dans l'historique Git.
 - Chaque version utilise un tag immuable distinct selon [la politique de publication](RELEASE_POLICY.md).
 - L'historique fonctionnel reste également consultable dans les commits de `main` et dans `CHANGELOG_V3.md`.
 
@@ -177,7 +175,7 @@ L'installateur V3.2 retire les anciennes installations V3.1, V3.09, V3.08, V3.07
 
 ## Atomic Bomb : exercice de dépannage
 
-`Atomic Bomb`, rangé dans son propre onglet après `Sécurité et journal`, sert à préparer un réseau volontairement en désordre pour une formation. Il agit uniquement sur la copie XML chargée en mémoire et demande trois confirmations successives.
+`Atomic Bomb`, rangé dans son propre onglet après `Sécurité et journal`, sert à préparer un réseau volontairement en désordre pour une formation. Son panneau **Générateur d'expérience horrible (mais pédagogique)** permet de décocher les catégories à épargner avant les trois confirmations. Il agit uniquement sur la copie XML chargée en mémoire.
 
 Merci à **Charles Bouticourt** pour l'idée de cette fonction de formation.
 
@@ -191,7 +189,17 @@ Les machines reçoivent des noms uniques choisis dans un catalogue mythologique,
 - Toute l'opération correspond à une seule étape d'annulation.
 - Le fichier source n'est jamais écrit : utilisez `Enregistrer sous` pour créer le preset destiné aux stagiaires.
 
+Toutes les cases sont cochées par défaut. Il est possible de protéger indépendamment les noms de machines, labels TX, labels RX, patchs, modes réseau, Preferred Master, latences, fréquences, bits et IP principales. Si les patchs sont protégés pendant un renommage, les références reconnues suivent les nouveaux noms afin de conserver le routage.
+
 Le résultat est volontairement incohérent sur le plan fonctionnel. Il reste indispensable de l'importer dans l'outil Dante officiel approprié avant de l'utiliser comme support d'exercice.
+
+## Nouveautés V3.3
+
+- Import direct des fichiers DMT XLSX et ODS, avec export vers quatre modèles dLive/Avantis intégrés.
+- Préservation des feuilles et styles hors `Channels` dans les copies ODS générées.
+- Choix détaillé des catégories modifiées par `Atomic Bomb`, toutes cochées par défaut.
+- Corrections macOS Full HD, traductions et explication du bouton `Appliquer` désactivé après un import identique.
+- Installateur V3.3 remplaçant la V3.2 tout en conservant les données locales.
 
 ## Nouveautés V3.2
 
@@ -212,7 +220,7 @@ Le résultat est volontairement incohérent sur le plan fonctionnel. Il reste in
 - Même workflow de labels sur Windows et macOS, fondé sur le moteur XML partagé.
 - Déplacement d'`Atomic Bomb` dans un onglet dédié afin qu'il ne monopolise plus la navigation principale.
 - Installateur V3.1 remplaçant proprement les V3.07, V3.08 et V3.09 installées.
-- Nouveau tag immuable `v3.1` ; les Releases `v3.08` et `v3.09` restent intactes.
+- Nouveau tag immuable `v3.1` ; les tags `v3.08` et `v3.09` restent dans l'historique Git, même après le retrait ultérieur de leurs pages de Release en V3.3.
 
 ## Nouveautés V3.09
 
@@ -428,6 +436,6 @@ Remerciement à **Charles Bouticourt** pour l'idée de la fonction `Atomic Bomb`
 The complete English presentation is kept in a separate section so that both languages remain easy to read:
 
 - **[Open the complete English README](README_EN.md)**
-- **[Download the stable Dante Config Editor V3.2](https://github.com/Mamat79/DanteConfigEditorV3/releases/tag/v3.2)**
+- **[Download the stable Dante Config Editor V3.3](https://github.com/Mamat79/DanteConfigEditorV3/releases/tag/v3.3)**
 - **[Read the full English guide (PDF)](docs/Notice_DanteConfigEditorV3_EN.pdf)** or the [English quick start](docs/QuickStart_DanteConfigEditorV3_EN.pdf).
 - **[Open the dLive MIDI Tools (DMT) project](https://github.com/togrupe/dlive-midi-tools)**

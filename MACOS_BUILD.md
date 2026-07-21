@@ -1,4 +1,4 @@
-# Version macOS - V3.2
+# Version macOS - V3.3
 
 La version macOS utilise Avalonia pour l'interface et compile exactement les mêmes classes métier et services XML que la version Windows.
 
@@ -44,8 +44,8 @@ Le moteur XML reste protégé par les mêmes tests de non-régression que sous W
 
 La version Mac inclut l'atelier de patch visuel Avalonia : sélection de plusieurs TX, affectation séquentielle, glisser-déposer et matrice interactive. Les changements restent en attente jusqu'à `Appliquer au projet`. L'onglet Windows `Easy patch`, introduit en V3.08, n'est pas reproduit à l'identique sur Mac.
 
-La V3.2 propose sur Mac les mêmes imports et exports de labels que sous Windows : JSON/CSV génériques, XLSX DMT, CSV Allen & Heath dLive/Avantis et packages ZIP ou `InName.csv` Yamaha CL/QL. La sélection des machines, les plages, la prévisualisation et l'application groupée utilisent le moteur partagé. `Atomic Bomb` se trouve dans un onglet dédié après `Sécurité et journal`.
+La V3.3 propose sur Mac les mêmes imports et exports de labels que sous Windows : JSON/CSV génériques, XLSX/ODS DMT, CSV Allen & Heath dLive/Avantis et packages ZIP ou `InName.csv` Yamaha CL/QL. La sélection des machines, les plages, la prévisualisation et l'application groupée utilisent le moteur partagé. `Atomic Bomb` se trouve dans un onglet dédié après `Sécurité et journal` et permet d'exclure chaque catégorie de modification.
 
 Pour garder la matrice utilisable sur de gros presets, elle affiche un couple de devices à la fois et limite la vue Mac aux 128 premiers TX et RX. Les listes de canaux conservent tous les éléments.
 
-La suite courante exécute les tests du moteur partagé et les tests Avalonia sans écran. Ces derniers couvrent notamment les alertes latérales, la navigation au clavier, les dimensions compactes, le patch visuel, l'onglet Atomic Bomb et l'identité V3.2 ; ils ne remplacent pas un contrôle VoiceOver sur un Mac réel.
+La suite courante exécute les tests du moteur partagé et les tests Avalonia sans écran. Ces derniers couvrent notamment les alertes latérales, la navigation au clavier, les dimensions compactes, le patch visuel, l'onglet Atomic Bomb et l'identité V3.3 ; ils ne remplacent pas un contrôle VoiceOver sur un Mac réel.

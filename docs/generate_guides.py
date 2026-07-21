@@ -10,7 +10,6 @@ from reportlab.lib.units import mm
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.platypus import (
-    Image as ReportLabImage,
     KeepTogether,
     PageBreak,
     Paragraph,
@@ -19,15 +18,13 @@ from reportlab.platypus import (
     Table,
     TableStyle,
 )
-from PIL import Image as PillowImage
 
 
 ROOT = Path(__file__).resolve().parent
-MEDIA = ROOT / "media" / "guide"
 # Les quatre PDF sont générés depuis une source unique pour garder les versions
 # française et anglaise synchronisées avec l'application et l'installateur.
-PRODUCT = "Dante Config Editor V3.2"
-VERSION = "3.2"
+PRODUCT = "Dante Config Editor V3.3"
+VERSION = "3.3"
 GITHUB = "github.com/Mamat79/DanteConfigEditorV3"
 
 INK = colors.HexColor("#172033")
@@ -220,20 +217,6 @@ def data_table(headers: list[str], rows: list[list[str]], widths: list[float]) -
     return table
 
 
-def guide_image(language: str, name: str, max_width: float = 170, max_height: float = 96) -> ReportLabImage:
-    path = MEDIA / language.lower() / name
-    with PillowImage.open(path) as source:
-        width, height = source.size
-    scale = min((max_width * mm) / width, (max_height * mm) / height)
-    image = ReportLabImage(str(path), width=width * scale, height=height * scale)
-    image.hAlign = "CENTER"
-    return image
-
-
-def figure(language: str, name: str, caption: str, max_width: float = 170, max_height: float = 96) -> list:
-    return [guide_image(language, name, max_width, max_height), Spacer(1, 1.4 * mm), para(caption, "caption")]
-
-
 def feature_band(items: list[tuple[str, str]]) -> Table:
     cells = [para(f"<b>{heading}</b><br/>{body}", "small") for heading, body in items]
     width = 170 / len(cells)
@@ -284,10 +267,9 @@ def cover_page(language: str) -> list:
         Spacer(1, 5 * mm),
         para(eyebrow, "eyebrow"),
         para(PRODUCT, "title"),
-        para("Notice complète illustrée" if french else "Illustrated full user guide", "subtitle"),
+        para("Notice complète" if french else "Full user guide", "subtitle"),
         para(lead, "cover_lead"),
-        guide_image(language, "overview.png", 170, 95),
-        Spacer(1, 4 * mm),
+        Spacer(1, 7 * mm),
         feature_band(goals),
         Spacer(1, 4 * mm),
         callout(warning, PALE_RED),
@@ -333,9 +315,9 @@ def quick_start(language: str) -> None:
         else "Quick start - offline editing of Dante XML files"
     )
     warning = (
-        "<b>Outil tiers non officiel Audinate.</b> Cette V3.2 est la version officielle courante du projet et peut encore contenir des bugs. Travaillez sur une copie et validez toujours le XML final par un import dans l'outil Dante officiel adapté avant toute utilisation réelle."
+        "<b>Outil tiers non officiel Audinate.</b> Cette V3.3 est la version officielle courante du projet et peut encore contenir des bugs. Travaillez sur une copie et validez toujours le XML final par un import dans l'outil Dante officiel adapté avant toute utilisation réelle."
         if french
-        else "<b>Third-party tool, not an official Audinate product.</b> V3.2 is the project's current official version and may still contain bugs. Work on a copy and always validate the final XML by importing it into the appropriate official Dante tool before real use."
+        else "<b>Third-party tool, not an official Audinate product.</b> V3.3 is the project's current official version and may still contain bugs. Work on a copy and always validate the final XML by importing it into the appropriate official Dante tool before real use."
     )
     steps = (
         [
@@ -360,14 +342,14 @@ def quick_start(language: str) -> None:
         [
             ("Patch visuel", "Sous Windows, chaque prévisualisation rejoint un lot cumulatif et la grille compacte accepte les séries par glissement. Sur Mac, utilisez l'atelier visuel Avalonia."),
             ("Récupération", "Une copie est écrite en arrière-plan après un court délai. La nouvelle destination devient la référence après Enregistrer sous."),
-            ("Import / Export", "Labels JSON/CSV, XLSX DMT, CSV A&H et ZIP Yamaha sont regroupés avec des modèles dLive, Avantis, CL et QL inclus."),
+            ("Import / Export", "Labels JSON/CSV, XLSX/ODS DMT, CSV A&H et ZIP Yamaha sont regroupés avec des modèles dLive, Avantis, CL et QL inclus."),
             ("Synoptique", "Regroupez les machines par emplacement et exportez un SVG ou PDF en couleur sans modifier le XML Dante."),
         ]
         if french
         else [
             ("Visual patch", "On Windows, every preview joins a cumulative batch and the compact matrix supports drag ranges. On Mac, use the Avalonia visual workshop."),
             ("Recovery", "A copy is written in the background after a short delay. Save as makes the new destination the session reference."),
-            ("Import / Export", "JSON/CSV, DMT XLSX, A&H CSV, and Yamaha ZIP labels are grouped with bundled dLive, Avantis, CL, and QL templates."),
+            ("Import / Export", "JSON/CSV, DMT XLSX/ODS, A&H CSV, and Yamaha ZIP labels are grouped with bundled dLive, Avantis, CL, and QL templates."),
             ("Synoptic", "Group devices by location and export a colored SVG or PDF without changing Dante XML."),
         ]
     )
@@ -414,14 +396,14 @@ def quick_start(language: str) -> None:
         else "<b>Remember:</b> no real-time control, no Audinate API, and no guarantee for every XML format. Import validation in official tools remains mandatory."
     )
     atomic_note = (
-        "<b>Exercice :</b> Atomic Bomb dispose de son propre onglet après Sécurité et journal. Il demande trois confirmations puis mélange la copie XML en mémoire. Les identifiants techniques restent protégés ; utilisez Enregistrer sous pour créer le fichier destiné aux stagiaires."
+        "<b>Exercice :</b> Atomic Bomb dispose de son propre onglet après Sécurité et journal. Décochez les catégories à épargner, confirmez trois fois, puis utilisez Enregistrer sous pour créer le fichier destiné aux stagiaires. Les identifiants techniques restent protégés."
         if french
-        else "<b>Exercise:</b> Atomic Bomb has its own tab after Safety and log. It asks for three confirmations and then scrambles the XML copy in memory. Technical identifiers remain protected; use Save as to create the trainee file."
+        else "<b>Exercise:</b> Atomic Bomb has its own tab after Safety and log. Clear categories you want to spare, confirm three times, then use Save as to create the trainee file. Technical identifiers remain protected."
     )
     labels_note = (
-        "<b>Labels console :</b> choisissez A&H CSV natif - dLive/Avantis, Yamaha ZIP natif - CL/QL ou DMT XLSX. Les modèles sont inclus. Le CSV générique DCE n'est pas un fichier dLive Director."
+        "<b>Labels console :</b> choisissez A&H CSV natif - dLive/Avantis, Yamaha ZIP natif - CL/QL ou DMT XLSX/ODS. Les modèles sont inclus. Le CSV générique DCE n'est pas un fichier dLive Director."
         if french
-        else "<b>Console labels:</b> choose Native A&H CSV - dLive/Avantis, Native Yamaha ZIP - CL/QL, or DMT XLSX. Templates are bundled. Generic DCE CSV is not a dLive Director file."
+        else "<b>Console labels:</b> choose Native A&H CSV - dLive/Avantis, Native Yamaha ZIP - CL/QL, or DMT XLSX/ODS. Templates are bundled. Generic DCE CSV is not a dLive Director file."
     )
     story.extend([feature_table, Spacer(1, 2.5 * mm), callout(labels_note), Spacer(1, 2 * mm), callout(atomic_note, PALE_RED), Spacer(1, 2 * mm), callout(reminder, PALE_GREEN), Spacer(1, 2 * mm), para(("Dépôt public : " if french else "Public repository: ") + GITHUB, "small")])
     build_document(ROOT / f"QuickStart_DanteConfigEditorV3_{language}.pdf", story)
@@ -432,12 +414,12 @@ def full_guide(language: str) -> None:
     if french:
         page1 = [
             para("1. Installation et démarrage", "h1"),
-            callout("<b>Important :</b> cette application est un outil tiers non officiel Audinate. La V3.2 est la version officielle courante du projet et peut encore contenir des bugs. Elle édite des XML hors ligne, sans connexion au réseau Dante ni API Audinate. Conservez l'original et validez le fichier généré dans Dante Controller avant toute utilisation en production."),
+            callout("<b>Important :</b> cette application est un outil tiers non officiel Audinate. La V3.3 est la version officielle courante du projet et peut encore contenir des bugs. Elle édite des XML hors ligne, sans connexion au réseau Dante ni API Audinate. Conservez l'original et validez le fichier généré dans Dante Controller avant toute utilisation en production."),
             para("L'installateur Windows x64 contient l'application et le runtime .NET 8 nécessaire. Il n'est normalement pas nécessaire d'installer .NET séparément."),
             *bullets([
                 "L'installation proposée par défaut se trouve dans Program Files et crée des raccourcis dans le menu Démarrer et sur le Bureau.",
-                "La V3.2 utilise son propre dossier Program Files et crée des raccourcis au nom de la version officielle.",
-                "L'installateur V3.2 remplace les anciennes installations V3 détectées et conserve les données locales de travail.",
+                "La V3.3 utilise son propre dossier Program Files et crée des raccourcis au nom de la version officielle.",
+                "L'installateur V3.3 remplace les anciennes installations V3 détectées et conserve les données locales de travail.",
                 "Deux DMG autonomes sont distribués pour les Mac Apple Silicon et Intel.",
                 "Les quatre notices PDF françaises et anglaises sont installées et restent accessibles depuis l'application.",
             ]),
@@ -551,7 +533,7 @@ def full_guide(language: str) -> None:
                 ["Format", "Destination", "Contenu"],
                 [
                     ["JSON / CSV générique", "DCE ou outil tiers", "Unicode complet. Ne pas importer dans dLive Director."],
-                    ["DMT XLSX dLive / Avantis", "dLive MIDI Tools", "Classeur officiel DMT ; lignes hors sélection désactivées."],
+                    ["DMT XLSX/ODS dLive / Avantis", "dLive MIDI Tools", "Classeur DMT direct ; lignes hors sélection désactivées."],
                     ["A&H CSV natif dLive", "dLive Director", "Structure [Version]/[Channels] dLive et noms Input."],
                     ["A&H CSV natif Avantis", "Avantis Director", "Structure [Version]/[Channels] Avantis et noms Input."],
                     ["Yamaha ZIP natif CL / QL", "CL/QL Editor", "Paquet complet de neuf CSV ; seul InName.csv reçoit les labels."],
@@ -566,13 +548,14 @@ def full_guide(language: str) -> None:
                 "Contrôlez l'aperçu. Activez l'adaptation ASCII/8 caractères uniquement si la destination l'exige, puis cliquez sur Exporter.",
                 "DCE ouvre directement Enregistrer sous. La destination est écrite atomiquement et un échec ne détruit pas un fichier existant.",
             ]),
+            callout("À l'import, Appliquer exige au moins un changement sans erreur. Après un second chargement identique, le bouton reste volontairement désactivé et DCE indique que les labels correspondent déjà."),
             callout("Avant utilisation, ouvrez toujours le fichier généré dans DMT, dLive Director, Avantis Director ou Yamaha CL/QL Editor et vérifiez les labels et le modèle ciblé.", PALE_RED),
             para("Les classeurs DMT inclus proviennent du projet MIT dLive MIDI Tools de Tobias Grupe. Le fichier DMT_LICENSE.txt est fourni avec l'application.", "small"),
         ]
         page5 = [
             para("12. Atomic Bomb : créer un exercice", "h1"),
             *bullets([
-                "Ouvrez l'onglet Atomic Bomb placé après Sécurité et journal. Trois confirmations détaillent les conséquences avant toute modification.",
+                "Ouvrez l'onglet Atomic Bomb placé après Sécurité et journal. Décochez les catégories à épargner ; toutes sont sélectionnées par défaut. Trois confirmations détaillent ensuite les conséquences avant toute modification.",
                 "La copie en mémoire reçoit des noms uniques mythologiques, audio ou humoristiques, ainsi qu'un mélange de patchs, modes réseau, Preferred Master, latences, sample rates, encodages et IP principales.",
                 "Les identifiants techniques, namespaces, DNS, passerelles et interfaces secondaires restent protégés.",
                 "Le résumé indique la graine du scénario. L'ensemble s'annule en une seule action et le fichier source n'est jamais écrasé.",
@@ -592,7 +575,7 @@ def full_guide(language: str) -> None:
                 [48, 122],
             ),
             para("14. Tests de non-régression", "h1"),
-            para("La suite V3.2 exécute 143 tests Core/Windows et 10 tests Mac sans écran. Ils couvrent notamment les garde-fous XML, sauvegarde et récupération, interfaces IPv4, subscriptions, gros presets, modèles natifs, labels, synoptique, Atomic Bomb, Easy patch et détail machine."),
+            para("La suite V3.3 exécute 150 tests Core/Windows et 11 tests Mac sans écran. Ils couvrent notamment les garde-fous XML, sauvegarde et récupération, interfaces IPv4, subscriptions, gros presets, modèles DMT XLSX/ODS, labels, synoptique, Atomic Bomb configurable, Easy patch, détail machine et cohérence des traductions."),
             para("15. Limites connues", "h1"),
             *bullets([
                 "Aucun pilotage en temps réel et aucune communication avec les appareils.",
@@ -615,7 +598,6 @@ def full_guide(language: str) -> None:
         visual_overview = [
             para("L'essentiel en un écran", "h1"),
             para("La page Configuration répond au besoin d'origine du logiciel : survoler rapidement tout le preset sans ouvrir successivement chaque page de Dante Controller."),
-            *figure(language, "configuration.png", "Vue Configuration avec alertes, réglages par machine, renommage des canaux, actions globales et tableau de synthèse.", 170, 91),
             feature_band([
                 ("Repérer", "Les lignes colorées et le bandeau latéral signalent les écarts importants."),
                 ("Cibler", "Filtres, sélection multiple et verrouillage définissent précisément les machines touchées."),
@@ -625,7 +607,11 @@ def full_guide(language: str) -> None:
         visual_device = [
             para("Modifier une machine sans changer de page", "h1"),
             para("Détail machine regroupe les paramètres essentiels et permet de passer directement à une autre machine depuis le menu supérieur."),
-            *figure(language, "device-details.png", "Nom, mode réseau, Preferred Master, latence, sample rate, bits, IP et canaux TX/RX.", 148, 116),
+            feature_band([
+                ("Identité", "Nom de machine, mode réseau et Preferred Master."),
+                ("Audio", "Latence, sample rate et bits par échantillon."),
+                ("Réseau", "IP principale en automatique ou fixe, sans toucher aux interfaces secondaires."),
+            ]),
             *bullets([
                 "Les onglets TX et RX permettent de renommer les canaux individuellement.",
                 "Patch RX permet de contrôler ou déconnecter les subscriptions reçues par la machine.",
@@ -635,24 +621,30 @@ def full_guide(language: str) -> None:
         visual_patch = [
             para("Deux façons de travailler sur le patch", "h1"),
             para("Patch reste l'éditeur tabulaire précis. Easy patch ajoute une sélection visuelle, les plages et un lot cumulatif appliqué en une seule fois."),
-            *figure(language, "patch.png", "Patch : filtrer les TX/RX, rechercher une source, appliquer ou retirer une subscription et renommer depuis la liste.", 166, 82),
-            *figure(language, "easy-patch.png", "Easy patch : RX à gauche, TX à droite, prévisualisation ou application directe, plages et lot cumulatif.", 166, 82),
+            feature_band([
+                ("Patch", "Filtrer les TX/RX, rechercher une source, appliquer ou retirer une subscription."),
+                ("Easy patch", "RX à gauche, TX à droite, sélection multiple, plages et lot cumulatif."),
+                ("Contrôle", "Prévisualiser, résoudre les conflits, puis appliquer directement ou en une seule fois."),
+            ]),
         ]
         visual_health = [
             para("Contrôler avant d'enregistrer", "h1"),
             para("Les deux dernières pages servent à comprendre les anomalies, produire les rapports et vérifier que seules les modifications attendues seront conservées."),
-            *figure(language, "file-health.png", "Santé du fichier : erreurs, warnings, formats audio mélangés, IP fixes, patchs locaux et compatibilité.", 166, 80),
-            *figure(language, "safety-log.png", "Sécurité et journal : résumé avant sauvegarde, rapports Dante Controller, exports, historique et notices. Atomic Bomb possède désormais son propre onglet.", 166, 80),
+            feature_band([
+                ("Santé du fichier", "Erreurs, warnings, formats audio mélangés, IP fixes et patchs locaux."),
+                ("Sécurité et journal", "Résumé avant sauvegarde, compatibilité XML, rapports, historique et notices."),
+                ("Atomic Bomb", "Onglet séparé, catégories configurables et trois confirmations obligatoires."),
+            ]),
         ]
     else:
         page1 = [
             para("1. Installation and startup", "h1"),
-            callout("<b>Important:</b> this is a third-party tool, not an official Audinate product. V3.2 is the project's current official version and may still contain bugs. It edits XML files offline without connecting to a Dante network or using an Audinate API. Keep the original and validate the generated file in Dante Controller before production use."),
+            callout("<b>Important:</b> this is a third-party tool, not an official Audinate product. V3.3 is the project's current official version and may still contain bugs. It edits XML files offline without connecting to a Dante network or using an Audinate API. Keep the original and validate the generated file in Dante Controller before production use."),
             para("The Windows x64 installer includes the application and the required .NET 8 runtime. A separate .NET installation is normally not required."),
             *bullets([
                 "The default location is Program Files, with Start menu and desktop shortcuts.",
-                "V3.2 uses its own Program Files folder and creates shortcuts under the official version name.",
-                "The V3.2 installer replaces detected older V3 installations and preserves local working data.",
+                "V3.3 uses its own Program Files folder and creates shortcuts under the official version name.",
+                "The V3.3 installer replaces detected older V3 installations and preserves local working data.",
                 "Two self-contained DMGs are distributed for Apple Silicon and Intel Macs.",
                 "All four French and English PDFs are installed and remain available from the application.",
             ]),
@@ -766,7 +758,7 @@ def full_guide(language: str) -> None:
                 ["Format", "Destination", "Content"],
                 [
                     ["Generic JSON / CSV", "DCE or third-party tool", "Full Unicode. Do not import into dLive Director."],
-                    ["DMT XLSX dLive / Avantis", "dLive MIDI Tools", "Official DMT workbook; rows outside the selection are disabled."],
+                    ["DMT XLSX/ODS dLive / Avantis", "dLive MIDI Tools", "Direct DMT workbook; rows outside the selection are disabled."],
                     ["Native A&H CSV dLive", "dLive Director", "dLive [Version]/[Channels] structure and Input names."],
                     ["Native A&H CSV Avantis", "Avantis Director", "Avantis [Version]/[Channels] structure and Input names."],
                     ["Native Yamaha ZIP CL / QL", "CL/QL Editor", "Complete nine-CSV package; only InName.csv receives labels."],
@@ -781,13 +773,14 @@ def full_guide(language: str) -> None:
                 "Review the preview. Enable ASCII/eight-character adaptation only when required, then choose Export.",
                 "DCE opens Save as directly. Output is written atomically, so a failed export does not destroy an existing file.",
             ]),
+            callout("During import, Apply requires at least one error-free change. After loading the same labels again, the button intentionally remains disabled and DCE states that the labels already match."),
             callout("Before use, always open the generated file in DMT, dLive Director, Avantis Director, or Yamaha CL/QL Editor and verify labels and the selected model.", PALE_RED),
             para("Bundled DMT workbooks come from Tobias Grupe's MIT-licensed dLive MIDI Tools project. DMT_LICENSE.txt is included with the application.", "small"),
         ]
         page5 = [
             para("12. Atomic Bomb: create an exercise", "h1"),
             *bullets([
-                "Open the Atomic Bomb tab after Safety and log. Three confirmations describe the consequences before any change.",
+                "Open the Atomic Bomb tab after Safety and log. Clear the categories you want to spare; all are selected by default. Three confirmations then describe the consequences before any change.",
                 "The in-memory copy receives unique mythological, audio-themed, or playful names plus a mixture of subscriptions, network modes, Preferred Master states, latencies, sample rates, encodings, and primary IP settings.",
                 "Technical identifiers, namespaces, DNS, gateways, and secondary interfaces remain protected.",
                 "The summary displays the scenario seed. The entire operation is one undo step and the source file is never overwritten.",
@@ -807,7 +800,7 @@ def full_guide(language: str) -> None:
                 [48, 122],
             ),
             para("14. Regression tests", "h1"),
-            para("The V3.2 suite runs 143 Core/Windows tests and 10 headless Mac tests. Coverage includes XML guards, save and recovery, IPv4 interfaces, subscriptions, large presets, native templates, labels, synoptic export, Atomic Bomb, Easy patch, and Device details."),
+            para("The V3.3 suite runs 150 Core/Windows tests and 11 headless Mac tests. Coverage includes XML guards, save and recovery, IPv4 interfaces, subscriptions, large presets, DMT XLSX/ODS templates, labels, synoptic export, configurable Atomic Bomb, Easy patch, Device details, and translation consistency."),
             para("15. Known limitations", "h1"),
             *bullets([
                 "No real-time Dante control and no communication with devices.",
@@ -830,7 +823,6 @@ def full_guide(language: str) -> None:
         visual_overview = [
             para("The essentials on one screen", "h1"),
             para("The Configuration page addresses the software's original need: review an entire preset quickly without opening each Dante Controller page in turn."),
-            *figure(language, "configuration.png", "Configuration view with alerts, per-device settings, channel renaming, global actions, and the overview table.", 170, 91),
             feature_band([
                 ("Spot issues", "Colored rows and the side banner highlight important discrepancies."),
                 ("Target safely", "Filters, multiple selection, and locks define exactly which devices are affected."),
@@ -840,7 +832,11 @@ def full_guide(language: str) -> None:
         visual_device = [
             para("Edit a device without leaving the workflow", "h1"),
             para("Device details combines the essential settings and lets you move directly to another device from the top menu."),
-            *figure(language, "device-details.png", "Name, network mode, Preferred Master, latency, sample rate, bits, IP settings, and TX/RX channels.", 148, 116),
+            feature_band([
+                ("Identity", "Device name, network mode, and Preferred Master."),
+                ("Audio", "Latency, sample rate, and bits per sample."),
+                ("Network", "Automatic or static primary IP without changing secondary interfaces."),
+            ]),
             *bullets([
                 "The TX and RX tabs rename individual channels.",
                 "Rx patch reviews or disconnects subscriptions received by the device.",
@@ -850,14 +846,20 @@ def full_guide(language: str) -> None:
         visual_patch = [
             para("Two patching workflows", "h1"),
             para("Patch remains the precise tabular editor. Easy patch adds visual selection, ranges, and a cumulative batch that is applied once."),
-            *figure(language, "patch.png", "Patch: filter TX/RX devices, find a source, apply or remove a subscription, and rename from the list.", 166, 82),
-            *figure(language, "easy-patch.png", "Easy patch: RX on the left, TX on the right, preview or direct apply, exact ranges, and a cumulative batch.", 166, 82),
+            feature_band([
+                ("Patch", "Filter TX/RX devices, find a source, and apply or remove a subscription."),
+                ("Easy patch", "RX on the left, TX on the right, multiple selection, ranges, and a cumulative batch."),
+                ("Control", "Preview, resolve conflicts, then apply directly or in one operation."),
+            ]),
         ]
         visual_health = [
             para("Review before saving", "h1"),
             para("The final two pages explain anomalies, produce reports, and help verify that only the intended changes will be kept."),
-            *figure(language, "file-health.png", "File health: errors, warnings, mixed audio formats, static IPs, local subscriptions, and compatibility.", 166, 80),
-            *figure(language, "safety-log.png", "Safety and log: pre-save summary, Dante Controller reports, exports, history, and user guides. Atomic Bomb now has its own tab.", 166, 80),
+            feature_band([
+                ("File health", "Errors, warnings, mixed audio formats, static IPs, and local subscriptions."),
+                ("Safety and log", "Pre-save summary, XML compatibility, reports, history, and user guides."),
+                ("Atomic Bomb", "Separate tab, configurable categories, and three required confirmations."),
+            ]),
         ]
 
     story: list = []

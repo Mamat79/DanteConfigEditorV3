@@ -5,46 +5,42 @@ GitHub. Il sert de repère pour les prochaines évolutions du dépôt. Les
 modifications en ligne restent prioritaires : ce fichier ne doit pas être
 réinjecté automatiquement dans GitHub.
 
-Dernière vérification : 2026-07-21
+Dernière vérification : 2026-07-22
 
 ## Dépôt
 
 - Nom : `DanteConfigEditorV3`
 - Dépôt : https://github.com/Mamat79/DanteConfigEditorV3
 - Description : `FRANÇAIS - Éditeur hors ligne de presets XML Dante avec import/export de labels JSON, CSV et XLSX compatible DMT dLive/Avantis. | ENGLISH - Offline Dante XML preset editor with JSON, CSV and DMT-compatible XLSX label exchange.`
-- Page principale : https://github.com/Mamat79/DanteConfigEditorV3/releases/tag/v3.2
+- Page principale : https://github.com/Mamat79/DanteConfigEditorV3/releases/tag/v3.3
 - Branche de travail : `main`
 
-## Version officielle V3.2
+## Version officielle V3.3
 
 - Branche publiée : `main`
-- Tag immuable : `v3.2`
-- Titre prévu : `Dante Config Editor V3.2 - Windows / macOS - FR / EN`
+- Tag immuable : `v3.3`
+- Titre prévu : `Dante Config Editor V3.3 - Windows / macOS - FR / EN`
 - Statut : version officielle et Release `Latest`.
 - L'onglet `Import / Export` regroupe Labels, Rapports et patchbook et Synoptique.
 - Le synoptique visuel exporte un SVG en couleur sans écrire ses emplacements ou sa mise en page dans le XML Dante.
-- Les labels acceptent JSON/CSV génériques, XLSX DMT, CSV Allen & Heath dLive/Avantis et ZIP/CSV Yamaha CL/QL.
+- Les labels acceptent JSON/CSV génériques, XLSX/ODS DMT, CSV Allen & Heath dLive/Avantis et ZIP/CSV Yamaha CL/QL.
+- Atomic Bomb permet de protéger séparément dix catégories de paramètres.
 
-La description « About » réglée en ligne reste prioritaire et ne doit pas être écrasée automatiquement :
-
-- Français : `Éditeur hors ligne de presets XML Dante avec labels JSON/CSV/XLSX DMT, rapports, patchbooks et synoptique SVG en couleur.`
-- English: `Offline Dante XML preset editor with JSON/CSV/DMT XLSX labels, reports, patchbooks, and a colored SVG synoptic.`
+La description « About » ci-dessus a été relevée directement sur GitHub. Elle reste prioritaire et ne doit pas être écrasée automatiquement lors d'une future publication.
 
 ## Releases conservées
 
-### V3.08
+### V3.2
 
-- Tag : `v3.08`
-- Titre GitHub : `DCE 3.0.8 (V3.08) - Windows / macOS`
-- URL : https://github.com/Mamat79/DanteConfigEditorV3/releases/tag/v3.08
+- Tag : `v3.2`
+- Titre GitHub : `DCE V3.2 - Windows / macOS - FR / EN`
+- URL : https://github.com/Mamat79/DanteConfigEditorV3/releases/tag/v3.2
 - Statut : publiée, ancienne version conservée, non Latest
 
-### V3.09
+### V3.08 et V3.09 retirées
 
-- Tag : `v3.09`
-- Titre GitHub : `DCE V3.09 - Windows / macOS - FR / EN`
-- URL : https://github.com/Mamat79/DanteConfigEditorV3/releases/tag/v3.09
-- Statut : publiée, ancienne version conservée, non Latest
+- Tags conservés : `v3.08` et `v3.09`
+- Statut : pages de Releases et fichiers téléchargeables retirés à la demande du mainteneur ; commits et tags Git conservés.
 
 ### V3.1 retirée
 

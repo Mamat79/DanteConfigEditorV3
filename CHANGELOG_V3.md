@@ -1,5 +1,20 @@
 # Changelog V3
 
+## 2026-07-22 - Version 3.3 officielle - DMT ODS et Atomic Bomb configurable
+
+- Import direct des classeurs DMT `XLSX` et `ODS` depuis l'onglet Labels.
+- Export direct vers quatre modèles intégrés : XLSX dLive, XLSX Avantis, ODS dLive et ODS Avantis.
+- Préservation des feuilles, styles et réglages hors `Channels` dans les copies ODS générées ; seules les cellules `Enabled` et `Name` sont adaptées.
+- Nouveau panneau `Générateur d'expérience horrible (mais pédagogique)` dans Atomic Bomb.
+- Ajout de dix options indépendantes pour protéger les noms de machines, labels TX/RX, patchs, modes réseau, Preferred Master, latences, fréquences, bits et IP principales.
+- Conservation du routage existant lorsque les patchs sont exclus mais que les machines ou TX sont renommés.
+- Correction macOS des boutons d'échange de labels et de prévisualisation masqués en Full HD.
+- Correction des traductions du bandeau, de la recherche et des filtres macOS.
+- Explication visible lorsqu'un second import de labels identique ne contient aucun changement à appliquer.
+- Passage de l'application, des paquets Windows/macOS, des notices et de l'installateur à la V3.3.
+- Extension de la suite à 150 tests Core/Windows et 11 tests d'interface macOS sans écran.
+- Conservation de la Release V3.2 ; retrait volontaire des pages de Releases V3.08 et V3.09, avec conservation de leurs tags et commits Git.
+
 ## 2026-07-21 - Version 3.2 officielle - Import / Export et synoptique visuel
 
 - Maintenance V3.2 : ajout de l'export PDF vectoriel du synoptique, en complément du SVG.
@@ -25,7 +40,7 @@
 - Amélioration du synoptique avec routes orthogonales, troncs partagés et légende sur deux colonnes pour les projets denses.
 - Passage de l'application, des paquets Windows/macOS, des notices et de l'installateur à la V3.2.
 - L'installateur V3.2 remplace les anciennes installations V3 détectées et conserve les données locales de travail.
-- Promotion de la V3.2 sur `main` avec un tag immuable `v3.2` ; les Releases historiques `v3.08` et `v3.09` restent intactes.
+- Promotion de la V3.2 sur `main` avec un tag immuable `v3.2` ; les Releases historiques `v3.08` et `v3.09` étaient encore publiées à cette date, avant leur retrait en V3.3.
 
 ## 2026-07-21 - Maintenance de main après V3.1
 
@@ -42,7 +57,7 @@
 - Interface d'échange disponible sur Windows et macOS.
 - Déplacement d'`Atomic Bomb` dans un onglet dédié après `Sécurité et journal` sur les deux plateformes.
 - Passage de l'application, des installateurs, des données locales et des paquets macOS en V3.1.
-- Conservation des Releases immuables `v3.08` et `v3.09` avec leurs propres artefacts.
+- Publication initiale des Releases immuables `v3.08` et `v3.09` avec leurs propres artefacts ; leurs tags restent conservés après le retrait ultérieur des pages de Release en V3.3.
 
 ## 2026-07-20 - Version 3.09 - exercice de dépannage atomique
 

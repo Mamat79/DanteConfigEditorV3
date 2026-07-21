@@ -1,41 +1,29 @@
-# Dante Config Editor V3.2
+# Dante Config Editor V3.3
 
 ## Français
 
-La V3.2 réunit toutes les fonctions de fichiers dans un onglet **Import / Export** organisé en trois espaces : **Labels**, **Rapports et patchbook** et **Synoptique**.
+La V3.3 ajoute l'import et l'export directs des fichiers DMT `XLSX` et `ODS` pour dLive et Avantis. Les quatre modèles sont intégrés dans l'application et chaque export crée une nouvelle copie sans modifier le modèle d'origine.
 
-Le synoptique transforme les subscriptions du projet en un schéma SVG en couleur. Les machines peuvent être regroupées par emplacement physique, masquées ou réordonnées. Les séries consécutives sont condensées en un seul câble, par exemple **TX 1-32 vers RX 1-32**. Les routes orthogonales, troncs partagés et la légende sur deux colonnes rendent les projets denses plus lisibles.
+`Atomic Bomb` devient un générateur d'exercice configurable : chaque catégorie peut être décochée pour protéger les noms, labels, patchs, paramètres audio, réseau, horloge ou IP que le formateur souhaite conserver.
 
-Les emplacements et préférences de présentation sont enregistrés dans un fichier local séparé. **Aucune information de synoptique n'est ajoutée au XML Dante.**
+Cette version corrige également les boutons masqués, traductions manquantes et explications d'import sur macOS grâce aux retours de Tobias Grupe sur un Mac Intel réel.
 
-L'échange de labels accepte les formats JSON/CSV génériques, les modèles XLSX **[dLive MIDI Tools (DMT)](https://github.com/togrupe/dlive-midi-tools)**, les CSV Allen & Heath dLive/Avantis et les packages ZIP ou `InName.csv` Yamaha CL/QL. Chaque export crée une copie : les modèles et exports console originaux ne sont jamais modifiés.
-
-Dante Config Editor reste un éditeur XML hors ligne tiers et non officiel Audinate. Travaillez sur une copie et validez toujours le résultat dans Dante Controller ou l'outil Dante officiel adapté.
-
-### Distribution
-
-- Installateur autonome Windows x64 : `DanteConfigEditorV3_2_Installer.exe`, runtime .NET 8 inclus.
-- DMG autonomes macOS Apple Silicon et Intel.
-- La V3.2 remplace les anciennes installations V3 détectées et devient la Release `Latest`.
-- Les Releases historiques `v3.09` et `v3.08` restent disponibles avec leurs propres fichiers.
+- Windows x64 autonome : `DanteConfigEditorV3_3_Installer.exe`.
+- macOS Apple Silicon et Intel : deux DMG autonomes.
+- 150 tests Core/Windows et 11 tests macOS sans écran réussis.
+- La V3.2 reste disponible ; les Releases V3.08 et V3.09 sont retirées à la demande du mainteneur, sans supprimer leurs tags Git.
 
 ## English
 
-V3.2 brings every file-oriented feature into one **Import / Export** tab organized into **Labels**, **Reports and patchbook**, and **Synoptic**.
+V3.3 adds direct import and export of DMT `XLSX` and `ODS` files for dLive and Avantis. All four templates are bundled with the application, and every export creates a new copy without modifying the original template.
 
-The synoptic turns project subscriptions into a colored SVG diagram. Devices can be grouped by physical location, hidden, or reordered. Consecutive ranges are compressed into one cable, for example **TX 1-32 to RX 1-32**. Orthogonal routes, shared trunks, and a two-column legend keep dense projects readable.
+`Atomic Bomb` is now a configurable training generator: each category can be cleared to protect the device names, labels, subscriptions, audio, network, clock, or IP settings the trainer wants to keep.
 
-Locations and presentation preferences are stored in a separate local sidecar file. **No synoptic metadata is ever added to Dante XML.**
+This release also fixes clipped controls, missing translations, and import feedback on macOS based on Tobias Grupe's testing on a real Intel Mac.
 
-Label exchange supports generic JSON/CSV, **[dLive MIDI Tools (DMT)](https://github.com/togrupe/dlive-midi-tools)** XLSX templates, Allen & Heath dLive/Avantis CSV files, and Yamaha CL/QL ZIP packages or `InName.csv`. Every export creates a copy, so original templates and console exports are never modified.
-
-Dante Config Editor remains an offline third-party XML editor and is not an official Audinate product. Work on a copy and always validate the result in Dante Controller or the appropriate official Dante tool.
-
-### Distribution
-
-- Self-contained Windows x64 installer: `DanteConfigEditorV3_2_Installer.exe`, including .NET 8.
-- Self-contained Apple Silicon and Intel macOS DMGs.
-- V3.2 replaces detected older V3 installations and becomes the `Latest` Release.
-- Historical Releases `v3.09` and `v3.08` remain available with their own assets.
+- Self-contained Windows x64: `DanteConfigEditorV3_3_Installer.exe`.
+- Apple Silicon and Intel macOS: two self-contained DMGs.
+- 150 Core/Windows tests and 11 headless macOS tests pass.
+- V3.2 remains available; V3.08 and V3.09 Releases are removed at the maintainer's request while their Git tags remain.
 
 **By Mamat et ses agents**

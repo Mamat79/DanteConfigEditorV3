@@ -1,115 +1,56 @@
-# Dante Config Editor V3.2
+# Dante Config Editor V3.3
 
-**Français** | [English](https://github.com/Mamat79/DanteConfigEditorV3/blob/main/RELEASE_NOTES_EN.md)
+[English release notes](RELEASE_NOTES_EN.md)
 
 ## Statut
 
-V3.2 est la version officielle courante pour Windows et macOS. Il s'agit toujours d'un outil tiers non officiel Audinate et cette application peut encore contenir des bugs. Travaillez sur une copie des XML Dante et validez le résultat dans les outils Dante officiels avant toute utilisation réelle.
+V3.3 est la version officielle courante pour Windows et macOS. Dante Config Editor reste un outil tiers non officiel Audinate et peut encore contenir des bugs. Travaillez sur une copie des XML Dante et validez toujours le fichier généré dans l'outil Dante officiel adapté avant une utilisation réelle.
 
-La V3.2 remplace la V3.1 sur `main` et devient la Release `Latest`. Les Releases historiques `v3.09` et `v3.08` restent disponibles avec leurs tags immuables et leurs propres fichiers.
+## Échange direct avec DMT
 
-## Mise à jour intégrée à la V3.2
+- Import direct des fichiers `XLSX` et `ODS` créés par [dLive MIDI Tools (DMT)](https://github.com/togrupe/dlive-midi-tools).
+- Export direct vers quatre modèles intégrés : DMT XLSX dLive, DMT XLSX Avantis, DMT ODS dLive et DMT ODS Avantis.
+- Les feuilles, styles et réglages hors `Channels` sont conservés ; seules les cellules `Enabled` et `Name` nécessaires sont adaptées dans la copie exportée.
+- Les modèles dLive et Avantis sont embarqués dans l'application. Aucun fichier modèle externe n'est demandé.
+- Les formats JSON/CSV génériques, CSV Allen & Heath dLive/Avantis et ZIP Yamaha CL/QL restent disponibles.
 
-- Export du synoptique en SVG et en PDF vectoriel.
-- Espacement automatique des ports et agrandissement des cartes sur les projets denses pour réduire les flèches superposées.
-- Cases d'affichage utilisables en un clic et emplacements déjà saisis réutilisables depuis une liste.
-- Import de labels directement sélectionnable, prévisualisable et limité à la capacité TX/RX des machines choisies.
-- CSV générique proposé par défaut : seul le nom du nouveau fichier et son dossier sont demandés.
-- Modèles natifs DMT dLive/Avantis, Allen & Heath dLive/Avantis et Yamaha CL/QL inclus : l'export demande seulement un nom de fichier.
-- Bascule automatique sur RX pour une machine sans TX, et distinction explicite entre CSV générique DCE et CSV natif console.
-- Correction de l'ouverture de l'export pour une machine sans TX : RX est sélectionné avant le premier aperçu et une plage vide reste gérée dans la fenêtre.
-- Notices française et anglaise mises à jour.
+## Atomic Bomb configurable
 
-## Pourquoi cet outil existe
+L'onglet a été rebaptisé avec un ton plus assumé : **Générateur d'expérience horrible (mais pédagogique)**.
 
-Dante Config Editor est né pour répondre à ce qui me manquait dans Dante Controller : vérifier rapidement une configuration complète sans ouvrir successivement toutes les pages de devices, latences, sample rates, modes réseau, Preferred Master ou IP. Il permet de survoler le preset, de corriger les valeurs nécessaires et de préparer une configuration hors ligne.
+Avant les trois confirmations, il est maintenant possible de protéger séparément :
 
-Il répond aussi au besoin de renommer une machine ou ses canaux TX sur un réseau déjà patché sans devoir reconstruire manuellement toutes les subscriptions reconnues. L'application reste un éditeur XML hors ligne et ne pilote jamais le réseau Dante en direct.
+- les noms de machines ;
+- les labels TX et RX ;
+- les patchs/subscriptions ;
+- les modes réseau et Preferred Master ;
+- les latences, fréquences et bits par échantillon ;
+- les IP principales.
 
-## Import / Export réorganisé
+Toutes les options restent cochées par défaut. Si les patchs sont exclus mais que des noms changent, les références reconnues sont mises à jour pour conserver le routage existant. Le fichier original, les identifiants techniques, DNS, passerelles et interfaces secondaires restent protégés.
 
-Les fonctions qui produisent ou lisent des fichiers sont regroupées dans un onglet principal `Import / Export` :
+## Corrections macOS
 
-- `Labels` : import et export pour une ou plusieurs machines.
-- `Rapports et patchbook` : rapport TXT/PDF, patchbooks TXT/CSV et topologie simple.
-- `Synoptique` : préparation et export d'un schéma visuel en couleur.
+- Boutons d'import/export et de prévisualisation entièrement visibles en Full HD.
+- Traductions manquantes du bandeau, de la recherche et des filtres corrigées.
+- Après un second import identique, l'interface explique désormais qu'aucun changement n'est à appliquer au lieu de laisser un bouton désactivé sans raison visible.
+- Le nouveau panneau Atomic Bomb et ses options tiennent dans une fenêtre 1366 × 768 lors des tests Avalonia sans écran.
 
-`Sécurité et journal` conserve les contrôles du fichier, les comparaisons, l'historique et l'accès aux notices.
+Merci à **Tobias Grupe / togrupe** pour ses captures et ses retours sur un Mac Intel réel, particulièrement précieux puisque le développement local principal est effectué sous Windows.
 
-## Labels et consoles
+## Distribution et validation
 
-- JSON et CSV génériques pour les échanges avec d'autres outils.
-- XLSX compatible avec **[dLive MIDI Tools (DMT) de togrupe](https://github.com/togrupe/dlive-midi-tools)** : lecture de la feuille `Channels` et création directe d'un classeur dLive ou Avantis depuis les modèles inclus sous licence MIT.
-- CSV natif Allen & Heath dLive/Avantis : lecture d'un export existant ou création directe depuis le modèle inclus, en ne remplaçant que les labels `Input`.
-- Yamaha CL/QL : lecture d'un package ZIP ou d'un fichier `InName.csv`, et création directe d'un ZIP complet ; les huit autres CSV du package restent inchangés.
-- Prévisualisation des labels et adaptation ASCII sur huit caractères uniquement sur demande explicite.
-- Les modèles internes ne sont jamais modifiés et chaque sortie est écrite atomiquement dans un nouveau fichier.
-
-Les essais ont couvert les exemples fournis : DMT Avantis/dLive, CSV Avantis/dLive, Yamaha CL5 avec 72 entrées et Yamaha QL5 avec 64 entrées.
-
-## Synoptique visuel
-
-- Affectation d'un emplacement physique à chaque machine.
-- Affichage en un clic, masquage et réorganisation des machines sans modifier le preset.
-- Réutilisation des emplacements déjà saisis depuis une liste.
-- Regroupement des subscriptions consécutives en un seul câble, par exemple `TX 1-32 vers RX 1-32`.
-- Routes orthogonales, troncs partagés, câbles colorés et ports espacés automatiquement pour limiter les croisements et les flèches superposées.
-- Légende séparée sur deux colonnes pour les projets denses.
-- Exports SVG et PDF vectoriels, adaptés à l'impression et aux dossiers techniques.
-- Stockage des emplacements et de la présentation dans un fichier local séparé du XML Dante.
-
-La création, l'aperçu et l'export du synoptique ne modifient jamais le document XML chargé.
-
-## Easy patch et exercice Atomic Bomb
-
-- `Easy patch` conserve les RX à gauche et les TX à droite, avec navigation rapide entre machines.
-- Les sélections et les plages peuvent être prévisualisées, cumulées puis appliquées en une seule opération.
-- La matrice compacte permet les affectations unitaires et les séries horizontales, verticales ou diagonales.
-- Les conflits demandent toujours un choix explicite avant de remplacer une subscription existante.
-- `Atomic Bomb` produit, après trois confirmations, un preset volontairement désorganisé destiné aux exercices de diagnostic hors ligne.
-- Le fichier source reste intact et les identifiants techniques Dante restent protégés.
-
-## Installation
-
-- Installateur Windows autonome : `DanteConfigEditorV3_2_Installer.exe`.
-- Dossier par défaut : `C:\Program Files\Dante Config Editor V3.2\`.
-- Runtime .NET 8 et notices françaises/anglaises inclus.
-- Remplacement des anciennes installations V3 détectées, sans suppression des données locales de travail.
+- Installateur autonome Windows x64 : `DanteConfigEditorV3_3_Installer.exe`, runtime .NET 8 inclus.
 - DMG autonomes macOS Apple Silicon et Intel.
-
-## Plateformes
-
-- Windows x64 : installateur autonome avec runtime .NET 8 et notices FR/EN.
-- macOS Apple Silicon : DMG autonome pour les Mac M1 et suivants.
-- macOS Intel : DMG autonome pour les Mac Intel 64 bits.
-- Le moteur XML et ses garde-fous sont partagés entre Windows et macOS.
-- Les DMG sont signés ad hoc mais non notariés ; le premier lancement peut nécessiter un clic droit puis `Ouvrir`.
-
-## Sécurité XML
-
-- Les informations de synoptique restent dans un fichier annexe local et n'ajoutent aucune balise au XML Dante.
-- Les modifications utilisent l'identité stable des machines et les Dante Id des canaux.
-- Les valeurs et chemins XML inconnus restent préservés ou bloqués par le garde-fou existant.
-- Les exports n'altèrent pas le projet chargé.
-- `Enregistrer sous` reste atomique et sauvegarde une destination existante.
-
-## Validation automatisée
-
-- 143 tests du moteur et des contrats Windows réussissent en configuration Release.
-- 10 tests d'interface macOS sans écran réussissent également.
-- Les builds Windows et macOS réussissent sans avertissement.
-- Les essais complémentaires couvrent le preset Rectorat, un classeur DMT réel, le synoptique SVG/PDF et la préservation du XML chargé.
+- 150 tests du moteur et des contrats Windows réussissent en configuration Release.
+- 11 tests d'interface macOS sans écran réussissent également.
+- La Release V3.2 reste disponible comme version historique. Les pages de Releases V3.08 et V3.09 sont retirées à la demande du mainteneur ; leurs tags et commits restent dans Git.
 
 ## Limites
 
 - Seul un import réussi dans Dante Controller ou l'outil Dante officiel adapté confirme la compatibilité finale.
-- Le synoptique représente les subscriptions présentes dans le fichier ; il ne découvre pas le câblage physique réel.
-- Les formats console pris en charge correspondent aux exemples réellement testés ; une évolution d'un format fabricant peut demander une mise à jour.
+- Le support DMT correspond aux modèles observés en version 2.13.0 ; une évolution future peut demander une adaptation.
 - L'installateur Windows n'est pas signé Authenticode et les DMG ne sont pas notariés.
-
-## Crédit
-
-Le projet a commencé comme un petit éditeur XML personnel écrit manuellement par Mamat. Les agents de développement actuels ont ensuite permis d'accélérer fortement l'interface, les garde-fous XML, les tests, la documentation et la distribution, sous la direction fonctionnelle de Mamat.
 
 **By Mamat et ses agents**
 

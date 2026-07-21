@@ -1,15 +1,15 @@
-# Dante Config Editor V3.2
+# Dante Config Editor V3.3
 
 [Français](README.md) | **English**
 
-V3.2 is the official Windows and macOS version. Published source is available on `main`.
+V3.3 is the official Windows and macOS version. Published source is available on `main`.
 
-**Stable version: [V3.2 Release for Windows and macOS](https://github.com/Mamat79/DanteConfigEditorV3/releases/tag/v3.2)**
+**Stable version: [V3.3 Release for Windows and macOS](https://github.com/Mamat79/DanteConfigEditorV3/releases/tag/v3.3)**
 
-> **Status: official V3.2. Unofficial third-party tool, not affiliated with Audinate.**
-> This software may still contain bugs. Previous versions remain available in the GitHub Releases history. Always work on a copy and validate generated XML with official Dante tools.
+> **Status: official V3.3. Unofficial third-party tool, not affiliated with Audinate.**
+> This software may still contain bugs. V3.2 remains available as the historical release. Always work on a copy and validate generated XML with official Dante tools.
 
-> **Importing and exporting labels through JSON, CSV, DMT XLSX for dLive and Avantis, A&H CSV, and Yamaha CL/QL ZIP/CSV.** Native templates are bundled with the application, so no external template file is required for export.
+> **Importing and exporting labels through JSON, CSV, DMT XLSX/ODS for dLive and Avantis, A&H CSV, and Yamaha CL/QL ZIP/CSV.** Native templates are bundled with the application, so no external template file is required for export.
 
 ## Origin and agent-assisted development
 
@@ -29,8 +29,8 @@ Generic CSV is selected by default and only asks for an output name and destinat
 
 JSON and CSV remain generic exchange formats. Native profiles also support these console and tool formats:
 
-- **DMT → Dante Config Editor**: read the `Channels` sheet from a DMT XLSX workbook, then map its labels to the TX or RX channels of one or several Dante devices.
-- **Dante Config Editor → DMT**: directly create a dLive or Avantis XLSX workbook from the bundled DMT template, disabling rows absent from the selection.
+- **DMT → Dante Config Editor**: directly read the `Channels` sheet from a DMT XLSX or ODS workbook, then map its labels to the TX or RX channels of one or several Dante devices.
+- **Dante Config Editor → DMT**: directly create a dLive/Avantis XLSX or ODS workbook from one of four bundled DMT templates, disabling rows absent from the selection.
 - **DMT project**: [togrupe/dlive-midi-tools](https://github.com/togrupe/dlive-midi-tools).
 - **Allen & Heath dLive / Avantis**: read an existing console CSV or directly create a new native CSV from the bundled template; only `Input` name fields are changed.
 - **Yamaha CL / QL**: read a ZIP package or an individual `InName.csv`, and directly create a complete ZIP from the bundled template; the eight other CSV files remain unchanged.
@@ -45,23 +45,19 @@ The synoptic can be exported as vector SVG or PDF. Neither export nor the local 
 
 Locations and presentation choices are saved in a separate local sidecar file. They are never inserted into Dante XML. The SVG export contains devices, numbered cables, and a detailed legend and can be opened in a browser, printed, or included in technical documentation.
 
-## General presentation
+## User guides
 
-[![Dante Config Editor V3.09 presentation using a synthetic anonymized preset](docs/media/guide/en/overview.png)](docs/media/dante-config-editor-v309-overview-en.mp4)
-
-- **[Watch the full English presentation (MP4)](docs/media/dante-config-editor-v309-overview-en.mp4)** - readable subtitles are burned into the video; [separate SRT file](docs/media/dante-config-editor-v309-overview-en.srt).
-- **[Watch the full French presentation (MP4)](docs/media/dante-config-editor-v309-overview-fr.mp4)** - [separate SRT file](docs/media/dante-config-editor-v309-overview-fr.srt).
 - **[Read the full English guide (PDF)](docs/Notice_DanteConfigEditorV3_EN.pdf)** or the [quick start](docs/QuickStart_DanteConfigEditorV3_EN.pdf).
 - **[Lire la notice complète en français (PDF)](docs/Notice_DanteConfigEditorV3_FR.pdf)** ou le [démarrage rapide](docs/QuickStart_DanteConfigEditorV3_FR.pdf).
 
-The screenshots, manuals and videos use only a synthetic anonymized preset. They contain no production device name, file or path.
+The screenshots and manuals use only a synthetic anonymized preset. They contain no production device name, file or path.
 
 ## What the application does
 
 - Opens Dante XML configuration files offline.
 - Displays devices, TX/RX channels, latency, network mode and Preferred Master state.
 - Renames devices and TX/RX channels, including channel ranges.
-- Imports and exports channel labels for one or several devices through JSON, CSV, DMT XLSX, A&H dLive/Avantis CSV, or Yamaha CL/QL packages, with range mapping and preview.
+- Imports and exports channel labels for one or several devices through JSON, CSV, DMT XLSX/ODS, A&H dLive/Avantis CSV, or Yamaha CL/QL packages, with range mapping and preview.
 - Groups label exchange, reports, patchbooks, and the synoptic in one `Import / Export` tab with three clear subtabs.
 - Generates a colored SVG synoptic with locations, optional devices, custom ordering, and compressed consecutive cable ranges.
 - Keeps synoptic layout information outside Dante XML in a separate local file.
@@ -82,7 +78,7 @@ The screenshots, manuals and videos use only a synthetic anonymized preset. They
 - Preserves default XML namespaces and recognized unknown values.
 - Provides French and English interfaces, quick starts and full PDF manuals.
 - Exports TXT/PDF reports and read-only patchbooks.
-- Uses `Atomic Bomb` to generate a deliberately scrambled troubleshooting preset for training, after three explicit confirmations.
+- Uses `Atomic Bomb` to generate a deliberately scrambled troubleshooting preset after three confirmations, with independent exclusions for every category.
 - Displays file-health warnings, compatibility information and a simple TX-to-RX topology.
 - Provides search, recent files, undo, recovery, dark theme and light theme.
 
@@ -101,13 +97,13 @@ The screenshots, manuals and videos use only a synthetic anonymized preset. They
 
 ## Download and install
 
-Download the [V3.2 GitHub Release](https://github.com/Mamat79/DanteConfigEditorV3/releases/tag/v3.2).
+Download the [V3.3 GitHub Release](https://github.com/Mamat79/DanteConfigEditorV3/releases/tag/v3.3).
 
 ### Windows x64
 
-For Windows x64, use `DanteConfigEditorV3_2_Installer.exe`, a self-contained installer that replaces older V3 installations.
+For Windows x64, use `DanteConfigEditorV3_3_Installer.exe`, a self-contained installer that replaces older V3 installations.
 
-The self-contained installer includes the required .NET 8 runtime, French and English documentation, Start menu and desktop shortcuts, destination selection, and clean uninstall support. It installs by default in `C:\Program Files\Dante Config Editor V3.2\` and removes detected V3.1, V3.09, V3.08, V3.07, and V3.2 Beta installations.
+The self-contained installer includes the required .NET 8 runtime, French and English documentation, Start menu and desktop shortcuts, destination selection, and clean uninstall support. It installs by default in `C:\Program Files\Dante Config Editor V3.3\` and replaces detected older V3 installations, including V3.2.
 
 ### macOS
 
@@ -120,10 +116,11 @@ The macOS builds are ad hoc signed but are not notarized with an Apple Developer
 
 ## Distributed version
 
-- `main` contains the official V3.2 source for Windows and macOS.
-- Immutable tag `v3.2` exactly matches the V3.2 Release assets and is marked `Latest`.
+- `main` contains the official V3.3 source for Windows and macOS.
+- Immutable tag `v3.3` exactly matches the V3.3 Release assets and is marked `Latest`.
+- Historical Release [`v3.2`](https://github.com/Mamat79/DanteConfigEditorV3/releases/tag/v3.2) remains downloadable with its own files.
+- V3.08 and V3.09 Release pages were removed at the maintainer's request; their tags and commits remain in Git history.
 - The V3.1 Release is removed at the maintainer's request; its source history remains in Git.
-- The historical [`v3.09`](https://github.com/Mamat79/DanteConfigEditorV3/releases/tag/v3.09) and [`v3.08`](https://github.com/Mamat79/DanteConfigEditorV3/releases/tag/v3.08) Releases retain their own installers and documentation.
 - Every version uses a separate immutable tag under the [release policy](RELEASE_POLICY.md).
 - Each Release contains the files built for its own tagged source.
 - Functional history remains available through the commits and `CHANGELOG_V3.md`.
@@ -142,7 +139,7 @@ The macOS builds are ad hoc signed but are not notarized with an Apple Developer
 
 ## Atomic Bomb: troubleshooting exercise
 
-`Atomic Bomb`, placed in its own tab after `Safety and log`, prepares a deliberately disordered network preset for training. It only changes the XML copy loaded in memory and requires three successive confirmations.
+`Atomic Bomb`, placed in its own tab after `Safety and log`, prepares a deliberately disordered network preset for training. Its **Horrible experience generator (but educational)** panel lets users clear every category they want to spare before the three confirmations. It only changes the XML copy loaded in memory.
 
 Thanks to **Charles Bouticourt** for the idea behind this training feature.
 
@@ -157,6 +154,14 @@ Devices receive unique names from a mythological, audio-themed, and deliberately
 - The source file is never overwritten: use `Save as` to create the trainee preset.
 
 The result is intentionally inconsistent at the functional level. Import it into the appropriate official Dante tool before using it as a training exercise.
+
+## What's new in V3.3
+
+- Direct DMT XLSX and ODS import, with export to four embedded dLive/Avantis templates.
+- Preservation of sheets and styles outside `Channels` in generated ODS copies.
+- Detailed Atomic Bomb category selection, with all options enabled by default.
+- Full HD macOS layout, translation, and identical-import feedback fixes.
+- V3.3 installer replacing V3.2 while preserving local data.
 
 ## What's new in V3.2
 
@@ -177,7 +182,7 @@ The result is intentionally inconsistent at the functional level. Import it into
 - The same label workflow on Windows and macOS through the shared XML engine.
 - `Atomic Bomb` moved into a dedicated tab so it no longer dominates the main navigation.
 - V3.1 installer cleanly replacing installed V3.07, V3.08 and V3.09 versions.
-- New immutable `v3.1` tag; the `v3.08` and `v3.09` Releases remain untouched.
+- New immutable `v3.1` tag; the `v3.08` and `v3.09` tags remain in Git history even after their Release pages are removed in V3.3.
 
 ## What's new in V3.09
 
