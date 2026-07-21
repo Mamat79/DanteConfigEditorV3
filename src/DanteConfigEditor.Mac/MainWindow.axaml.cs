@@ -27,12 +27,12 @@ public partial class MainWindow : Window
 
     private static readonly FilePickerFileType ChannelLabelFileType = new("Channel labels")
     {
-        Patterns = ["*.json", "*.csv", "*.xlsx", "*.zip"]
+        Patterns = ["*.json", "*.csv", "*.xlsx", "*.ods", "*.zip"]
     };
 
-    private static readonly FilePickerFileType DmtWorkbookFileType = new("DMT Excel workbook")
+    private static readonly FilePickerFileType DmtWorkbookFileType = new("DMT workbook")
     {
-        Patterns = ["*.xlsx"]
+        Patterns = ["*.xlsx", "*.ods"]
     };
 
     private static readonly FilePickerFileType AllenHeathCsvFileType = new("Allen & Heath console CSV")
@@ -938,8 +938,21 @@ public partial class MainWindow : Window
 
     private async void AtomicChaosButton_Click(object? sender, RoutedEventArgs e)
     {
-        if (_project is null
-            || !await ConfirmAtomicChaosStageAsync("Dialog.AtomicChaosFirst")
+        if (_project is null)
+        {
+            return;
+        }
+
+        AtomicChaosOptions options = SelectedAtomicChaosOptions();
+        if (!options.HasSelection)
+        {
+            await ShowInfoAsync(
+                LocalizationService.Text(_language, "Dialog.AtomicChaosTitle"),
+                LocalizationService.Text(_language, "Dialog.AtomicChaosNothingSelected"));
+            return;
+        }
+
+        if (!await ConfirmAtomicChaosStageAsync("Dialog.AtomicChaosFirst")
             || !await ConfirmAtomicChaosStageAsync("Dialog.AtomicChaosSecond")
             || !await ConfirmAtomicChaosStageAsync("Dialog.AtomicChaosThird"))
         {
@@ -950,7 +963,7 @@ public partial class MainWindow : Window
         await ExecuteMutationAsync(
             LocalizationService.Text(_language, "Action.AtomicChaosApplied"),
             LocalizationService.Text(_language, "Action.AtomicChaosApplied"),
-            project => result = project.ApplyAtomicChaos());
+            project => result = project.ApplyAtomicChaos(options));
         if (result is null || _project is null)
         {
             return;
@@ -969,6 +982,18 @@ public partial class MainWindow : Window
         FindControl<TextBox>("ReportTextBox")!.Text = summary + Environment.NewLine + Environment.NewLine + _project.BuildCompatibilityReport();
         await ShowInfoAsync(LocalizationService.Text(_language, "Dialog.AtomicChaosTitle"), summary);
     }
+
+    private AtomicChaosOptions SelectedAtomicChaosOptions() => new(
+        FindControl<CheckBox>("AtomicDeviceNamesCheckBox")!.IsChecked == true,
+        FindControl<CheckBox>("AtomicTxLabelsCheckBox")!.IsChecked == true,
+        FindControl<CheckBox>("AtomicRxLabelsCheckBox")!.IsChecked == true,
+        FindControl<CheckBox>("AtomicPatchesCheckBox")!.IsChecked == true,
+        FindControl<CheckBox>("AtomicNetworkModeCheckBox")!.IsChecked == true,
+        FindControl<CheckBox>("AtomicPreferredMasterCheckBox")!.IsChecked == true,
+        FindControl<CheckBox>("AtomicLatencyCheckBox")!.IsChecked == true,
+        FindControl<CheckBox>("AtomicSampleRateCheckBox")!.IsChecked == true,
+        FindControl<CheckBox>("AtomicEncodingCheckBox")!.IsChecked == true,
+        FindControl<CheckBox>("AtomicIpCheckBox")!.IsChecked == true);
 
     private Task<bool> ConfirmAtomicChaosStageAsync(string key)
     {
@@ -1025,7 +1050,7 @@ public partial class MainWindow : Window
         if (path is null) return;
         try
         {
-            ReportExportService.ExportPdf(path, "Dante Config Editor V3.2", _project.BuildReportText());
+            ReportExportService.ExportPdf(path, "Dante Config Editor V3.3", _project.BuildReportText());
             SetStatus(LocalizationService.Text(_language, "Status.PdfExported"));
         }
         catch (Exception exception)
@@ -1716,8 +1741,34 @@ public partial class MainWindow : Window
             }
         }
 
-        Title = L("Dante Config Editor V3.2 - macOS", "Dante Config Editor V3.2 - macOS");
+        FindControl<Button>("MergeButton")!.Content = L("Ajouter XML", "Add XML");
+        FindControl<TextBox>("SearchTextBox")!.Watermark = L("Machine ou canal", "Device or channel");
+        ApplyDeviceFilterLanguage();
+
+        Title = L("Dante Config Editor V3.3 - macOS", "Dante Config Editor V3.3 - macOS");
         FindControl<Button>("ThemeButton")!.Content = _darkTheme ? L("Thème clair", "Light theme") : L("Thème sombre", "Dark theme");
+    }
+
+    private void ApplyDeviceFilterLanguage()
+    {
+        Dictionary<string, string> labels = new(StringComparer.Ordinal)
+        {
+            ["all"] = LocalizationService.Text(_language, "DeviceFilter.All"),
+            ["modified"] = LocalizationService.Text(_language, "DeviceFilter.Modified"),
+            ["static"] = LocalizationService.Text(_language, "DeviceFilter.StaticIp"),
+            ["preferred"] = LocalizationService.Text(_language, "DeviceFilter.PreferredMaster"),
+            ["redundant"] = LocalizationService.Text(_language, "DeviceFilter.Redundant"),
+            ["daisychain"] = LocalizationService.Text(_language, "DeviceFilter.Daisychain")
+        };
+
+        foreach (ComboBoxItem item in FindControl<ComboBox>("DeviceFilterCombo")!.Items.OfType<ComboBoxItem>())
+        {
+            string tag = item.Tag?.ToString() ?? string.Empty;
+            if (labels.TryGetValue(tag, out string? label))
+            {
+                item.Content = label;
+            }
+        }
     }
 
     private void ApplyTheme()

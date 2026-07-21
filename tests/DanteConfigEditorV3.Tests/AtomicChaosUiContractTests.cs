@@ -19,6 +19,12 @@ public sealed class AtomicChaosUiContractTests
         Assert.DoesNotContain("AtomicHazardBrush", windowsXaml, StringComparison.Ordinal);
         Assert.DoesNotContain("#FACC15", windowsXaml, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("Click=\"AtomicChaosButton_Click\"", windowsXaml, StringComparison.Ordinal);
+        Assert.Contains("GÉNÉRATEUR D'EXPÉRIENCE HORRIBLE", windowsXaml, StringComparison.Ordinal);
+        Assert.Contains("AtomicDeviceNamesCheckBox", windowsXaml, StringComparison.Ordinal);
+        Assert.Contains("AtomicTxLabelsCheckBox", windowsXaml, StringComparison.Ordinal);
+        Assert.Contains("AtomicPatchesCheckBox", windowsXaml, StringComparison.Ordinal);
+        Assert.Contains("AtomicIpCheckBox", windowsXaml, StringComparison.Ordinal);
+        Assert.Contains("SelectedAtomicChaosOptions", windowsCode, StringComparison.Ordinal);
         Assert.Contains("ConfirmAtomicChaosStage(\"Dialog.AtomicChaosFirst\")", windowsCode, StringComparison.Ordinal);
         Assert.Contains("ConfirmAtomicChaosStage(\"Dialog.AtomicChaosSecond\")", windowsCode, StringComparison.Ordinal);
         Assert.Contains("ConfirmAtomicChaosStage(\"Dialog.AtomicChaosThird\")", windowsCode, StringComparison.Ordinal);
@@ -30,6 +36,12 @@ public sealed class AtomicChaosUiContractTests
         Assert.Contains("Content=\"ATOMIC BOMB\"", macXaml, StringComparison.Ordinal);
         Assert.DoesNotContain("#FACC15", macStyles, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("Click=\"AtomicChaosButton_Click\"", macXaml, StringComparison.Ordinal);
+        Assert.Contains("GÉNÉRATEUR D'EXPÉRIENCE HORRIBLE", macXaml, StringComparison.Ordinal);
+        Assert.Contains("AtomicDeviceNamesCheckBox", macXaml, StringComparison.Ordinal);
+        Assert.Contains("AtomicTxLabelsCheckBox", macXaml, StringComparison.Ordinal);
+        Assert.Contains("AtomicPatchesCheckBox", macXaml, StringComparison.Ordinal);
+        Assert.Contains("AtomicIpCheckBox", macXaml, StringComparison.Ordinal);
+        Assert.Contains("SelectedAtomicChaosOptions", macCode, StringComparison.Ordinal);
         Assert.Contains("ConfirmAtomicChaosStageAsync(\"Dialog.AtomicChaosFirst\")", macCode, StringComparison.Ordinal);
         Assert.Contains("ConfirmAtomicChaosStageAsync(\"Dialog.AtomicChaosSecond\")", macCode, StringComparison.Ordinal);
         Assert.Contains("ConfirmAtomicChaosStageAsync(\"Dialog.AtomicChaosThird\")", macCode, StringComparison.Ordinal);

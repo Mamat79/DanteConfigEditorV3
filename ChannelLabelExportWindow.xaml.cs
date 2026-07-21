@@ -63,6 +63,8 @@ public partial class ChannelLabelExportWindow : Window
         CsvFormatItem.Content = L("CSV générique - nouveau fichier", "Generic CSV - new file");
         DmtDLiveFormatItem.Content = "DMT XLSX - dLive";
         DmtAvantisFormatItem.Content = "DMT XLSX - Avantis";
+        DmtOdsDLiveFormatItem.Content = "DMT ODS - dLive";
+        DmtOdsAvantisFormatItem.Content = "DMT ODS - Avantis";
         AllenHeathDLiveFormatItem.Content = L("A&H CSV natif - dLive", "Native A&H CSV - dLive");
         AllenHeathAvantisFormatItem.Content = L("A&H CSV natif - Avantis", "Native A&H CSV - Avantis");
         YamahaClFormatItem.Content = L("Yamaha ZIP natif - CL", "Native Yamaha ZIP - CL");

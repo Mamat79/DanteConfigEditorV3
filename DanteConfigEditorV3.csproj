@@ -8,10 +8,10 @@
     <AssemblyName>DanteConfigEditorV3</AssemblyName>
     <RootNamespace>DanteConfigEditor</RootNamespace>
     <ApplicationIcon>DanteEdit.ico</ApplicationIcon>
-    <Version>3.2.0</Version>
-    <AssemblyVersion>3.2.0.0</AssemblyVersion>
-    <FileVersion>3.2.0.0</FileVersion>
-    <InformationalVersion>3.2</InformationalVersion>
+    <Version>3.3.0</Version>
+    <AssemblyVersion>3.3.0.0</AssemblyVersion>
+    <FileVersion>3.3.0.0</FileVersion>
+    <InformationalVersion>3.3</InformationalVersion>
     <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
   </PropertyGroup>
 
@@ -21,7 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="Resources\ChannelLabelTemplates\*.xlsx;Resources\ChannelLabelTemplates\*.csv;Resources\ChannelLabelTemplates\*.zip">
+    <EmbeddedResource Include="Resources\ChannelLabelTemplates\*.xlsx;Resources\ChannelLabelTemplates\*.ods;Resources\ChannelLabelTemplates\*.csv;Resources\ChannelLabelTemplates\*.zip">
       <LogicalName>DanteConfigEditor.ChannelLabelTemplates.%(Filename)%(Extension)</LogicalName>
     </EmbeddedResource>
     <None Update="Resources\ChannelLabelTemplates\DMT_LICENSE.txt" CopyToOutputDirectory="PreserveNewest" />

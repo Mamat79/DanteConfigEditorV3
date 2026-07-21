@@ -101,9 +101,7 @@ internal sealed partial class ChannelLabelImportDialog : Window
         preview.Columns[4].Header = Local("Avant", "Before");
         preview.Columns[5].Header = Local("Après", "After");
         preview.Columns[6].Header = Local("État", "Status");
-        FindControl<TextBlock>("SafetyText")!.Text = Local(
-            "Les renommages TX mettent à jour les subscriptions reconnues.",
-            "TX renames update recognized subscriptions.");
+        FindControl<TextBlock>("SafetyText")!.Text = DefaultSafetyText();
         FindControl<Button>("CancelButton")!.Content = Local("Annuler", "Cancel");
         FindControl<Button>("ApplyButton")!.Content = Local("Appliquer", "Apply");
         ClearPreview();
@@ -208,6 +206,15 @@ internal sealed partial class ChannelLabelImportDialog : Window
                 ? $"{rows.Count} row(s): {changes} change(s), {unchanged} unchanged, {errors} issue(s)."
                 : $"{rows.Count} ligne(s) : {changes} changement(s), {unchanged} inchangée(s), {errors} problème(s).";
             FindControl<Button>("ApplyButton")!.IsEnabled = changes > 0 && errors == 0;
+            FindControl<TextBlock>("SafetyText")!.Text = errors > 0
+                ? Local(
+                    "Appliquer est indisponible : corrigez d'abord les problèmes affichés dans l'aperçu.",
+                    "Apply is unavailable: fix the issues shown in the preview first.")
+                : changes == 0
+                    ? Local(
+                        "Rien à appliquer : ces labels correspondent déjà aux canaux Dante sélectionnés.",
+                        "Nothing to apply: these labels already match the selected Dante channels.")
+                    : DefaultSafetyText();
         }
         catch (Exception exception)
         {
@@ -282,7 +289,15 @@ internal sealed partial class ChannelLabelImportDialog : Window
         {
             apply.IsEnabled = false;
         }
+        if (FindControl<TextBlock>("SafetyText") is { } safety)
+        {
+            safety.Text = DefaultSafetyText();
+        }
     }
+
+    private string DefaultSafetyText() => Local(
+        "Les renommages TX mettent à jour les subscriptions reconnues.",
+        "TX renames update recognized subscriptions.");
 
     private string SelectedValue(string controlName) =>
         (FindControl<ComboBox>(controlName)!.SelectedItem as ChoiceValue)?.Value ?? string.Empty;

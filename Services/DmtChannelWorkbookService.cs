@@ -98,7 +98,7 @@ public static class DmtChannelWorkbookService
         }
     }
 
-    private static Dictionary<int, string> PrepareNames(ChannelLabelSet labels, bool adaptLabels)
+    internal static Dictionary<int, string> PrepareNames(ChannelLabelSet labels, bool adaptLabels)
     {
         Dictionary<int, string> namesByChannel = [];
         foreach (ChannelLabelEntry channel in labels.Channels)

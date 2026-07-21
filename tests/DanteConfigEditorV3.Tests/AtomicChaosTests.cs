@@ -116,6 +116,58 @@ public sealed class AtomicChaosTests
         Assert.False(project.ValidateXmlChangeGuard().HasErrors);
     }
 
+    [Fact]
+    public void AtomicChaosExclusionsPreserveUncheckedCategoriesAndExistingPatches()
+    {
+        using TestWorkspace workspace = new();
+        string source = workspace.PathFor("atomic-options.xml");
+        SyntheticPresetFactory.Create(source, deviceCount: 4, txPerDevice: 4, rxPerDevice: 4);
+        DanteProject project = DanteProject.Load(source);
+        string[] originalNames = project.Devices.Select(device => device.Name).ToArray();
+        string[][] originalRxLabels = project.Devices.Select(device => device.RxChannels.Select(channel => channel.DisplayName).ToArray()).ToArray();
+        string[] originalFormats = project.Devices.Select(device => $"{device.Samplerate}|{device.Encoding}|{device.Latency}|{device.IsRedundant}|{device.PreferredMaster}").ToArray();
+        int activePatches = project.PatchMatrix.Subscriptions.Count(subscription => subscription.IsActive);
+
+        AtomicChaosOptions options = new(
+            DeviceNames: true,
+            TxLabels: true,
+            RxLabels: false,
+            Subscriptions: false,
+            NetworkMode: false,
+            PreferredMaster: false,
+            Latency: false,
+            SampleRate: false,
+            Encoding: false,
+            PrimaryIp: false);
+        AtomicChaosResult result = project.ApplyAtomicChaos(options, seed: 4242);
+
+        Assert.NotEqual(originalNames, project.Devices.Select(device => device.Name).ToArray());
+        Assert.All(project.Devices, device => Assert.All(device.TxChannels, channel => Assert.StartsWith("CHAOS-TX-", channel.DisplayName, StringComparison.Ordinal)));
+        Assert.Equal(originalRxLabels, project.Devices.Select(device => device.RxChannels.Select(channel => channel.DisplayName).ToArray()).ToArray());
+        Assert.Equal(originalFormats, project.Devices.Select(device => $"{device.Samplerate}|{device.Encoding}|{device.Latency}|{device.IsRedundant}|{device.PreferredMaster}").ToArray());
+        Assert.Equal(activePatches, project.PatchMatrix.Subscriptions.Count(subscription => subscription.IsActive));
+        Assert.DoesNotContain(project.PatchMatrix.Subscriptions, subscription => subscription.IsWarning || subscription.IsConflict);
+        Assert.Equal(0, result.PatchedRxCount);
+        Assert.Equal(0, result.DisconnectedRxCount);
+        Assert.Equal(0, result.StaticIpCount + result.DynamicIpCount);
+        Assert.False(project.ValidateXmlChangeGuard().HasErrors);
+    }
+
+    [Fact]
+    public void AtomicChaosRejectsAnEmptySelection()
+    {
+        using TestWorkspace workspace = new();
+        string source = workspace.PathFor("atomic-empty-options.xml");
+        SyntheticPresetFactory.Create(source, deviceCount: 1, txPerDevice: 1, rxPerDevice: 1);
+        DanteProject project = DanteProject.Load(source);
+        AtomicChaosOptions options = new(false, false, false, false, false, false, false, false, false, false);
+
+        InvalidOperationException exception = Assert.Throws<InvalidOperationException>(() => project.ApplyAtomicChaos(options, seed: 1));
+
+        Assert.Contains("catégorie", exception.Message, StringComparison.OrdinalIgnoreCase);
+        Assert.False(project.IsModified);
+    }
+
     private static string[] TechnicalIdentity(XDocument document)
     {
         return document.Root!.Elements()

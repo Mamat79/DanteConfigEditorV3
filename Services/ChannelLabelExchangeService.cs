@@ -28,8 +28,9 @@ public static class ChannelLabelExchangeService
             ".csv" when ConsoleChannelFileService.IsConsoleCsv(path) => ConsoleChannelFileService.Read(path).Document,
             ".csv" => ParseCsv(File.ReadAllText(path, Encoding.UTF8)),
             ".xlsx" => DmtChannelWorkbookService.Read(path).Document,
+            ".ods" => DmtOpenDocumentService.Read(path).Document,
             ".zip" => ConsoleChannelFileService.Read(path).Document,
-            _ => throw new InvalidDataException("Format de labels non pris en charge. Utilisez JSON, CSV, XLSX DMT ou ZIP Yamaha CL/QL.")
+            _ => throw new InvalidDataException("Format de labels non pris en charge. Utilisez JSON, CSV, XLSX/ODS DMT ou ZIP Yamaha CL/QL.")
         };
     }
 

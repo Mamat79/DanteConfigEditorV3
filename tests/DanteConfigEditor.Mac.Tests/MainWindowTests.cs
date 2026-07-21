@@ -15,7 +15,7 @@ namespace DanteConfigEditor.Mac.Tests;
 public sealed class MainWindowTests
 {
     [AvaloniaFact]
-    public void OfficialV32VersionIsShownInMacApplication()
+    public void OfficialV33VersionIsShownInMacApplication()
     {
         string version = typeof(MainWindow).Assembly
             .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?
@@ -24,8 +24,11 @@ public sealed class MainWindowTests
         window.Show();
         try
         {
-            Assert.Equal("3.2", version);
-            Assert.Equal("Dante Config Editor V3.2 - macOS", window.Title);
+            Assert.Equal("3.3", version);
+            Assert.Equal("Dante Config Editor V3.3 - macOS", window.Title);
+            Assert.Equal("Add XML", LocalizationService.TranslateLiteral(UiLanguage.English, "Ajouter XML"));
+            Assert.Equal("Device or channel", LocalizationService.TranslateLiteral(UiLanguage.English, "Machine ou canal"));
+            Assert.Equal("All", LocalizationService.TranslateLiteral(UiLanguage.English, "Toutes"));
         }
         finally
         {
@@ -147,6 +150,17 @@ public sealed class MainWindowTests
             Assert.True(atomicButton.IsEnabled);
             Assert.True(MainTabs(window).Items.IndexOf(atomicTab) > MainTabs(window).Items.IndexOf(safetyTab));
             AssertControlFits(window, atomicButton);
+            foreach (string checkBoxName in new[]
+            {
+                "AtomicDeviceNamesCheckBox", "AtomicTxLabelsCheckBox", "AtomicRxLabelsCheckBox",
+                "AtomicPatchesCheckBox", "AtomicNetworkModeCheckBox", "AtomicPreferredMasterCheckBox",
+                "AtomicLatencyCheckBox", "AtomicSampleRateCheckBox", "AtomicEncodingCheckBox", "AtomicIpCheckBox"
+            })
+            {
+                CheckBox checkBox = window.FindControl<CheckBox>(checkBoxName)!;
+                Assert.True(checkBox.IsChecked);
+                AssertControlFits(window, checkBox);
+            }
         }
         finally
         {
@@ -187,6 +201,50 @@ public sealed class MainWindowTests
             SessionRecoveryService.Delete(temporaryXml);
             File.Delete(temporaryXml);
         }
+    }
+
+    [AvaloniaFact]
+    public async Task ReimportingIdenticalLabelsExplainsWhyApplyIsDisabledAndKeepsButtonsVisible()
+    {
+        string source = Path.Combine(AppContext.BaseDirectory, "Fixtures", "representative-preset.xml");
+        DanteProject project = DanteProject.Load(source);
+        ChannelLabelDocument document = ChannelLabelExchangeService.CreateFromProject(
+            project,
+            ["DEVICE-A"],
+            DanteChannelKind.Tx);
+        MainWindow owner = new() { Width = 1920, Height = 1080 };
+        owner.Show();
+
+        Task<IReadOnlyList<ChannelLabelAssignment>?> resultTask = ChannelLabelImportDialog.ShowAsync(
+            owner,
+            project,
+            document,
+            UiLanguage.English,
+            "DEVICE-A");
+        Dispatcher.UIThread.RunJobs();
+
+        Window dialog = Assert.Single(owner.OwnedWindows);
+        try
+        {
+            Button preview = dialog.FindControl<Button>("PreviewButton")!;
+            Button apply = dialog.FindControl<Button>("ApplyButton")!;
+            preview.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+            Dispatcher.UIThread.RunJobs();
+
+            AssertControlFits(dialog, preview);
+            AssertControlFits(dialog, apply);
+            Assert.True(preview.Bounds.Height >= 34);
+            Assert.False(apply.IsEnabled);
+            Assert.Contains("0 change", dialog.FindControl<TextBlock>("PreviewSummaryText")!.Text);
+            Assert.Contains("already match", dialog.FindControl<TextBlock>("SafetyText")!.Text);
+        }
+        finally
+        {
+            dialog.Close();
+            owner.Close();
+        }
+
+        Assert.Null(await resultTask);
     }
 
     private static TabControl MainTabs(MainWindow window) => window.FindControl<TabControl>("MainTabs")!;
@@ -286,6 +344,12 @@ public sealed class MainWindowTests
             AssertControlFits(window, window.FindControl<Border>("ProjectSidebar")!);
             AssertControlFits(window, window.FindControl<TabControl>("MainTabs")!);
             AssertControlFits(window, window.FindControl<DataGrid>("DeviceGrid")!);
+
+            window.FindControl<TabItem>("ExportsTab")!.IsSelected = true;
+            window.FindControl<TabItem>("ChannelLabelsTab")!.IsSelected = true;
+            Dispatcher.UIThread.RunJobs();
+            AssertControlFits(window, window.FindControl<Button>("ImportChannelLabelsButton")!);
+            AssertControlFits(window, window.FindControl<Button>("ExportChannelLabelsButton")!);
         }
         finally
         {

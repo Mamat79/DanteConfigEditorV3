@@ -398,7 +398,7 @@ public static class SynopticExportService
             ? $"{diagram.Devices.Count} devices shown - {diagram.Cables.Count} grouped cables - {diagram.HiddenDeviceCount} hidden - {diagram.SkippedPatchCount} subscriptions outside selection"
             : $"{diagram.Devices.Count} machines affichées - {diagram.Cables.Count} câbles regroupés - {diagram.HiddenDeviceCount} masquée(s) - {diagram.SkippedPatchCount} patch(s) hors sélection";
         svg.AppendLine($"  <text x=\"34\" y=\"{Number(diagram.Height - 30)}\" font-family=\"Segoe UI,Arial,sans-serif\" font-size=\"11\" fill=\"#526070\">{Escape(summary)}</text>");
-        svg.AppendLine($"  <text x=\"{Number(diagram.Width - 34)}\" y=\"{Number(diagram.Height - 30)}\" text-anchor=\"end\" font-family=\"Segoe UI,Arial,sans-serif\" font-size=\"10\" fill=\"#718096\">Dante Config Editor V3.2 - By Mamat et ses agents</text>");
+        svg.AppendLine($"  <text x=\"{Number(diagram.Width - 34)}\" y=\"{Number(diagram.Height - 30)}\" text-anchor=\"end\" font-family=\"Segoe UI,Arial,sans-serif\" font-size=\"10\" fill=\"#718096\">Dante Config Editor V3.3 - By Mamat et ses agents</text>");
         svg.AppendLine("</svg>");
         return svg.ToString();
     }

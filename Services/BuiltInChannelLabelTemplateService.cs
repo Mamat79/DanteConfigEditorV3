@@ -7,6 +7,7 @@ namespace DanteConfigEditor.Services;
 public enum ChannelLabelTemplateKind
 {
     DmtWorkbook,
+    DmtOpenDocument,
     ConsoleFile
 }
 
@@ -27,6 +28,8 @@ public static class BuiltInChannelLabelTemplateService
         {
             new BuiltInChannelLabelTemplateInfo("dmt-dlive", "DMT dLive", ".xlsx", "DMT-dLive", "DmtDLive.xlsx", ChannelLabelTemplateKind.DmtWorkbook),
             new BuiltInChannelLabelTemplateInfo("dmt-avantis", "DMT Avantis", ".xlsx", "DMT-Avantis", "DmtAvantis.xlsx", ChannelLabelTemplateKind.DmtWorkbook),
+            new BuiltInChannelLabelTemplateInfo("dmt-ods-dlive", "DMT ODS dLive", ".ods", "DMT-ODS-dLive", "DmtDLive.ods", ChannelLabelTemplateKind.DmtOpenDocument),
+            new BuiltInChannelLabelTemplateInfo("dmt-ods-avantis", "DMT ODS Avantis", ".ods", "DMT-ODS-Avantis", "DmtAvantis.ods", ChannelLabelTemplateKind.DmtOpenDocument),
             new BuiltInChannelLabelTemplateInfo("ah-dlive", "Allen & Heath dLive", ".csv", "dLive", "AllenHeathDLive.csv", ChannelLabelTemplateKind.ConsoleFile),
             new BuiltInChannelLabelTemplateInfo("ah-avantis", "Allen & Heath Avantis", ".csv", "Avantis", "AllenHeathAvantis.csv", ChannelLabelTemplateKind.ConsoleFile),
             new BuiltInChannelLabelTemplateInfo("yamaha-cl", "Yamaha CL", ".zip", "Yamaha-CL", "YamahaCL.zip", ChannelLabelTemplateKind.ConsoleFile),
@@ -51,6 +54,11 @@ public static class BuiltInChannelLabelTemplateService
             // Les lignes DMT absentes du projet sont désactivées afin de ne pas exporter
             // les noms de démonstration présents dans le classeur officiel.
             DmtChannelWorkbookService.WriteFromTemplate(source, outputPath, labels, adaptLabels, replaceChannelSet: true);
+            return;
+        }
+        if (template.Kind == ChannelLabelTemplateKind.DmtOpenDocument)
+        {
+            DmtOpenDocumentService.WriteFromTemplate(source, outputPath, labels, adaptLabels, replaceChannelSet: true);
             return;
         }
 

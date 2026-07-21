@@ -1918,8 +1918,8 @@ public partial class MainWindow : Window
         OpenFileDialog dialog = new()
         {
             Filter = _language == UiLanguage.English
-                ? "Channel labels (*.json;*.csv;*.xlsx;*.zip)|*.json;*.csv;*.xlsx;*.zip|JSON (*.json)|*.json|CSV (*.csv)|*.csv|DMT workbook (*.xlsx)|*.xlsx|Yamaha CL/QL package (*.zip)|*.zip|All files (*.*)|*.*"
-                : "Labels de canaux (*.json;*.csv;*.xlsx;*.zip)|*.json;*.csv;*.xlsx;*.zip|JSON (*.json)|*.json|CSV (*.csv)|*.csv|Classeur DMT (*.xlsx)|*.xlsx|Package Yamaha CL/QL (*.zip)|*.zip|Tous les fichiers (*.*)|*.*",
+                ? "Channel labels (*.json;*.csv;*.xlsx;*.ods;*.zip)|*.json;*.csv;*.xlsx;*.ods;*.zip|JSON (*.json)|*.json|CSV (*.csv)|*.csv|DMT workbook (*.xlsx;*.ods)|*.xlsx;*.ods|Yamaha CL/QL package (*.zip)|*.zip|All files (*.*)|*.*"
+                : "Labels de canaux (*.json;*.csv;*.xlsx;*.ods;*.zip)|*.json;*.csv;*.xlsx;*.ods;*.zip|JSON (*.json)|*.json|CSV (*.csv)|*.csv|Classeur DMT (*.xlsx;*.ods)|*.xlsx;*.ods|Package Yamaha CL/QL (*.zip)|*.zip|Tous les fichiers (*.*)|*.*",
             Title = _language == UiLanguage.English ? "Import channel labels" : "Importer des labels de canaux",
             InitialDirectory = Path.GetDirectoryName(_project!.OriginalFilePath)
         };
@@ -2042,6 +2042,7 @@ public partial class MainWindow : Window
         string filter = extension switch
         {
             ".xlsx" => "DMT Excel workbook (*.xlsx)|*.xlsx",
+            ".ods" => "DMT OpenDocument workbook (*.ods)|*.ods",
             ".csv" => "Console CSV (*.csv)|*.csv",
             ".zip" => "Yamaha package (*.zip)|*.zip",
             _ => "All files (*.*)|*.*"
@@ -2105,8 +2106,19 @@ public partial class MainWindow : Window
 
     private void AtomicChaosButton_Click(object sender, RoutedEventArgs e)
     {
-        if (!EnsureProjectLoaded()
-            || !ConfirmAtomicChaosStage("Dialog.AtomicChaosFirst")
+        if (!EnsureProjectLoaded())
+        {
+            return;
+        }
+
+        AtomicChaosOptions options = SelectedAtomicChaosOptions();
+        if (!options.HasSelection)
+        {
+            MessageBox.Show(this, T("Dialog.AtomicChaosNothingSelected"), T("Dialog.AtomicChaosTitle"), MessageBoxButton.OK, MessageBoxImage.Information);
+            return;
+        }
+
+        if (!ConfirmAtomicChaosStage("Dialog.AtomicChaosFirst")
             || !ConfirmAtomicChaosStage("Dialog.AtomicChaosSecond")
             || !ConfirmAtomicChaosStage("Dialog.AtomicChaosThird"))
         {
@@ -2116,7 +2128,7 @@ public partial class MainWindow : Window
         AtomicChaosResult? result = null;
         bool applied = RunProjectAction(
             T("Action.AtomicChaosApplied"),
-            () => result = _project!.ApplyAtomicChaos());
+            () => result = _project!.ApplyAtomicChaos(options));
         if (!applied || result is null)
         {
             return;
@@ -2135,6 +2147,18 @@ public partial class MainWindow : Window
         SaveSummaryTextBox.Text = summary + Environment.NewLine + Environment.NewLine + _project!.BuildCompatibilityReport();
         MessageBox.Show(this, summary, T("Dialog.AtomicChaosTitle"), MessageBoxButton.OK, MessageBoxImage.Information);
     }
+
+    private AtomicChaosOptions SelectedAtomicChaosOptions() => new(
+        AtomicDeviceNamesCheckBox.IsChecked == true,
+        AtomicTxLabelsCheckBox.IsChecked == true,
+        AtomicRxLabelsCheckBox.IsChecked == true,
+        AtomicPatchesCheckBox.IsChecked == true,
+        AtomicNetworkModeCheckBox.IsChecked == true,
+        AtomicPreferredMasterCheckBox.IsChecked == true,
+        AtomicLatencyCheckBox.IsChecked == true,
+        AtomicSampleRateCheckBox.IsChecked == true,
+        AtomicEncodingCheckBox.IsChecked == true,
+        AtomicIpCheckBox.IsChecked == true);
 
     private bool ConfirmAtomicChaosStage(string key)
     {

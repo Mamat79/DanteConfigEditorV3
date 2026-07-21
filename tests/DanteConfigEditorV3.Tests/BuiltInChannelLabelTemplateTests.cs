@@ -10,6 +10,8 @@ public sealed class BuiltInChannelLabelTemplateTests
     [Theory]
     [InlineData("dmt-dlive")]
     [InlineData("dmt-avantis")]
+    [InlineData("dmt-ods-dlive")]
+    [InlineData("dmt-ods-avantis")]
     [InlineData("ah-dlive")]
     [InlineData("ah-avantis")]
     [InlineData("yamaha-cl")]
@@ -40,6 +42,35 @@ public sealed class BuiltInChannelLabelTemplateTests
         DmtWorkbookReadResult result = DmtChannelWorkbookService.Read(output);
         Assert.Equal([1, 2], result.Document.Sets.Single().Channels.Select(channel => channel.ChannelNumber));
         Assert.Equal(["TresLong", "Choeur"], result.Document.Sets.Single().Channels.Select(channel => channel.Label));
+    }
+
+    [Theory]
+    [InlineData("dmt-ods-dlive")]
+    [InlineData("dmt-ods-avantis")]
+    public void DmtOdsNativeExportCanBeReimportedAndPreservesThePackage(string format)
+    {
+        using TestDirectory directory = new();
+        string output = directory.PathFor($"{format}.ods");
+
+        BuiltInChannelLabelTemplateService.Write(
+            format,
+            output,
+            Labels((1, "TrèsLongLabel"), (2, "Chœur")),
+            adaptLabels: true);
+
+        DmtWorkbookReadResult result = DmtOpenDocumentService.Read(output);
+        Assert.Equal([1, 2], result.Document.Sets.Single().Channels.Select(channel => channel.ChannelNumber));
+        Assert.Equal(["TresLong", "Choeur"], result.Document.Sets.Single().Channels.Select(channel => channel.Label));
+        Assert.Equal(["TresLong", "Choeur"], ChannelLabelExchangeService.Read(output).Sets.Single().Channels.Select(channel => channel.Label));
+
+        using Stream source = BuiltInChannelLabelTemplateService.OpenTemplate(format);
+        using ZipArchive sourceArchive = new(source, ZipArchiveMode.Read);
+        using ZipArchive outputArchive = ZipFile.OpenRead(output);
+        Assert.Equal(sourceArchive.Entries.Select(entry => entry.FullName).Order(), outputArchive.Entries.Select(entry => entry.FullName).Order());
+        foreach (string entryName in new[] { "styles.xml", "settings.xml", "META-INF/manifest.xml" })
+        {
+            Assert.Equal(ReadEntry(sourceArchive.GetEntry(entryName)!), ReadEntry(outputArchive.GetEntry(entryName)!));
+        }
     }
 
     [Theory]

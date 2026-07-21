@@ -8,7 +8,7 @@
         ShowInTaskbar="False"
         WindowStartupLocation="CenterOwner"
         Background="{DynamicResource AppBackgroundBrush}">
-    <Grid RowDefinitions="Auto,260,*,Auto" Margin="18" RowSpacing="12">
+    <Grid RowDefinitions="Auto,286,*,Auto" Margin="18" RowSpacing="12">
         <Border Classes="panel">
             <StackPanel Spacing="5">
                 <TextBlock x:Name="IntroText" TextWrapping="Wrap" />
@@ -71,7 +71,13 @@
                         <TextBlock x:Name="CountLabel" Classes="muted" />
                         <TextBox x:Name="CountTextBox" Text="1" />
                     </StackPanel>
-                    <Button x:Name="PreviewButton" Grid.Row="4" Grid.ColumnSpan="2" Classes="primary" Click="PreviewButton_Click" />
+                    <Button x:Name="PreviewButton"
+                            Grid.Row="4"
+                            Grid.ColumnSpan="2"
+                            Classes="primary"
+                            MinHeight="34"
+                            Margin="0,3,0,0"
+                            Click="PreviewButton_Click" />
                 </Grid>
             </Border>
         </Grid>
@@ -95,7 +101,10 @@
         </Border>
 
         <Grid Grid.Row="3" ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8">
-            <TextBlock x:Name="SafetyText" Classes="muted" VerticalAlignment="Center" />
+            <TextBlock x:Name="SafetyText"
+                       Classes="muted"
+                       VerticalAlignment="Center"
+                       TextWrapping="Wrap" />
             <Button x:Name="CancelButton" Grid.Column="1" MinWidth="100" Click="CancelButton_Click" />
             <Button x:Name="ApplyButton" Grid.Column="2" Classes="primary" MinWidth="120" IsEnabled="False" Click="ApplyButton_Click" />
         </Grid>

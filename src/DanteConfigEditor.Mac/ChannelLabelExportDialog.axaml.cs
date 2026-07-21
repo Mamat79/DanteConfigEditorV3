@@ -63,6 +63,8 @@ internal sealed partial class ChannelLabelExportDialog : Window
             new ChoiceValue("csv", Local("CSV générique - nouveau fichier", "Generic CSV - new file")),
             new ChoiceValue("dmt-dlive", "DMT XLSX - dLive"),
             new ChoiceValue("dmt-avantis", "DMT XLSX - Avantis"),
+            new ChoiceValue("dmt-ods-dlive", "DMT ODS - dLive"),
+            new ChoiceValue("dmt-ods-avantis", "DMT ODS - Avantis"),
             new ChoiceValue("ah-dlive", Local("A&H CSV natif - dLive", "Native A&H CSV - dLive")),
             new ChoiceValue("ah-avantis", Local("A&H CSV natif - Avantis", "Native A&H CSV - Avantis")),
             new ChoiceValue("yamaha-cl", Local("Yamaha ZIP natif - CL", "Native Yamaha ZIP - CL")),

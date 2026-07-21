@@ -199,19 +199,12 @@ jobs:
           name: release-macos-${{ needs.prepare.outputs.tag }}
           path: release-assets/macos
 
-      - name: Add documentation and presentation files
+      - name: Add documentation files
         shell: bash
-        env:
-          RELEASE_TAG: ${{ needs.prepare.outputs.tag }}
         run: |
           set -euo pipefail
-          mkdir -p release-assets/docs release-assets/media
+          mkdir -p release-assets/docs
           find docs -maxdepth 1 -type f -name '*.pdf' -exec cp '{}' release-assets/docs/ \;
-          media_token="${RELEASE_TAG#v}"
-          media_token="${media_token//./}"
-          find docs/media -maxdepth 1 -type f \
-            \( -name "*-v${media_token}-overview-*.mp4" -o -name "*-v${media_token}-overview-*.srt" \) \
-            -exec cp '{}' release-assets/media/ \;
 
       - name: Validate checksums and create release
         shell: bash

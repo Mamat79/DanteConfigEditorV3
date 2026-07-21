@@ -19,18 +19,28 @@ public sealed partial class DanteProject
         "RESONIX", "GAINOS", "PANDEMONIUM"
     ];
 
-    public AtomicChaosResult ApplyAtomicChaos(int? seed = null)
+    public AtomicChaosResult ApplyAtomicChaos(int? seed = null) =>
+        ApplyAtomicChaos(AtomicChaosOptions.All, seed);
+
+    public AtomicChaosResult ApplyAtomicChaos(AtomicChaosOptions options, int? seed = null)
     {
+        ArgumentNullException.ThrowIfNull(options);
         if (Devices.Count == 0)
         {
             throw new InvalidOperationException("Atomic Bomb nécessite au moins une machine.");
         }
+        if (!options.HasSelection)
+        {
+            throw new InvalidOperationException("Sélectionnez au moins une catégorie à modifier.");
+        }
 
         int actualSeed = seed ?? RandomNumberGenerator.GetInt32(1, int.MaxValue);
         Random random = new(actualSeed);
-        IReadOnlyList<string> deviceNames = BuildAtomicDeviceNames(Devices.Count, random);
+        IReadOnlyList<string> deviceNames = options.DeviceNames
+            ? BuildAtomicDeviceNames(Devices.Count, random)
+            : Devices.Select(device => device.Name).ToArray();
         AtomicDevicePlan[] plans = Devices
-            .Select((device, index) => BuildAtomicDevicePlan(device, deviceNames[index], random))
+            .Select((device, index) => BuildAtomicDevicePlan(device, deviceNames[index], random, options))
             .ToArray();
         List<string> documentationAddresses = BuildDocumentationAddresses(random);
         int networkOffset = random.Next(2);
@@ -48,6 +58,26 @@ public sealed partial class DanteProject
         HashSet<string> appliedSamplerates = new(StringComparer.Ordinal);
         HashSet<string> appliedEncodings = new(StringComparer.Ordinal);
 
+        // Si les patchs sont exclus, les références existantes suivent les
+        // renommages. L'option "Patchs" ne doit jamais être activée en douce
+        // par un simple changement de nom de machine ou de TX.
+        if (!options.Subscriptions)
+        {
+            foreach (AtomicDevicePlan plan in plans)
+            {
+                if (options.TxLabels)
+                {
+                    UpdateSubscriptionsForRenamedTxChannels(
+                        plan.Device.Name,
+                        plan.TxChannels.Select(channel => (channel.OriginalName, channel.NewName)));
+                }
+                if (options.DeviceNames)
+                {
+                    UpdateSubscriptionsForRenamedDevice(plan.Device.Name, plan.NewName);
+                }
+            }
+        }
+
         // Les objets DanteDevice gardent une référence vers les éléments XML.
         // On peut donc préparer tous les nouveaux noms avant de modifier le
         // document, puis tout appliquer sans reconstruire le modèle entre deux
@@ -61,30 +91,54 @@ public sealed partial class DanteProject
             string samplerate = AtomicSamplerates[(planIndex + samplerateOffset) % AtomicSamplerates.Length];
             string encoding = AtomicEncodings[(planIndex + encodingOffset) % AtomicEncodings.Length];
 
-            SetElementValue(plan.Device.Element, "name", plan.NewName);
-            SetElementValue(plan.Device.Element, "friendly_name", plan.NewName);
-            SetBooleanElementAttribute(plan.Device.Element, "redundancy", "value", redundant, afterElementName: "friendly_name");
-            SetBooleanElementAttribute(plan.Device.Element, "preferred_master", "value", preferredMaster, afterElementName: "redundancy");
-            SetElementValue(plan.Device.Element, "unicast_latency", latency);
-            SetElementValue(plan.Device.Element, "samplerate", samplerate);
-            SetElementValue(plan.Device.Element, "encoding", encoding);
-            redundantDeviceCount += redundant ? 1 : 0;
-            preferredMasterCount += preferredMaster ? 1 : 0;
-            appliedLatencies.Add(latency);
-            appliedSamplerates.Add(samplerate);
-            appliedEncodings.Add(encoding);
-
-            foreach (AtomicChannelPlan channel in plan.TxChannels)
+            if (options.DeviceNames)
             {
-                SetChannelDisplayName(channel.Channel, "label", channel.NewName);
+                SetElementValue(plan.Device.Element, "name", plan.NewName);
+                SetElementValue(plan.Device.Element, "friendly_name", plan.NewName);
+            }
+            if (options.NetworkMode)
+            {
+                SetBooleanElementAttribute(plan.Device.Element, "redundancy", "value", redundant, afterElementName: "friendly_name");
+                redundantDeviceCount += redundant ? 1 : 0;
+            }
+            if (options.PreferredMaster)
+            {
+                SetBooleanElementAttribute(plan.Device.Element, "preferred_master", "value", preferredMaster, afterElementName: "redundancy");
+                preferredMasterCount += preferredMaster ? 1 : 0;
+            }
+            if (options.Latency)
+            {
+                SetElementValue(plan.Device.Element, "unicast_latency", latency);
+                appliedLatencies.Add(latency);
+            }
+            if (options.SampleRate)
+            {
+                SetElementValue(plan.Device.Element, "samplerate", samplerate);
+                appliedSamplerates.Add(samplerate);
+            }
+            if (options.Encoding)
+            {
+                SetElementValue(plan.Device.Element, "encoding", encoding);
+                appliedEncodings.Add(encoding);
             }
 
-            foreach (AtomicChannelPlan channel in plan.RxChannels)
+            if (options.TxLabels)
             {
-                SetChannelDisplayName(channel.Channel, "name", channel.NewName);
+                foreach (AtomicChannelPlan channel in plan.TxChannels)
+                {
+                    SetChannelDisplayName(channel.Channel, "label", channel.NewName);
+                }
             }
 
-            if (!DeviceSupportsIpConfiguration(plan.Device))
+            if (options.RxLabels)
+            {
+                foreach (AtomicChannelPlan channel in plan.RxChannels)
+                {
+                    SetChannelDisplayName(channel.Channel, "name", channel.NewName);
+                }
+            }
+
+            if (!options.PrimaryIp || !DeviceSupportsIpConfiguration(plan.Device))
             {
                 continue;
             }
@@ -105,44 +159,49 @@ public sealed partial class DanteProject
             }
         }
 
-        AtomicTxEndpoint[] txEndpoints = plans
+        AtomicTxEndpoint[] txEndpoints = options.Subscriptions
+            ? plans
             .SelectMany(plan => plan.TxChannels.Select(channel => new AtomicTxEndpoint(plan.NewName, channel.NewName)))
-            .ToArray();
+            .ToArray()
+            : [];
         int patchedRxCount = 0;
         int disconnectedRxCount = 0;
         int rxOrdinal = 0;
         int disconnectOffset = random.Next(4);
 
-        foreach (AtomicDevicePlan plan in plans)
+        if (options.Subscriptions)
         {
-            foreach (AtomicChannelPlan rxChannel in plan.RxChannels)
+            foreach (AtomicDevicePlan plan in plans)
             {
-                // Environ un quart des RX restent volontairement libres. Tous
-                // les autres pointent vers un TX réellement présent, de sorte
-                // que le résultat soit chaotique mais structurellement valide.
-                if (txEndpoints.Length == 0 || (rxOrdinal + disconnectOffset) % 4 == 0)
+                foreach (AtomicChannelPlan rxChannel in plan.RxChannels)
                 {
-                    ClearRecognizedSubscription(rxChannel.Channel.Element);
-                    disconnectedRxCount++;
-                }
-                else
-                {
-                    AtomicTxEndpoint source = Pick(txEndpoints, random);
-                    string sourceDevice = string.Equals(source.DeviceName, plan.NewName, StringComparison.OrdinalIgnoreCase)
-                        ? "."
-                        : source.DeviceName;
-                    SetSubscriptionElements(rxChannel.Channel.Element, sourceDevice, source.ChannelName);
-                    patchedRxCount++;
-                }
+                    // Environ un quart des RX restent volontairement libres.
+                    // Les autres pointent vers un TX réellement présent.
+                    if (txEndpoints.Length == 0 || (rxOrdinal + disconnectOffset) % 4 == 0)
+                    {
+                        ClearRecognizedSubscription(rxChannel.Channel.Element);
+                        disconnectedRxCount++;
+                    }
+                    else
+                    {
+                        AtomicTxEndpoint source = Pick(txEndpoints, random);
+                        string sourceDevice = string.Equals(source.DeviceName, plan.NewName, StringComparison.OrdinalIgnoreCase)
+                            ? "."
+                            : source.DeviceName;
+                        SetSubscriptionElements(rxChannel.Channel.Element, sourceDevice, source.ChannelName);
+                        patchedRxCount++;
+                    }
 
-                _modifiedRxElements[rxChannel.Channel.Element] = true;
-                rxOrdinal++;
+                    _modifiedRxElements[rxChannel.Channel.Element] = true;
+                    rxOrdinal++;
+                }
             }
         }
 
+        string categories = string.Join(", ", options.EnabledCategoryNames);
         RegisterChange(
             "Atomic Bomb",
-            $"Seed {actualSeed}: {plans.Length} machine(s), {txEndpoints.Length} TX, {patchedRxCount} RX patché(s), {disconnectedRxCount} RX libre(s)");
+            $"Seed {actualSeed}: {categories}; {plans.Length} machine(s), {txEndpoints.Length} TX, {patchedRxCount} RX patché(s), {disconnectedRxCount} RX libre(s)");
 
         return new AtomicChaosResult(
             actualSeed,
@@ -179,15 +238,40 @@ public sealed partial class DanteProject
             .ToArray();
     }
 
-    private static AtomicDevicePlan BuildAtomicDevicePlan(DanteDevice device, string newDeviceName, Random random)
+    private static AtomicDevicePlan BuildAtomicDevicePlan(
+        DanteDevice device,
+        string newDeviceName,
+        Random random,
+        AtomicChaosOptions options)
     {
         AtomicChannelPlan[] txChannels = device.TxChannels
-            .Select((channel, index) => new AtomicChannelPlan(channel, $"CHAOS-TX-{index + 1:000}-{random.Next(0x100):X2}"))
+            .Select((channel, index) => new AtomicChannelPlan(
+                channel,
+                channel.DisplayName,
+                options.TxLabels ? $"CHAOS-TX-{index + 1:000}-{random.Next(0x100):X2}" : channel.DisplayName))
             .ToArray();
         AtomicChannelPlan[] rxChannels = device.RxChannels
-            .Select((channel, index) => new AtomicChannelPlan(channel, $"CHAOS-RX-{index + 1:000}-{random.Next(0x100):X2}"))
+            .Select((channel, index) => new AtomicChannelPlan(
+                channel,
+                channel.DisplayName,
+                options.RxLabels ? $"CHAOS-RX-{index + 1:000}-{random.Next(0x100):X2}" : channel.DisplayName))
             .ToArray();
         return new AtomicDevicePlan(device, newDeviceName, txChannels, rxChannels);
+    }
+
+    private void UpdateSubscriptionsForRenamedDevice(string oldName, string newName)
+    {
+        foreach (XElement rxChannel in Document.Root!.Children("device").SelectMany(device => device.Children("rxchannel")))
+        {
+            XElement? sourceDevice = FindFirstElement(rxChannel, SubscriptionDeviceElementNames);
+            if (sourceDevice is not null
+                && !string.Equals(sourceDevice.Value.Trim(), ".", StringComparison.Ordinal)
+                && string.Equals(sourceDevice.Value.Trim(), oldName, StringComparison.OrdinalIgnoreCase))
+            {
+                sourceDevice.Value = newName;
+                _modifiedRxElements[rxChannel] = true;
+            }
+        }
     }
 
     private static List<string> BuildDocumentationAddresses(Random random)
@@ -239,9 +323,41 @@ public sealed partial class DanteProject
         IReadOnlyList<AtomicChannelPlan> TxChannels,
         IReadOnlyList<AtomicChannelPlan> RxChannels);
 
-    private sealed record AtomicChannelPlan(DanteChannel Channel, string NewName);
+    private sealed record AtomicChannelPlan(DanteChannel Channel, string OriginalName, string NewName);
 
     private sealed record AtomicTxEndpoint(string DeviceName, string ChannelName);
+}
+
+public sealed record AtomicChaosOptions(
+    bool DeviceNames,
+    bool TxLabels,
+    bool RxLabels,
+    bool Subscriptions,
+    bool NetworkMode,
+    bool PreferredMaster,
+    bool Latency,
+    bool SampleRate,
+    bool Encoding,
+    bool PrimaryIp)
+{
+    public static AtomicChaosOptions All { get; } = new(true, true, true, true, true, true, true, true, true, true);
+
+    public bool HasSelection => DeviceNames || TxLabels || RxLabels || Subscriptions || NetworkMode
+        || PreferredMaster || Latency || SampleRate || Encoding || PrimaryIp;
+
+    public IReadOnlyList<string> EnabledCategoryNames => new[]
+    {
+        (DeviceNames, "noms machines"),
+        (TxLabels, "labels TX"),
+        (RxLabels, "labels RX"),
+        (Subscriptions, "patchs"),
+        (NetworkMode, "modes réseau"),
+        (PreferredMaster, "Preferred Master"),
+        (Latency, "latences"),
+        (SampleRate, "fréquences"),
+        (Encoding, "bits"),
+        (PrimaryIp, "IP principales")
+    }.Where(item => item.Item1).Select(item => item.Item2).ToArray();
 }
 
 public sealed record AtomicChaosResult(

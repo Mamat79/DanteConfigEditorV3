@@ -183,7 +183,8 @@ public static class LocalizationService
         ["Dialog.IpStaticWarningContinue"] = "Modifier les IP en fixe peut couper la communication si la plage, le masque ou la passerelle sont mauvais. Continuer ?",
         ["Dialog.DeviceDetailsWarning"] = "Les changements de cette fiche peuvent modifier le nom de la machine, ses formats, son IP et ses canaux. Continuer ?",
         ["Dialog.AtomicChaosTitle"] = "Atomic Bomb - exercice de dépannage",
-        ["Dialog.AtomicChaosFirst"] = "Premier verrou : cette fonction désorganise volontairement la copie XML chargée pour créer un exercice de dépannage. Elle mélange les noms, modes réseau, horloges, latences, formats audio, IP principales et patchs. Continuer ?",
+        ["Dialog.AtomicChaosNothingSelected"] = "Cochez au moins une catégorie à saboter. Même une bombe pédagogique a besoin d'une cible.",
+        ["Dialog.AtomicChaosFirst"] = "Premier verrou : cette fonction désorganise volontairement la copie XML chargée, uniquement dans les catégories cochées. Continuer ?",
         ["Dialog.AtomicChaosSecond"] = "Deuxième verrou : le résultat sera volontairement incohérent, mais seules des valeurs Dante reconnues seront écrites. Les identifiants techniques, DNS, passerelles et interfaces secondaires seront conservés. Préparer cet exercice ?",
         ["Dialog.AtomicChaosThird"] = "DERNIÈRE CONFIRMATION : atomiser la configuration en mémoire ? Le fichier original restera intact et Enregistrer sous sera obligatoire pour conserver l'exercice.",
         ["Dialog.AtomicChaosCompleted"] = "Scénario atomique créé (graine {0}). {1} machine(s), {2} TX, {3} RX patché(s), {4} RX libre(s), {5} IP fixe(s), {6} IP automatique(s). Le XML original n'a pas été modifié. Utilisez Enregistrer sous pour conserver l'exercice.",
@@ -409,7 +410,8 @@ public static class LocalizationService
         ["Dialog.IpStaticWarningContinue"] = "Setting static IPs can break communication if the range, netmask, or gateway is wrong. Continue?",
         ["Dialog.DeviceDetailsWarning"] = "This device sheet can change the device name, formats, IP address, and channels. Continue?",
         ["Dialog.AtomicChaosTitle"] = "Atomic Bomb - troubleshooting exercise",
-        ["Dialog.AtomicChaosFirst"] = "First lock: this function deliberately scrambles the loaded XML copy to create a troubleshooting exercise. It mixes names, network modes, clocks, latencies, audio formats, primary IP settings, and subscriptions. Continue?",
+        ["Dialog.AtomicChaosNothingSelected"] = "Select at least one category to sabotage. Even an educational bomb needs a target.",
+        ["Dialog.AtomicChaosFirst"] = "First lock: this function deliberately scrambles the loaded XML copy, only in the selected categories. Continue?",
         ["Dialog.AtomicChaosSecond"] = "Second lock: the result will be deliberately inconsistent, but only recognized Dante values will be written. Technical identifiers, DNS, gateways, and secondary interfaces will be preserved. Prepare this exercise?",
         ["Dialog.AtomicChaosThird"] = "FINAL CONFIRMATION: atomize the configuration in memory? The original file will remain intact and Save As will be required to keep the exercise.",
         ["Dialog.AtomicChaosCompleted"] = "Atomic scenario created (seed {0}). {1} device(s), {2} Tx channels, {3} patched Rx, {4} free Rx, {5} static IP(s), {6} automatic IP(s). The original XML was not modified. Use Save As to keep the exercise.",
@@ -501,6 +503,7 @@ public static class LocalizationService
         }
 
         Add(map, "Ouvrir XML", "Open XML");
+        Add(map, "Ajouter XML", "Add XML");
         Add(map, "Ajouter XML au projet", "Add XML to project");
         Add(map, "Enregistrer sous", "Save as");
         Add(map, "Annuler action", "Undo action");
@@ -510,6 +513,7 @@ public static class LocalizationService
         Add(map, "Thème sombre", "Dark theme");
         Add(map, "Projet", "Project");
         Add(map, "Recherche", "Search");
+        Add(map, "Machine ou canal", "Device or channel");
         Add(map, "Mode hors ligne : l'application modifie uniquement les fichiers XML chargés. Elle ne se connecte pas au réseau Dante.", "Offline mode: the application only modifies loaded XML files. It does not connect to the Dante network.");
         Add(map, "Configuration", "Configuration");
         Add(map, "POINTS À VÉRIFIER", "ITEMS TO CHECK");
@@ -565,10 +569,9 @@ public static class LocalizationService
         Add(map, "Labels", "Labels");
         Add(map, "Import et export de labels", "Import and export labels");
         Add(map, "Formats JSON et CSV, plus XLSX compatible DMT pour dLive / Avantis.", "JSON and CSV formats, plus DMT-compatible XLSX for dLive / Avantis.");
-        Add(map, "Importez un fichier JSON, CSV ou XLSX. Les modèles DMT dLive et Avantis sont pris en charge.", "Import a JSON, CSV, or XLSX file. DMT templates for dLive and Avantis are supported.");
-        Add(map, "Lit un fichier JSON, CSV ou XLSX compatible DMT, puis prévisualise les labels avant de les appliquer aux machines Dante.", "Reads a JSON, CSV, or DMT-compatible XLSX file, then previews labels before applying them to Dante devices.");
-        Add(map, "Exportez en JSON ou CSV, ou créez une copie d'un modèle XLSX DMT dLive / Avantis.", "Export as JSON or CSV, or create a copy of a DMT XLSX template for dLive / Avantis.");
-        Add(map, "Exporte les labels TX/RX en JSON, CSV ou XLSX. Pour DMT, une copie du modèle choisi est créée et l'original reste intact.", "Exports Tx/Rx labels as JSON, CSV, or XLSX. For DMT, a copy of the selected template is created and the original remains unchanged.");
+        Add(map, "Exportez en JSON ou CSV, ou créez une copie d'un modèle XLSX/ODS DMT dLive / Avantis.", "Export as JSON or CSV, or create a copy of a DMT XLSX/ODS template for dLive / Avantis.");
+        Add(map, "Labels JSON/CSV, DMT XLSX/ODS, A&H dLive/Avantis et Yamaha CL/QL.", "JSON/CSV labels, DMT XLSX/ODS, A&H dLive/Avantis, and Yamaha CL/QL.");
+        Add(map, "Importez des labels JSON/CSV, DMT XLSX/ODS, A&H CSV ou Yamaha CL/QL ZIP/CSV.", "Import JSON/CSV labels, DMT XLSX/ODS, A&H CSV, or Yamaha CL/QL ZIP/CSV.");
         Add(map, "Compatibilité DMT dLive / Avantis - ouvrir le projet", "DMT dLive / Avantis compatibility - open project");
         Add(map, "Ouvre la page GitHub de dLive MIDI Tools par togrupe, dont les modèles dLive et Avantis sont compatibles.", "Opens the dLive MIDI Tools GitHub page by togrupe, whose dLive and Avantis templates are supported.");
         Add(map, "Ouverture du projet DMT impossible", "Cannot open the DMT project");
@@ -690,10 +693,21 @@ public static class LocalizationService
         Add(map, "Quick start", "Quick start");
         Add(map, "Notice complète", "Full guide");
         Add(map, "Journal", "Log");
-        Add(map, "GÉNÉRATEUR D'EXERCICE DE DÉPANNAGE", "TROUBLESHOOTING EXERCISE GENERATOR");
-        Add(map, "Désorganise volontairement la copie XML chargée pour créer un réseau d'entraînement à réparer. Le fichier original et les identifiants techniques restent protégés.", "Deliberately scrambles the loaded XML copy to create a training network to repair. The original file and technical identifiers remain protected.");
+        Add(map, "GÉNÉRATEUR D'EXPÉRIENCE HORRIBLE (MAIS PÉDAGOGIQUE)", "HORRIBLE EXPERIENCE GENERATOR (BUT EDUCATIONAL)");
+        Add(map, "Composez le pire réseau de formation possible, sans toucher au vrai fichier. Décochez simplement ce que vous souhaitez épargner.", "Build the worst training network imaginable without touching the real file. Simply clear anything you want to spare.");
+        Add(map, "Que faut-il saboter ?", "What should be sabotaged?");
+        Add(map, "Noms des machines", "Device names");
+        Add(map, "Labels des canaux TX", "Tx channel labels");
+        Add(map, "Labels des canaux RX", "Rx channel labels");
+        Add(map, "Patchs / subscriptions", "Subscriptions / patches");
+        Add(map, "Modes réseau", "Network modes");
+        Add(map, "Latences", "Latencies");
+        Add(map, "Fréquences d'échantillonnage", "Sample rates");
+        Add(map, "Bits par échantillon", "Bits per sample");
+        Add(map, "IP principales", "Primary IP settings");
         Add(map, "ATOMIC BOMB", "ATOMIC BOMB");
-        Add(map, "Crée un exercice hors ligne en mélangeant les noms, patchs, modes réseau, formats audio, horloges et IP principales. Trois confirmations sont requises.", "Creates an offline exercise by mixing names, subscriptions, network modes, audio formats, clocks, and primary IP settings. Three confirmations are required.");
+        Add(map, "Crée un exercice hors ligne en mélangeant uniquement les catégories cochées. Trois confirmations sont requises.", "Creates an offline exercise by scrambling only the selected categories. Three confirmations are required.");
+        Add(map, "Trois confirmations avant le chaos. Le XML original, lui, dort tranquille.", "Three confirmations before the chaos. The original XML sleeps peacefully.");
         Add(map, "Charge un export XML Dante Controller.", "Loads a Dante Controller XML export.");
         Add(map, "Ajoute les machines d'un autre XML au projet ouvert. Les doublons peuvent être renommés.", "Adds devices from another XML to the open project. Duplicates can be renamed.");
         Add(map, "Enregistre un nouveau XML et crée un backup de sécurité.", "Saves a new XML file and creates a safety backup.");

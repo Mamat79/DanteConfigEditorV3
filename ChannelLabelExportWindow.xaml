@@ -66,6 +66,8 @@
                             <ComboBoxItem x:Name="CsvFormatItem" Content="CSV générique - nouveau fichier" Tag="csv" />
                             <ComboBoxItem x:Name="DmtDLiveFormatItem" Content="DMT XLSX - dLive" Tag="dmt-dlive" />
                             <ComboBoxItem x:Name="DmtAvantisFormatItem" Content="DMT XLSX - Avantis" Tag="dmt-avantis" />
+                            <ComboBoxItem x:Name="DmtOdsDLiveFormatItem" Content="DMT ODS - dLive" Tag="dmt-ods-dlive" />
+                            <ComboBoxItem x:Name="DmtOdsAvantisFormatItem" Content="DMT ODS - Avantis" Tag="dmt-ods-avantis" />
                             <ComboBoxItem x:Name="AllenHeathDLiveFormatItem" Content="A&amp;H CSV natif - dLive" Tag="ah-dlive" />
                             <ComboBoxItem x:Name="AllenHeathAvantisFormatItem" Content="A&amp;H CSV natif - Avantis" Tag="ah-avantis" />
                             <ComboBoxItem x:Name="YamahaClFormatItem" Content="Yamaha ZIP natif - CL" Tag="yamaha-cl" />

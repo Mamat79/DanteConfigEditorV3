@@ -44,6 +44,8 @@ public sealed class ChannelLabelUiContractTests
         Assert.Contains("AdaptDmtCheckBox", windowsExport, StringComparison.Ordinal);
         Assert.Contains("CSV générique - nouveau fichier", windowsExport, StringComparison.Ordinal);
         Assert.Contains("Tag=\"dmt-dlive\"", windowsExport, StringComparison.Ordinal);
+        Assert.Contains("Tag=\"dmt-ods-dlive\"", windowsExport, StringComparison.Ordinal);
+        Assert.Contains("Tag=\"dmt-ods-avantis\"", windowsExport, StringComparison.Ordinal);
         Assert.Contains("Tag=\"ah-avantis\"", windowsExport, StringComparison.Ordinal);
         Assert.Contains("Tag=\"yamaha-ql\"", windowsExport, StringComparison.Ordinal);
         Assert.Contains("IsEnabled=\"{Binding IsAvailable}\"", windowsExport, StringComparison.Ordinal);
@@ -52,12 +54,13 @@ public sealed class ChannelLabelUiContractTests
         Assert.Contains("PreviewGrid", macImport, StringComparison.Ordinal);
         Assert.Contains("AdaptDmtCheckBox", macExport, StringComparison.Ordinal);
         Assert.Contains("IsEnabled=\"{Binding IsAvailable}\"", macExport, StringComparison.Ordinal);
-        Assert.Contains("RowDefinitions=\"Auto,260,*,Auto\"", macImport, StringComparison.Ordinal);
+        Assert.Contains("RowDefinitions=\"Auto,286,*,Auto\"", macImport, StringComparison.Ordinal);
         Assert.Contains("TargetDeviceCheckBox_Click", macImport, StringComparison.Ordinal);
         string windowsMain = Read("MainWindow.xaml.cs");
         string macMain = Read("src", "DanteConfigEditor.Mac", "MainWindow.axaml.cs");
         string macExportCode = Read("src", "DanteConfigEditor.Mac", "ChannelLabelExportDialog.axaml.cs");
         Assert.Contains("dmt-dlive", macExportCode, StringComparison.Ordinal);
+        Assert.Contains("dmt-ods-dlive", macExportCode, StringComparison.Ordinal);
         Assert.Contains("yamaha-ql", macExportCode, StringComparison.Ordinal);
         Assert.Contains("BuiltInChannelLabelTemplateService.Write", windowsMain, StringComparison.Ordinal);
         Assert.Contains("BuiltInChannelLabelTemplateService.Write", macMain, StringComparison.Ordinal);

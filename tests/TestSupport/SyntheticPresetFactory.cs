@@ -17,7 +17,7 @@ public static class SyntheticPresetFactory
             ns + "preset",
             new XAttribute("version", "3.0.0"),
             new XElement(ns + "name", $"Synthetic-{deviceCount}"),
-            new XElement(ns + "description", "V3.2 synthetic regression preset"));
+            new XElement(ns + "description", "V3.3 synthetic regression preset"));
 
         for (int deviceIndex = 1; deviceIndex <= deviceCount; deviceIndex++)
         {
