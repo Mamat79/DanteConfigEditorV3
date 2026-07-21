@@ -15,7 +15,7 @@ namespace DanteConfigEditor.Mac.Tests;
 public sealed class MainWindowTests
 {
     [AvaloniaFact]
-    public void OfficialV309VersionIsShownInMacApplication()
+    public void OfficialV31VersionIsShownInMacApplication()
     {
         string version = typeof(MainWindow).Assembly
             .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?
@@ -24,8 +24,8 @@ public sealed class MainWindowTests
         window.Show();
         try
         {
-            Assert.Equal("3.09", version);
-            Assert.Equal("Dante Config Editor V3.09 - macOS", window.Title);
+            Assert.Equal("3.1", version);
+            Assert.Equal("Dante Config Editor V3.1 - macOS", window.Title);
         }
         finally
         {
@@ -125,7 +125,7 @@ public sealed class MainWindowTests
     }
 
     [AvaloniaFact]
-    public async Task AtomicButtonBecomesAvailableAfterProjectLoad()
+    public async Task AtomicButtonBecomesAvailableInDedicatedTabAfterProjectLoad()
     {
         string source = Path.Combine(AppContext.BaseDirectory, "Fixtures", "representative-preset.xml");
         string temporaryXml = Path.Combine(Path.GetTempPath(), $"dante-mac-atomic-layout-{Guid.NewGuid():N}.xml");
@@ -136,18 +136,17 @@ public sealed class MainWindowTests
         try
         {
             Button atomicButton = window.FindControl<Button>("AtomicChaosButton")!;
-            Button sidebarAtomicButton = window.FindControl<Button>("AtomicChaosSidebarButton")!;
             Assert.False(atomicButton.IsEnabled);
-            Assert.False(sidebarAtomicButton.IsEnabled);
 
             await window.OpenStartupFileAsync(temporaryXml);
-            window.FindControl<TabItem>("SafetyTab")!.IsSelected = true;
+            TabItem safetyTab = window.FindControl<TabItem>("SafetyTab")!;
+            TabItem atomicTab = window.FindControl<TabItem>("AtomicTab")!;
+            atomicTab.IsSelected = true;
             Dispatcher.UIThread.RunJobs();
 
             Assert.True(atomicButton.IsEnabled);
-            Assert.True(sidebarAtomicButton.IsEnabled);
+            Assert.True(MainTabs(window).Items.IndexOf(atomicTab) > MainTabs(window).Items.IndexOf(safetyTab));
             AssertControlFits(window, atomicButton);
-            AssertControlFits(window, sidebarAtomicButton);
         }
         finally
         {
@@ -156,6 +155,8 @@ public sealed class MainWindowTests
             File.Delete(temporaryXml);
         }
     }
+
+    private static TabControl MainTabs(MainWindow window) => window.FindControl<TabControl>("MainTabs")!;
 
     [AvaloniaFact]
     public async Task TabKeyMovesFocusFromOpenToMergeAfterProjectLoad()

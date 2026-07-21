@@ -554,6 +554,11 @@ public static class LocalizationService
         Add(map, "Préfixe", "Prefix");
         Add(map, "Numéro", "Number");
         Add(map, "Renommer la série", "Rename range");
+        Add(map, "Échange de labels", "Label exchange");
+        Add(map, "Importer des labels", "Import labels");
+        Add(map, "Exporter des labels", "Export labels");
+        Add(map, "Importe des labels JSON, CSV ou XLSX DMT vers une ou plusieurs machines, avec prévisualisation.", "Imports JSON, CSV, or DMT XLSX labels into one or more devices with a preview.");
+        Add(map, "Exporte les labels TX/RX en JSON, CSV ou dans une copie d'un modèle XLSX DMT.", "Exports Tx/Rx labels as JSON, CSV, or a copy of a DMT XLSX template.");
         Add(map, "Actions globales", "Global actions");
         Add(map, "Réseau / audio", "Network / audio");
         Add(map, "Profils", "Profiles");

@@ -1,0 +1,94 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="DanteConfigEditor.Mac.ChannelLabelImportDialog"
+        Width="1040"
+        Height="720"
+        MinWidth="900"
+        MinHeight="620"
+        ShowInTaskbar="False"
+        WindowStartupLocation="CenterOwner"
+        Background="{DynamicResource AppBackgroundBrush}">
+    <Grid RowDefinitions="Auto,210,*,Auto" Margin="18" RowSpacing="12">
+        <Border Classes="panel">
+            <StackPanel Spacing="5">
+                <TextBlock x:Name="IntroText" TextWrapping="Wrap" />
+                <TextBlock x:Name="SourceInfoText" Classes="muted" TextWrapping="Wrap" />
+            </StackPanel>
+        </Border>
+
+        <Grid Grid.Row="1" ColumnDefinitions="1.05*,1.25*,1.1*" ColumnSpacing="10">
+            <Border Classes="panel">
+                <StackPanel Spacing="8">
+                    <TextBlock x:Name="SourceTitle" Classes="section" />
+                    <TextBlock x:Name="SourceSetLabel" Classes="muted" />
+                    <ComboBox x:Name="SourceSetCombo" SelectionChanged="SourceSetCombo_SelectionChanged" />
+                    <CheckBox x:Name="AutoMatchCheckBox"
+                              Checked="AutoMatchCheckBox_Changed"
+                              Unchecked="AutoMatchCheckBox_Changed" />
+                </StackPanel>
+            </Border>
+
+            <Border Grid.Column="1" Classes="panel">
+                <Grid RowDefinitions="Auto,*">
+                    <TextBlock x:Name="TargetsTitle" Classes="section" />
+                    <DataGrid x:Name="TargetDevicesGrid"
+                              Grid.Row="1"
+                              AutoGenerateColumns="False">
+                        <DataGrid.Columns>
+                            <DataGridCheckBoxColumn Binding="{Binding IsSelected, Mode=TwoWay}" Width="75" />
+                            <DataGridTextColumn Binding="{Binding Name}" IsReadOnly="True" Width="*" />
+                            <DataGridTextColumn Header="TX / RX" Binding="{Binding Counts}" IsReadOnly="True" Width="90" />
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Grid>
+            </Border>
+
+            <Border Grid.Column="2" Classes="panel">
+                <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto" ColumnDefinitions="*,*" ColumnSpacing="8" RowSpacing="7">
+                    <TextBlock x:Name="MappingTitle" Grid.ColumnSpan="2" Classes="section" />
+                    <StackPanel Grid.Row="1" Grid.ColumnSpan="2" Spacing="3">
+                        <TextBlock x:Name="KindLabel" Classes="muted" />
+                        <ComboBox x:Name="KindCombo" />
+                    </StackPanel>
+                    <StackPanel Grid.Row="2" Spacing="3">
+                        <TextBlock x:Name="SourceStartLabel" Classes="muted" />
+                        <TextBox x:Name="SourceStartTextBox" Text="1" />
+                    </StackPanel>
+                    <StackPanel Grid.Row="2" Grid.Column="1" Spacing="3">
+                        <TextBlock x:Name="TargetStartLabel" Classes="muted" />
+                        <TextBox x:Name="TargetStartTextBox" Text="1" />
+                    </StackPanel>
+                    <StackPanel Grid.Row="3" Grid.ColumnSpan="2" Spacing="3">
+                        <TextBlock x:Name="CountLabel" Classes="muted" />
+                        <TextBox x:Name="CountTextBox" Text="1" />
+                    </StackPanel>
+                    <Button x:Name="PreviewButton" Grid.Row="4" Grid.ColumnSpan="2" Classes="primary" Click="PreviewButton_Click" />
+                </Grid>
+            </Border>
+        </Grid>
+
+        <Border Grid.Row="2" Classes="panel">
+            <Grid RowDefinitions="Auto,Auto,*" RowSpacing="8">
+                <TextBlock x:Name="PreviewTitle" Classes="section" />
+                <TextBlock x:Name="PreviewSummaryText" Grid.Row="1" TextWrapping="Wrap" />
+                <DataGrid x:Name="PreviewGrid" Grid.Row="2" AutoGenerateColumns="False" IsReadOnly="True">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Binding="{Binding SourceDevice}" Width="1.1*" />
+                        <DataGridTextColumn Binding="{Binding SourceChannel}" Width="85" />
+                        <DataGridTextColumn Binding="{Binding TargetDevice}" Width="1.1*" />
+                        <DataGridTextColumn Binding="{Binding TargetDanteId}" Width="85" />
+                        <DataGridTextColumn Binding="{Binding CurrentLabel}" Width="1.2*" />
+                        <DataGridTextColumn Binding="{Binding NewLabel}" Width="1.2*" />
+                        <DataGridTextColumn Binding="{Binding LocalizedStatus}" Width="115" />
+                    </DataGrid.Columns>
+                </DataGrid>
+            </Grid>
+        </Border>
+
+        <Grid Grid.Row="3" ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8">
+            <TextBlock x:Name="SafetyText" Classes="muted" VerticalAlignment="Center" />
+            <Button x:Name="CancelButton" Grid.Column="1" MinWidth="100" Click="CancelButton_Click" />
+            <Button x:Name="ApplyButton" Grid.Column="2" Classes="primary" MinWidth="120" IsEnabled="False" Click="ApplyButton_Click" />
+        </Grid>
+    </Grid>
+</Window>

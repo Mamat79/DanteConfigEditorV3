@@ -6,7 +6,7 @@
         d:DesignWidth="1500"
         d:DesignHeight="930"
         x:Class="DanteConfigEditor.Mac.MainWindow"
-        Title="Dante Config Editor V3.09 - macOS"
+        Title="Dante Config Editor V3.1 - macOS"
         Width="1500"
         Height="930"
         MinWidth="1120"
@@ -20,7 +20,7 @@
             <Grid RowDefinitions="Auto,Auto" RowSpacing="8">
                 <Grid Grid.Row="0" ColumnDefinitions="*,Auto,Auto,120,Auto" ColumnSpacing="10">
                     <StackPanel VerticalAlignment="Center">
-                    <TextBlock Text="Dante Config Editor V3.09" FontSize="20" FontWeight="Bold" />
+                    <TextBlock Text="Dante Config Editor V3.1" FontSize="20" FontWeight="Bold" />
                     <TextBlock x:Name="FilePathText" Classes="muted" Text="Aucun fichier ouvert" TextTrimming="CharacterEllipsis" />
                     </StackPanel>
                     <TextBlock x:Name="DirtyStateText" Grid.Column="1" VerticalAlignment="Center" Foreground="{DynamicResource MutedTextBrush}" Text="Non modifié" />
@@ -52,7 +52,7 @@
                     BorderBrush="{DynamicResource PanelBorderBrush}"
                     BorderThickness="0,0,1,0"
                     Padding="14">
-                <Grid RowDefinitions="Auto,Auto,Auto,Auto,*,Auto">
+                <Grid RowDefinitions="Auto,Auto,Auto,*,Auto">
                     <StackPanel>
                         <TextBlock Classes="section" Text="Projet" />
                         <TextBlock x:Name="ProjectSummaryText" Classes="muted" Text="Chargez un XML pour commencer." TextWrapping="Wrap" />
@@ -69,17 +69,7 @@
                         <TextBlock x:Name="WarningText" TextWrapping="Wrap" />
                     </Border>
 
-                    <Button x:Name="AtomicChaosSidebarButton"
-                            Grid.Row="2"
-                            Classes="atomic"
-                            MinWidth="0"
-                            MinHeight="120"
-                            Margin="0,14,0,0"
-                            Content="ATOMIC BOMB"
-                            Click="AtomicChaosButton_Click"
-                            ToolTip.Tip="Crée un exercice hors ligne en mélangeant les noms, patchs, modes réseau, formats audio, horloges et IP principales. Trois confirmations sont requises." />
-
-                    <StackPanel Grid.Row="3" Margin="0,16,0,0" Spacing="6">
+                    <StackPanel Grid.Row="2" Margin="0,16,0,0" Spacing="6">
                         <TextBlock Text="Recherche" FontWeight="SemiBold" />
                         <TextBox x:Name="SearchTextBox" Watermark="Machine ou canal" TextChanged="SearchTextBox_TextChanged" />
                         <ComboBox x:Name="DeviceFilterCombo" SelectionChanged="DeviceFilterCombo_SelectionChanged">
@@ -92,14 +82,14 @@
                         </ComboBox>
                     </StackPanel>
 
-                    <Border Grid.Row="4" Classes="panel" Margin="0,16,0,0" VerticalAlignment="Top">
+                    <Border Grid.Row="3" Classes="panel" Margin="0,16,0,0" VerticalAlignment="Top">
                         <TextBlock Classes="muted"
                                    Text="Mode hors ligne : l'application modifie uniquement les fichiers XML chargés. Elle ne se connecte pas au réseau Dante."
                                    TextWrapping="Wrap"
                                    LineHeight="19" />
                     </Border>
 
-                    <StackPanel Grid.Row="5" HorizontalAlignment="Center" Margin="0,12,0,0" Spacing="0">
+                    <StackPanel Grid.Row="4" HorizontalAlignment="Center" Margin="0,12,0,0" Spacing="0">
                         <TextBlock Text="By Mamat" HorizontalAlignment="Center" Classes="muted" />
                         <TextBlock Text="et ses agents" HorizontalAlignment="Center" Classes="muted" FontSize="10" />
                     </StackPanel>
@@ -190,6 +180,18 @@
                                     </Grid>
                                     <Button x:Name="BatchRenameButton" Classes="primary" Click="BatchRenameButton_Click">Renommer la série</Button>
                                     <Button x:Name="ResetDeviceChannelsButton" Click="ResetDeviceChannelsButton_Click">Réinitialiser les canaux de la machine</Button>
+                                    <Border Height="1" Background="{DynamicResource PanelBorderBrush}" Margin="0,4" />
+                                    <TextBlock Text="Échange de labels" FontWeight="SemiBold" />
+                                    <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
+                                        <Button x:Name="ImportChannelLabelsButton"
+                                                Classes="primary"
+                                                Click="ImportChannelLabelsButton_Click"
+                                                ToolTip.Tip="Importe des labels JSON, CSV ou XLSX DMT avec prévisualisation.">Importer</Button>
+                                        <Button x:Name="ExportChannelLabelsButton"
+                                                Grid.Column="1"
+                                                Click="ExportChannelLabelsButton_Click"
+                                                ToolTip.Tip="Exporte les labels d'une ou plusieurs machines vers JSON, CSV ou DMT.">Exporter</Button>
+                                    </Grid>
                                 </StackPanel>
                             </Border>
 
@@ -317,7 +319,7 @@
                 </TabItem>
 
                 <TabItem x:Name="SafetyTab" Header="Sécurité et journal">
-                    <Grid RowDefinitions="Auto,Auto,*" RowSpacing="12" Margin="0,12,0,0">
+                    <Grid RowDefinitions="Auto,*" RowSpacing="12" Margin="0,12,0,0">
                         <Border Classes="panel">
                             <WrapPanel Orientation="Horizontal">
                                 <Button Margin="0,0,8,8" Classes="primary" Click="ValidateButton_Click">Vérifier le fichier</Button>
@@ -334,28 +336,7 @@
                             </WrapPanel>
                         </Border>
 
-                        <Border Grid.Row="1" Classes="atomicPanel">
-                            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="18">
-                                <StackPanel VerticalAlignment="Center">
-                                    <TextBlock Text="GÉNÉRATEUR D'EXERCICE DE DÉPANNAGE"
-                                               Foreground="White"
-                                               FontSize="15"
-                                               FontWeight="Bold" />
-                                    <TextBlock Margin="0,5,0,0"
-                                               Foreground="#FECACA"
-                                               TextWrapping="Wrap"
-                                               Text="Désorganise volontairement la copie XML chargée pour créer un réseau d'entraînement à réparer. Le fichier original et les identifiants techniques restent protégés." />
-                                </StackPanel>
-                                <Button x:Name="AtomicChaosButton"
-                                        Grid.Column="1"
-                                        Classes="atomic"
-                                        Content="ATOMIC BOMB"
-                                        Click="AtomicChaosButton_Click"
-                                        ToolTip.Tip="Crée un exercice hors ligne en mélangeant les noms, patchs, modes réseau, formats audio, horloges et IP principales. Trois confirmations sont requises." />
-                            </Grid>
-                        </Border>
-
-                        <Grid Grid.Row="2" ColumnDefinitions="2*,*" ColumnSpacing="12">
+                        <Grid Grid.Row="1" ColumnDefinitions="2*,*" ColumnSpacing="12">
                             <TextBox x:Name="ReportTextBox"
                                      AcceptsReturn="True"
                                      IsReadOnly="True"
@@ -370,6 +351,39 @@
                                 </Grid>
                             </Border>
                         </Grid>
+                    </Grid>
+                </TabItem>
+
+                <TabItem x:Name="AtomicTab" Header="Atomic Bomb">
+                    <Grid Margin="0,12,0,0">
+                        <Border Classes="atomicPanel"
+                                MaxWidth="760"
+                                Padding="32"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center">
+                            <StackPanel HorizontalAlignment="Center" Spacing="12">
+                                <TextBlock Text="GÉNÉRATEUR D'EXERCICE DE DÉPANNAGE"
+                                           Foreground="White"
+                                           FontSize="19"
+                                           FontWeight="Bold"
+                                           TextAlignment="Center" />
+                                <TextBlock MaxWidth="650"
+                                           Foreground="#FECACA"
+                                           TextWrapping="Wrap"
+                                           TextAlignment="Center"
+                                           Text="Désorganise volontairement la copie XML chargée pour créer un réseau d'entraînement à réparer. Le fichier original et les identifiants techniques restent protégés." />
+                                <Button x:Name="AtomicChaosButton"
+                                        Classes="atomic"
+                                        HorizontalAlignment="Center"
+                                        Content="ATOMIC BOMB"
+                                        Click="AtomicChaosButton_Click"
+                                        ToolTip.Tip="Crée un exercice hors ligne en mélangeant les noms, patchs, modes réseau, formats audio, horloges et IP principales. Trois confirmations sont requises." />
+                                <TextBlock Foreground="#FCA5A5"
+                                           FontWeight="SemiBold"
+                                           TextAlignment="Center"
+                                           Text="Trois confirmations sont requises avant toute modification." />
+                            </StackPanel>
+                        </Border>
                     </Grid>
                 </TabItem>
             </TabControl>

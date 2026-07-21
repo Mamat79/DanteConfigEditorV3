@@ -1907,6 +1907,194 @@ public partial class MainWindow : Window
         MessageBox.Show(this, validation.ToDisplayText(), LocalizeLiteral("Vérification"), MessageBoxButton.OK, validation.HasErrors ? MessageBoxImage.Error : MessageBoxImage.Information);
     }
 
+    private void ImportChannelLabelsButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (!EnsureProjectLoaded() || !EnsureEditMode())
+        {
+            return;
+        }
+
+        OpenFileDialog dialog = new()
+        {
+            Filter = _language == UiLanguage.English
+                ? "Channel labels (*.json;*.csv;*.xlsx)|*.json;*.csv;*.xlsx|JSON (*.json)|*.json|CSV (*.csv)|*.csv|DMT workbook (*.xlsx)|*.xlsx|All files (*.*)|*.*"
+                : "Labels de canaux (*.json;*.csv;*.xlsx)|*.json;*.csv;*.xlsx|JSON (*.json)|*.json|CSV (*.csv)|*.csv|Classeur DMT (*.xlsx)|*.xlsx|Tous les fichiers (*.*)|*.*",
+            Title = _language == UiLanguage.English ? "Import channel labels" : "Importer des labels de canaux",
+            InitialDirectory = Path.GetDirectoryName(_project!.OriginalFilePath)
+        };
+
+        if (dialog.ShowDialog(this) != true)
+        {
+            return;
+        }
+
+        try
+        {
+            ChannelLabelDocument document = ChannelLabelExchangeService.Read(dialog.FileName);
+            ChannelLabelImportWindow window = new(_language, _project!, document, DeviceComboBox.SelectedItem as string)
+            {
+                Owner = this
+            };
+            if (window.ShowDialog() != true)
+            {
+                return;
+            }
+
+            int requested = window.Assignments.Count;
+            string success = _language == UiLanguage.English
+                ? $"{requested} channel label(s) imported."
+                : $"{requested} label(s) de canal importé(s).";
+            RunProjectAction(success, () =>
+            {
+                int changed = _project!.ApplyChannelLabels(window.Assignments);
+                if (changed == 0)
+                {
+                    throw new InvalidOperationException(_language == UiLanguage.English
+                        ? "No channel label needed to be changed."
+                        : "Aucun label de canal ne nécessitait de modification.");
+                }
+            });
+        }
+        catch (Exception ex)
+        {
+            ShowError(_language == UiLanguage.English ? "Label import unavailable" : "Import de labels impossible", ex.Message);
+        }
+    }
+
+    private void ExportChannelLabelsButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (!EnsureProjectLoaded())
+        {
+            return;
+        }
+
+        ChannelLabelExportWindow window = new(_language, _project!, DeviceComboBox.SelectedItem as string)
+        {
+            Owner = this
+        };
+        if (window.ShowDialog() != true)
+        {
+            return;
+        }
+
+        try
+        {
+            ChannelLabelDocument document = ChannelLabelExchangeService.CreateFromProject(
+                _project!,
+                window.DeviceNames,
+                window.Kind,
+                window.StartChannel,
+                window.Count);
+
+            if (window.Format == "xlsx")
+            {
+                ExportDmtWorkbooks(document, window.AdaptDmtLabels);
+                return;
+            }
+
+            string extension = window.Format == "csv" ? ".csv" : ".json";
+            SaveFileDialog saveDialog = new()
+            {
+                Filter = window.Format == "csv" ? "CSV (*.csv)|*.csv" : "JSON (*.json)|*.json",
+                DefaultExt = extension,
+                AddExtension = true,
+                FileName = $"{Path.GetFileNameWithoutExtension(_project!.OriginalFilePath)}_labels{extension}",
+                InitialDirectory = Path.GetDirectoryName(_project.OriginalFilePath),
+                Title = _language == UiLanguage.English ? "Export channel labels" : "Exporter les labels de canaux"
+            };
+            if (saveDialog.ShowDialog(this) != true)
+            {
+                return;
+            }
+
+            ChannelLabelExchangeService.Write(saveDialog.FileName, document);
+            AddLog((_language == UiLanguage.English ? "Channel labels exported: " : "Labels de canaux exportés : ") + saveDialog.FileName);
+            SetStatus(_language == UiLanguage.English ? "Channel labels exported." : "Labels de canaux exportés.");
+        }
+        catch (Exception ex)
+        {
+            ShowError(_language == UiLanguage.English ? "Label export unavailable" : "Export de labels impossible", ex.Message);
+        }
+    }
+
+    private void ExportDmtWorkbooks(ChannelLabelDocument document, bool adaptLabels)
+    {
+        OpenFileDialog templateDialog = new()
+        {
+            Filter = "DMT Excel workbook (*.xlsx)|*.xlsx",
+            Title = _language == UiLanguage.English ? "Choose the original DMT template" : "Choisir le modèle DMT original"
+        };
+        if (templateDialog.ShowDialog(this) != true)
+        {
+            return;
+        }
+
+        DmtWorkbookReadResult templateInfo = DmtChannelWorkbookService.Read(templateDialog.FileName);
+        SaveFileDialog saveDialog = new()
+        {
+            Filter = "DMT Excel workbook (*.xlsx)|*.xlsx",
+            DefaultExt = ".xlsx",
+            AddExtension = true,
+            FileName = document.Sets.Count == 1
+                ? $"{SafeFileNameSegment(document.Sets[0].DeviceName)}_DMT.xlsx"
+                : "Dante_labels_DMT.xlsx",
+            InitialDirectory = Path.GetDirectoryName(_project!.OriginalFilePath),
+            Title = document.Sets.Count == 1
+                ? (_language == UiLanguage.English ? "Save the DMT workbook copy" : "Enregistrer la copie du classeur DMT")
+                : (_language == UiLanguage.English ? "Choose the base name for DMT workbook copies" : "Choisir le nom de base des copies DMT")
+        };
+        if (saveDialog.ShowDialog(this) != true)
+        {
+            return;
+        }
+
+        string directory = Path.GetDirectoryName(saveDialog.FileName) ?? Environment.CurrentDirectory;
+        string baseName = Path.GetFileNameWithoutExtension(saveDialog.FileName);
+        List<string> outputs = [];
+        foreach (ChannelLabelSet set in document.Sets)
+        {
+            string output = document.Sets.Count == 1
+                ? saveDialog.FileName
+                : Path.Combine(directory, $"{baseName}-{SafeFileNameSegment(set.DeviceName)}.xlsx");
+            outputs.Add(output);
+        }
+
+        string[] existing = outputs.Where(File.Exists).ToArray();
+        if (existing.Length > 0)
+        {
+            MessageBoxResult overwrite = MessageBox.Show(
+                this,
+                _language == UiLanguage.English
+                    ? $"{existing.Length} generated workbook(s) already exist and will be replaced. Continue?"
+                    : $"{existing.Length} classeur(s) généré(s) existent déjà et seront remplacés. Continuer ?",
+                _language == UiLanguage.English ? "Replace DMT copies" : "Remplacer les copies DMT",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Warning);
+            if (overwrite != MessageBoxResult.Yes)
+            {
+                return;
+            }
+        }
+
+        for (int index = 0; index < document.Sets.Count; index++)
+        {
+            DmtChannelWorkbookService.WriteCopy(templateDialog.FileName, outputs[index], document.Sets[index], adaptLabels);
+        }
+
+        string version = string.IsNullOrWhiteSpace(templateInfo.TemplateVersion) ? "?" : templateInfo.TemplateVersion;
+        AddLog((_language == UiLanguage.English ? "DMT workbook copies exported: " : "Copies de classeur DMT exportées : ") + outputs.Count);
+        SetStatus(_language == UiLanguage.English
+            ? $"{outputs.Count} DMT workbook copy/copies exported (template {version})."
+            : $"{outputs.Count} copie(s) de classeur DMT exportée(s) (modèle {version}).");
+    }
+
+    private static string SafeFileNameSegment(string value)
+    {
+        HashSet<char> invalid = new(Path.GetInvalidFileNameChars());
+        string safe = new string(value.Trim().Select(character => invalid.Contains(character) ? '_' : character).ToArray()).Trim();
+        return string.IsNullOrWhiteSpace(safe) ? "device" : safe;
+    }
+
     private void AtomicChaosButton_Click(object sender, RoutedEventArgs e)
     {
         if (!EnsureProjectLoaded()
@@ -3124,6 +3312,8 @@ public partial class MainWindow : Window
         yield return RenameChannelButton;
         yield return ResetDeviceChannelsButton;
         yield return BatchRenameButton;
+        yield return ImportChannelLabelsButton;
+        yield return ExportChannelLabelsButton;
         yield return ApplyAllNetworkButton;
         yield return ApplyAllLatencyButton;
         yield return ApplyAllSampleRateButton;
@@ -3137,7 +3327,6 @@ public partial class MainWindow : Window
         yield return OpenVisualPatchButton;
         yield return RenamePatchRxChannelButton;
         yield return RenamePatchTxChannelButton;
-        yield return AtomicChaosSidebarButton;
         yield return AtomicChaosButton;
     }
 

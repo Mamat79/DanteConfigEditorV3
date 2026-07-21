@@ -12,7 +12,8 @@ public sealed class AtomicChaosUiContractTests
         string macCode = File.ReadAllText(RepositoryFile("src", "DanteConfigEditor.Mac", "MainWindow.axaml.cs"));
 
         Assert.Contains("x:Name=\"AtomicChaosButton\"", windowsXaml, StringComparison.Ordinal);
-        Assert.Contains("x:Name=\"AtomicChaosSidebarButton\"", windowsXaml, StringComparison.Ordinal);
+        Assert.DoesNotContain("AtomicChaosSidebarButton", windowsXaml, StringComparison.Ordinal);
+        Assert.Contains("<TabItem Header=\"Atomic Bomb\">", windowsXaml, StringComparison.Ordinal);
         Assert.Contains("Style=\"{StaticResource AtomicButtonStyle}\"", windowsXaml, StringComparison.Ordinal);
         Assert.Contains("Content=\"ATOMIC BOMB\"", windowsXaml, StringComparison.Ordinal);
         Assert.DoesNotContain("AtomicHazardBrush", windowsXaml, StringComparison.Ordinal);
@@ -23,7 +24,8 @@ public sealed class AtomicChaosUiContractTests
         Assert.Contains("ConfirmAtomicChaosStage(\"Dialog.AtomicChaosThird\")", windowsCode, StringComparison.Ordinal);
 
         Assert.Contains("x:Name=\"AtomicChaosButton\"", macXaml, StringComparison.Ordinal);
-        Assert.Contains("x:Name=\"AtomicChaosSidebarButton\"", macXaml, StringComparison.Ordinal);
+        Assert.DoesNotContain("AtomicChaosSidebarButton", macXaml, StringComparison.Ordinal);
+        Assert.Contains("x:Name=\"AtomicTab\" Header=\"Atomic Bomb\"", macXaml, StringComparison.Ordinal);
         Assert.Contains("Classes=\"atomic\"", macXaml, StringComparison.Ordinal);
         Assert.Contains("Content=\"ATOMIC BOMB\"", macXaml, StringComparison.Ordinal);
         Assert.DoesNotContain("#FACC15", macStyles, StringComparison.OrdinalIgnoreCase);

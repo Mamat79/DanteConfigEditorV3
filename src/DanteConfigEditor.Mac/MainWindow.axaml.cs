@@ -25,6 +25,16 @@ public partial class MainWindow : Window
         MimeTypes = ["application/xml", "text/xml"]
     };
 
+    private static readonly FilePickerFileType ChannelLabelFileType = new("Channel labels")
+    {
+        Patterns = ["*.json", "*.csv", "*.xlsx"]
+    };
+
+    private static readonly FilePickerFileType DmtWorkbookFileType = new("DMT Excel workbook")
+    {
+        Patterns = ["*.xlsx"]
+    };
+
     private readonly DispatcherTimer _recoveryTimer;
     private CancellationTokenSource? _recoveryCancellation;
     private DanteProject? _project;
@@ -1005,7 +1015,7 @@ public partial class MainWindow : Window
         if (path is null) return;
         try
         {
-            ReportExportService.ExportPdf(path, "Dante Config Editor V3.09", _project.BuildReportText());
+            ReportExportService.ExportPdf(path, "Dante Config Editor V3.1", _project.BuildReportText());
             SetStatus(LocalizationService.Text(_language, "Status.PdfExported"));
         }
         catch (Exception exception)
@@ -1402,7 +1412,6 @@ public partial class MainWindow : Window
         FindControl<Button>("EditButton")!.IsEnabled = loaded && !_editEnabled;
         FindControl<Button>("UndoButton")!.IsEnabled = loaded && _editEnabled && _project!.CanUndo;
         FindControl<Button>("RevertButton")!.IsEnabled = loaded && _project!.IsModified;
-        FindControl<Button>("AtomicChaosSidebarButton")!.IsEnabled = loaded;
         FindControl<Button>("AtomicChaosButton")!.IsEnabled = loaded;
         FindControl<TabControl>("MainTabs")!.IsEnabled = loaded;
         FindControl<TextBlock>("ModeText")!.Text = _editEnabled
@@ -1470,6 +1479,143 @@ public partial class MainWindow : Window
         }
 
         return true;
+    }
+
+    private async void ImportChannelLabelsButton_Click(object? sender, RoutedEventArgs e)
+    {
+        if (_project is null || !await EnsureEditableAsync())
+        {
+            return;
+        }
+
+        string? path = await PickOpenPathAsync(
+            L("Importer des labels de canaux", "Import channel labels"),
+            ChannelLabelFileType);
+        if (path is null)
+        {
+            return;
+        }
+
+        try
+        {
+            ChannelLabelDocument document = ChannelLabelExchangeService.Read(path);
+            IReadOnlyList<ChannelLabelAssignment>? assignments = await ChannelLabelImportDialog.ShowAsync(
+                this,
+                _project,
+                document,
+                _language,
+                SelectedDeviceRow()?.Name);
+            if (assignments is null)
+            {
+                return;
+            }
+
+            await ExecuteMutationAsync(
+                L("Import de labels", "Label import"),
+                L($"{assignments.Count} label(s) de canal importé(s).", $"{assignments.Count} channel label(s) imported."),
+                project => project.ApplyChannelLabels(assignments));
+        }
+        catch (Exception exception)
+        {
+            await ShowErrorAsync(L("Import de labels impossible", "Label import unavailable"), exception);
+        }
+    }
+
+    private async void ExportChannelLabelsButton_Click(object? sender, RoutedEventArgs e)
+    {
+        if (_project is null)
+        {
+            return;
+        }
+
+        ChannelLabelExportDialogResult? result = await ChannelLabelExportDialog.ShowAsync(
+            this,
+            _project,
+            _language,
+            SelectedDeviceRow()?.Name);
+        if (result is null)
+        {
+            return;
+        }
+
+        try
+        {
+            ChannelLabelDocument document = ChannelLabelExchangeService.CreateFromProject(
+                _project,
+                result.DeviceNames,
+                result.Kind,
+                result.StartChannel,
+                result.Count);
+            if (result.Format == "xlsx")
+            {
+                await ExportDmtWorkbooksAsync(document, result.AdaptDmtLabels);
+                return;
+            }
+
+            string extension = result.Format == "csv" ? "csv" : "json";
+            IStorageFile? file = await PickSaveFileAsync(
+                $"{Path.GetFileNameWithoutExtension(_project.OriginalFilePath)}_labels.{extension}",
+                extension,
+                extension.ToUpperInvariant(),
+                [$"*.{extension}"]);
+            string? output = file?.TryGetLocalPath();
+            if (output is null)
+            {
+                return;
+            }
+            ChannelLabelExchangeService.Write(output, document);
+            SetStatus(L("Labels de canaux exportés.", "Channel labels exported."));
+        }
+        catch (Exception exception)
+        {
+            await ShowErrorAsync(L("Export de labels impossible", "Label export unavailable"), exception);
+        }
+    }
+
+    private async Task ExportDmtWorkbooksAsync(ChannelLabelDocument document, bool adaptLabels)
+    {
+        string? template = await PickOpenPathAsync(
+            L("Choisir le modèle DMT original", "Choose the original DMT template"),
+            DmtWorkbookFileType);
+        if (template is null)
+        {
+            return;
+        }
+        DmtWorkbookReadResult templateInfo = DmtChannelWorkbookService.Read(template);
+        string suggestedName = document.Sets.Count == 1
+            ? $"{SafeFileNameSegment(document.Sets[0].DeviceName)}_DMT.xlsx"
+            : "Dante_labels_DMT.xlsx";
+        IStorageFile? target = await PickSaveFileAsync(suggestedName, "xlsx", "DMT Excel workbook", ["*.xlsx"]);
+        string? selectedOutput = target?.TryGetLocalPath();
+        if (selectedOutput is null)
+        {
+            return;
+        }
+
+        string directory = Path.GetDirectoryName(selectedOutput) ?? Environment.CurrentDirectory;
+        string baseName = Path.GetFileNameWithoutExtension(selectedOutput);
+        string[] outputs = document.Sets.Select(set => document.Sets.Count == 1
+            ? selectedOutput
+            : Path.Combine(directory, $"{baseName}-{SafeFileNameSegment(set.DeviceName)}.xlsx")).ToArray();
+        int existing = outputs.Count(File.Exists);
+        if (existing > 0 && !await ConfirmAsync(
+                L("Remplacer les copies DMT", "Replace DMT copies"),
+                L(
+                    $"{existing} classeur(s) généré(s) existent déjà et seront remplacés.",
+                    $"{existing} generated workbook(s) already exist and will be replaced."),
+                L("Remplacer", "Replace")))
+        {
+            return;
+        }
+
+        for (int index = 0; index < document.Sets.Count; index++)
+        {
+            DmtChannelWorkbookService.WriteCopy(template, outputs[index], document.Sets[index], adaptLabels);
+        }
+        string version = string.IsNullOrWhiteSpace(templateInfo.TemplateVersion) ? "?" : templateInfo.TemplateVersion;
+        SetStatus(L(
+            $"{outputs.Length} copie(s) DMT exportée(s) (modèle {version}).",
+            $"{outputs.Length} DMT workbook copy/copies exported (template {version})."));
     }
 
     private void ScheduleRecovery()
@@ -1545,7 +1691,7 @@ public partial class MainWindow : Window
             }
         }
 
-        Title = L("Dante Config Editor V3.09 - macOS", "Dante Config Editor V3.09 - macOS");
+        Title = L("Dante Config Editor V3.1 - macOS", "Dante Config Editor V3.1 - macOS");
         FindControl<Button>("ThemeButton")!.Content = _darkTheme ? L("Thème clair", "Light theme") : L("Thème sombre", "Dark theme");
     }
 
@@ -1598,15 +1744,24 @@ public partial class MainWindow : Window
             ?? files.FirstOrDefault();
     }
 
-    private async Task<string?> PickOpenPathAsync(string title)
+    private Task<string?> PickOpenPathAsync(string title) => PickOpenPathAsync(title, XmlFileType);
+
+    private async Task<string?> PickOpenPathAsync(string title, FilePickerFileType fileType)
     {
         IReadOnlyList<IStorageFile> files = await StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
         {
             Title = title,
             AllowMultiple = false,
-            FileTypeFilter = [XmlFileType]
+            FileTypeFilter = [fileType]
         });
         return files.FirstOrDefault()?.TryGetLocalPath();
+    }
+
+    private static string SafeFileNameSegment(string value)
+    {
+        HashSet<char> invalid = new(Path.GetInvalidFileNameChars());
+        string safe = new string(value.Trim().Select(character => invalid.Contains(character) ? '_' : character).ToArray()).Trim();
+        return string.IsNullOrWhiteSpace(safe) ? "device" : safe;
     }
 
     private Task<IStorageFile?> PickSaveFileAsync(string suggestedName, string extension, string label, IReadOnlyList<string> patterns)
