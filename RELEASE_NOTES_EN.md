@@ -1,12 +1,22 @@
 # Dante Config Editor V3.2
 
-[Notes de version en français](RELEASE_NOTES.md)
+[Français](https://github.com/Mamat79/DanteConfigEditorV3/blob/main/RELEASE_NOTES.md) | **English**
 
 ## Status
 
 V3.2 is the current official Windows and macOS version. This remains an unofficial third-party tool, not affiliated with Audinate, and it may still contain bugs. Always work on a copy of Dante XML files and validate the result with official Dante tools before production use.
 
 V3.2 replaces V3.1 on `main` and becomes the `Latest` Release. Historical Releases `v3.09` and `v3.08` remain available with their own immutable tags and files.
+
+## Maintenance update included in V3.2
+
+- Export the synoptic as vector SVG or PDF.
+- Automatically space connection ports and enlarge device cards in dense projects to reduce overlapping arrows.
+- Toggle device visibility with one click and reuse previously entered locations from a list.
+- Select and preview label imports directly, with the proposed range limited to the TX/RX capacity of selected devices.
+- Use generic CSV by default: only the new file name and destination folder are requested.
+- Build native DMT, Allen & Heath, and Yamaha outputs from a copy of an existing export so its structure is preserved.
+- Updated French and English manuals.
 
 ## Why this tool exists
 
@@ -48,6 +58,15 @@ Tests covered the supplied samples: DMT Avantis/dLive, Avantis/dLive CSV, Yamaha
 
 Building, previewing, or exporting the synoptic never changes the loaded XML document.
 
+## Easy patch and Atomic Bomb exercise
+
+- `Easy patch` keeps RX channels on the left and TX channels on the right, with quick device navigation.
+- Selections and ranges can be previewed, accumulated, and applied in one operation.
+- The compact matrix supports single assignments and horizontal, vertical, or diagonal series.
+- Conflicts always require an explicit choice before an existing subscription is replaced.
+- After three confirmations, `Atomic Bomb` creates a deliberately disordered preset for offline troubleshooting exercises.
+- The source file remains intact and technical Dante identifiers stay protected.
+
 ## Installation
 
 - Self-contained Windows installer: `DanteConfigEditorV3_2_Installer.exe`.
@@ -56,6 +75,14 @@ Building, previewing, or exporting the synoptic never changes the loaded XML doc
 - Replaces detected older V3 installations without deleting local working data.
 - Self-contained Apple Silicon and Intel macOS DMGs.
 
+## Platforms
+
+- Windows x64: self-contained installer with the .NET 8 runtime and FR/EN manuals.
+- macOS Apple Silicon: self-contained DMG for M1 and later Macs.
+- macOS Intel: self-contained DMG for Intel 64-bit Macs.
+- The XML engine and its safeguards are shared by Windows and macOS.
+- DMGs are ad hoc signed but not notarized; first launch may require right-clicking the app and selecting `Open`.
+
 ## XML safety
 
 - Synoptic information stays in a local sidecar and adds no element to Dante XML.
@@ -63,6 +90,13 @@ Building, previewing, or exporting the synoptic never changes the loaded XML doc
 - Unknown XML values and paths remain preserved or blocked by the existing guard.
 - Exports do not alter the loaded project.
 - `Save as` remains atomic and backs up an existing destination.
+
+## Automated validation
+
+- 130 engine and Windows contract tests pass in Release configuration.
+- 9 headless macOS interface tests also pass.
+- Windows and macOS builds complete without warnings.
+- Additional checks cover the Rectorat preset, a real DMT workbook, SVG/PDF synoptic export, and preservation of the loaded XML.
 
 ## Limitations
 
