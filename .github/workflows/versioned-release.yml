@@ -206,6 +206,29 @@ jobs:
           mkdir -p release-assets/docs
           find docs -maxdepth 1 -type f -name '*.pdf' -exec cp '{}' release-assets/docs/ \;
 
+      - name: Add versioned presentation videos
+        shell: bash
+        env:
+          RELEASE_TAG: ${{ needs.prepare.outputs.tag }}
+        run: |
+          set -euo pipefail
+          version_token="${RELEASE_TAG#v}"
+          version_token="${version_token//./}"
+          mkdir -p release-assets/media
+          find docs/media -maxdepth 1 -type f \
+            \( -name "dce-v${version_token}-presentation-*.mp4" \
+            -o -name "dce-v${version_token}-presentation-*.srt" \
+            -o -name "dce-v${version_token}-presentation-*.mp4.sha256" \) \
+            -exec cp '{}' release-assets/media/ \;
+
+      - name: Assemble bilingual release notes
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat RELEASE_NOTES.md > release-notes-bilingual.md
+          printf '\n\n---\n\n' >> release-notes-bilingual.md
+          cat RELEASE_NOTES_EN.md >> release-notes-bilingual.md
+
       - name: Validate checksums and create release
         shell: bash
         env:
@@ -235,7 +258,7 @@ jobs:
             --repo "$GITHUB_REPOSITORY" \
             --verify-tag \
             --title "DCE v${version}" \
-            --notes-file RELEASE_NOTES.md
+            --notes-file release-notes-bilingual.md
 
           release_id="$(gh api "repos/$GITHUB_REPOSITORY/releases/tags/$RELEASE_TAG" --jq .id)"
           gh api --method PATCH "repos/$GITHUB_REPOSITORY/releases/$release_id" \

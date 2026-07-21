@@ -38,6 +38,13 @@ All options remain selected by default. If subscriptions are excluded while name
 
 Special thanks to **Tobias Grupe / togrupe** for screenshots and feedback from a real Intel Mac. This is especially valuable because primary local development and testing are performed on Windows.
 
+## Presentation videos
+
+- [English presentation of DCE v3.3](https://github.com/Mamat79/DanteConfigEditorV3/releases/download/v3.3/dce-v33-presentation-en.mp4)
+- [Présentation française de DCE v3.3](https://github.com/Mamat79/DanteConfigEditorV3/releases/download/v3.3/dce-v33-presentation-fr.mp4)
+
+Both videos last about one minute, use a synthetic anonymized preset, and include burned-in subtitles. Separate `.srt` files and SHA-256 checksums are also attached to the Release.
+
 ## Distribution and validation
 
 - Self-contained Windows x64 installer: `DanteConfigEditorV3_3_Installer.exe`, including .NET 8.

@@ -52,6 +52,13 @@ Les emplacements et choix de présentation sont enregistrés dans un petit fichi
 
 Les captures et notices utilisent uniquement un preset synthétique anonymisé. Elles ne contiennent aucun nom de machine, fichier ou chemin de production.
 
+## Vidéos de présentation
+
+- **[Présentation française de DCE v3.3](https://github.com/Mamat79/DanteConfigEditorV3/releases/download/v3.3/dce-v33-presentation-fr.mp4)**
+- **[English presentation of DCE v3.3](https://github.com/Mamat79/DanteConfigEditorV3/releases/download/v3.3/dce-v33-presentation-en.mp4)**
+
+Chaque vidéo dure environ une minute et utilise des sous-titres intégrés. Les fichiers `.srt` séparés et les sommes SHA-256 sont également fournis dans la Release V3.3. Les écrans ont été réalisés avec un preset synthétique anonymisé.
+
 ## Ce que fait l'application
 
 - Ouvre des fichiers XML de configuration Dante hors ligne.
@@ -152,7 +159,7 @@ L'installateur V3.3 retire les anciennes installations V3 détectées, notamment
 ## Version distribuée
 
 - La branche `main` contient la V3.3 officielle pour Windows et macOS.
-- Le tag immuable `v3.3` correspond exactement aux fichiers de la Release V3.3, marquée `Latest`.
+- Le tag immuable `v3.3` identifie le code source des applications distribuées dans la Release V3.3, marquée `Latest`. Les vidéos ont été ajoutées ensuite comme documentation complémentaire, sans déplacer ce tag.
 - La Release historique [`v3.2`](https://github.com/Mamat79/DanteConfigEditorV3/releases/tag/v3.2) reste téléchargeable avec ses propres fichiers.
 - La Release V3.1 est retirée à la demande du mainteneur ; son historique source reste dans Git.
 - Les pages de Releases V3.08 et V3.09 ont été retirées à la demande du mainteneur ; leurs tags et commits restent dans l'historique Git.

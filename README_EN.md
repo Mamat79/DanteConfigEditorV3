@@ -52,6 +52,13 @@ Locations and presentation choices are saved in a separate local sidecar file. T
 
 The screenshots and manuals use only a synthetic anonymized preset. They contain no production device name, file or path.
 
+## Presentation videos
+
+- **[English presentation of DCE v3.3](https://github.com/Mamat79/DanteConfigEditorV3/releases/download/v3.3/dce-v33-presentation-en.mp4)**
+- **[Présentation française de DCE v3.3](https://github.com/Mamat79/DanteConfigEditorV3/releases/download/v3.3/dce-v33-presentation-fr.mp4)**
+
+Each video lasts about one minute and includes burned-in subtitles. Separate `.srt` files and SHA-256 checksums are also available in the V3.3 Release. Every screen uses a synthetic anonymized preset.
+
 ## What the application does
 
 - Opens Dante XML configuration files offline.
@@ -117,7 +124,7 @@ The macOS builds are ad hoc signed but are not notarized with an Apple Developer
 ## Distributed version
 
 - `main` contains the official V3.3 source for Windows and macOS.
-- Immutable tag `v3.3` exactly matches the V3.3 Release assets and is marked `Latest`.
+- Immutable tag `v3.3` identifies the source used for the distributed applications and is marked `Latest`. Presentation videos were later added as supplementary documentation without moving that tag.
 - Historical Release [`v3.2`](https://github.com/Mamat79/DanteConfigEditorV3/releases/tag/v3.2) remains downloadable with its own files.
 - V3.08 and V3.09 Release pages were removed at the maintainer's request; their tags and commits remain in Git history.
 - The V3.1 Release is removed at the maintainer's request; its source history remains in Git.
