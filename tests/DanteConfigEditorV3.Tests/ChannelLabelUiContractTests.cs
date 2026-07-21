@@ -43,6 +43,10 @@ public sealed class ChannelLabelUiContractTests
 
         Assert.Contains("https://github.com/togrupe/dlive-midi-tools", readmeFr, StringComparison.Ordinal);
         Assert.Contains("https://github.com/togrupe/dlive-midi-tools", readmeEn, StringComparison.Ordinal);
+        Assert.Contains("DMT → Dante Config Editor", readmeFr, StringComparison.Ordinal);
+        Assert.Contains("Dante Config Editor → DMT", readmeFr, StringComparison.Ordinal);
+        Assert.Contains("DMT → Dante Config Editor", readmeEn, StringComparison.Ordinal);
+        Assert.Contains("Dante Config Editor → DMT", readmeEn, StringComparison.Ordinal);
         Assert.Contains("Refusing to overwrite it", workflow, StringComparison.Ordinal);
         Assert.DoesNotContain("gh release delete", workflow, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("--clobber", workflow, StringComparison.OrdinalIgnoreCase);

@@ -16,6 +16,12 @@ Il répond aussi au besoin de renommer une machine ou ses canaux TX sur un rése
 
 ## Échange de labels et DMT
 
+Cette V3.1 peut échanger explicitement des labels avec **[dLive MIDI Tools (DMT) de togrupe](https://github.com/togrupe/dlive-midi-tools)**. La communication se fait par fichiers, dans les deux sens, et non par une connexion temps réel :
+
+- **DMT → Dante Config Editor** : lecture de la feuille `Channels` d'un classeur XLSX DMT et affectation de ses labels aux canaux Dante choisis.
+- **Dante Config Editor → DMT** : création d'une copie du modèle XLSX DMT contenant les labels Dante exportés.
+- **Lien du logiciel DMT** : [github.com/togrupe/dlive-midi-tools](https://github.com/togrupe/dlive-midi-tools).
+
 - Import et export des labels TX ou RX pour une ou plusieurs machines.
 - Choix de la liste source, des machines cibles, du premier canal et du nombre de canaux.
 - Prévisualisation ligne par ligne avant toute modification du XML.
@@ -25,7 +31,7 @@ Il répond aussi au besoin de renommer une machine ou ses canaux TX sur un rése
 - Export DMT en créant une copie du modèle choisi ; le classeur original n'est jamais modifié.
 - Adaptation ASCII et huit caractères visible dans l'aperçu et activée uniquement sur demande explicite.
 
-Cette fonction a été pensée dans un premier temps pour faciliter les échanges de labels avec DMT. Merci à **togrupe** pour la proposition de collaboration et le format de référence.
+Cette fonction a été pensée dans un premier temps pour faciliter les échanges de labels avec DMT. Merci à **togrupe** pour la proposition de collaboration et le format de référence. Le classeur original reste inchangé et chaque adaptation imposée par DMT est visible avant export.
 
 ## Atomic Bomb
 

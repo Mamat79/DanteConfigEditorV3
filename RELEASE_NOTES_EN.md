@@ -16,6 +16,12 @@ It also addresses a recurring need on already patched networks: renaming a devic
 
 ## Channel-label exchange and DMT
 
+V3.1 can explicitly exchange labels with **[togrupe's dLive MIDI Tools (DMT)](https://github.com/togrupe/dlive-midi-tools)**. Communication is file-based, works in both directions, and is not a real-time connection:
+
+- **DMT → Dante Config Editor**: read the `Channels` sheet from a DMT XLSX workbook and map its labels to selected Dante channels.
+- **Dante Config Editor → DMT**: create a copy of the DMT XLSX template containing exported Dante labels.
+- **DMT software link**: [github.com/togrupe/dlive-midi-tools](https://github.com/togrupe/dlive-midi-tools).
+
 - Import and export TX or RX labels for one or several devices.
 - Choose the source set, target devices, first channel and channel count.
 - Review every mapping before the XML is changed.
@@ -25,7 +31,7 @@ It also addresses a recurring need on already patched networks: renaming a devic
 - Export to a copy of a selected DMT template; the original workbook is never modified.
 - Show ASCII/eight-character changes in the preview and apply them only after explicit opt-in.
 
-This feature was initially designed to simplify label exchange with DMT. Thanks to **togrupe** for proposing the collaboration and providing the reference format.
+This feature was initially designed to simplify label exchange with DMT. Thanks to **togrupe** for proposing the collaboration and providing the reference format. The original workbook remains unchanged, and every DMT-specific adaptation is visible before export.
 
 ## Atomic Bomb
 

@@ -11,6 +11,8 @@ Version officielle V3.1 Windows et macOS de la branche `main` pour éditer hors 
 > **Statut : V3.1 officielle Windows et macOS. Outil tiers non officiel Audinate.**
 > Cette version peut encore contenir des bugs. Les versions précédentes restent accessibles dans l'historique des Releases GitHub. Travaillez toujours sur une copie et validez le XML généré dans les outils Dante officiels.
 
+> **Compatible avec [dLive MIDI Tools (DMT) de togrupe](https://github.com/togrupe/dlive-midi-tools)** pour échanger des noms de canaux par fichiers. Cette passerelle fonctionne hors ligne ; elle ne connecte pas les deux applications en temps réel.
+
 ## Origine et développement assisté
 
 Dante Config Editor est né d'une tentative de pallier ce qui me manquait dans Dante Controller. À l'origine, c'était un petit logiciel personnel écrit manuellement par Mamat pour répondre à un besoin de terrain : vérifier rapidement une configuration Dante sans devoir ouvrir successivement toutes les pages du logiciel. L'objectif était de disposer d'une vue d'ensemble unique des devices, latences, fréquences d'échantillonnage, modes réseau, Preferred Master, adresses IP et canaux, puis de pouvoir corriger au besoin les valeurs présentes dans le preset.
@@ -25,7 +27,13 @@ L'arrivée des agents de développement actuels a permis de faire évoluer ce si
 
 La V3.1 ajoute un échange de noms de canaux pour une ou plusieurs machines. L'utilisateur peut exporter les labels TX ou RX en JSON ou CSV, les réimporter avec choix des machines et des plages, puis vérifier chaque correspondance avant application. Les renommages TX continuent de mettre à jour les subscriptions XML reconnues.
 
-Cette passerelle a d'abord été pensée pour une collaboration avec [dLive MIDI Tools (DMT) de togrupe](https://github.com/togrupe/dlive-midi-tools). Dante Config Editor sait lire la feuille `Channels` d'un classeur XLSX DMT et créer une copie de ce modèle avec les labels exportés. Le modèle original n'est jamais modifié. DMT limitant ses noms à huit caractères ASCII, toute adaptation est affichée dans l'aperçu et doit être activée explicitement ; JSON et CSV conservent les labels complets Unicode.
+La compatibilité avec **[dLive MIDI Tools (DMT)](https://github.com/togrupe/dlive-midi-tools)** est explicite et fonctionne dans les deux sens par fichiers :
+
+- **DMT → Dante Config Editor** : lecture de la feuille `Channels` d'un classeur XLSX DMT, puis affectation des labels aux TX ou RX d'une ou plusieurs machines Dante.
+- **Dante Config Editor → DMT** : création d'une copie du modèle XLSX DMT choisi, contenant les labels exportés depuis les machines Dante sélectionnées.
+- **Projet DMT** : [togrupe/dlive-midi-tools](https://github.com/togrupe/dlive-midi-tools).
+
+Le classeur DMT original n'est jamais modifié. DMT limitant ses noms à huit caractères ASCII, toute adaptation est affichée dans l'aperçu et doit être activée explicitement ; JSON et CSV conservent les labels complets Unicode. Il s'agit d'une passerelle de fichiers hors ligne, pas d'une connexion directe ou temps réel entre les deux logiciels.
 
 ## Présentation générale
 
