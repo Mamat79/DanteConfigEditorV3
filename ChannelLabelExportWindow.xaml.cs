@@ -12,6 +12,7 @@ public partial class ChannelLabelExportWindow : Window
     private readonly DanteProject _project;
     private readonly ObservableCollection<ChannelLabelDeviceSelection> _devices;
     private readonly ObservableCollection<ChannelLabelExportPreviewRow> _preview = [];
+    private bool _initializing = true;
 
     public ChannelLabelExportWindow(UiLanguage language, DanteProject project, string? initiallySelectedDevice)
     {
@@ -29,6 +30,7 @@ public partial class ChannelLabelExportWindow : Window
         KindComboBox.SelectedIndex = selectedDevice is { TxCount: 0, RxCount: > 0 } ? 1 : 0;
         ApplyLanguage();
         UpdateDeviceAvailability();
+        _initializing = false;
         RefreshPreview();
     }
 
@@ -82,6 +84,11 @@ public partial class ChannelLabelExportWindow : Window
 
     private void FormatComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
+        if (_initializing)
+        {
+            return;
+        }
+
         bool consoleTemplate = RequiresConsoleCompatibility(SelectedFormat());
         AdaptDmtCheckBox.IsEnabled = consoleTemplate;
         if (!consoleTemplate)
@@ -99,6 +106,11 @@ public partial class ChannelLabelExportWindow : Window
 
     private void KindComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
+        if (_initializing)
+        {
+            return;
+        }
+
         UpdateDeviceAvailability();
         RefreshPreview();
     }
@@ -143,7 +155,7 @@ public partial class ChannelLabelExportWindow : Window
 
     private void RefreshPreview()
     {
-        if (!IsInitialized)
+        if (_initializing || !IsInitialized)
         {
             return;
         }
@@ -166,7 +178,19 @@ public partial class ChannelLabelExportWindow : Window
         DanteChannelKind kind = KindComboBox.SelectedIndex == 1 ? DanteChannelKind.Rx : DanteChannelKind.Tx;
         bool consoleTemplate = RequiresConsoleCompatibility(SelectedFormat());
         bool adapt = AdaptDmtCheckBox.IsChecked == true;
-        ChannelLabelDocument document = ChannelLabelExchangeService.CreateFromProject(_project, selected, kind, start, count);
+        ChannelLabelDocument document;
+        try
+        {
+            document = ChannelLabelExchangeService.CreateFromProject(_project, selected, kind, start, count);
+        }
+        catch (InvalidOperationException)
+        {
+            SummaryTextBlock.Text = L(
+                "Aucun canal TX/RX ne correspond aux machines et à la plage sélectionnées.",
+                "No TX/RX channel matches the selected devices and range.");
+            ExportButton.IsEnabled = false;
+            return;
+        }
         int incompatible = 0;
         foreach (ChannelLabelSet set in document.Sets)
         {
@@ -215,6 +239,10 @@ public partial class ChannelLabelExportWindow : Window
             if (DeviceNames.Count == 0)
             {
                 throw new InvalidOperationException(L("Sélectionnez au moins une machine.", "Select at least one device."));
+            }
+            if (_preview.Count == 0)
+            {
+                throw new InvalidOperationException(SummaryTextBlock.Text);
             }
 
             Format = SelectedFormat();

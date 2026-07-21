@@ -63,7 +63,12 @@ public sealed class ChannelLabelUiContractTests
         Assert.Contains("BuiltInChannelLabelTemplateService.Write", macMain, StringComparison.Ordinal);
         Assert.DoesNotContain("Choose the original DMT template", windowsMain, StringComparison.Ordinal);
         Assert.DoesNotContain("Choose the original DMT template", macMain, StringComparison.Ordinal);
-        Assert.Contains("SelectedIndex = 1", Read("ChannelLabelExportWindow.xaml.cs"), StringComparison.Ordinal);
+        string windowsExportCode = Read("ChannelLabelExportWindow.xaml.cs");
+        Assert.Contains("SelectedIndex = 1", windowsExportCode, StringComparison.Ordinal);
+        Assert.Contains("private bool _initializing = true", windowsExportCode, StringComparison.Ordinal);
+        Assert.Contains("_initializing = false", windowsExportCode, StringComparison.Ordinal);
+        Assert.Contains("private bool _initializing = true", macExportCode, StringComparison.Ordinal);
+        Assert.Contains("_initializing = false", macExportCode, StringComparison.Ordinal);
         Assert.DoesNotContain("AutoMatchCheckBox.IsEnabled = document.Sets.Count > 1", Read("ChannelLabelImportWindow.xaml.cs"), StringComparison.Ordinal);
     }
 

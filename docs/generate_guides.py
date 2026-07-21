@@ -592,7 +592,7 @@ def full_guide(language: str) -> None:
                 [48, 122],
             ),
             para("14. Tests de non-régression", "h1"),
-            para("La suite V3.2 exécute 143 tests Core/Windows et 9 tests Mac sans écran. Ils couvrent notamment les garde-fous XML, sauvegarde et récupération, interfaces IPv4, subscriptions, gros presets, modèles natifs, labels, synoptique, Atomic Bomb, Easy patch et détail machine."),
+            para("La suite V3.2 exécute 143 tests Core/Windows et 10 tests Mac sans écran. Ils couvrent notamment les garde-fous XML, sauvegarde et récupération, interfaces IPv4, subscriptions, gros presets, modèles natifs, labels, synoptique, Atomic Bomb, Easy patch et détail machine."),
             para("15. Limites connues", "h1"),
             *bullets([
                 "Aucun pilotage en temps réel et aucune communication avec les appareils.",
@@ -807,7 +807,7 @@ def full_guide(language: str) -> None:
                 [48, 122],
             ),
             para("14. Regression tests", "h1"),
-            para("The V3.2 suite runs 143 Core/Windows tests and 9 headless Mac tests. Coverage includes XML guards, save and recovery, IPv4 interfaces, subscriptions, large presets, native templates, labels, synoptic export, Atomic Bomb, Easy patch, and Device details."),
+            para("The V3.2 suite runs 143 Core/Windows tests and 10 headless Mac tests. Coverage includes XML guards, save and recovery, IPv4 interfaces, subscriptions, large presets, native templates, labels, synoptic export, Atomic Bomb, Easy patch, and Device details."),
             para("15. Known limitations", "h1"),
             *bullets([
                 "No real-time Dante control and no communication with devices.",

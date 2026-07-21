@@ -8,6 +8,7 @@
 - Maintenance V3.2 : correction du dialogue d'import de labels dont le bouton de prévisualisation pouvait être masqué ; association par nom désormais disponible avec une seule liste et plage proposée limitée à la capacité de la machine cible.
 - Maintenance V3.2 : intégration des modèles natifs DMT dLive/Avantis, CSV dLive/Avantis et ZIP Yamaha CL/QL ; l'export ne demande plus de choisir un fichier modèle existant.
 - Maintenance V3.2 : distinction explicite entre CSV générique DCE et CSV natif console, bascule automatique TX vers RX pour les machines sans TX et blocage des machines sans canal dans le sens choisi.
+- Maintenance V3.2 : correction de l'ouverture de l'export pour une machine sans TX ; le choix RX est appliqué avant l'aperçu et une plage vide ne déclenche plus d'erreur interne.
 - Maintenance V3.2 : écriture atomique des exports natifs afin de conserver une destination existante si la génération échoue.
 - Regroupement logique des fonctions de fichiers dans un onglet principal `Import / Export`.
 - Ajout des sous-onglets `Labels`, `Rapports et patchbook` et `Synoptique` sur Windows et macOS.

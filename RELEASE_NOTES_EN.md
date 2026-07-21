@@ -17,6 +17,7 @@ V3.2 replaces V3.1 on `main` and becomes the `Latest` Release. Historical Releas
 - Use generic CSV by default: only the new file name and destination folder are requested.
 - Bundle native DMT dLive/Avantis, Allen & Heath dLive/Avantis, and Yamaha CL/QL templates: export only asks for a file name.
 - Automatically switch to RX for a device without TX channels and clearly distinguish generic DCE CSV from native console CSV.
+- Fix export opening for a device without TX channels: RX is selected before the first preview and an empty range remains handled inside the dialog.
 - Updated French and English manuals.
 
 ## Why this tool exists
@@ -95,7 +96,7 @@ Building, previewing, or exporting the synoptic never changes the loaded XML doc
 ## Automated validation
 
 - 143 engine and Windows contract tests pass in Release configuration.
-- 9 headless macOS interface tests also pass.
+- 10 headless macOS interface tests also pass.
 - Windows and macOS builds complete without warnings.
 - Additional checks cover the Rectorat preset, a real DMT workbook, SVG/PDF synoptic export, and preservation of the loaded XML.
 

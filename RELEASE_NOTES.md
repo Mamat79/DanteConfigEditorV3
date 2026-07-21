@@ -17,6 +17,7 @@ La V3.2 remplace la V3.1 sur `main` et devient la Release `Latest`. Les Releases
 - CSV générique proposé par défaut : seul le nom du nouveau fichier et son dossier sont demandés.
 - Modèles natifs DMT dLive/Avantis, Allen & Heath dLive/Avantis et Yamaha CL/QL inclus : l'export demande seulement un nom de fichier.
 - Bascule automatique sur RX pour une machine sans TX, et distinction explicite entre CSV générique DCE et CSV natif console.
+- Correction de l'ouverture de l'export pour une machine sans TX : RX est sélectionné avant le premier aperçu et une plage vide reste gérée dans la fenêtre.
 - Notices française et anglaise mises à jour.
 
 ## Pourquoi cet outil existe
@@ -95,7 +96,7 @@ La création, l'aperçu et l'export du synoptique ne modifient jamais le documen
 ## Validation automatisée
 
 - 143 tests du moteur et des contrats Windows réussissent en configuration Release.
-- 9 tests d'interface macOS sans écran réussissent également.
+- 10 tests d'interface macOS sans écran réussissent également.
 - Les builds Windows et macOS réussissent sans avertissement.
 - Les essais complémentaires couvrent le preset Rectorat, un classeur DMT réel, le synoptique SVG/PDF et la préservation du XML chargé.
 

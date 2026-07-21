@@ -156,6 +156,39 @@ public sealed class MainWindowTests
         }
     }
 
+    [AvaloniaFact]
+    public async Task LabelExportForRxOnlyDeviceOpensDirectlyOnRx()
+    {
+        string source = Path.Combine(AppContext.BaseDirectory, "Fixtures", "representative-preset.xml");
+        string temporaryXml = Path.Combine(Path.GetTempPath(), $"dante-mac-label-export-{Guid.NewGuid():N}.xml");
+        File.Copy(source, temporaryXml);
+
+        MainWindow window = new() { Width = 1366, Height = 768 };
+        window.Show();
+        try
+        {
+            await window.OpenStartupFileAsync(temporaryXml);
+            DataGrid devices = window.FindControl<DataGrid>("DeviceGrid")!;
+            devices.SelectedIndex = 1; // DEVICE-B : 0 TX, 2 RX.
+
+            window.FindControl<Button>("ExportChannelLabelsButton")!
+                .RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+            Dispatcher.UIThread.RunJobs();
+
+            Window dialog = Assert.Single(window.OwnedWindows);
+            Assert.Equal(1, dialog.FindControl<ComboBox>("KindCombo")!.SelectedIndex);
+            Assert.True(dialog.FindControl<Button>("ExportButton")!.IsEnabled);
+            Assert.Contains("2", dialog.FindControl<TextBlock>("SummaryText")!.Text);
+            dialog.Close();
+        }
+        finally
+        {
+            window.Close();
+            SessionRecoveryService.Delete(temporaryXml);
+            File.Delete(temporaryXml);
+        }
+    }
+
     private static TabControl MainTabs(MainWindow window) => window.FindControl<TabControl>("MainTabs")!;
 
     [AvaloniaFact]

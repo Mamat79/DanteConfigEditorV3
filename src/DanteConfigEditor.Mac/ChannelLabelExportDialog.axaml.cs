@@ -20,6 +20,7 @@ internal sealed partial class ChannelLabelExportDialog : Window
     private readonly ObservableCollection<MacChannelLabelExportPreviewRow> _preview = [];
     private DanteProject? _project;
     private UiLanguage _language;
+    private bool _initializing = true;
 
     public ChannelLabelExportDialog()
     {
@@ -39,6 +40,7 @@ internal sealed partial class ChannelLabelExportDialog : Window
         dialog._language = language;
         dialog.Populate(initiallySelectedDevice);
         dialog.ApplyLanguage();
+        dialog._initializing = false;
         dialog.RefreshPreview();
         return dialog.ShowDialog<ChannelLabelExportDialogResult?>(owner);
     }
@@ -111,6 +113,11 @@ internal sealed partial class ChannelLabelExportDialog : Window
 
     private void FormatCombo_SelectionChanged(object? sender, SelectionChangedEventArgs e)
     {
+        if (_initializing)
+        {
+            return;
+        }
+
         if (FindControl<CheckBox>("AdaptDmtCheckBox") is not { } adapt)
         {
             return;
@@ -132,6 +139,11 @@ internal sealed partial class ChannelLabelExportDialog : Window
 
     private void KindCombo_SelectionChanged(object? sender, SelectionChangedEventArgs e)
     {
+        if (_initializing)
+        {
+            return;
+        }
+
         UpdateDeviceAvailability();
         RefreshPreview();
     }
@@ -184,6 +196,11 @@ internal sealed partial class ChannelLabelExportDialog : Window
 
     private void RefreshPreview()
     {
+        if (_initializing)
+        {
+            return;
+        }
+
         _preview.Clear();
         string[] selected = _devices.Where(device => device.IsSelected && device.IsAvailable).Select(device => device.Name).ToArray();
         if (selected.Length == 0)
@@ -200,7 +217,19 @@ internal sealed partial class ChannelLabelExportDialog : Window
         DanteChannelKind kind = SelectedValue("KindCombo") == "rx" ? DanteChannelKind.Rx : DanteChannelKind.Tx;
         bool consoleTemplate = RequiresConsoleCompatibility(SelectedValue("FormatCombo"));
         bool adapt = FindControl<CheckBox>("AdaptDmtCheckBox")!.IsChecked == true;
-        ChannelLabelDocument document = ChannelLabelExchangeService.CreateFromProject(_project!, selected, kind, start, count);
+        ChannelLabelDocument document;
+        try
+        {
+            document = ChannelLabelExchangeService.CreateFromProject(_project!, selected, kind, start, count);
+        }
+        catch (InvalidOperationException)
+        {
+            FindControl<TextBlock>("SummaryText")!.Text = Local(
+                "Aucun canal TX/RX ne correspond aux machines et à la plage sélectionnées.",
+                "No TX/RX channel matches the selected devices and range.");
+            FindControl<Button>("ExportButton")!.IsEnabled = false;
+            return;
+        }
         int incompatible = 0;
         foreach (ChannelLabelSet set in document.Sets)
         {
@@ -246,6 +275,10 @@ internal sealed partial class ChannelLabelExportDialog : Window
             if (devices.Length == 0)
             {
                 throw new InvalidOperationException(Local("Sélectionnez au moins une machine.", "Select at least one device."));
+            }
+            if (_preview.Count == 0)
+            {
+                throw new InvalidOperationException(FindControl<TextBlock>("SummaryText")!.Text);
             }
 
             string format = SelectedValue("FormatCombo");
