@@ -2,11 +2,19 @@
 
 Chaque version publique de Dante Config Editor possède son propre tag Git immuable et sa propre Release GitHub. Le format historique du projet est `v3.08`, `v3.09`, puis `v3.10` pour la version suivante.
 
+Les métadonnées éditoriales réglées sur GitHub sont également conservées : nom,
+description du dépôt, titre et description de chaque Release publiée. Le dépôt
+local contient un instantané de référence dans `GITHUB_METADATA.md`. Il sert à
+préparer les prochaines mises à jour sans remplacer silencieusement les textes
+modifiés en ligne.
+
 ## Règles
 
 - Ne jamais déplacer un tag de version déjà publié.
 - Ne jamais supprimer une ancienne Release pour publier la suivante.
 - Ne jamais utiliser `gh release upload --clobber` sur une Release publiée.
+- Ne jamais modifier automatiquement le titre ou la description d'une Release existante.
+- Ne jamais remplacer la description « About » du dépôt lors d'un push Git.
 - Construire les binaires depuis le commit désigné par le tag, et non depuis la branche courante.
 - Conserver les sommes SHA-256 avec chaque installateur ou DMG.
 - Une ancienne version recréée doit utiliser `make_latest=false`.
@@ -31,4 +39,3 @@ Après une publication, synchroniser le dépôt local avec :
 git fetch --prune --tags origin
 git status --short --branch
 ```
-
