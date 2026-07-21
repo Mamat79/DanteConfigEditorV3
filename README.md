@@ -9,7 +9,7 @@ Version officielle V3.1 Windows et macOS de la branche `main` pour éditer hors 
 > **Statut : V3.1 officielle Windows et macOS. Outil tiers non officiel Audinate.**
 > Cette version peut encore contenir des bugs. Les versions précédentes restent accessibles dans l'historique des Releases GitHub. Travaillez toujours sur une copie et validez le XML généré dans les outils Dante officiels.
 
-> **Compatible avec [dLive MIDI Tools (DMT) de togrupe](https://github.com/togrupe/dlive-midi-tools)** pour échanger des noms de canaux par fichiers. Cette passerelle fonctionne hors ligne ; elle ne connecte pas les deux applications en temps réel.
+> **Import et export de labels en JSON, CSV et XLSX.** Le format XLSX utilise une copie d'un modèle **[dLive MIDI Tools (DMT)](https://github.com/togrupe/dlive-midi-tools)** compatible dLive / Avantis. Cette passerelle fonctionne hors ligne.
 
 ## Origine et développement assisté
 
@@ -21,11 +21,11 @@ Enfin, le workflow hors ligne disponible dans Dante Controller ne répondait pas
 
 L'arrivée des agents de développement actuels a permis de faire évoluer ce simple éditeur XML beaucoup plus rapidement : sécurisation des sauvegardes, tests de non-régression, interface bilingue, installateurs autonomes, version macOS, rapports et outils de patch plus élaborés. Les besoins métier, les choix fonctionnels et la validation d'usage restent dirigés par Mamat ; les agents participent à l'analyse, au développement, aux tests et à la documentation.
 
-## Échange de labels et collaboration DMT
+## Import et export de labels
 
 La V3.1 ajoute un échange de noms de canaux pour une ou plusieurs machines. L'utilisateur peut exporter les labels TX ou RX en JSON ou CSV, les réimporter avec choix des machines et des plages, puis vérifier chaque correspondance avant application. Les renommages TX continuent de mettre à jour les subscriptions XML reconnues.
 
-La compatibilité avec **[dLive MIDI Tools (DMT)](https://github.com/togrupe/dlive-midi-tools)** est explicite et fonctionne dans les deux sens par fichiers :
+Les formats JSON et CSV sont génériques. Le format XLSX assure en plus la compatibilité avec les modèles **[dLive MIDI Tools (DMT)](https://github.com/togrupe/dlive-midi-tools)** pour dLive et Avantis, dans les deux sens :
 
 - **DMT → Dante Config Editor** : lecture de la feuille `Channels` d'un classeur XLSX DMT, puis affectation des labels aux TX ou RX d'une ou plusieurs machines Dante.
 - **Dante Config Editor → DMT** : création d'une copie du modèle XLSX DMT choisi, contenant les labels exportés depuis les machines Dante sélectionnées.

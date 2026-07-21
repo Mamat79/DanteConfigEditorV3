@@ -4,7 +4,7 @@
 
 Version officielle pour Windows x64, macOS Apple Silicon et macOS Intel. Dante Config Editor permet de vérifier, modifier et préparer hors ligne des presets XML Dante. Il ne se connecte pas au réseau Dante en temps réel.
 
-La V3.1 échange maintenant des labels de canaux avec **[dLive MIDI Tools (DMT) de togrupe](https://github.com/togrupe/dlive-midi-tools)** par fichiers :
+La V3.1 importe et exporte des labels de canaux en JSON, CSV ou XLSX. JSON et CSV sont génériques ; XLSX utilise une copie d'un modèle **[dLive MIDI Tools (DMT) de togrupe](https://github.com/togrupe/dlive-midi-tools)** compatible dLive / Avantis :
 
 - **DMT → Dante Config Editor** : import de la feuille `Channels` d'un classeur XLSX DMT, ou import JSON/CSV.
 - **Dante Config Editor → DMT** : export JSON/CSV ou création d'une copie d'un modèle XLSX DMT.
@@ -20,7 +20,7 @@ Cette application est un outil tiers non officiel Audinate et peut encore conten
 
 Official build for Windows x64, macOS Apple Silicon, and macOS Intel. Dante Config Editor reviews, edits, and prepares Dante XML presets offline. It does not connect to a live Dante network.
 
-V3.1 now exchanges channel labels with **[togrupe's dLive MIDI Tools (DMT)](https://github.com/togrupe/dlive-midi-tools)** through files:
+V3.1 imports and exports channel labels through JSON, CSV, or XLSX. JSON and CSV are generic; XLSX uses a copy of a **[togrupe's dLive MIDI Tools (DMT)](https://github.com/togrupe/dlive-midi-tools)** template compatible with dLive / Avantis:
 
 - **DMT → Dante Config Editor**: import the `Channels` sheet from a DMT XLSX workbook, or import JSON/CSV.
 - **Dante Config Editor → DMT**: export JSON/CSV or create a copy of a DMT XLSX template.

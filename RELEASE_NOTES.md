@@ -14,9 +14,9 @@ Dante Config Editor est né pour répondre à ce qui me manquait dans Dante Cont
 
 Il répond aussi au besoin de renommer une machine ou ses canaux TX sur un réseau déjà patché sans devoir reconstruire manuellement toutes les subscriptions reconnues. L'application reste un éditeur XML hors ligne et ne pilote jamais le réseau Dante en direct.
 
-## Échange de labels et DMT
+## Import et export de labels
 
-Cette V3.1 peut échanger explicitement des labels avec **[dLive MIDI Tools (DMT) de togrupe](https://github.com/togrupe/dlive-midi-tools)**. La communication se fait par fichiers, dans les deux sens, et non par une connexion temps réel :
+Cette V3.1 importe et exporte des labels en JSON, CSV ou XLSX. JSON et CSV sont génériques ; XLSX utilise une copie d'un modèle **[dLive MIDI Tools (DMT) de togrupe](https://github.com/togrupe/dlive-midi-tools)** compatible dLive / Avantis. La communication se fait par fichiers, et non par une connexion temps réel :
 
 - **DMT → Dante Config Editor** : lecture de la feuille `Channels` d'un classeur XLSX DMT et affectation de ses labels aux canaux Dante choisis.
 - **Dante Config Editor → DMT** : création d'une copie du modèle XLSX DMT contenant les labels Dante exportés.

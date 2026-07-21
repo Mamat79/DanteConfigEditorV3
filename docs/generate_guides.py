@@ -361,14 +361,14 @@ def quick_start(language: str) -> None:
             ("Patch visuel", "Sous Windows, chaque prévisualisation rejoint un lot cumulatif et la grille compacte accepte les séries par glissement. Sur Mac, utilisez l'atelier visuel Avalonia."),
             ("Récupération", "Une copie est écrite en arrière-plan après un court délai. La nouvelle destination devient la référence après Enregistrer sous."),
             ("Sous-projet", "Ajouter XML au projet importe les machines uniques et ne propose un renommage que pour les doublons."),
-            ("Échange de labels", "Importez ou exportez une ou plusieurs machines en JSON, CSV ou copie XLSX DMT, avec prévisualisation et plages."),
+            ("Import et export de labels", "Importez ou exportez une ou plusieurs machines en JSON ou CSV, ou utilisez un modèle XLSX DMT compatible dLive et Avantis, avec prévisualisation et plages."),
         ]
         if french
         else [
             ("Visual patch", "On Windows, every preview joins a cumulative batch and the compact matrix supports drag ranges. On Mac, use the Avalonia visual workshop."),
             ("Recovery", "A copy is written in the background after a short delay. Save as makes the new destination the session reference."),
             ("Sub-project", "Add XML to project imports unique devices and only asks about conflicting names."),
-            ("Label exchange", "Import or export one or several devices through JSON, CSV, or a DMT XLSX copy, with preview and ranges."),
+            ("Importing and exporting labels", "Import or export one or several devices through JSON or CSV, or use a DMT XLSX template compatible with dLive and Avantis, with preview and ranges."),
         ]
     )
 
@@ -505,7 +505,7 @@ def full_guide(language: str) -> None:
             *bullets([
                 "Les canaux TX/RX peuvent être renommés individuellement ou par plage avec {00}, {000}, {n} et {device}.",
                 "Le renommage d'un TX met à jour tous les alias de subscription reconnus dans le projet.",
-                "Échange de labels importe ou exporte les TX/RX d'une ou plusieurs machines en JSON, CSV ou copie XLSX DMT. La plage et chaque changement sont prévisualisés avant application.",
+                "Import et export de labels traite les TX/RX d'une ou plusieurs machines en JSON ou CSV, ou avec un modèle XLSX DMT compatible dLive et Avantis. La plage et chaque changement sont prévisualisés avant application.",
                 "Le modèle XLSX DMT original n'est jamais modifié. L'adaptation ASCII et huit caractères n'est appliquée qu'après activation explicite.",
                 "Les Dante Id ne sont pas renumérotés. Le marqueur local subscribed_device=\".\" est conservé.",
                 "L'onglet Easy patch affiche les RX à gauche et les TX à droite. Les menus et flèches permettent de changer rapidement de machine.",
@@ -695,7 +695,7 @@ def full_guide(language: str) -> None:
             *bullets([
                 "TX/RX channels can be renamed individually or by range with {00}, {000}, {n}, and {device}.",
                 "Renaming a Tx channel updates every recognized subscription alias in the project.",
-                "Label exchange imports or exports Tx/Rx labels for one or several devices through JSON, CSV, or a DMT XLSX copy. Ranges and every change are previewed before apply.",
+                "Importing and exporting labels handles Tx/Rx labels for one or several devices through JSON or CSV, or with a DMT XLSX template compatible with dLive and Avantis. Ranges and every change are previewed before apply.",
                 "The original DMT XLSX template is never modified. ASCII/eight-character adaptation is used only after explicit opt-in.",
                 "Dante IDs are not renumbered. The local subscribed_device=\".\" marker is preserved.",
                 "The Easy patch tab shows Rx channels on the left and Tx channels on the right. Menus and arrows switch devices quickly.",

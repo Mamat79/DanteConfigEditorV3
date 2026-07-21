@@ -11,7 +11,7 @@ Dernière vérification : 2026-07-21
 
 - Nom : `DanteConfigEditorV3`
 - Dépôt : https://github.com/Mamat79/DanteConfigEditorV3
-- Description : `FRANÇAIS - Éditeur hors ligne de presets XML Dante avec échange de labels DMT. | ENGLISH - Offline Dante XML preset editor with DMT label exchange. Windows/macOS.`
+- Description : `FRANÇAIS - Éditeur hors ligne de presets XML Dante avec import/export de labels JSON, CSV et XLSX compatible DMT dLive/Avantis. | ENGLISH - Offline Dante XML preset editor with JSON, CSV and DMT-compatible XLSX label exchange.`
 - Page principale : https://github.com/Mamat79/DanteConfigEditorV3/releases/tag/v3.1
 - Branche de travail : `main`
 

@@ -9,7 +9,7 @@ Official V3.1 build for Windows and macOS. Dante Config Editor edits Dante Contr
 > **Status: official V3.1 build for Windows and macOS. Unofficial third-party tool, not affiliated with Audinate.**
 > This software may still contain bugs. Previous versions remain available in the GitHub Releases history. Always work on a copy and validate generated XML with official Dante tools.
 
-> **Compatible with [togrupe's dLive MIDI Tools (DMT)](https://github.com/togrupe/dlive-midi-tools)** for file-based channel-name exchange. This bridge works offline; it does not connect the two applications in real time.
+> **Import and export labels through JSON, CSV, and XLSX.** XLSX uses a copy of a **[dLive MIDI Tools (DMT)](https://github.com/togrupe/dlive-midi-tools)** template compatible with dLive / Avantis. This bridge works offline.
 
 ## Origin and agent-assisted development
 
@@ -21,11 +21,11 @@ Finally, the offline workflow available in Dante Controller did not provide the 
 
 Modern development agents then enabled a much larger step forward: safer saving, regression tests, a bilingual interface, self-contained installers, a macOS build, reports and more advanced patching tools. Product needs, functional decisions and field validation remain directed by Mamat; the agents contribute to analysis, implementation, testing and documentation.
 
-## Channel-label exchange and DMT collaboration
+## Importing and exporting labels
 
 V3.1 adds channel-label exchange for one or several devices. TX or RX labels can be exported to JSON or CSV, imported with explicit device and range mapping, and checked row by row before application. TX renames still update recognized XML subscriptions.
 
-Compatibility with **[dLive MIDI Tools (DMT)](https://github.com/togrupe/dlive-midi-tools)** is explicit and works in both directions through files:
+JSON and CSV are generic exchange formats. XLSX additionally supports **[dLive MIDI Tools (DMT)](https://github.com/togrupe/dlive-midi-tools)** templates for dLive and Avantis in both directions:
 
 - **DMT → Dante Config Editor**: read the `Channels` sheet from a DMT XLSX workbook, then map its labels to the TX or RX channels of one or several Dante devices.
 - **Dante Config Editor → DMT**: create a copy of the selected DMT XLSX template containing labels exported from the selected Dante devices.
