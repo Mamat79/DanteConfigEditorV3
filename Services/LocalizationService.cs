@@ -572,6 +572,7 @@ public static class LocalizationService
         Add(map, "Exportez en JSON ou CSV, ou créez une copie d'un modèle XLSX/ODS DMT dLive / Avantis.", "Export as JSON or CSV, or create a copy of a DMT XLSX/ODS template for dLive / Avantis.");
         Add(map, "Labels JSON/CSV, DMT XLSX/ODS, A&H dLive/Avantis et Yamaha CL/QL.", "JSON/CSV labels, DMT XLSX/ODS, A&H dLive/Avantis, and Yamaha CL/QL.");
         Add(map, "Importez des labels JSON/CSV, DMT XLSX/ODS, A&H CSV ou Yamaha CL/QL ZIP/CSV.", "Import JSON/CSV labels, DMT XLSX/ODS, A&H CSV, or Yamaha CL/QL ZIP/CSV.");
+        Add(map, "Exportez en générique ou créez une copie d'un modèle DMT, A&H ou Yamaha.", "Export a generic file or create a copy of a DMT, A&H, or Yamaha template.");
         Add(map, "Compatibilité DMT dLive / Avantis - ouvrir le projet", "DMT dLive / Avantis compatibility - open project");
         Add(map, "Ouvre la page GitHub de dLive MIDI Tools par togrupe, dont les modèles dLive et Avantis sont compatibles.", "Opens the dLive MIDI Tools GitHub page by togrupe, whose dLive and Avantis templates are supported.");
         Add(map, "Ouverture du projet DMT impossible", "Cannot open the DMT project");

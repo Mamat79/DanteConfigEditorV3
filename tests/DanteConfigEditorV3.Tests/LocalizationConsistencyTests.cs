@@ -22,6 +22,8 @@ public sealed class LocalizationConsistencyTests
             LocalizationService.TranslateLiteral(UiLanguage.English, "GÉNÉRATEUR D'EXPÉRIENCE HORRIBLE (MAIS PÉDAGOGIQUE)"));
         Assert.Equal("JSON/CSV labels, DMT XLSX/ODS, A&H dLive/Avantis, and Yamaha CL/QL.",
             LocalizationService.TranslateLiteral(UiLanguage.English, "Labels JSON/CSV, DMT XLSX/ODS, A&H dLive/Avantis et Yamaha CL/QL."));
+        Assert.Equal("Export a generic file or create a copy of a DMT, A&H, or Yamaha template.",
+            LocalizationService.TranslateLiteral(UiLanguage.English, "Exportez en générique ou créez une copie d'un modèle DMT, A&H ou Yamaha."));
     }
 
     private static IReadOnlyDictionary<string, string> Dictionary(string fieldName)
