@@ -511,6 +511,9 @@ public static class LocalizationService
         Add(map, "Ouvrir récent", "Open recent");
         Add(map, "Thème clair", "Light theme");
         Add(map, "Thème sombre", "Dark theme");
+        Add(map, "Langue de l'interface", "Interface language");
+        Add(map, "Changer le thème", "Change theme");
+        Add(map, "Fichiers XML récents", "Recent XML files");
         Add(map, "Projet", "Project");
         Add(map, "Recherche", "Search");
         Add(map, "Machine ou canal", "Device or channel");
@@ -573,6 +576,8 @@ public static class LocalizationService
         Add(map, "Labels JSON/CSV, DMT XLSX/ODS, A&H dLive/Avantis et Yamaha CL/QL.", "JSON/CSV labels, DMT XLSX/ODS, A&H dLive/Avantis, and Yamaha CL/QL.");
         Add(map, "Importez des labels JSON/CSV, DMT XLSX/ODS, A&H CSV ou Yamaha CL/QL ZIP/CSV.", "Import JSON/CSV labels, DMT XLSX/ODS, A&H CSV, or Yamaha CL/QL ZIP/CSV.");
         Add(map, "Exportez en générique ou créez une copie d'un modèle DMT, A&H ou Yamaha.", "Export a generic file or create a copy of a DMT, A&H, or Yamaha template.");
+        Add(map, "Détecte les formats génériques, DMT, A&H et Yamaha, puis prévisualise les labels avant de les appliquer aux machines Dante.", "Detects generic, DMT, A&H, and Yamaha formats, then previews labels before applying them to Dante devices.");
+        Add(map, "Exporte les labels TX/RX et ne modifie jamais les modèles DMT, A&H ou Yamaha originaux.", "Exports Tx/Rx labels and never modifies the original DMT, A&H, or Yamaha templates.");
         Add(map, "Compatibilité DMT dLive / Avantis - ouvrir le projet", "DMT dLive / Avantis compatibility - open project");
         Add(map, "Ouvre la page GitHub de dLive MIDI Tools par togrupe, dont les modèles dLive et Avantis sont compatibles.", "Opens the dLive MIDI Tools GitHub page by togrupe, whose dLive and Avantis templates are supported.");
         Add(map, "Ouverture du projet DMT impossible", "Cannot open the DMT project");
@@ -620,6 +625,18 @@ public static class LocalizationService
         Add(map, "Preferred", "Preferred");
         Add(map, "Patch", "Patch");
         Add(map, "Patch visuel / grille", "Visual patch / matrix");
+        Add(map, "Ouvre l'onglet Easy patch.", "Opens the Easy patch tab.");
+        Add(map, "Chargez un XML pour utiliser Easy patch.", "Load an XML file to use Easy patch.");
+        Add(map, "Chargez un XML pour commencer.", "Load an XML file to begin.");
+        Add(map, "Cliquez pour affecter ou retirer ce patch. Maintenez et glissez pour préparer une série.", "Click to add or remove this patch. Hold and drag to prepare a range.");
+        Add(map, "Machine RX précédente", "Previous Rx device");
+        Add(map, "Machine réceptrice RX", "Rx receiving device");
+        Add(map, "Machine RX suivante", "Next Rx device");
+        Add(map, "Machine TX précédente", "Previous Tx device");
+        Add(map, "Machine émettrice TX", "Tx transmitting device");
+        Add(map, "Machine TX suivante", "Next Tx device");
+        Add(map, "Canaux RX et source actuelle", "Rx channels and current source");
+        Add(map, "Canaux TX disponibles", "Available Tx channels");
         Add(map, "Filtre émetteur TX", "Tx transmitter filter");
         Add(map, "Filtre récepteur RX", "Rx receiver filter");
         Add(map, "Recherche device ou canal", "Search device or channel");
@@ -638,6 +655,7 @@ public static class LocalizationService
         Add(map, "TX résolu", "Resolved Tx");
         Add(map, "TX canal", "Tx channel");
         Add(map, "Actif", "Active");
+        Add(map, "Modifié", "Modified");
         Add(map, "État", "Status");
         Add(map, "Afficher seulement les conflits", "Show conflicts only");
         Add(map, "Renommer le RX sélectionné", "Rename selected Rx");
@@ -668,6 +686,8 @@ public static class LocalizationService
         Add(map, "Exporter le synoptique SVG", "Export synoptic SVG");
         Add(map, "Exporter le synoptique PDF", "Export synoptic PDF");
         Add(map, "Exemples : Scène, Régie, Local amplis, Studio A.", "Examples: Stage, Control room, Amplifier room, Studio A.");
+        Add(map, "Scène, Régie, Studio A…", "Stage, Control room, Studio A...");
+        Add(map, "Préfixe ou modèle HF {00}", "Prefix or pattern HF {00}");
         Add(map, "Affecte cet emplacement aux machines sélectionnées.", "Assigns this location to the selected devices.");
         Add(map, "Place la machine sélectionnée plus haut dans son emplacement.", "Moves the selected device up within its location.");
         Add(map, "Place la machine sélectionnée plus bas dans son emplacement.", "Moves the selected device down within its location.");
@@ -683,6 +703,10 @@ public static class LocalizationService
         Add(map, "Vérifier le fichier", "Validate file");
         Add(map, "Rapport final avant Dante", "Final Dante check");
         Add(map, "Rapport compatibilité Dante Controller", "Dante Controller compatibility report");
+        Add(map, "Rapport compatibilité Dante Controller affiché.", "Dante Controller compatibility report displayed.");
+        Add(map, "Rapport final avant Dante affiché.", "Final pre-Dante report displayed.");
+        Add(map, "Historique des actions affiché.", "Action history displayed.");
+        Add(map, "Vérification", "Validation");
         Add(map, "Actualiser le résumé", "Refresh summary");
         Add(map, "Historique actions", "Action history");
         Add(map, "Exporter TXT", "Export TXT");
@@ -751,6 +775,11 @@ public static class LocalizationService
         Add(map, "Affiche toutes les différences de machines, canaux et patchs depuis l'ouverture du XML.", "Shows all device, channel, and subscription differences since the XML was opened.");
         Add(map, "Applique en une seule action les formats audio, la latence, l'IP automatique et éventuellement le mode réseau du profil à la cible choisie.", "Applies the profile audio formats, latency, automatic IP, and optional network mode to the selected target in one operation.");
         Add(map, "Ouvre une vue TX/RX avec glisser-déposer, affectation en série et grille de patch.", "Opens a Tx/Rx view with drag and drop, sequential assignment, and a patch matrix.");
+        Add(map, "Patch RX", "Rx patch");
+        Add(map, "Ouvrir Easy patch", "Open Easy patch");
+        Add(map, "Affectez des canaux TX disponibles aux entrées RX de cette machine.", "Assign available Tx channels to this device's Rx inputs.");
+        Add(map, "Aucun changement de patch en attente.", "No pending patch change.");
+        Add(map, "Les changements de patch seront appliqués avec les autres réglages de cette fenêtre.", "Patch changes will be applied with the other settings in this window.");
 
         return map;
     }

@@ -5,6 +5,7 @@ using System.IO;
 using System.Net;
 using System.Text;
 using System.Windows;
+using System.Windows.Automation;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Media;
@@ -2217,7 +2218,7 @@ public partial class MainWindow : Window
         builder.AppendLine(_project.BuildCompatibilityReport());
         SaveSummaryTextBox.Text = builder.ToString();
         MainTabs.SelectedItem = SafetyTab;
-        SetStatus("Rapport final avant Dante affiché.");
+        SetStatus(LocalizeLiteral("Rapport final avant Dante affiché."));
     }
 
     private void RefreshSummaryButton_Click(object sender, RoutedEventArgs e)
@@ -2246,7 +2247,7 @@ public partial class MainWindow : Window
 
         SaveSummaryTextBox.Text = builder.ToString();
         MainTabs.SelectedItem = SafetyTab;
-        SetStatus("Historique des actions affiché.");
+        SetStatus(LocalizeLiteral("Historique des actions affiché."));
     }
 
     private void OpenQuickStartButton_Click(object sender, RoutedEventArgs e)
@@ -3287,9 +3288,25 @@ public partial class MainWindow : Window
             case TextBlock textBlock:
                 textBlock.Text = LocalizeLiteral(textBlock.Text);
                 break;
-            case FrameworkElement frameworkElement when frameworkElement.ToolTip is string tooltip:
-                frameworkElement.ToolTip = LocalizeLiteral(tooltip);
-                break;
+        }
+
+        // Un bouton est aussi un ContentControl : son info-bulle doit donc
+        // être traduite séparément du texte qu'il affiche.
+        if (dependencyObject is FrameworkElement frameworkElement && frameworkElement.ToolTip is string tooltip)
+        {
+            frameworkElement.ToolTip = LocalizeLiteral(tooltip);
+        }
+
+        string automationName = AutomationProperties.GetName(dependencyObject);
+        if (!string.IsNullOrWhiteSpace(automationName))
+        {
+            AutomationProperties.SetName(dependencyObject, LocalizeLiteral(automationName));
+        }
+
+        string automationHelpText = AutomationProperties.GetHelpText(dependencyObject);
+        if (!string.IsNullOrWhiteSpace(automationHelpText))
+        {
+            AutomationProperties.SetHelpText(dependencyObject, LocalizeLiteral(automationHelpText));
         }
 
         foreach (object child in LogicalTreeHelper.GetChildren(dependencyObject))
