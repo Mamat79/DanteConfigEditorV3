@@ -11,6 +11,13 @@ public sealed class DanteDevice
         Element = element;
         Name = ReadElementValue(element, "name");
         FriendlyName = ReadElementValue(element, "friendly_name");
+        string technicalDeviceId = element.Child("instance_id").ChildValue("device_id");
+        string defaultName = ReadElementValue(element, "default_name");
+        StableIdentity = !string.IsNullOrWhiteSpace(technicalDeviceId)
+            ? $"device-id:{technicalDeviceId.Trim()}"
+            : !string.IsNullOrWhiteSpace(defaultName)
+                ? $"default-name:{defaultName.Trim()}"
+                : $"name:{Name.Trim()}";
         IsRedundant = string.Equals(element.Child("redundancy")?.Attribute("value")?.Value, "true", StringComparison.OrdinalIgnoreCase);
         PreferredMaster = string.Equals(element.Child("preferred_master")?.Attribute("value")?.Value, "true", StringComparison.OrdinalIgnoreCase);
         Latency = ReadElementValue(element, "unicast_latency");
@@ -36,6 +43,10 @@ public sealed class DanteDevice
     public string Name { get; }
 
     public string FriendlyName { get; }
+
+    // Identité de lecture seule utilisée par les données annexes de l'application.
+    // Elle n'est jamais écrite dans le XML et reste stable après un renommage.
+    public string StableIdentity { get; }
 
     public bool IsRedundant { get; }
 

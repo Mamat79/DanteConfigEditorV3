@@ -1,7 +1,7 @@
 <Window x:Class="DanteConfigEditor.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Dante Config Editor V3.1"
+        Title="Dante Config Editor V3.2"
         Width="1280"
         Height="820"
         MinWidth="1120"
@@ -416,7 +416,7 @@
                     </Grid.ColumnDefinitions>
 
                     <StackPanel Margin="0,0,18,0" VerticalAlignment="Center">
-                        <TextBlock Text="Dante Config Editor V3.1"
+                        <TextBlock Text="Dante Config Editor V3.2"
                                    FontSize="20"
                                    FontWeight="SemiBold"
                                    TextWrapping="NoWrap" />
@@ -1157,8 +1157,10 @@
                     </ContentControl>
                 </TabItem>
 
-                <TabItem x:Name="ChannelLabelsTab" Header="Labels">
-                    <Grid Margin="0,12,0,0">
+                <TabItem x:Name="ExportsTab" Header="Import / Export">
+                    <TabControl Margin="0,8,0,0">
+                        <TabItem x:Name="ChannelLabelsTab" Header="Labels">
+                            <Grid Margin="0,12,0,0">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="*" />
@@ -1174,7 +1176,7 @@
                                 <TextBlock Text="Import et export de labels"
                                            FontSize="18"
                                            FontWeight="SemiBold" />
-                                <TextBlock Text="Formats JSON et CSV, plus XLSX compatible DMT pour dLive / Avantis."
+                                <TextBlock Text="Labels JSON/CSV, DMT XLSX, A&amp;H dLive/Avantis et Yamaha CL/QL."
                                            Margin="0,6,0,0"
                                            Foreground="{DynamicResource MutedTextBrush}" />
                             </StackPanel>
@@ -1191,7 +1193,7 @@
 
                             <GroupBox Header="Importer des labels" Margin="0,0,10,0" Padding="22">
                                 <StackPanel>
-                                    <TextBlock Text="Importez un fichier JSON, CSV ou XLSX. Les modèles DMT dLive et Avantis sont pris en charge."
+                                    <TextBlock Text="Importez des labels JSON/CSV, DMT XLSX, A&amp;H CSV ou Yamaha CL/QL ZIP/CSV."
                                                TextWrapping="Wrap"
                                                Foreground="{DynamicResource MutedTextBrush}"
                                                Margin="0,0,0,18" />
@@ -1199,13 +1201,13 @@
                                             Content="Importer des labels"
                                             HorizontalAlignment="Stretch"
                                             Click="ImportChannelLabelsButton_Click"
-                                            ToolTip="Lit un fichier JSON, CSV ou XLSX compatible DMT, puis prévisualise les labels avant de les appliquer aux machines Dante." />
+                                            ToolTip="Détecte les formats génériques, DMT, A&amp;H et Yamaha, puis prévisualise les labels avant de les appliquer aux machines Dante." />
                                 </StackPanel>
                             </GroupBox>
 
                             <GroupBox Grid.Column="1" Header="Exporter des labels" Margin="10,0,0,0" Padding="22">
                                 <StackPanel>
-                                    <TextBlock Text="Exportez en JSON ou CSV, ou créez une copie d'un modèle XLSX DMT dLive / Avantis."
+                                    <TextBlock Text="Exportez en générique ou créez une copie d'un modèle DMT, A&amp;H ou Yamaha."
                                                TextWrapping="Wrap"
                                                Foreground="{DynamicResource MutedTextBrush}"
                                                Margin="0,0,0,18" />
@@ -1213,7 +1215,7 @@
                                             Content="Exporter des labels"
                                             HorizontalAlignment="Stretch"
                                             Click="ExportChannelLabelsButton_Click"
-                                            ToolTip="Exporte les labels TX/RX en JSON, CSV ou XLSX. Pour DMT, une copie du modèle choisi est créée et l'original reste intact." />
+                                            ToolTip="Exporte les labels TX/RX et ne modifie jamais les modèles DMT, A&amp;H ou Yamaha originaux." />
                                 </StackPanel>
                             </GroupBox>
                         </Grid>
@@ -1226,7 +1228,227 @@
                                 Margin="0,18,0,6"
                                 Click="OpenDmtProjectButton_Click"
                                 ToolTip="Ouvre la page GitHub de dLive MIDI Tools par togrupe, dont les modèles dLive et Avantis sont compatibles." />
-                    </Grid>
+                            </Grid>
+                        </TabItem>
+
+                        <TabItem x:Name="ReportsExportTab" Header="Rapports et patchbook">
+                            <Grid Margin="0,12,0,0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+
+                                <GroupBox Header="Rapports du projet" Padding="18" Margin="0,0,8,0">
+                                    <StackPanel>
+                                        <TextBlock Text="Exportez un résumé lisible de la configuration chargée."
+                                                   Foreground="{DynamicResource MutedTextBrush}"
+                                                   TextWrapping="Wrap"
+                                                   Margin="0,0,0,16" />
+                                        <Button Content="Exporter TXT"
+                                                Click="ExportTxtButton_Click"
+                                                HorizontalAlignment="Stretch" />
+                                        <Button Content="Exporter PDF"
+                                                Click="ExportPdfButton_Click"
+                                                HorizontalAlignment="Stretch" />
+                                    </StackPanel>
+                                </GroupBox>
+
+                                <GroupBox Grid.Column="1" Header="Patchbook" Padding="18" Margin="8,0">
+                                    <StackPanel>
+                                        <TextBlock Text="Choisissez le périmètre, puis exportez les affectations de patch."
+                                                   Foreground="{DynamicResource MutedTextBrush}"
+                                                   TextWrapping="Wrap"
+                                                   Margin="0,0,0,16" />
+                                        <ComboBox x:Name="PatchbookScopeComboBox"
+                                                  HorizontalAlignment="Stretch"
+                                                  Margin="0,0,0,8" />
+                                        <Button Content="Patchbook TXT"
+                                                Click="ExportPatchbookTxtButton_Click"
+                                                HorizontalAlignment="Stretch" />
+                                        <Button Content="Patchbook CSV"
+                                                Click="ExportPatchbookCsvButton_Click"
+                                                HorizontalAlignment="Stretch" />
+                                    </StackPanel>
+                                </GroupBox>
+
+                                <GroupBox Grid.Column="2" Header="Analyse simple" Padding="18" Margin="8,0,0,0">
+                                    <StackPanel>
+                                        <TextBlock Text="Créez une vue textuelle compacte des liaisons entre machines."
+                                                   Foreground="{DynamicResource MutedTextBrush}"
+                                                   TextWrapping="Wrap"
+                                                   Margin="0,0,0,16" />
+                                        <Button Content="Topologie simple"
+                                                Click="TopologyButton_Click"
+                                                HorizontalAlignment="Stretch" />
+                                    </StackPanel>
+                                </GroupBox>
+                            </Grid>
+                        </TabItem>
+
+                        <TabItem x:Name="SynopticTab" Header="Synoptique">
+                            <Grid Margin="0,12,0,0">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+
+                        <Border Background="{DynamicResource SurfaceAltBrush}"
+                                BorderBrush="{DynamicResource BorderLineBrush}"
+                                BorderThickness="1"
+                                CornerRadius="6"
+                                Padding="16"
+                                Margin="0,0,0,12">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel>
+                                    <TextBlock Text="Synoptique visuel"
+                                               FontSize="18"
+                                               FontWeight="SemiBold" />
+                                    <TextBlock Text="Machines regroupées par emplacement et patchs consécutifs réunis sur un même câble."
+                                               Margin="0,5,0,0"
+                                               Foreground="{DynamicResource MutedTextBrush}" />
+                                </StackPanel>
+                                <TextBlock x:Name="SynopticSummaryTextBlock"
+                                           Grid.Column="1"
+                                           VerticalAlignment="Center"
+                                           Foreground="{DynamicResource MutedTextBrush}"
+                                           Text="Aucun fichier chargé." />
+                            </Grid>
+                        </Border>
+
+                        <Grid Grid.Row="1">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="410" />
+                                <ColumnDefinition Width="12" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="*" />
+                                </Grid.RowDefinitions>
+                                <Border Background="{DynamicResource SurfaceBrush}"
+                                        BorderBrush="{DynamicResource BorderLineBrush}"
+                                        BorderThickness="1"
+                                        CornerRadius="6"
+                                        Padding="10"
+                                        Margin="0,0,0,10">
+                                    <Grid>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto" />
+                                            <RowDefinition Height="Auto" />
+                                        </Grid.RowDefinitions>
+                                        <TextBlock Text="Emplacement de la sélection" FontWeight="SemiBold" />
+                                        <Grid Grid.Row="1" Margin="0,7,0,0">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+                                            <TextBox x:Name="SynopticLocationTextBox"
+                                                     VerticalAlignment="Center"
+                                                     ToolTip="Exemples : Scène, Régie, Local amplis, Studio A." />
+                                            <Button x:Name="ApplySynopticLocationButton"
+                                                    Grid.Column="1"
+                                                    Content="Affecter"
+                                                    Margin="8,0,0,0"
+                                                    Click="ApplySynopticLocationButton_Click"
+                                                    ToolTip="Affecte cet emplacement aux machines sélectionnées." />
+                                        </Grid>
+                                    </Grid>
+                                </Border>
+
+                                <DataGrid x:Name="SynopticDeviceGrid"
+                                          Grid.Row="1"
+                                          AutoGenerateColumns="False"
+                                          CanUserAddRows="False"
+                                          CanUserDeleteRows="False"
+                                          SelectionMode="Extended"
+                                          SelectionUnit="FullRow"
+                                          CellEditEnding="SynopticDeviceGrid_CellEditEnding">
+                                    <DataGrid.Columns>
+                                        <DataGridCheckBoxColumn Header="Voir" Binding="{Binding IsVisible, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="52" />
+                                        <DataGridTextColumn Header="Machine" Binding="{Binding DeviceName}" IsReadOnly="True" Width="1.35*" />
+                                        <DataGridTextColumn Header="Emplacement" Binding="{Binding Location, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="1.25*" />
+                                        <DataGridTextColumn Header="TX/RX" Binding="{Binding ChannelCount}" IsReadOnly="True" Width="72" />
+                                    </DataGrid.Columns>
+                                </DataGrid>
+                            </Grid>
+
+                            <Border Grid.Column="2"
+                                    Background="#F7F9FC"
+                                    BorderBrush="{DynamicResource BorderLineBrush}"
+                                    BorderThickness="1"
+                                    CornerRadius="6">
+                                <ScrollViewer HorizontalScrollBarVisibility="Auto"
+                                              VerticalScrollBarVisibility="Auto">
+                                    <Canvas x:Name="SynopticCanvas"
+                                            Width="900"
+                                            Height="560"
+                                            Background="#F7F9FC" />
+                                </ScrollViewer>
+                            </Border>
+                        </Grid>
+
+                        <Grid Grid.Row="2" Margin="0,12,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <Button x:Name="ShowAllSynopticDevicesButton"
+                                    Content="Tout afficher"
+                                    Style="{StaticResource SecondaryButtonStyle}"
+                                    Click="ShowAllSynopticDevicesButton_Click" />
+                            <Button x:Name="HideSelectedSynopticDevicesButton"
+                                    Grid.Column="1"
+                                    Content="Masquer sélection"
+                                    Style="{StaticResource SecondaryButtonStyle}"
+                                    Click="HideSelectedSynopticDevicesButton_Click" />
+                            <Button x:Name="MoveSynopticDeviceUpButton"
+                                    Grid.Column="2"
+                                    Content="↑"
+                                    Width="42"
+                                    Style="{StaticResource SecondaryButtonStyle}"
+                                    Click="MoveSynopticDeviceUpButton_Click"
+                                    ToolTip="Place la machine sélectionnée plus haut dans son emplacement." />
+                            <Button x:Name="MoveSynopticDeviceDownButton"
+                                    Grid.Column="3"
+                                    Content="↓"
+                                    Width="42"
+                                    Style="{StaticResource SecondaryButtonStyle}"
+                                    Click="MoveSynopticDeviceDownButton_Click"
+                                    ToolTip="Place la machine sélectionnée plus bas dans son emplacement." />
+                            <CheckBox x:Name="OpenSynopticAfterExportCheckBox"
+                                      Grid.Column="4"
+                                      Content="Ouvrir après export"
+                                      IsChecked="True"
+                                      HorizontalAlignment="Right"
+                                      VerticalAlignment="Center"
+                                      Margin="0,0,14,0" />
+                            <Button x:Name="RefreshSynopticButton"
+                                    Grid.Column="5"
+                                    Content="Actualiser l’aperçu"
+                                    Style="{StaticResource SecondaryButtonStyle}"
+                                    Click="RefreshSynopticButton_Click" />
+                            <Button x:Name="ExportSynopticButton"
+                                    Grid.Column="6"
+                                    Content="Exporter le synoptique SVG"
+                                    Click="ExportSynopticButton_Click"
+                                    ToolTip="Crée un fichier vectoriel en couleur sans modifier le XML Dante." />
+                        </Grid>
+                            </Grid>
+                        </TabItem>
+                    </TabControl>
                 </TabItem>
 
                 <TabItem x:Name="HealthTab" Header="Santé du fichier">
@@ -1289,14 +1511,6 @@
                                     Style="{StaticResource SecondaryButtonStyle}"
                                     Click="ActionHistoryButton_Click"
                                     ToolTip="Affiche les dernières actions réalisées dans l'application." />
-                            <Button Content="Exporter TXT" Style="{StaticResource SecondaryButtonStyle}" Click="ExportTxtButton_Click" />
-                            <Button Content="Exporter PDF" Style="{StaticResource SecondaryButtonStyle}" Click="ExportPdfButton_Click" />
-                            <ComboBox x:Name="PatchbookScopeComboBox"
-                                      Width="190"
-                                      Margin="0,0,8,8" />
-                            <Button Content="Patchbook TXT" Style="{StaticResource SecondaryButtonStyle}" Click="ExportPatchbookTxtButton_Click" />
-                            <Button Content="Patchbook CSV" Style="{StaticResource SecondaryButtonStyle}" Click="ExportPatchbookCsvButton_Click" />
-                            <Button Content="Topologie simple" Style="{StaticResource SecondaryButtonStyle}" Click="TopologyButton_Click" />
                             <Button Content="Comparer XML" Style="{StaticResource SecondaryButtonStyle}" Click="CompareXmlButton_Click" />
                             <Button Content="Quick start"
                                     Style="{StaticResource SecondaryButtonStyle}"

@@ -25,9 +25,11 @@ public static class ChannelLabelExchangeService
         return extension switch
         {
             ".json" => ParseJson(File.ReadAllText(path, Encoding.UTF8)),
+            ".csv" when ConsoleChannelFileService.IsConsoleCsv(path) => ConsoleChannelFileService.Read(path).Document,
             ".csv" => ParseCsv(File.ReadAllText(path, Encoding.UTF8)),
             ".xlsx" => DmtChannelWorkbookService.Read(path).Document,
-            _ => throw new InvalidDataException("Format de labels non pris en charge. Utilisez JSON, CSV ou XLSX DMT.")
+            ".zip" => ConsoleChannelFileService.Read(path).Document,
+            _ => throw new InvalidDataException("Format de labels non pris en charge. Utilisez JSON, CSV, XLSX DMT ou ZIP Yamaha CL/QL.")
         };
     }
 
@@ -81,7 +83,7 @@ public static class ChannelLabelExchangeService
             throw new InvalidOperationException($"Machine(s) introuvable(s) : {string.Join(", ", missing)}.");
         }
 
-        return new ChannelLabelDocument(FormatName, CurrentSchemaVersion, "Dante Config Editor", "3.1", sets.ToArray());
+        return new ChannelLabelDocument(FormatName, CurrentSchemaVersion, "Dante Config Editor", "3.2", sets.ToArray());
     }
 
     public static string SerializeJson(ChannelLabelDocument document)
@@ -204,6 +206,20 @@ public static class ChannelLabelExchangeService
             FormatName,
             CurrentSchemaVersion,
             "dlive-midi-tools",
+            sourceVersion,
+            [new ChannelLabelSet(name, ChannelLabelDirection.ConsoleInput, channels.ToArray())]);
+    }
+
+    internal static ChannelLabelDocument BuildConsoleDocument(
+        string name,
+        IEnumerable<ChannelLabelEntry> channels,
+        string sourceApplication,
+        string sourceVersion)
+    {
+        return new ChannelLabelDocument(
+            FormatName,
+            CurrentSchemaVersion,
+            sourceApplication,
             sourceVersion,
             [new ChannelLabelSet(name, ChannelLabelDirection.ConsoleInput, channels.ToArray())]);
     }

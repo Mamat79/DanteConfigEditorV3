@@ -251,6 +251,7 @@ public partial class MainWindow : Window
         LogListBox.ItemsSource = _logs;
         GlobalSearchListBox.ItemsSource = _searchResults;
         HealthIssuesGrid.ItemsSource = _healthIssues;
+        SynopticDeviceGrid.ItemsSource = _synopticRows;
         GlobalDaisychainRadioButton.IsChecked = true;
         DaisychainRadioButton.IsChecked = true;
         SetTheme(useLightTheme: false);
@@ -1917,8 +1918,8 @@ public partial class MainWindow : Window
         OpenFileDialog dialog = new()
         {
             Filter = _language == UiLanguage.English
-                ? "Channel labels (*.json;*.csv;*.xlsx)|*.json;*.csv;*.xlsx|JSON (*.json)|*.json|CSV (*.csv)|*.csv|DMT workbook (*.xlsx)|*.xlsx|All files (*.*)|*.*"
-                : "Labels de canaux (*.json;*.csv;*.xlsx)|*.json;*.csv;*.xlsx|JSON (*.json)|*.json|CSV (*.csv)|*.csv|Classeur DMT (*.xlsx)|*.xlsx|Tous les fichiers (*.*)|*.*",
+                ? "Channel labels (*.json;*.csv;*.xlsx;*.zip)|*.json;*.csv;*.xlsx;*.zip|JSON (*.json)|*.json|CSV (*.csv)|*.csv|DMT workbook (*.xlsx)|*.xlsx|Yamaha CL/QL package (*.zip)|*.zip|All files (*.*)|*.*"
+                : "Labels de canaux (*.json;*.csv;*.xlsx;*.zip)|*.json;*.csv;*.xlsx;*.zip|JSON (*.json)|*.json|CSV (*.csv)|*.csv|Classeur DMT (*.xlsx)|*.xlsx|Package Yamaha CL/QL (*.zip)|*.zip|Tous les fichiers (*.*)|*.*",
             Title = _language == UiLanguage.English ? "Import channel labels" : "Importer des labels de canaux",
             InitialDirectory = Path.GetDirectoryName(_project!.OriginalFilePath)
         };
@@ -2005,7 +2006,12 @@ public partial class MainWindow : Window
 
             if (window.Format == "xlsx")
             {
-                ExportDmtWorkbooks(document, window.AdaptDmtLabels);
+                ExportDmtWorkbooks(document, window.AdaptConsoleLabels);
+                return;
+            }
+            if (window.Format is "console-csv" or "yamaha")
+            {
+                ExportConsoleTemplateCopies(document, window.Format, window.AdaptConsoleLabels);
                 return;
             }
 
@@ -2103,6 +2109,81 @@ public partial class MainWindow : Window
         SetStatus(_language == UiLanguage.English
             ? $"{outputs.Count} DMT workbook copy/copies exported (template {version})."
             : $"{outputs.Count} copie(s) de classeur DMT exportée(s) (modèle {version}).");
+    }
+
+    private void ExportConsoleTemplateCopies(ChannelLabelDocument document, string format, bool adaptLabels)
+    {
+        bool yamaha = format == "yamaha";
+        OpenFileDialog templateDialog = new()
+        {
+            Filter = yamaha
+                ? "Yamaha CL/QL package (*.zip;*.csv)|*.zip;*.csv|ZIP (*.zip)|*.zip|InName CSV (*.csv)|*.csv"
+                : "Allen & Heath console CSV (*.csv)|*.csv",
+            Title = yamaha
+                ? (_language == UiLanguage.English ? "Choose a Yamaha CL/QL export package" : "Choisir un export Yamaha CL/QL")
+                : (_language == UiLanguage.English ? "Choose an A&H dLive/Avantis CSV" : "Choisir un CSV A&H dLive/Avantis")
+        };
+        if (templateDialog.ShowDialog(this) != true)
+        {
+            return;
+        }
+
+        ConsoleChannelFileReadResult templateInfo = ConsoleChannelFileService.Read(templateDialog.FileName);
+        if (yamaha != templateInfo.TemplateName.StartsWith("Yamaha", StringComparison.OrdinalIgnoreCase))
+        {
+            throw new InvalidDataException(yamaha
+                ? "Le fichier choisi n'est pas un export Yamaha CL/QL."
+                : "Le fichier choisi n'est pas un CSV A&H dLive/Avantis.");
+        }
+
+        string extension = Path.GetExtension(templateDialog.FileName);
+        string suffix = yamaha ? "Yamaha" : "AH";
+        SaveFileDialog saveDialog = new()
+        {
+            Filter = extension.Equals(".zip", StringComparison.OrdinalIgnoreCase) ? "ZIP (*.zip)|*.zip" : "CSV (*.csv)|*.csv",
+            DefaultExt = extension,
+            AddExtension = true,
+            FileName = document.Sets.Count == 1
+                ? $"{SafeFileNameSegment(document.Sets[0].DeviceName)}_{suffix}{extension}"
+                : $"Dante_labels_{suffix}{extension}",
+            InitialDirectory = Path.GetDirectoryName(_project!.OriginalFilePath),
+            Title = _language == UiLanguage.English ? "Save console template copy" : "Enregistrer la copie du modèle console"
+        };
+        if (saveDialog.ShowDialog(this) != true)
+        {
+            return;
+        }
+
+        string directory = Path.GetDirectoryName(saveDialog.FileName) ?? Environment.CurrentDirectory;
+        string baseName = Path.GetFileNameWithoutExtension(saveDialog.FileName);
+        string[] outputs = document.Sets.Select(set => document.Sets.Count == 1
+            ? saveDialog.FileName
+            : Path.Combine(directory, $"{baseName}-{SafeFileNameSegment(set.DeviceName)}{extension}")).ToArray();
+        int existing = outputs.Count(File.Exists);
+        if (existing > 0)
+        {
+            MessageBoxResult overwrite = MessageBox.Show(
+                this,
+                _language == UiLanguage.English
+                    ? $"{existing} generated file(s) already exist and will be replaced. Continue?"
+                    : $"{existing} fichier(s) généré(s) existent déjà et seront remplacés. Continuer ?",
+                _language == UiLanguage.English ? "Replace console copies" : "Remplacer les copies console",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Warning);
+            if (overwrite != MessageBoxResult.Yes)
+            {
+                return;
+            }
+        }
+
+        for (int index = 0; index < document.Sets.Count; index++)
+        {
+            ConsoleChannelFileService.WriteCopy(templateDialog.FileName, outputs[index], document.Sets[index], adaptLabels);
+        }
+        AddLog((_language == UiLanguage.English ? "Console label copies exported: " : "Copies de labels console exportées : ") + outputs.Length);
+        SetStatus(_language == UiLanguage.English
+            ? $"{outputs.Length} {templateInfo.TemplateName} copy/copies exported."
+            : $"{outputs.Length} copie(s) {templateInfo.TemplateName} exportée(s).");
     }
 
     private static string SafeFileNameSegment(string value)
@@ -2595,6 +2676,7 @@ public partial class MainWindow : Window
                 UpdateGlobalSearchHint(T("Search.NoFileLoaded"));
                 _patchRows.Clear();
                 _healthIssues.Clear();
+                RefreshSynopticWorkspace();
                 RefreshEasyPatchWorkspace();
                 UpdateCommandState();
                 return;
@@ -2686,6 +2768,7 @@ public partial class MainWindow : Window
             SaveSummaryTextBox.Text = _project.BuildSaveSummary();
             RefreshGlobalSearchResults();
             RefreshHealthPage();
+            RefreshSynopticWorkspace();
             UpdateCommandState();
         }
         finally
@@ -3286,7 +3369,7 @@ public partial class MainWindow : Window
 
     private void ApplyDataGridColumnHeaders()
     {
-        foreach (DataGrid dataGrid in new[] { DeviceGrid, PatchGrid, HealthIssuesGrid })
+        foreach (DataGrid dataGrid in new[] { DeviceGrid, PatchGrid, HealthIssuesGrid, SynopticDeviceGrid })
         {
             foreach (DataGridColumn column in dataGrid.Columns)
             {

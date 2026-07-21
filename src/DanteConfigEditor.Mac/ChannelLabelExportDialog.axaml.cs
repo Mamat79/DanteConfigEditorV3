@@ -12,7 +12,7 @@ internal sealed record ChannelLabelExportDialogResult(
     DanteChannelKind Kind,
     int StartChannel,
     int? Count,
-    bool AdaptDmtLabels);
+    bool AdaptConsoleLabels);
 
 internal sealed partial class ChannelLabelExportDialog : Window
 {
@@ -59,7 +59,9 @@ internal sealed partial class ChannelLabelExportDialog : Window
         {
             new ChoiceValue("json", Local("JSON - échange recommandé", "JSON - recommended exchange")),
             new ChoiceValue("csv", Local("CSV - tableau universel", "CSV - universal table")),
-            new ChoiceValue("xlsx", Local("XLSX - modèle DMT dLive / Avantis", "XLSX - DMT template for dLive / Avantis"))
+            new ChoiceValue("xlsx", Local("XLSX - modèle DMT dLive / Avantis", "XLSX - DMT template for dLive / Avantis")),
+            new ChoiceValue("console-csv", Local("CSV console - A&H dLive / Avantis", "Console CSV - A&H dLive / Avantis")),
+            new ChoiceValue("yamaha", Local("ZIP/CSV console - Yamaha CL / QL", "Console ZIP/CSV - Yamaha CL / QL"))
         };
         FindControl<ComboBox>("FormatCombo")!.SelectedIndex = 0;
         FindControl<ComboBox>("KindCombo")!.ItemsSource = new ChoiceValue[]
@@ -74,8 +76,8 @@ internal sealed partial class ChannelLabelExportDialog : Window
     {
         Title = Local("Exporter des labels de canaux", "Export channel labels");
         FindControl<TextBlock>("IntroText")!.Text = Local(
-            "Sélectionnez les machines et le format. JSON et CSV sont génériques ; XLSX utilise une copie d'un modèle DMT dLive / Avantis.",
-            "Select devices and a format. JSON and CSV are generic; XLSX uses a copy of a DMT template for dLive / Avantis.");
+            "Sélectionnez les machines et le format. Les formats DMT, A&H et Yamaha utilisent une copie du modèle choisi et conservent ses autres réglages.",
+            "Select devices and a format. DMT, A&H and Yamaha formats use a copy of the selected template and preserve its other settings.");
         FindControl<TextBlock>("DevicesTitle")!.Text = Local("Machines à exporter", "Devices to export");
         DataGrid devices = FindControl<DataGrid>("DevicesGrid")!;
         devices.Columns[0].Header = Local("Utiliser", "Use");
@@ -86,8 +88,8 @@ internal sealed partial class ChannelLabelExportDialog : Window
         FindControl<TextBlock>("StartLabel")!.Text = Local("Premier canal", "First channel");
         FindControl<TextBlock>("CountLabel")!.Text = Local("Nombre (0 = tous)", "Count (0 = all)");
         FindControl<CheckBox>("AdaptDmtCheckBox")!.Content = Local(
-            "Adapter au format DMT : ASCII et 8 caractères",
-            "Adapt to DMT format: ASCII and 8 characters");
+            "Adapter au format console : ASCII et 8 caractères",
+            "Adapt to console format: ASCII and 8 characters");
         FindControl<Button>("PreviewButton")!.Content = Local("Actualiser l'aperçu", "Refresh preview");
         FindControl<TextBlock>("PreviewTitle")!.Text = Local("Labels exportés", "Exported labels");
         DataGrid preview = FindControl<DataGrid>("PreviewGrid")!;
@@ -106,9 +108,9 @@ internal sealed partial class ChannelLabelExportDialog : Window
         {
             return;
         }
-        bool dmt = SelectedValue("FormatCombo") == "xlsx";
-        adapt.IsEnabled = dmt;
-        if (!dmt)
+        bool consoleTemplate = RequiresConsoleCompatibility(SelectedValue("FormatCombo"));
+        adapt.IsEnabled = consoleTemplate;
+        if (!consoleTemplate)
         {
             adapt.IsChecked = false;
         }
@@ -139,7 +141,7 @@ internal sealed partial class ChannelLabelExportDialog : Window
         int start = int.TryParse(FindControl<TextBox>("StartTextBox")!.Text, out int parsedStart) && parsedStart > 0 ? parsedStart : 1;
         int? count = int.TryParse(FindControl<TextBox>("CountTextBox")!.Text, out int parsedCount) && parsedCount > 0 ? parsedCount : null;
         DanteChannelKind kind = SelectedValue("KindCombo") == "rx" ? DanteChannelKind.Rx : DanteChannelKind.Tx;
-        bool dmt = SelectedValue("FormatCombo") == "xlsx";
+        bool consoleTemplate = RequiresConsoleCompatibility(SelectedValue("FormatCombo"));
         bool adapt = FindControl<CheckBox>("AdaptDmtCheckBox")!.IsChecked == true;
         ChannelLabelDocument document = ChannelLabelExchangeService.CreateFromProject(_project!, selected, kind, start, count);
         int incompatible = 0;
@@ -148,8 +150,8 @@ internal sealed partial class ChannelLabelExportDialog : Window
             foreach (ChannelLabelEntry channel in set.Channels)
             {
                 DmtLabelCompatibility compatibility = DmtChannelWorkbookService.CheckCompatibility(channel.Label);
-                string warning = dmt && !compatibility.IsCompatible ? string.Join("; ", compatibility.Warnings) : string.Empty;
-                if (dmt && !compatibility.IsCompatible && !adapt)
+                string warning = consoleTemplate && !compatibility.IsCompatible ? string.Join("; ", compatibility.Warnings) : string.Empty;
+                if (consoleTemplate && !compatibility.IsCompatible && !adapt)
                 {
                     incompatible++;
                 }
@@ -158,14 +160,14 @@ internal sealed partial class ChannelLabelExportDialog : Window
                     kind,
                     channel.ChannelNumber,
                     channel.Label,
-                    dmt && adapt ? compatibility.AdaptedLabel : channel.Label,
+                    consoleTemplate && adapt ? compatibility.AdaptedLabel : channel.Label,
                     warning));
             }
         }
 
         FindControl<TextBlock>("SummaryText")!.Text = _language == UiLanguage.English
-            ? $"{document.Sets.Count} device(s), {_preview.Count} label(s), {incompatible} incompatible DMT label(s)."
-            : $"{document.Sets.Count} machine(s), {_preview.Count} label(s), {incompatible} label(s) incompatible(s) DMT.";
+            ? $"{document.Sets.Count} device(s), {_preview.Count} label(s), {incompatible} console-incompatible label(s)."
+            : $"{document.Sets.Count} machine(s), {_preview.Count} label(s), {incompatible} label(s) incompatible(s) avec la console.";
     }
 
     private async void ExportButton_Click(object? sender, RoutedEventArgs e)
@@ -181,11 +183,11 @@ internal sealed partial class ChannelLabelExportDialog : Window
 
             string format = SelectedValue("FormatCombo");
             bool adapt = FindControl<CheckBox>("AdaptDmtCheckBox")!.IsChecked == true;
-            if (format == "xlsx" && !adapt && _preview.Any(row => !string.IsNullOrWhiteSpace(row.Warning)))
+            if (RequiresConsoleCompatibility(format) && !adapt && _preview.Any(row => !string.IsNullOrWhiteSpace(row.Warning)))
             {
                 throw new InvalidOperationException(Local(
-                    "Certains labels ne sont pas compatibles avec DMT. Activez l'adaptation explicite ou choisissez JSON/CSV.",
-                    "Some labels are not DMT-compatible. Enable explicit adaptation or choose JSON/CSV."));
+                    "Certains labels ne sont pas compatibles avec le format console. Activez l'adaptation explicite ou choisissez JSON/CSV générique.",
+                    "Some labels are not console-compatible. Enable explicit adaptation or choose generic JSON/CSV."));
             }
 
             Close(new ChannelLabelExportDialogResult(
@@ -206,6 +208,8 @@ internal sealed partial class ChannelLabelExportDialog : Window
 
     private string SelectedValue(string controlName) =>
         (FindControl<ComboBox>(controlName)!.SelectedItem as ChoiceValue)?.Value ?? string.Empty;
+
+    private static bool RequiresConsoleCompatibility(string format) => format is "xlsx" or "console-csv" or "yamaha";
 
     private static int ParsePositive(string? value, string label) =>
         int.TryParse(value?.Trim(), out int parsed) && parsed > 0

@@ -39,7 +39,7 @@ public partial class ChannelLabelExportWindow : Window
 
     public int? Count { get; private set; }
 
-    public bool AdaptDmtLabels { get; private set; }
+    public bool AdaptConsoleLabels { get; private set; }
 
     private bool IsEnglish => _language == UiLanguage.English;
 
@@ -47,8 +47,8 @@ public partial class ChannelLabelExportWindow : Window
     {
         Title = L("Exporter des labels de canaux", "Export channel labels");
         IntroTextBlock.Text = L(
-            "Sélectionnez les machines et le format d'échange. JSON et CSV sont génériques ; XLSX utilise une copie d'un modèle DMT dLive / Avantis.",
-            "Select devices and an exchange format. JSON and CSV are generic; XLSX uses a copy of a DMT template for dLive / Avantis.");
+            "Sélectionnez les machines et le format. Les formats DMT, A&H et Yamaha utilisent une copie du modèle choisi et conservent ses autres réglages.",
+            "Select devices and a format. DMT, A&H and Yamaha formats use a copy of the selected template and preserve its other settings.");
         DevicesGroupBox.Header = L("Machines à exporter", "Devices to export");
         UseDeviceColumn.Header = L("Utiliser", "Use");
         DeviceNameColumn.Header = L("Machine", "Device");
@@ -57,10 +57,12 @@ public partial class ChannelLabelExportWindow : Window
         JsonFormatItem.Content = L("JSON - échange recommandé", "JSON - recommended exchange");
         CsvFormatItem.Content = L("CSV - tableau universel", "CSV - universal table");
         DmtFormatItem.Content = L("XLSX - modèle DMT dLive / Avantis", "XLSX - DMT template for dLive / Avantis");
+        AllenHeathFormatItem.Content = L("CSV console - A&H dLive / Avantis", "Console CSV - A&H dLive / Avantis");
+        YamahaFormatItem.Content = L("ZIP/CSV console - Yamaha CL / QL", "Console ZIP/CSV - Yamaha CL / QL");
         KindLabel.Content = L("Canaux", "Channels");
         StartLabel.Content = L("Premier canal", "First channel");
         CountLabel.Content = L("Nombre (0 = tous)", "Count (0 = all)");
-        AdaptDmtCheckBox.Content = L("Adapter au format DMT : ASCII et 8 caractères", "Adapt to DMT format: ASCII and 8 characters");
+        AdaptDmtCheckBox.Content = L("Adapter au format console : ASCII et 8 caractères", "Adapt to console format: ASCII and 8 characters");
         PreviewGroupBox.Header = L("Labels exportés", "Exported labels");
         PreviewDeviceColumn.Header = L("Machine", "Device");
         PreviewChannelColumn.Header = L("Canal", "Channel");
@@ -73,9 +75,9 @@ public partial class ChannelLabelExportWindow : Window
 
     private void FormatComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        bool dmt = SelectedFormat() == "xlsx";
-        AdaptDmtCheckBox.IsEnabled = dmt;
-        if (!dmt)
+        bool consoleTemplate = RequiresConsoleCompatibility(SelectedFormat());
+        AdaptDmtCheckBox.IsEnabled = consoleTemplate;
+        if (!consoleTemplate)
         {
             AdaptDmtCheckBox.IsChecked = false;
         }
@@ -106,7 +108,7 @@ public partial class ChannelLabelExportWindow : Window
         int start = int.TryParse(StartTextBox.Text, out int parsedStart) && parsedStart > 0 ? parsedStart : 1;
         int? count = int.TryParse(CountTextBox.Text, out int parsedCount) && parsedCount > 0 ? parsedCount : null;
         DanteChannelKind kind = KindComboBox.SelectedIndex == 1 ? DanteChannelKind.Rx : DanteChannelKind.Tx;
-        bool dmt = SelectedFormat() == "xlsx";
+        bool consoleTemplate = RequiresConsoleCompatibility(SelectedFormat());
         bool adapt = AdaptDmtCheckBox.IsChecked == true;
         ChannelLabelDocument document = ChannelLabelExchangeService.CreateFromProject(_project, selected, kind, start, count);
         int incompatible = 0;
@@ -115,10 +117,10 @@ public partial class ChannelLabelExportWindow : Window
             foreach (ChannelLabelEntry channel in set.Channels)
             {
                 DmtLabelCompatibility compatibility = DmtChannelWorkbookService.CheckCompatibility(channel.Label);
-                string warning = dmt && !compatibility.IsCompatible
+                string warning = consoleTemplate && !compatibility.IsCompatible
                     ? string.Join("; ", compatibility.Warnings)
                     : string.Empty;
-                if (dmt && !compatibility.IsCompatible && !adapt)
+                if (consoleTemplate && !compatibility.IsCompatible && !adapt)
                 {
                     incompatible++;
                 }
@@ -128,14 +130,14 @@ public partial class ChannelLabelExportWindow : Window
                     kind,
                     channel.ChannelNumber,
                     channel.Label,
-                    dmt && adapt ? compatibility.AdaptedLabel : channel.Label,
+                    consoleTemplate && adapt ? compatibility.AdaptedLabel : channel.Label,
                     warning));
             }
         }
 
         SummaryTextBlock.Text = IsEnglish
-            ? $"{document.Sets.Count} device(s), {_preview.Count} label(s), {incompatible} incompatible DMT label(s)."
-            : $"{document.Sets.Count} machine(s), {_preview.Count} label(s), {incompatible} label(s) incompatible(s) DMT.";
+            ? $"{document.Sets.Count} device(s), {_preview.Count} label(s), {incompatible} console-incompatible label(s)."
+            : $"{document.Sets.Count} machine(s), {_preview.Count} label(s), {incompatible} label(s) incompatible(s) avec la console.";
     }
 
     private void ExportButton_Click(object sender, RoutedEventArgs e)
@@ -153,12 +155,12 @@ public partial class ChannelLabelExportWindow : Window
             Kind = KindComboBox.SelectedIndex == 1 ? DanteChannelKind.Rx : DanteChannelKind.Tx;
             StartChannel = ParsePositive(StartTextBox.Text, L("premier canal", "first channel"));
             Count = ParseOptionalCount(CountTextBox.Text);
-            AdaptDmtLabels = AdaptDmtCheckBox.IsChecked == true;
-            if (Format == "xlsx" && !AdaptDmtLabels && _preview.Any(row => !string.IsNullOrWhiteSpace(row.Warning)))
+            AdaptConsoleLabels = AdaptDmtCheckBox.IsChecked == true;
+            if (RequiresConsoleCompatibility(Format) && !AdaptConsoleLabels && _preview.Any(row => !string.IsNullOrWhiteSpace(row.Warning)))
             {
                 throw new InvalidOperationException(L(
-                    "Certains labels ne sont pas compatibles avec DMT. Activez l'adaptation explicite ou choisissez JSON/CSV.",
-                    "Some labels are not DMT-compatible. Enable explicit adaptation or choose JSON/CSV."));
+                    "Certains labels ne sont pas compatibles avec le format console. Activez l'adaptation explicite ou choisissez JSON/CSV générique.",
+                    "Some labels are not console-compatible. Enable explicit adaptation or choose generic JSON/CSV."));
             }
 
             DialogResult = true;
@@ -170,6 +172,8 @@ public partial class ChannelLabelExportWindow : Window
     }
 
     private string SelectedFormat() => (FormatComboBox.SelectedItem as ComboBoxItem)?.Tag as string ?? "json";
+
+    private static bool RequiresConsoleCompatibility(string format) => format is "xlsx" or "console-csv" or "yamaha";
 
     private static int ParsePositive(string value, string label) =>
         int.TryParse(value.Trim(), out int parsed) && parsed > 0

@@ -54,6 +54,8 @@
                             <ComboBoxItem x:Name="JsonFormatItem" Content="JSON - échange recommandé" Tag="json" />
                             <ComboBoxItem x:Name="CsvFormatItem" Content="CSV - tableau universel" Tag="csv" />
                             <ComboBoxItem x:Name="DmtFormatItem" Content="XLSX - modèle DMT dLive / Avantis" Tag="xlsx" />
+                            <ComboBoxItem x:Name="AllenHeathFormatItem" Content="CSV console - A&amp;H dLive / Avantis" Tag="console-csv" />
+                            <ComboBoxItem x:Name="YamahaFormatItem" Content="ZIP/CSV console - Yamaha CL / QL" Tag="yamaha" />
                         </ComboBox>
                     </StackPanel>
                     <StackPanel Grid.Row="1" Margin="0,6,6,0">
@@ -72,7 +74,7 @@
                               Grid.Row="3"
                               Grid.ColumnSpan="2"
                               Margin="0,10,0,0"
-                              Content="Adapter au format DMT : ASCII et 8 caractères"
+                              Content="Adapter au format console : ASCII et 8 caractères"
                               Checked="OptionsChanged"
                               Unchecked="OptionsChanged" />
                 </Grid>

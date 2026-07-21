@@ -6,7 +6,7 @@
         d:DesignWidth="1500"
         d:DesignHeight="930"
         x:Class="DanteConfigEditor.Mac.MainWindow"
-        Title="Dante Config Editor V3.1 - macOS"
+        Title="Dante Config Editor V3.2 - macOS"
         Width="1500"
         Height="930"
         MinWidth="1120"
@@ -20,7 +20,7 @@
             <Grid RowDefinitions="Auto,Auto" RowSpacing="8">
                 <Grid Grid.Row="0" ColumnDefinitions="*,Auto,Auto,120,Auto" ColumnSpacing="10">
                     <StackPanel VerticalAlignment="Center">
-                    <TextBlock Text="Dante Config Editor V3.1" FontSize="20" FontWeight="Bold" />
+                    <TextBlock Text="Dante Config Editor V3.2" FontSize="20" FontWeight="Bold" />
                     <TextBlock x:Name="FilePathText" Classes="muted" Text="Aucun fichier ouvert" TextTrimming="CharacterEllipsis" />
                     </StackPanel>
                     <TextBlock x:Name="DirtyStateText" Grid.Column="1" VerticalAlignment="Center" Foreground="{DynamicResource MutedTextBrush}" Text="Non modifié" />
@@ -289,14 +289,16 @@
                     </Grid>
                 </TabItem>
 
-                <TabItem x:Name="ChannelLabelsTab" Header="Labels">
-                    <Grid RowDefinitions="Auto,*,Auto" RowSpacing="16" Margin="0,12,0,0">
+                <TabItem x:Name="ExportsTab" Header="Import / Export">
+                    <TabControl Margin="0,8,0,0">
+                        <TabItem x:Name="ChannelLabelsTab" Header="Labels">
+                            <Grid RowDefinitions="Auto,*,Auto" RowSpacing="16" Margin="0,12,0,0">
                         <Border Classes="panel">
                             <StackPanel Spacing="6">
                                 <TextBlock Text="Import et export de labels"
                                            FontSize="18"
                                            FontWeight="SemiBold" />
-                                <TextBlock Text="Formats JSON et CSV, plus XLSX compatible DMT pour dLive / Avantis."
+                                <TextBlock Text="Labels JSON/CSV, DMT XLSX, A&amp;H dLive/Avantis et Yamaha CL/QL."
                                            Classes="muted" />
                             </StackPanel>
                         </Border>
@@ -310,27 +312,27 @@
                             <Border Classes="panel">
                                 <StackPanel Spacing="16">
                                     <TextBlock Text="Importer des labels" Classes="section" />
-                                    <TextBlock Text="Importez un fichier JSON, CSV ou XLSX. Les modèles DMT dLive et Avantis sont pris en charge."
+                                    <TextBlock Text="Importez des labels JSON/CSV, DMT XLSX, A&amp;H CSV ou Yamaha CL/QL ZIP/CSV."
                                                Classes="muted"
                                                TextWrapping="Wrap" />
                                     <Button x:Name="ImportChannelLabelsButton"
                                             Classes="primary"
                                             HorizontalAlignment="Stretch"
                                             Click="ImportChannelLabelsButton_Click"
-                                            ToolTip.Tip="Lit un fichier JSON, CSV ou XLSX compatible DMT, puis prévisualise les labels avant de les appliquer aux machines Dante.">Importer des labels</Button>
+                                            ToolTip.Tip="Détecte les formats génériques, DMT, A&amp;H et Yamaha, puis prévisualise les labels avant de les appliquer aux machines Dante.">Importer des labels</Button>
                                 </StackPanel>
                             </Border>
 
                             <Border Grid.Column="1" Classes="panel">
                                 <StackPanel Spacing="16">
                                     <TextBlock Text="Exporter des labels" Classes="section" />
-                                    <TextBlock Text="Exportez en JSON ou CSV, ou créez une copie d'un modèle XLSX DMT dLive / Avantis."
+                                    <TextBlock Text="Exportez en générique ou créez une copie d'un modèle DMT, A&amp;H ou Yamaha."
                                                Classes="muted"
                                                TextWrapping="Wrap" />
                                     <Button x:Name="ExportChannelLabelsButton"
                                             HorizontalAlignment="Stretch"
                                             Click="ExportChannelLabelsButton_Click"
-                                            ToolTip.Tip="Exporte les labels TX/RX en JSON, CSV ou XLSX. Pour DMT, une copie du modèle choisi est créée et l'original reste intact.">Exporter des labels</Button>
+                                            ToolTip.Tip="Exporte les labels TX/RX et ne modifie jamais les modèles DMT, A&amp;H ou Yamaha originaux.">Exporter des labels</Button>
                                 </StackPanel>
                             </Border>
                         </Grid>
@@ -340,7 +342,124 @@
                                 HorizontalAlignment="Center"
                                 Click="OpenDmtProjectButton_Click"
                                 ToolTip.Tip="Ouvre la page GitHub de dLive MIDI Tools par togrupe, dont les modèles dLive et Avantis sont compatibles.">Compatibilité DMT dLive / Avantis - ouvrir le projet</Button>
-                    </Grid>
+                            </Grid>
+                        </TabItem>
+
+                        <TabItem x:Name="ReportsExportTab" Header="Rapports et patchbook">
+                            <Grid ColumnDefinitions="*,*,*" ColumnSpacing="12" Margin="0,12,0,0">
+                                <Border Classes="panel">
+                                    <StackPanel>
+                                        <TextBlock Text="Rapports du projet" FontSize="16" FontWeight="SemiBold" />
+                                        <TextBlock Text="Exportez un résumé lisible de la configuration chargée."
+                                                   Classes="muted"
+                                                   TextWrapping="Wrap"
+                                                   Margin="0,6,0,14" />
+                                        <Button Content="Exporter TXT" Click="ExportTxtButton_Click" />
+                                        <Button Content="Exporter PDF" Click="ExportPdfButton_Click" />
+                                    </StackPanel>
+                                </Border>
+                                <Border Grid.Column="1" Classes="panel">
+                                    <StackPanel>
+                                        <TextBlock Text="Patchbook" FontSize="16" FontWeight="SemiBold" />
+                                        <TextBlock Text="Exportez les affectations de patch au format TXT ou CSV."
+                                                   Classes="muted"
+                                                   TextWrapping="Wrap"
+                                                   Margin="0,6,0,14" />
+                                        <Button Content="Patchbook TXT" Click="PatchbookTxtButton_Click" />
+                                        <Button Content="Patchbook CSV" Click="PatchbookCsvButton_Click" />
+                                    </StackPanel>
+                                </Border>
+                                <Border Grid.Column="2" Classes="panel">
+                                    <StackPanel>
+                                        <TextBlock Text="Analyse simple" FontSize="16" FontWeight="SemiBold" />
+                                        <TextBlock Text="Créez une vue textuelle compacte des liaisons entre machines."
+                                                   Classes="muted"
+                                                   TextWrapping="Wrap"
+                                                   Margin="0,6,0,14" />
+                                        <Button Content="Topologie simple" Click="TopologyButton_Click" />
+                                    </StackPanel>
+                                </Border>
+                            </Grid>
+                        </TabItem>
+
+                        <TabItem x:Name="SynopticTab" Header="Synoptique">
+                            <Grid RowDefinitions="Auto,*,Auto" RowSpacing="12" Margin="0,12,0,0">
+                        <Border Classes="panel">
+                            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                                <StackPanel Spacing="5">
+                                    <TextBlock Text="Synoptique visuel" FontSize="18" FontWeight="SemiBold" />
+                                    <TextBlock Text="Machines regroupées par emplacement et patchs consécutifs réunis sur un même câble."
+                                               Classes="muted" />
+                                </StackPanel>
+                                <TextBlock x:Name="SynopticSummaryText"
+                                           Grid.Column="1"
+                                           VerticalAlignment="Center"
+                                           Classes="muted"
+                                           Text="Aucun fichier chargé." />
+                            </Grid>
+                        </Border>
+
+                        <Grid Grid.Row="1" ColumnDefinitions="400,12,*">
+                            <Grid RowDefinitions="Auto,*" RowSpacing="10">
+                                <Border Classes="panel">
+                                    <Grid RowDefinitions="Auto,Auto" RowSpacing="7">
+                                        <TextBlock Text="Emplacement de la sélection" FontWeight="SemiBold" />
+                                        <Grid Grid.Row="1" ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                                            <TextBox x:Name="SynopticLocationTextBox"
+                                                     Watermark="Scène, Régie, Studio A…" />
+                                            <Button x:Name="ApplySynopticLocationButton"
+                                                    Grid.Column="1"
+                                                    Classes="primary"
+                                                    Click="ApplySynopticLocationButton_Click">Affecter</Button>
+                                        </Grid>
+                                    </Grid>
+                                </Border>
+
+                                <DataGrid x:Name="SynopticDeviceGrid"
+                                          Grid.Row="1"
+                                          AutoGenerateColumns="False"
+                                      SelectionMode="Extended">
+                                    <DataGrid.Columns>
+                                        <DataGridCheckBoxColumn Header="Voir" Binding="{Binding IsVisible, Mode=TwoWay}" Width="54" />
+                                        <DataGridTextColumn Header="Machine" Binding="{Binding DeviceName}" IsReadOnly="True" Width="1.3*" />
+                                        <DataGridTextColumn Header="Emplacement" Binding="{Binding Location, Mode=TwoWay}" Width="1.2*" />
+                                        <DataGridTextColumn Header="TX/RX" Binding="{Binding ChannelCount}" IsReadOnly="True" Width="72" />
+                                    </DataGrid.Columns>
+                                </DataGrid>
+                            </Grid>
+
+                            <Border Grid.Column="2"
+                                    Background="#F7F9FC"
+                                    BorderBrush="{DynamicResource PanelBorderBrush}"
+                                    BorderThickness="1"
+                                    CornerRadius="6">
+                                <ScrollViewer HorizontalScrollBarVisibility="Auto"
+                                              VerticalScrollBarVisibility="Auto">
+                                    <Canvas x:Name="SynopticCanvas"
+                                            Width="900"
+                                            Height="560"
+                                            Background="#F7F9FC" />
+                                </ScrollViewer>
+                            </Border>
+                        </Grid>
+
+                        <Grid Grid.Row="2" ColumnDefinitions="Auto,Auto,Auto,Auto,*,Auto,Auto" ColumnSpacing="8">
+                            <Button x:Name="ShowAllSynopticDevicesButton" Click="ShowAllSynopticDevicesButton_Click">Tout afficher</Button>
+                            <Button x:Name="HideSelectedSynopticDevicesButton" Grid.Column="1" Click="HideSelectedSynopticDevicesButton_Click">Masquer sélection</Button>
+                            <Button x:Name="MoveSynopticDeviceUpButton" Grid.Column="2" Width="42" Click="MoveSynopticDeviceUpButton_Click" ToolTip.Tip="Place la machine plus haut.">↑</Button>
+                            <Button x:Name="MoveSynopticDeviceDownButton" Grid.Column="3" Width="42" Click="MoveSynopticDeviceDownButton_Click" ToolTip.Tip="Place la machine plus bas.">↓</Button>
+                            <CheckBox x:Name="OpenSynopticAfterExportCheckBox"
+                                      Grid.Column="4"
+                                      Content="Ouvrir après export"
+                                      IsChecked="True"
+                                      HorizontalAlignment="Right"
+                                      VerticalAlignment="Center" />
+                            <Button x:Name="RefreshSynopticButton" Grid.Column="5" Click="RefreshSynopticButton_Click">Actualiser l’aperçu</Button>
+                            <Button x:Name="ExportSynopticButton" Grid.Column="6" Classes="primary" Click="ExportSynopticButton_Click">Exporter le synoptique SVG</Button>
+                        </Grid>
+                            </Grid>
+                        </TabItem>
+                    </TabControl>
                 </TabItem>
 
                 <TabItem x:Name="HealthTab" Header="Santé du fichier">
@@ -368,11 +487,6 @@
                                 <Button Margin="0,0,8,8" Click="CompatibilityButton_Click">Rapport compatibilité Dante Controller</Button>
                                 <Button Margin="0,0,8,8" Click="FinalReportButton_Click">Rapport final avant Dante</Button>
                                 <Button Margin="0,0,8,8" Click="CompareButton_Click">Comparer XML</Button>
-                                <Button Margin="0,0,8,8" Click="ExportTxtButton_Click">Exporter TXT</Button>
-                                <Button Margin="0,0,8,8" Click="ExportPdfButton_Click">Exporter PDF</Button>
-                                <Button Margin="0,0,8,8" Click="PatchbookTxtButton_Click">Patchbook TXT</Button>
-                                <Button Margin="0,0,8,8" Click="PatchbookCsvButton_Click">Patchbook CSV</Button>
-                                <Button Margin="0,0,8,8" Click="TopologyButton_Click">Topologie simple</Button>
                                 <Button Margin="0,0,8,8" Click="QuickStartButton_Click">Quick start</Button>
                                 <Button Margin="0,0,8,8" Click="FullGuideButton_Click">Notice complète</Button>
                             </WrapPanel>

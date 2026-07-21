@@ -27,12 +27,22 @@ public partial class MainWindow : Window
 
     private static readonly FilePickerFileType ChannelLabelFileType = new("Channel labels")
     {
-        Patterns = ["*.json", "*.csv", "*.xlsx"]
+        Patterns = ["*.json", "*.csv", "*.xlsx", "*.zip"]
     };
 
     private static readonly FilePickerFileType DmtWorkbookFileType = new("DMT Excel workbook")
     {
         Patterns = ["*.xlsx"]
+    };
+
+    private static readonly FilePickerFileType AllenHeathCsvFileType = new("Allen & Heath console CSV")
+    {
+        Patterns = ["*.csv"]
+    };
+
+    private static readonly FilePickerFileType YamahaLabelFileType = new("Yamaha CL/QL label package")
+    {
+        Patterns = ["*.zip", "*.csv"]
     };
 
     private readonly DispatcherTimer _recoveryTimer;
@@ -1015,7 +1025,7 @@ public partial class MainWindow : Window
         if (path is null) return;
         try
         {
-            ReportExportService.ExportPdf(path, "Dante Config Editor V3.1", _project.BuildReportText());
+            ReportExportService.ExportPdf(path, "Dante Config Editor V3.2", _project.BuildReportText());
             SetStatus(LocalizationService.Text(_language, "Status.PdfExported"));
         }
         catch (Exception exception)
@@ -1175,6 +1185,7 @@ public partial class MainWindow : Window
         RefreshDeviceRows(preferredDeviceName);
         RefreshPatchRows();
         RefreshHealthRows();
+        RefreshSynopticWorkspace();
         RefreshSourceDevices();
         RefreshLog();
         RefreshSummary();
@@ -1565,7 +1576,12 @@ public partial class MainWindow : Window
                 result.Count);
             if (result.Format == "xlsx")
             {
-                await ExportDmtWorkbooksAsync(document, result.AdaptDmtLabels);
+                await ExportDmtWorkbooksAsync(document, result.AdaptConsoleLabels);
+                return;
+            }
+            if (result.Format is "console-csv" or "yamaha")
+            {
+                await ExportConsoleTemplateCopiesAsync(document, result.Format, result.AdaptConsoleLabels);
                 return;
             }
 
@@ -1633,6 +1649,68 @@ public partial class MainWindow : Window
         SetStatus(L(
             $"{outputs.Length} copie(s) DMT exportée(s) (modèle {version}).",
             $"{outputs.Length} DMT workbook copy/copies exported (template {version})."));
+    }
+
+    private async Task ExportConsoleTemplateCopiesAsync(ChannelLabelDocument document, string format, bool adaptLabels)
+    {
+        bool yamaha = format == "yamaha";
+        string? template = await PickOpenPathAsync(
+            yamaha
+                ? L("Choisir un export Yamaha CL/QL", "Choose a Yamaha CL/QL export package")
+                : L("Choisir un CSV A&H dLive/Avantis", "Choose an A&H dLive/Avantis CSV"),
+            yamaha ? YamahaLabelFileType : AllenHeathCsvFileType);
+        if (template is null)
+        {
+            return;
+        }
+
+        ConsoleChannelFileReadResult templateInfo = ConsoleChannelFileService.Read(template);
+        if (yamaha != templateInfo.TemplateName.StartsWith("Yamaha", StringComparison.OrdinalIgnoreCase))
+        {
+            throw new InvalidDataException(yamaha
+                ? "Le fichier choisi n'est pas un export Yamaha CL/QL."
+                : "Le fichier choisi n'est pas un CSV A&H dLive/Avantis.");
+        }
+
+        string extension = Path.GetExtension(template).TrimStart('.').ToLowerInvariant();
+        string suffix = yamaha ? "Yamaha" : "AH";
+        string suggestedName = document.Sets.Count == 1
+            ? $"{SafeFileNameSegment(document.Sets[0].DeviceName)}_{suffix}.{extension}"
+            : $"Dante_labels_{suffix}.{extension}";
+        IStorageFile? target = await PickSaveFileAsync(
+            suggestedName,
+            extension,
+            yamaha ? "Yamaha CL/QL label package" : "Allen & Heath console CSV",
+            [$"*.{extension}"]);
+        string? selectedOutput = target?.TryGetLocalPath();
+        if (selectedOutput is null)
+        {
+            return;
+        }
+
+        string directory = Path.GetDirectoryName(selectedOutput) ?? Environment.CurrentDirectory;
+        string baseName = Path.GetFileNameWithoutExtension(selectedOutput);
+        string[] outputs = document.Sets.Select(set => document.Sets.Count == 1
+            ? selectedOutput
+            : Path.Combine(directory, $"{baseName}-{SafeFileNameSegment(set.DeviceName)}.{extension}")).ToArray();
+        int existing = outputs.Count(File.Exists);
+        if (existing > 0 && !await ConfirmAsync(
+                L("Remplacer les copies console", "Replace console copies"),
+                L(
+                    $"{existing} fichier(s) généré(s) existent déjà et seront remplacés.",
+                    $"{existing} generated file(s) already exist and will be replaced."),
+                L("Remplacer", "Replace")))
+        {
+            return;
+        }
+
+        for (int index = 0; index < document.Sets.Count; index++)
+        {
+            ConsoleChannelFileService.WriteCopy(template, outputs[index], document.Sets[index], adaptLabels);
+        }
+        SetStatus(L(
+            $"{outputs.Length} copie(s) {templateInfo.TemplateName} exportée(s).",
+            $"{outputs.Length} {templateInfo.TemplateName} copy/copies exported."));
     }
 
     private void ScheduleRecovery()
@@ -1708,7 +1786,7 @@ public partial class MainWindow : Window
             }
         }
 
-        Title = L("Dante Config Editor V3.1 - macOS", "Dante Config Editor V3.1 - macOS");
+        Title = L("Dante Config Editor V3.2 - macOS", "Dante Config Editor V3.2 - macOS");
         FindControl<Button>("ThemeButton")!.Content = _darkTheme ? L("Thème clair", "Light theme") : L("Thème sombre", "Dark theme");
     }
 

@@ -1,0 +1,249 @@
+using System.Xml.Linq;
+using DanteConfigEditor.Models;
+using DanteConfigEditor.Services;
+using DanteConfigEditorV3.TestSupport;
+
+namespace DanteConfigEditorV3.Tests;
+
+public sealed class SynopticExportTests
+{
+    [Fact]
+    public void ConsecutiveSubscriptionsAreCollapsedIntoOneCableRange()
+    {
+        using TestDirectory directory = new();
+        string source = directory.PathFor("synoptic.xml");
+        SyntheticPresetFactory.Create(source, deviceCount: 2, txPerDevice: 32, rxPerDevice: 32);
+        DanteProject project = DanteProject.Load(source);
+        SynopticLayoutDocument layout = SynopticExportService.LoadOrCreate(project, directory.PathFor("layout"));
+        SetLocation(layout, "DEVICE-001", "Régie");
+        SetLocation(layout, "DEVICE-002", "Scène");
+
+        SynopticDiagram diagram = SynopticExportService.BuildDiagram(project, layout);
+
+        SynopticCable cable = Assert.Single(diagram.Cables, item =>
+            item.SourceDevice == "DEVICE-001" && item.TargetDevice == "DEVICE-002");
+        Assert.Single(cable.Labels);
+        Assert.Equal("TX 1-32 → RX 1-32  (32 can.)", cable.Labels[0]);
+        Assert.Equal(2, diagram.Locations.Count);
+        AssertOrthogonal(cable.RoutePoints);
+        Assert.True(diagram.LegendX > diagram.Locations.Max(location => location.X + location.Width));
+    }
+
+    [Fact]
+    public void RoutedCablesUseGuttersAndAvoidUnrelatedDeviceCards()
+    {
+        using TestDirectory directory = new();
+        string source = directory.PathFor("routed.xml");
+        SyntheticPresetFactory.Create(source, deviceCount: 4, txPerDevice: 4, rxPerDevice: 4);
+        DanteProject project = DanteProject.Load(source);
+        project.ApplyPatch("DEVICE-004", 1, "DEVICE-001", "TX-01");
+        SynopticLayoutDocument layout = SynopticExportService.LoadOrCreate(project, directory.PathFor("layout"));
+        SetLocation(layout, "DEVICE-001", "Régie");
+        SetLocation(layout, "DEVICE-002", "Rack A");
+        SetLocation(layout, "DEVICE-003", "Plateau");
+        SetLocation(layout, "DEVICE-004", "Scène");
+
+        SynopticDiagram diagram = SynopticExportService.BuildDiagram(project, layout);
+
+        Assert.All(diagram.Cables, cable => AssertOrthogonal(cable.RoutePoints));
+        Assert.Contains(diagram.Cables, cable => cable.RoutePoints.Count == 6);
+        foreach (SynopticCable cable in diagram.Cables)
+        {
+            foreach (SynopticDeviceNode node in diagram.Devices.Where(node =>
+                         !string.Equals(node.Name, cable.SourceDevice, StringComparison.OrdinalIgnoreCase)
+                         && !string.Equals(node.Name, cable.TargetDevice, StringComparison.OrdinalIgnoreCase)))
+            {
+                Assert.False(RouteIntersectsInterior(cable.RoutePoints, node), $"{cable.SourceDevice} -> {cable.TargetDevice} traverse {node.Name}");
+            }
+        }
+    }
+
+    [Fact]
+    public void SeveralTargetsFromOneSourceShareOneCableTrunk()
+    {
+        using TestDirectory directory = new();
+        string source = directory.PathFor("bundled.xml");
+        SyntheticPresetFactory.Create(source, deviceCount: 3, txPerDevice: 4, rxPerDevice: 4);
+        DanteProject project = DanteProject.Load(source);
+        project.ApplyPatch("DEVICE-003", 1, "DEVICE-001", "TX-01");
+        SynopticLayoutDocument layout = SynopticExportService.LoadOrCreate(project, directory.PathFor("layout"));
+        SetLocation(layout, "DEVICE-001", "Régie");
+        SetLocation(layout, "DEVICE-002", "Plateau");
+        SetLocation(layout, "DEVICE-003", "Plateau");
+
+        SynopticDiagram diagram = SynopticExportService.BuildDiagram(project, layout);
+        SynopticCable first = Assert.Single(diagram.Cables, cable => cable.SourceDevice == "DEVICE-001" && cable.TargetDevice == "DEVICE-002");
+        SynopticCable second = Assert.Single(diagram.Cables, cable => cable.SourceDevice == "DEVICE-001" && cable.TargetDevice == "DEVICE-003");
+
+        Assert.Equal(first.RoutePoints[1].X, second.RoutePoints[1].X, precision: 3);
+        Assert.Equal(first.Color, second.Color);
+        Assert.NotEqual(first.LabelY, second.LabelY);
+    }
+
+    [Fact]
+    public void DenseLegendUsesTwoColumns()
+    {
+        using TestDirectory directory = new();
+        string source = directory.PathFor("dense-legend.xml");
+        SyntheticPresetFactory.Create(source, deviceCount: 20, txPerDevice: 2, rxPerDevice: 2);
+        DanteProject project = DanteProject.Load(source);
+        SynopticLayoutDocument layout = SynopticExportService.LoadOrCreate(project, directory.PathFor("layout"));
+        for (int index = 0; index < layout.Devices.Count; index++)
+        {
+            layout.Devices[index].Location = $"Zone {index + 1}";
+        }
+
+        SynopticDiagram diagram = SynopticExportService.BuildDiagram(project, layout);
+
+        Assert.True(diagram.Cables.Count > 18);
+        Assert.Equal(2, diagram.LegendColumns);
+        Assert.True(diagram.LegendWidth > 420);
+    }
+
+    [Fact]
+    public void LayoutAndSvgExportNeverModifyTheDanteXml()
+    {
+        using TestDirectory directory = new();
+        string source = directory.PathFor("source.xml");
+        string svgPath = directory.PathFor("exports", "synoptic.svg");
+        SyntheticPresetFactory.Create(source, deviceCount: 3, txPerDevice: 8, rxPerDevice: 8);
+        DanteProject project = DanteProject.Load(source);
+        string before = project.Document.ToString(SaveOptions.DisableFormatting);
+
+        SynopticLayoutDocument layout = SynopticExportService.LoadOrCreate(project, directory.PathFor("layout"));
+        SetLocation(layout, "DEVICE-001", "FOH");
+        SetLocation(layout, "DEVICE-002", "Plateau");
+        layout.Devices.Single(item => item.DeviceName == "DEVICE-003").IsVisible = false;
+        string sidecar = SynopticExportService.SaveLayout(project, layout, directory.PathFor("layout"));
+        SynopticDiagram diagram = SynopticExportService.BuildDiagram(project, layout);
+        SynopticExportService.ExportSvg(svgPath, diagram);
+
+        Assert.Equal(before, project.Document.ToString(SaveOptions.DisableFormatting));
+        Assert.False(project.IsModified);
+        Assert.EndsWith(".synoptic.json", sidecar, StringComparison.OrdinalIgnoreCase);
+        Assert.True(File.Exists(sidecar));
+        string svg = File.ReadAllText(svgPath);
+        Assert.Contains("<svg", svg, StringComparison.Ordinal);
+        Assert.Contains("FOH", svg, StringComparison.Ordinal);
+        Assert.Contains("Plateau", svg, StringComparison.Ordinal);
+        Assert.Contains("By Mamat et ses agents", svg, StringComparison.Ordinal);
+        Assert.DoesNotContain("DEVICE-003</text>", svg, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void StableIdentityKeepsLocationAfterDeviceRename()
+    {
+        using TestDirectory directory = new();
+        string source = directory.PathFor("rename.xml");
+        SyntheticPresetFactory.Create(source, deviceCount: 1, txPerDevice: 2, rxPerDevice: 2);
+        DanteProject project = DanteProject.Load(source);
+        SynopticLayoutDocument layout = SynopticExportService.LoadOrCreate(project, directory.PathFor("layout"));
+        SetLocation(layout, "DEVICE-001", "Studio A");
+        string identity = layout.Devices[0].DeviceIdentity;
+
+        project.RenameDevice("DEVICE-001", "STAGEBOX-A");
+        SynopticLayoutDocument synchronized = SynopticExportService.Synchronize(project, layout);
+
+        SynopticDevicePlacement placement = Assert.Single(synchronized.Devices);
+        Assert.Equal(identity, placement.DeviceIdentity);
+        Assert.Equal("STAGEBOX-A", placement.DeviceName);
+        Assert.Equal("Studio A", placement.Location);
+    }
+
+    [Fact]
+    public void CorruptedSidecarFallsBackWithoutTouchingTheProject()
+    {
+        using TestDirectory directory = new();
+        string source = directory.PathFor("corrupted-layout.xml");
+        string layoutDirectory = directory.PathFor("layout");
+        SyntheticPresetFactory.Create(source, deviceCount: 2, txPerDevice: 2, rxPerDevice: 2);
+        DanteProject project = DanteProject.Load(source);
+        string before = project.Document.ToString(SaveOptions.DisableFormatting);
+        string layoutPath = SynopticExportService.ResolveLayoutPath(project, layoutDirectory);
+        Directory.CreateDirectory(layoutDirectory);
+        File.WriteAllText(layoutPath, "{not valid json", System.Text.Encoding.UTF8);
+
+        SynopticLayoutDocument layout = SynopticExportService.LoadOrCreate(project, layoutDirectory);
+
+        Assert.Equal(2, layout.Devices.Count);
+        Assert.All(layout.Devices, placement => Assert.True(placement.IsVisible));
+        Assert.Equal(before, project.Document.ToString(SaveOptions.DisableFormatting));
+        Assert.False(project.IsModified);
+    }
+
+    private static void SetLocation(SynopticLayoutDocument layout, string deviceName, string location)
+    {
+        layout.Devices.Single(item => item.DeviceName == deviceName).Location = location;
+    }
+
+    private static void AssertOrthogonal(IReadOnlyList<SynopticRoutePoint> points)
+    {
+        Assert.True(points.Count >= 2);
+        for (int index = 1; index < points.Count; index++)
+        {
+            Assert.True(
+                Math.Abs(points[index - 1].X - points[index].X) < 0.01
+                || Math.Abs(points[index - 1].Y - points[index].Y) < 0.01,
+                $"Segment diagonal entre {points[index - 1]} et {points[index]}");
+        }
+    }
+
+    private static bool RouteIntersectsInterior(IReadOnlyList<SynopticRoutePoint> points, SynopticDeviceNode node)
+    {
+        double left = node.X + 1;
+        double right = node.X + node.Width - 1;
+        double top = node.Y + 1;
+        double bottom = node.Y + node.Height - 1;
+        for (int index = 1; index < points.Count; index++)
+        {
+            SynopticRoutePoint first = points[index - 1];
+            SynopticRoutePoint second = points[index];
+            if (Math.Abs(first.X - second.X) < 0.01)
+            {
+                double minY = Math.Min(first.Y, second.Y);
+                double maxY = Math.Max(first.Y, second.Y);
+                if (first.X > left && first.X < right && maxY > top && minY < bottom)
+                {
+                    return true;
+                }
+            }
+            else
+            {
+                double minX = Math.Min(first.X, second.X);
+                double maxX = Math.Max(first.X, second.X);
+                if (first.Y > top && first.Y < bottom && maxX > left && minX < right)
+                {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private sealed class TestDirectory : IDisposable
+    {
+        public TestDirectory()
+        {
+            Root = Path.Combine(Path.GetTempPath(), "DanteConfigEditorV3Tests", Guid.NewGuid().ToString("N"));
+            Directory.CreateDirectory(Root);
+        }
+
+        public string Root { get; }
+
+        public string PathFor(params string[] parts)
+        {
+            return Path.Combine([Root, .. parts]);
+        }
+
+        public void Dispose()
+        {
+            try
+            {
+                Directory.Delete(Root, recursive: true);
+            }
+            catch
+            {
+            }
+        }
+    }
+}

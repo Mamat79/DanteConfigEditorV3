@@ -158,6 +158,9 @@ public static class LocalizationService
         ["Dialog.ActionImpossibleTitle"] = "Action impossible",
         ["Dialog.NoFileLoadedTitle"] = "Aucun fichier chargé",
         ["Dialog.NoFileLoadedMessage"] = "Ouvrez d'abord un fichier XML de configuration Dante.",
+        ["Dialog.NoDeviceSelectedTitle"] = "Aucune machine sélectionnée",
+        ["Dialog.NoDeviceSelectedMessage"] = "Sélectionnez une ou plusieurs machines.",
+        ["Dialog.SynopticLayoutErrorTitle"] = "Mise en page du synoptique impossible",
         ["Dialog.DeleteDeviceWarning"] = "La machine '{0}' sera supprimée du projet. Les subscriptions/patchs qui pointent vers cette machine seront aussi supprimés. Continuer ?",
         ["Dialog.ResetDevicePatchesWarning"] = "Les entrées RX de la machine '{0}' seront déconnectées, et tous les patchs qui utilisent ses TX seront supprimés. Continuer ?",
         ["Dialog.MergeXmlWarning"] = "Les machines du fichier XML sélectionné seront ajoutées au projet courant. Les noms de machines déjà présents seront refusés. Continuer ?",
@@ -381,6 +384,9 @@ public static class LocalizationService
         ["Dialog.ActionImpossibleTitle"] = "Action unavailable",
         ["Dialog.NoFileLoadedTitle"] = "No file loaded",
         ["Dialog.NoFileLoadedMessage"] = "Open a Dante configuration XML file first.",
+        ["Dialog.NoDeviceSelectedTitle"] = "No device selected",
+        ["Dialog.NoDeviceSelectedMessage"] = "Select one or several devices.",
+        ["Dialog.SynopticLayoutErrorTitle"] = "Synoptic layout unavailable",
         ["Dialog.DeleteDeviceWarning"] = "Device '{0}' will be deleted from the project. Subscriptions/patches pointing to this device will also be removed. Continue?",
         ["Dialog.ResetDevicePatchesWarning"] = "The Rx inputs of device '{0}' will be disconnected, and all subscriptions using its Tx channels will be removed. Continue?",
         ["Dialog.MergeXmlWarning"] = "Devices from the selected XML file will be added to the current project. Device names that already exist will be rejected. Continue?",
@@ -634,6 +640,31 @@ public static class LocalizationService
         Add(map, "Renommer le TX source", "Rename source Tx");
         Add(map, "Renommer RX", "Rename Rx");
         Add(map, "Renommer TX", "Rename Tx");
+        Add(map, "Import / Export", "Import / Export");
+        Add(map, "Rapports et patchbook", "Reports and patchbook");
+        Add(map, "Rapports du projet", "Project reports");
+        Add(map, "Exportez un résumé lisible de la configuration chargée.", "Export a readable summary of the loaded configuration.");
+        Add(map, "Choisissez le périmètre, puis exportez les affectations de patch.", "Choose the scope, then export the patch assignments.");
+        Add(map, "Exportez les affectations de patch au format TXT ou CSV.", "Export patch assignments as TXT or CSV.");
+        Add(map, "Analyse simple", "Simple analysis");
+        Add(map, "Créez une vue textuelle compacte des liaisons entre machines.", "Create a compact text view of connections between devices.");
+        Add(map, "Synoptique", "Synoptic");
+        Add(map, "Synoptique visuel", "Visual synoptic");
+        Add(map, "Machines regroupées par emplacement et patchs consécutifs réunis sur un même câble.", "Devices grouped by location, with consecutive subscriptions combined into one cable.");
+        Add(map, "Emplacement de la sélection", "Selected devices location");
+        Add(map, "Emplacement", "Location");
+        Add(map, "Affecter", "Assign");
+        Add(map, "Voir", "Show");
+        Add(map, "Tout afficher", "Show all");
+        Add(map, "Masquer sélection", "Hide selection");
+        Add(map, "Ouvrir après export", "Open after export");
+        Add(map, "Actualiser l’aperçu", "Refresh preview");
+        Add(map, "Exporter le synoptique SVG", "Export synoptic SVG");
+        Add(map, "Exemples : Scène, Régie, Local amplis, Studio A.", "Examples: Stage, Control room, Amplifier room, Studio A.");
+        Add(map, "Affecte cet emplacement aux machines sélectionnées.", "Assigns this location to the selected devices.");
+        Add(map, "Place la machine sélectionnée plus haut dans son emplacement.", "Moves the selected device up within its location.");
+        Add(map, "Place la machine sélectionnée plus bas dans son emplacement.", "Moves the selected device down within its location.");
+        Add(map, "Crée un fichier vectoriel en couleur sans modifier le XML Dante.", "Creates a colored vector file without modifying the Dante XML.");
         Add(map, "Santé du fichier", "File health");
         Add(map, "Filtre santé", "Health filter");
         Add(map, "Gravité", "Severity");
