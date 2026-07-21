@@ -94,7 +94,7 @@ Building, previewing, or exporting the synoptic never changes the loaded XML doc
 
 ## Automated validation
 
-- 130 engine and Windows contract tests pass in Release configuration.
+- 143 engine and Windows contract tests pass in Release configuration.
 - 9 headless macOS interface tests also pass.
 - Windows and macOS builds complete without warnings.
 - Additional checks cover the Rectorat preset, a real DMT workbook, SVG/PDF synoptic export, and preservation of the loaded XML.

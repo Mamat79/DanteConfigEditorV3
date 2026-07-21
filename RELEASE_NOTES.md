@@ -94,7 +94,7 @@ La création, l'aperçu et l'export du synoptique ne modifient jamais le documen
 
 ## Validation automatisée
 
-- 130 tests du moteur et des contrats Windows réussissent en configuration Release.
+- 143 tests du moteur et des contrats Windows réussissent en configuration Release.
 - 9 tests d'interface macOS sans écran réussissent également.
 - Les builds Windows et macOS réussissent sans avertissement.
 - Les essais complémentaires couvrent le preset Rectorat, un classeur DMT réel, le synoptique SVG/PDF et la préservation du XML chargé.
