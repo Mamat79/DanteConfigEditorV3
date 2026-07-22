@@ -94,11 +94,6 @@ internal static class SynopticPdfExportService
         {
             DrawPolyline(pdf, cable, "#FFFFFF", 8, diagram.Height);
             DrawPolyline(pdf, cable, cable.Color, 3.5, diagram.Height);
-            DrawArrow(pdf, cable, diagram.Height);
-            if (cable.IsBidirectional)
-            {
-                DrawArrow(pdf, cable, diagram.Height, atStart: true);
-            }
         }
 
         foreach (SynopticDeviceNode node in diagram.Devices)
@@ -112,6 +107,17 @@ internal static class SynopticPdfExportService
                 DrawText(pdf, node.X + 20, node.Y + 49, 11, Trim(node.FriendlyName, 32), "#526070", bold: false, diagram.Height);
             }
             DrawText(pdf, node.X + 20, node.Y + 68, 11, $"TX {node.TxCount}   RX {node.RxCount}", "#526070", bold: false, diagram.Height);
+        }
+
+        // Les pointes sont volontairement dessinées après les cartes : sinon les
+        // extrémités, placées sur leur bord, disparaissent sous leur fond blanc.
+        foreach (SynopticCable cable in diagram.Cables)
+        {
+            DrawArrow(pdf, cable, diagram.Height);
+            if (cable.IsBidirectional)
+            {
+                DrawArrow(pdf, cable, diagram.Height, atStart: true);
+            }
         }
 
         if (diagram.Cables.Count <= 18)

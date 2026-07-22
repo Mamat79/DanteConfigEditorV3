@@ -100,6 +100,8 @@ public sealed class SynopticExportTests
         Assert.Contains(cable.Labels, label => label.StartsWith("DEVICE-002 → DEVICE-001", StringComparison.Ordinal));
         Assert.Contains("marker-start=", svg, StringComparison.Ordinal);
         Assert.Contains("marker-end=", svg, StringComparison.Ordinal);
+        Assert.Contains("data-arrow=\"start\"", svg, StringComparison.Ordinal);
+        Assert.Contains("data-arrow=\"end\"", svg, StringComparison.Ordinal);
     }
 
     [Fact]

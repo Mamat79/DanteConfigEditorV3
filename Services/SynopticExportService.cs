@@ -484,6 +484,20 @@ public static class SynopticExportService
         }
 
         XElement labelsLayer = Layer(svgNamespace, "layer-labels", "Labels and legend");
+        foreach (SynopticCable cable in diagram.Cables)
+        {
+            IReadOnlyList<SynopticRoutePoint> points = CablePoints(cable);
+            if (points.Count < 2)
+            {
+                continue;
+            }
+
+            labelsLayer.Add(SvgArrowHead(svgNamespace, points[^1], points[^2], cable.Color, "end"));
+            if (cable.IsBidirectional)
+            {
+                labelsLayer.Add(SvgArrowHead(svgNamespace, points[0], points[1], cable.Color, "start"));
+            }
+        }
         if (diagram.Cables.Count <= 18)
         {
             for (int index = 0; index < diagram.Cables.Count; index++)
@@ -769,6 +783,44 @@ public static class SynopticExportService
         }
 
         return "M " + string.Join(" L ", cable.RoutePoints.Select(point => $"{Number(point.X)} {Number(point.Y)}"));
+    }
+
+    private static IReadOnlyList<SynopticRoutePoint> CablePoints(SynopticCable cable)
+    {
+        return cable.RoutePoints.Count == 0
+            ? [new SynopticRoutePoint(cable.StartX, cable.StartY), new SynopticRoutePoint(cable.EndX, cable.EndY)]
+            : cable.RoutePoints;
+    }
+
+    private static XElement SvgArrowHead(
+        XNamespace svgNamespace,
+        SynopticRoutePoint tip,
+        SynopticRoutePoint previous,
+        string fill,
+        string direction)
+    {
+        double dx = tip.X - previous.X;
+        double dy = tip.Y - previous.Y;
+        double length = Math.Sqrt(dx * dx + dy * dy);
+        if (length < 0.01)
+        {
+            return new XElement(svgNamespace + "g");
+        }
+
+        dx /= length;
+        dy /= length;
+        double backX = tip.X - dx * 12;
+        double backY = tip.Y - dy * 12;
+        double perpendicularX = -dy * 5;
+        double perpendicularY = dx * 5;
+        string points = string.Join(" ",
+            $"{Number(tip.X)},{Number(tip.Y)}",
+            $"{Number(backX + perpendicularX)},{Number(backY + perpendicularY)}",
+            $"{Number(backX - perpendicularX)},{Number(backY - perpendicularY)}");
+        return new XElement(svgNamespace + "polygon",
+            new XAttribute("points", points),
+            new XAttribute("fill", fill),
+            new XAttribute("data-arrow", direction));
     }
 
     private static XElement Layer(XNamespace svgNamespace, string id, string name)

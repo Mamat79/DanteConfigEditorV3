@@ -80,6 +80,9 @@ public sealed class PatchWorkspaceUiContractTests
         Assert.Contains("ChannelSeriesThumb_DragStarted", xaml, StringComparison.Ordinal);
         Assert.Contains("ChannelSeriesThumb_DragCompleted", xaml, StringComparison.Ordinal);
         Assert.Contains("MatrixTxHeader_MouseLeftButtonDown", codeBehind, StringComparison.Ordinal);
+        Assert.Contains("ColumnHeaderHeight=\"168\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("Text = source.Display", codeBehind, StringComparison.Ordinal);
+        Assert.Contains("LayoutTransform = new RotateTransform(-90)", codeBehind, StringComparison.Ordinal);
         Assert.Contains("MatrixSeriesThumb_DragStarted", codeBehind, StringComparison.Ordinal);
         Assert.Contains("MatrixSeriesThumb_DragCompleted", codeBehind, StringComparison.Ordinal);
         Assert.Contains("RenameMatrixChannel", codeBehind, StringComparison.Ordinal);

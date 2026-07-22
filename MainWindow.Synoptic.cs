@@ -249,22 +249,78 @@ public partial class MainWindow
         IReadOnlyList<SynopticRoutePoint> points = cable.RoutePoints.Count == 0
             ? [new SynopticRoutePoint(cable.StartX, cable.StartY), new SynopticRoutePoint(cable.EndX, cable.EndY)]
             : cable.RoutePoints;
-        PathFigure figure = new() { StartPoint = new Point(points[0].X, points[0].Y) };
-        if (points.Count > 1)
-        {
-            figure.Segments.Add(new PolyLineSegment(points.Skip(1).Select(point => new Point(point.X, point.Y)), true));
-        }
 
         return new System.Windows.Shapes.Path
         {
-            Data = new PathGeometry([figure]),
+            Data = BuildPreviewCableGeometry(points, showArrow, showArrow && cable.IsBidirectional),
             Stroke = stroke,
+            Fill = showArrow ? stroke : null,
             StrokeThickness = thickness,
-            StrokeStartLineCap = showArrow && cable.IsBidirectional ? PenLineCap.Triangle : PenLineCap.Round,
-            StrokeEndLineCap = showArrow ? PenLineCap.Triangle : PenLineCap.Round,
+            StrokeStartLineCap = PenLineCap.Round,
+            StrokeEndLineCap = PenLineCap.Round,
             StrokeLineJoin = PenLineJoin.Round,
             Opacity = showArrow ? 0.92 : 0.96
         };
+    }
+
+    private static PathGeometry BuildPreviewCableGeometry(
+        IReadOnlyList<SynopticRoutePoint> points,
+        bool arrowAtEnd,
+        bool arrowAtStart)
+    {
+        PathGeometry geometry = new();
+        if (points.Count == 0)
+        {
+            return geometry;
+        }
+
+        PathFigure line = new()
+        {
+            StartPoint = new Point(points[0].X, points[0].Y),
+            IsFilled = false
+        };
+        if (points.Count > 1)
+        {
+            line.Segments.Add(new PolyLineSegment(points.Skip(1).Select(point => new Point(point.X, point.Y)), true));
+        }
+        geometry.Figures.Add(line);
+
+        if (points.Count >= 2 && arrowAtEnd)
+        {
+            AddPreviewArrowFigure(geometry, points[^1], points[^2]);
+        }
+        if (points.Count >= 2 && arrowAtStart)
+        {
+            AddPreviewArrowFigure(geometry, points[0], points[1]);
+        }
+        return geometry;
+    }
+
+    private static void AddPreviewArrowFigure(PathGeometry geometry, SynopticRoutePoint tip, SynopticRoutePoint previous)
+    {
+        double dx = tip.X - previous.X;
+        double dy = tip.Y - previous.Y;
+        double length = Math.Sqrt(dx * dx + dy * dy);
+        if (length < 0.01)
+        {
+            return;
+        }
+
+        dx /= length;
+        dy /= length;
+        double backX = tip.X - dx * 12;
+        double backY = tip.Y - dy * 12;
+        double perpendicularX = -dy * 5;
+        double perpendicularY = dx * 5;
+        PathFigure arrow = new()
+        {
+            StartPoint = new Point(tip.X, tip.Y),
+            IsClosed = true,
+            IsFilled = true
+        };
+        arrow.Segments.Add(new LineSegment(new Point(backX + perpendicularX, backY + perpendicularY), true));
+        arrow.Segments.Add(new LineSegment(new Point(backX - perpendicularX, backY - perpendicularY), true));
+        geometry.Figures.Add(arrow);
     }
 
     private void RenderSynopticLegend(SynopticDiagram diagram)
@@ -449,9 +505,10 @@ public partial class MainWindow
                 new SynopticRoutePoint(laneX, endY),
                 new SynopticRoutePoint(endX, endY)
             ];
-            PathFigure figure = new() { StartPoint = new Point(points[0].X, points[0].Y) };
-            figure.Segments.Add(new PolyLineSegment(points.Skip(1).Select(point => new Point(point.X, point.Y)), true));
-            path.Data = new PathGeometry([figure]);
+            path.Data = BuildPreviewCableGeometry(
+                points,
+                arrowAtEnd: path.Fill is not null,
+                arrowAtStart: path.Fill is not null && cable.IsBidirectional);
         }
     }
 

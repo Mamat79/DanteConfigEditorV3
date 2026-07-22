@@ -396,18 +396,23 @@ public partial class PatchWorkspaceView : UserControl
         Grid panel = new()
         {
             Width = 28,
-            Height = 28,
+            Height = 162,
             Tag = source
         };
         TextBlock label = new()
         {
-            Text = source.DanteId.ToString("000"),
+            Text = source.Display,
+            Width = 146,
             TextWrapping = TextWrapping.NoWrap,
+            TextTrimming = TextTrimming.CharacterEllipsis,
             TextAlignment = TextAlignment.Center,
             FontSize = 10,
             FontWeight = FontWeights.SemiBold,
             Cursor = _renameChannelAction is null ? Cursors.Arrow : Cursors.IBeam,
-            VerticalAlignment = VerticalAlignment.Top
+            HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center,
+            Margin = new Thickness(0, 0, 0, 10),
+            LayoutTransform = new RotateTransform(-90)
         };
         label.MouseLeftButtonDown += MatrixTxHeader_MouseLeftButtonDown;
         panel.Children.Add(label);

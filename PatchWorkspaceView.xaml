@@ -636,7 +636,7 @@
                     <DataGrid x:Name="MatrixGrid"
                               Grid.Row="1"
                               RowHeight="26"
-                              ColumnHeaderHeight="34"
+                              ColumnHeaderHeight="168"
                               AutoGenerateColumns="False"
                               CanUserAddRows="False"
                               CanUserDeleteRows="False"

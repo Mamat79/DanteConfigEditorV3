@@ -2,6 +2,8 @@
 
 ## 2026-07-22 - Version 3.4 officielle - ergonomie Patch et synoptique directionnel
 
+- Maintenance V3.4 : la grille Easy patch affiche désormais le numéro et le label complet de chaque TX dans un en-tête vertical, avec infobulle et renommage direct conservés.
+- Maintenance V3.4 : pointes de flèche explicites et plus visibles dans l'aperçu du synoptique ainsi que dans les exports SVG et PDF, y compris aux deux extrémités des liaisons bidirectionnelles.
 - Maintenance V3.4 : Easy patch conserve désormais l'onglet `Sélection et plage` après un renommage, une prévisualisation ou une application.
 - Maintenance V3.4 : renommage RX/TX et extension des séries numériques disponibles directement dans la grille Easy patch, avec contraste corrigé dans le thème sombre.
 - Maintenance V3.4 : vue Patch enrichie avec les colonnes TX Device, TX Dante ID et TX Channel, renommage direct et poignées de recopie RX/TX.
