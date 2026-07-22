@@ -1,13 +1,13 @@
-# Dante Config Editor V3.3
+# Dante Config Editor V3.4
 
 ## Français
 
-Version V3.3 officielle pour Windows et macOS. Le code publié se trouve dans `main`.
+Version V3.4 officielle pour Windows et macOS. Le code publié se trouve dans `main`.
 
-**Version stable : [Release V3.3 Windows et macOS](https://github.com/Mamat79/DanteConfigEditorV3/releases/tag/v3.3)**
+**Version stable : [Release V3.4 Windows et macOS](https://github.com/Mamat79/DanteConfigEditorV3/releases/tag/v3.4)**
 
-> **Statut : V3.3 officielle. Outil tiers non officiel Audinate.**
-> Cette version peut encore contenir des bugs. La V3.2 reste accessible comme version historique dans les Releases GitHub. Travaillez toujours sur une copie et validez le XML généré dans les outils Dante officiels.
+> **Statut : V3.4 officielle. Outil tiers non officiel Audinate.**
+> Cette version peut encore contenir des bugs. La V3.3 reste accessible comme version historique dans les Releases GitHub. Travaillez toujours sur une copie et validez le XML généré dans les outils Dante officiels.
 
 > **Import et export de labels en JSON, CSV, DMT XLSX/ODS pour dLive et Avantis, A&H CSV et Yamaha CL/QL ZIP/CSV.** Les modèles natifs sont inclus dans l'application : aucun fichier modèle externe n'est nécessaire pour exporter.
 
@@ -126,9 +126,9 @@ Chaque vidéo dure environ une minute et utilise des sous-titres intégrés. Les
 
 ## Télécharger / installer
 
-Téléchargez la [Release GitHub V3.3](https://github.com/Mamat79/DanteConfigEditorV3/releases/tag/v3.3).
+Téléchargez la [Release GitHub V3.4](https://github.com/Mamat79/DanteConfigEditorV3/releases/tag/v3.4).
 
-- Pour Windows x64, utilisez `DanteConfigEditorV3_3_Installer.exe`, un installateur autonome qui remplace les anciennes installations V3.
+- Pour Windows x64, utilisez `DanteConfigEditorV3_4_Installer.exe`, un installateur autonome qui remplace les anciennes installations V3.
 
 La version autonome inclut le runtime .NET nécessaire. Sur une machine Windows x64, il ne devrait pas être nécessaire d'installer .NET séparément pour utiliser l'application.
 
@@ -154,12 +154,13 @@ Notices fournies :
 
 Dans l'application, les boutons d'aide ouvrent automatiquement les fichiers FR ou EN selon la langue active.
 
-L'installateur V3.3 retire les anciennes installations V3 détectées, notamment la V3.2, puis installe une seule V3.3. Les données locales de travail ne sont pas supprimées par cette mise à niveau.
+L'installateur V3.4 retire les anciennes installations V3 détectées, notamment la V3.3, puis installe une seule V3.4. Les données locales de travail ne sont pas supprimées par cette mise à niveau.
 
 ## Version distribuée
 
-- La branche `main` contient la V3.3 officielle pour Windows et macOS.
-- Le tag immuable `v3.3` identifie le code source des applications distribuées dans la Release V3.3, marquée `Latest`. Les vidéos ont été ajoutées ensuite comme documentation complémentaire, sans déplacer ce tag.
+- La branche `main` contient la V3.4 officielle pour Windows et macOS.
+- Le tag immuable `v3.4` identifie le code source des applications distribuées dans la Release V3.4, marquée `Latest`.
+- La Release historique [`v3.3`](https://github.com/Mamat79/DanteConfigEditorV3/releases/tag/v3.3) reste téléchargeable avec ses propres fichiers et ses vidéos de présentation.
 - La Release historique [`v3.2`](https://github.com/Mamat79/DanteConfigEditorV3/releases/tag/v3.2) reste téléchargeable avec ses propres fichiers.
 - La Release V3.1 est retirée à la demande du mainteneur ; son historique source reste dans Git.
 - Les pages de Releases V3.08 et V3.09 ont été retirées à la demande du mainteneur ; leurs tags et commits restent dans l'historique Git.
@@ -199,6 +200,18 @@ Les machines reçoivent des noms uniques choisis dans un catalogue mythologique,
 Toutes les cases sont cochées par défaut. Il est possible de protéger indépendamment les noms de machines, labels TX, labels RX, patchs, modes réseau, Preferred Master, latences, fréquences, bits et IP principales. Si les patchs sont protégés pendant un renommage, les références reconnues suivent les nouveaux noms afin de conserver le routage.
 
 Le résultat est volontairement incohérent sur le plan fonctionnel. Il reste indispensable de l'importer dans l'outil Dante officiel approprié avant de l'utiliser comme support d'exercice.
+
+## Nouveautés V3.4
+
+- Renommage direct des machines et canaux depuis Patch et des canaux TX/RX depuis Easy patch.
+- Extension de séries numériques de noms avec une poignée de glisser, sur le principe d'Excel.
+- Grille Easy patch affichée en premier, puis mode `Sélection et plage`.
+- Filtres Patch réorganisés avec RX au-dessus de TX.
+- Action globale pour conserver une seule machine comme Preferred Master.
+- Reset du synoptique : suppression des déplacements manuels et reconstruction d'un ordre propre par emplacement.
+- Une seule ligne à deux flèches représente désormais les flux réellement bidirectionnels entre deux machines.
+- Réglages Configuration visibles au premier lancement et contrôles agrandis pour améliorer la lecture à 125 % sous Windows.
+- Zone Atomic Bomb agrandie.
 
 ## Nouveautés V3.3
 

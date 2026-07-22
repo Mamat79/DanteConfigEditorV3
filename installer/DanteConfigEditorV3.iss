@@ -1,8 +1,8 @@
-#define MyAppName "Dante Config Editor V3.3"
-#define MyAppVersion "3.3"
+#define MyAppName "Dante Config Editor V3.4"
+#define MyAppVersion "3.4"
 #define MyAppPublisher "Mamat"
 #define MyAppExeName "DanteConfigEditorV3.exe"
-#define MyAppShortcutName "Dante Config Editor V3.3"
+#define MyAppShortcutName "Dante Config Editor V3.4"
 #define SourceRoot ".."
 
 [Setup]
@@ -10,12 +10,12 @@ AppId={{76E68F80-5C89-4415-A090-370CA60EB3AD}
 AppName={#MyAppName}
 AppVersion={#MyAppVersion}
 AppPublisher={#MyAppPublisher}
-DefaultDirName={autopf}\Dante Config Editor V3.3
-DefaultGroupName=Dante Config Editor V3.3
+DefaultDirName={autopf}\Dante Config Editor V3.4
+DefaultGroupName=Dante Config Editor V3.4
 DisableProgramGroupPage=no
 AllowNoIcons=yes
 OutputDir={#SourceRoot}\dist
-OutputBaseFilename=DanteConfigEditorV3_3_Installer
+OutputBaseFilename=DanteConfigEditorV3_4_Installer
 SetupIconFile={#SourceRoot}\DanteEdit.ico
 Compression=lzma2
 SolidCompression=yes
@@ -24,9 +24,9 @@ ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
 PrivilegesRequired=admin
 UninstallDisplayIcon={app}\{#MyAppExeName}
-VersionInfoVersion=3.3.0
+VersionInfoVersion=3.4.0
 VersionInfoCompany={#MyAppPublisher}
-VersionInfoDescription=Dante Config Editor V3.3 installer
+VersionInfoDescription=Dante Config Editor V3.4 installer
 VersionInfoProductName={#MyAppName}
 SetupLogging=yes
 CloseApplications=yes
@@ -75,7 +75,7 @@ Name: "{group}\Désinstaller {code:GetShortcutAppName}"; Filename: "{uninstallex
 Name: "{autodesktop}\{code:GetShortcutAppName}"; Filename: "{app}\{#MyAppExeName}"; WorkingDir: "{app}"; IconFilename: "{app}\DanteEdit.ico"; Tasks: desktopicon
 
 [Run]
-Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,Dante Config Editor V3.3}"; Flags: nowait postinstall skipifsilent
+Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,Dante Config Editor V3.4}"; Flags: nowait postinstall skipifsilent
 Filename: "{app}\RELEASE_NOTES.md"; Description: "Ouvrir les notes de version"; Flags: postinstall shellexec unchecked skipifsilent; Check: IsFrenchLanguage
 Filename: "{app}\RELEASE_NOTES_EN.md"; Description: "Open the release notes"; Flags: postinstall shellexec unchecked skipifsilent; Check: IsEnglishLanguage
 Filename: "{app}\QuickStart_DanteConfigEditorV3_FR.pdf"; Description: "Ouvrir le démarrage rapide en français"; Flags: postinstall shellexec unchecked skipifsilent; Check: IsFrenchLanguage
@@ -292,8 +292,8 @@ begin
     Result := 'Impossible de remplacer automatiquement Dante Config Editor V3.2 Beta.';
     Exit;
   end;
-  { V3.1, V3.2 et V3.3 partagent l'AppId stable. Une version différente doit
-    être retirée avant la migration vers le dossier de la V3.3. }
+  { Les versions V3 récentes partagent l'AppId stable. Une version différente doit
+    être retirée avant la migration vers le dossier de la V3.4. }
   if (LegacyV31Uninstaller <> '') and (ExistingInstallVersion <> '{#MyAppVersion}') and
      (not RunLegacyUninstaller(LegacyV31Uninstaller)) then
   begin

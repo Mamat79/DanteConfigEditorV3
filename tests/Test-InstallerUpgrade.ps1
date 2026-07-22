@@ -1,6 +1,6 @@
 param(
     [string]$InstallerPath = "",
-    [string]$ExpectedVersion = "3.3",
+    [string]$ExpectedVersion = "3.4",
     [switch]$AllowCustomInstallLocation
 )
 
@@ -8,7 +8,7 @@ $ErrorActionPreference = "Stop"
 
 $root = Split-Path $PSScriptRoot -Parent
 if ([string]::IsNullOrWhiteSpace($InstallerPath)) {
-    $InstallerPath = Join-Path $root "dist\DanteConfigEditorV3_3_Installer.exe"
+    $InstallerPath = Join-Path $root "dist\DanteConfigEditorV3_4_Installer.exe"
 }
 
 $installer = (Resolve-Path -LiteralPath $InstallerPath -ErrorAction Stop).Path
@@ -83,7 +83,7 @@ function Assert-InstalledState {
 
     $targetRecords = @(Get-TargetInstallRecords)
     if ($targetRecords.Count -ne 1) {
-        throw "$Step : une seule entrée V3.3 était attendue, trouvé $($targetRecords.Count)."
+        throw "$Step : une seule entrée V3.4 était attendue, trouvé $($targetRecords.Count)."
     }
 
     $obsoleteBetaRecords = @(Get-ObsoleteBetaInstallRecords)
@@ -129,14 +129,14 @@ function Assert-InstalledState {
         }
     }
 
-    $shortcut = Join-Path ([Environment]::GetFolderPath([Environment+SpecialFolder]::CommonPrograms)) "Dante Config Editor V3.3\Dante Config Editor V3.3.lnk"
+    $shortcut = Join-Path ([Environment]::GetFolderPath([Environment+SpecialFolder]::CommonPrograms)) "Dante Config Editor V3.4\Dante Config Editor V3.4.lnk"
     if (-not (Test-Path -LiteralPath $shortcut)) {
         throw "$Step : raccourci Menu Démarrer manquant : $shortcut"
     }
 
     $desktopShortcutCandidates = @(
-        (Join-Path ([Environment]::GetFolderPath([Environment+SpecialFolder]::DesktopDirectory)) "Dante Config Editor V3.3.lnk"),
-        (Join-Path ([Environment]::GetFolderPath([Environment+SpecialFolder]::CommonDesktopDirectory)) "Dante Config Editor V3.3.lnk")
+        (Join-Path ([Environment]::GetFolderPath([Environment+SpecialFolder]::DesktopDirectory)) "Dante Config Editor V3.4.lnk"),
+        (Join-Path ([Environment]::GetFolderPath([Environment+SpecialFolder]::CommonDesktopDirectory)) "Dante Config Editor V3.4.lnk")
     ) | Select-Object -Unique
     if (-not ($desktopShortcutCandidates | Where-Object { Test-Path -LiteralPath $_ })) {
         throw "$Step : raccourci Bureau manquant. Chemins vérifiés : $($desktopShortcutCandidates -join ', ')"
@@ -148,8 +148,8 @@ function Assert-InstalledState {
 $script:V3InstallRecordsBefore = @(Get-AllV3InstallRecords).Count
 $script:TargetInstallRecordsBefore = @(Get-TargetInstallRecords).Count
 
-# La V3.3 remplace les anciennes installations ; le second passage valide sa mise à niveau.
-Invoke-InstallerPass -Name "Installation V3.3"
+# La V3.4 remplace les anciennes installations ; le second passage valide sa mise à niveau.
+Invoke-InstallerPass -Name "Installation V3.4"
 $firstRecord = Assert-InstalledState -Step "Après le premier passage"
 
 Invoke-InstallerPass -Name "Mise à niveau de contrôle"

@@ -1,5 +1,17 @@
 # Changelog V3
 
+## 2026-07-22 - Version 3.4 officielle - ergonomie Patch et synoptique directionnel
+
+- Renommage direct des machines et canaux dans Patch, et des canaux TX/RX dans Easy patch.
+- Extension par glisser des séries de noms numériques.
+- Grille Easy patch placée avant `Sélection et plage` et filtres Patch RX placés avant TX.
+- Nouvelle action globale garantissant un seul Preferred Master choisi par l'utilisateur.
+- Reset complet de la disposition du synoptique.
+- Fusion des flux aller-retour entre deux machines en un câble unique avec une flèche à chaque extrémité ; export SVG et PDF cohérent.
+- Réglages Configuration affichés par défaut au premier lancement et ajustements de taille pour l'échelle Windows 125 %.
+- Agrandissement du panneau Atomic Bomb.
+- Passage des applications, paquets Windows/macOS et installateur à la V3.4.
+
 ## 2026-07-22 - Version 3.3 officielle - DMT ODS et Atomic Bomb configurable
 
 - Import direct des classeurs DMT `XLSX` et `ODS` depuis l'onglet Labels.

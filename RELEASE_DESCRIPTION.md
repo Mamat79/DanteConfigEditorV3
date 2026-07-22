@@ -1,29 +1,27 @@
-# Dante Config Editor V3.3
+# DCE v3.4
 
 ## Français
 
-La V3.3 ajoute l'import et l'export directs des fichiers DMT `XLSX` et `ODS` pour dLive et Avantis. Les quatre modèles sont intégrés dans l'application et chaque export crée une nouvelle copie sans modifier le modèle d'origine.
+La V3.4 accélère le travail quotidien dans Patch et Easy patch : renommage direct des machines et canaux, extension de séries numériques par glisser, grille Easy patch affichée en premier et action globale pour conserver un seul Preferred Master.
 
-`Atomic Bomb` devient un générateur d'exercice configurable : chaque catégorie peut être décochée pour protéger les noms, labels, patchs, paramètres audio, réseau, horloge ou IP que le formateur souhaite conserver.
+Le synoptique gagne un vrai Reset de disposition. Les flux aller-retour entre deux machines sont désormais réunis sur une seule ligne avec une flèche à chaque extrémité, dans l'aperçu comme dans les exports SVG et PDF.
 
-Cette version corrige également les boutons masqués, traductions manquantes et explications d'import sur macOS grâce aux retours de Tobias Grupe sur un Mac Intel réel.
+L'affichage initial montre directement les réglages Configuration et les contrôles ont été ajustés pour une meilleure lecture à 125 % sous Windows. La zone Atomic Bomb est également agrandie.
 
-- Windows x64 autonome : `DanteConfigEditorV3_3_Installer.exe`.
-- macOS Apple Silicon et Intel : deux DMG autonomes.
-- 150 tests Core/Windows et 11 tests macOS sans écran réussis.
-- La V3.2 reste disponible ; les Releases V3.08 et V3.09 sont retirées à la demande du mainteneur, sans supprimer leurs tags Git.
+- Windows x64 autonome : `DanteConfigEditorV3_4_Installer.exe`.
+- macOS Apple Silicon et Intel : paquets autonomes produits par le workflow.
+- La Release V3.3 reste disponible séparément.
 
 ## English
 
-V3.3 adds direct import and export of DMT `XLSX` and `ODS` files for dLive and Avantis. All four templates are bundled with the application, and every export creates a new copy without modifying the original template.
+V3.4 speeds up daily Patch and Easy patch work with direct device/channel renaming, drag-based numeric series extension, the Easy patch matrix shown first, and a global action that keeps one selected Preferred Master.
 
-`Atomic Bomb` is now a configurable training generator: each category can be cleared to protect the device names, labels, subscriptions, audio, network, clock, or IP settings the trainer wants to keep.
+The synoptic gains a full layout Reset. Opposite flows between two devices now share one line with an arrow at each end in the preview, SVG, and PDF exports.
 
-This release also fixes clipped controls, missing translations, and import feedback on macOS based on Tobias Grupe's testing on a real Intel Mac.
+Configuration settings are visible on first launch, controls are sized for clearer Windows 125% scaling, and the Atomic Bomb work area is larger.
 
-- Self-contained Windows x64: `DanteConfigEditorV3_3_Installer.exe`.
-- Apple Silicon and Intel macOS: two self-contained DMGs.
-- 150 Core/Windows tests and 11 headless macOS tests pass.
-- V3.2 remains available; V3.08 and V3.09 Releases are removed at the maintainer's request while their Git tags remain.
+- Self-contained Windows x64: `DanteConfigEditorV3_4_Installer.exe`.
+- Apple Silicon and Intel macOS: self-contained packages produced by the workflow.
+- The V3.3 Release remains available separately.
 
-**By Mamat et ses agents**
+**By Mamat et ses agents  -------[]--**

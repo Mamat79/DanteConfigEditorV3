@@ -1,13 +1,13 @@
-# Dante Config Editor V3.3
+# Dante Config Editor V3.4
 
 [Français](README.md) | **English**
 
-V3.3 is the official Windows and macOS version. Published source is available on `main`.
+V3.4 is the official Windows and macOS version. Published source is available on `main`.
 
-**Stable version: [V3.3 Release for Windows and macOS](https://github.com/Mamat79/DanteConfigEditorV3/releases/tag/v3.3)**
+**Stable version: [V3.4 Release for Windows and macOS](https://github.com/Mamat79/DanteConfigEditorV3/releases/tag/v3.4)**
 
-> **Status: official V3.3. Unofficial third-party tool, not affiliated with Audinate.**
-> This software may still contain bugs. V3.2 remains available as the historical release. Always work on a copy and validate generated XML with official Dante tools.
+> **Status: official V3.4. Unofficial third-party tool, not affiliated with Audinate.**
+> This software may still contain bugs. V3.3 remains available as a historical release. Always work on a copy and validate generated XML with official Dante tools.
 
 > **Importing and exporting labels through JSON, CSV, DMT XLSX/ODS for dLive and Avantis, A&H CSV, and Yamaha CL/QL ZIP/CSV.** Native templates are bundled with the application, so no external template file is required for export.
 
@@ -104,13 +104,13 @@ Each video lasts about one minute and includes burned-in subtitles. Separate `.s
 
 ## Download and install
 
-Download the [V3.3 GitHub Release](https://github.com/Mamat79/DanteConfigEditorV3/releases/tag/v3.3).
+Download the [V3.4 GitHub Release](https://github.com/Mamat79/DanteConfigEditorV3/releases/tag/v3.4).
 
 ### Windows x64
 
-For Windows x64, use `DanteConfigEditorV3_3_Installer.exe`, a self-contained installer that replaces older V3 installations.
+For Windows x64, use `DanteConfigEditorV3_4_Installer.exe`, a self-contained installer that replaces older V3 installations.
 
-The self-contained installer includes the required .NET 8 runtime, French and English documentation, Start menu and desktop shortcuts, destination selection, and clean uninstall support. It installs by default in `C:\Program Files\Dante Config Editor V3.3\` and replaces detected older V3 installations, including V3.2.
+The self-contained installer includes the required .NET 8 runtime, French and English documentation, Start menu and desktop shortcuts, destination selection, and clean uninstall support. It installs by default in `C:\Program Files\Dante Config Editor V3.4\` and replaces detected older V3 installations, including V3.3.
 
 ### macOS
 
@@ -123,8 +123,9 @@ The macOS builds are ad hoc signed but are not notarized with an Apple Developer
 
 ## Distributed version
 
-- `main` contains the official V3.3 source for Windows and macOS.
-- Immutable tag `v3.3` identifies the source used for the distributed applications and is marked `Latest`. Presentation videos were later added as supplementary documentation without moving that tag.
+- `main` contains the official V3.4 source for Windows and macOS.
+- Immutable tag `v3.4` identifies the source used for the distributed applications and is marked `Latest`.
+- Historical Release [`v3.3`](https://github.com/Mamat79/DanteConfigEditorV3/releases/tag/v3.3) remains downloadable with its own files and presentation videos.
 - Historical Release [`v3.2`](https://github.com/Mamat79/DanteConfigEditorV3/releases/tag/v3.2) remains downloadable with its own files.
 - V3.08 and V3.09 Release pages were removed at the maintainer's request; their tags and commits remain in Git history.
 - The V3.1 Release is removed at the maintainer's request; its source history remains in Git.
@@ -180,6 +181,18 @@ The result is intentionally inconsistent at the functional level. Import it into
 - Standalone SVG export; layout data stays in a separate local sidecar and never modifies Dante XML.
 - Native A&H dLive/Avantis CSV and Yamaha CL/QL ZIP/CSV label exchange alongside DMT XLSX and generic formats.
 - Official V3.2 installer that replaces older V3 installations.
+
+## What's new in V3.4
+
+- Direct device and channel renaming in Patch, plus direct Tx/Rx channel renaming in Easy patch.
+- Excel-style numeric channel-name series extension through a drag handle.
+- Easy patch opens on the patch matrix, with `Selection and range` as the second tab.
+- Patch filters are reordered with Rx above Tx.
+- A global action keeps one selected device as the only Preferred Master.
+- Synoptic Reset clears manual positions and rebuilds a clean order per location.
+- Real two-way flows between two devices now use one cable with an arrow at each end.
+- Configuration controls are visible on first launch and controls are sized for better Windows 125% scaling.
+- The Atomic Bomb work area is larger.
 
 ## What's new in V3.1
 

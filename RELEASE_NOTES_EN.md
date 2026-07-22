@@ -1,64 +1,41 @@
-# Dante Config Editor V3.3
+# Dante Config Editor V3.4
 
 [Notes de version françaises](RELEASE_NOTES.md)
 
 ## Status
 
-V3.3 is the current official Windows and macOS release. Dante Config Editor remains an unofficial third-party tool, not affiliated with Audinate, and may still contain bugs. Work on copies of Dante XML files and always validate generated files in the appropriate official Dante tool before real use.
+V3.4 is the current official Windows and macOS release. Dante Config Editor remains an unofficial third-party tool, not affiliated with Audinate, and may still contain bugs. Work on copies of Dante XML files and validate generated files in the appropriate official Dante tool.
 
-## Direct DMT exchange
+## Patch usability
 
-- Direct import of `XLSX` and `ODS` files created by [dLive MIDI Tools (DMT)](https://github.com/togrupe/dlive-midi-tools).
-- Direct export to four embedded templates: DMT XLSX dLive, DMT XLSX Avantis, DMT ODS dLive, and DMT ODS Avantis.
-- Sheets, styles, and settings outside `Channels` are preserved; only the required `Enabled` and `Name` cells are changed in the exported copy.
-- dLive and Avantis templates are bundled with the application. No external template file is requested.
-- Generic JSON/CSV, Allen & Heath dLive/Avantis CSV, and Yamaha CL/QL ZIP formats remain available.
+- Direct device, Rx channel, and Tx channel renaming in the Patch page.
+- Direct Rx/Tx channel renaming in Easy patch.
+- Numeric series extension, for example `Mic 1`, `Mic 2`, then drag to the last target channel.
+- The patch matrix opens first; `Selection and range` remains available in the second tab.
+- Rx filters are placed above Tx filters.
+- A global action selects the only Preferred Master in the project.
 
-## Configurable Atomic Bomb
+## Synoptic
 
-The tab now uses a more explicit playful title: **Horrible experience generator (but educational)**.
+- `Reset` clears manual positions and rebuilds a clean order inside each location.
+- A one-way flow keeps one Tx-to-Rx arrow.
+- Opposite flows between the same two devices are merged into one line with an arrow at each end.
+- Preview, SVG, and PDF use the same directional representation.
 
-Before the three confirmations, users can independently spare:
+## Display
 
-- device names;
-- Tx and Rx labels;
-- subscriptions;
-- network modes and Preferred Master;
-- latency, sample rate, and bits per sample;
-- primary IP settings.
+- Configuration settings panels are visible on first launch; their state is then remembered.
+- Main buttons and controls use minimum heights suitable for Windows 125% scaling.
+- The central Atomic Bomb work area is larger.
 
-All options remain selected by default. If subscriptions are excluded while names change, recognized references are updated to preserve existing routing. The original file, technical identifiers, DNS, gateways, and secondary interfaces remain protected.
+## Distribution
 
-## macOS fixes
-
-- Import/export and preview buttons remain fully visible at Full HD resolution.
-- Missing header, search, and filter translations have been corrected.
-- A second identical import now clearly explains that there is nothing to apply instead of leaving a disabled button unexplained.
-- The new Atomic Bomb panel and all options fit a 1366 × 768 window in headless Avalonia tests.
-
-Special thanks to **Tobias Grupe / togrupe** for screenshots and feedback from a real Intel Mac. This is especially valuable because primary local development and testing are performed on Windows.
-
-## Presentation videos
-
-- [English presentation of DCE v3.3](https://github.com/Mamat79/DanteConfigEditorV3/releases/download/v3.3/dce-v33-presentation-en.mp4)
-- [Présentation française de DCE v3.3](https://github.com/Mamat79/DanteConfigEditorV3/releases/download/v3.3/dce-v33-presentation-fr.mp4)
-
-Both videos last about one minute, use a synthetic anonymized preset, and include burned-in subtitles. Separate `.srt` files and SHA-256 checksums are also attached to the Release.
-
-## Distribution and validation
-
-- Self-contained Windows x64 installer: `DanteConfigEditorV3_3_Installer.exe`, including .NET 8.
-- Self-contained Apple Silicon and Intel macOS DMGs.
-- 150 engine and Windows contract tests pass in Release configuration.
-- 11 headless macOS interface tests also pass.
-- The V3.2 Release remains available as historical download. V3.08 and V3.09 Release pages are removed at the maintainer's request; their Git tags and commits remain available.
+- Self-contained Windows x64 installer: `DanteConfigEditorV3_4_Installer.exe`, including .NET 8.
+- Apple Silicon and Intel macOS packages are produced by the release workflow.
+- V3.3 remains available as a historical release and is not overwritten by V3.4.
 
 ## Limitations
 
 - Only a successful import into Dante Controller or the appropriate official Dante tool confirms final compatibility.
-- DMT support targets templates observed in version 2.13.0; future format changes may require an update.
-- The Windows installer is not Authenticode signed, and the DMGs are not notarized.
-
-**By Mamat et ses agents**
-
-Public repository: https://github.com/Mamat79/DanteConfigEditorV3
+- Direct renaming of an external Tx source missing from the XML remains blocked because the device cannot be safely identified.
+- The Windows installer is not Authenticode signed, and macOS packages are not notarized.
