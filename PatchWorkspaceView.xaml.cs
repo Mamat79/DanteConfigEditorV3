@@ -30,6 +30,9 @@ public partial class PatchWorkspaceView : UserControl
     private string? _channelSeriesDeviceName;
     private DanteChannelKind? _channelSeriesKind;
     private int[] _channelSeriesSeeds = [];
+    private string? _matrixSeriesDeviceName;
+    private DanteChannelKind? _matrixSeriesKind;
+    private int[] _matrixSeriesSeeds = [];
     private bool _initializing = true;
 
     public PatchWorkspaceView(
@@ -43,14 +46,22 @@ public partial class PatchWorkspaceView : UserControl
         bool lockRxDeviceSelection = false,
         bool embedded = false,
         Func<string, DanteChannelKind, int, string, bool>? renameChannelAction = null,
-        Func<string, DanteChannelKind, IReadOnlyList<int>, int, bool>? extendChannelSeriesAction = null)
+        Func<string, DanteChannelKind, IReadOnlyList<int>, int, bool>? extendChannelSeriesAction = null,
+        bool startInAssignmentMode = false)
     {
         InitializeComponent();
         // La grille est le mode principal d'Easy patch. La sélection par plage
         // reste immédiatement accessible dans le second onglet.
         PatchModeTabControl.Items.Remove(MatrixTab);
         PatchModeTabControl.Items.Insert(0, MatrixTab);
-        MatrixTab.IsSelected = true;
+        if (startInAssignmentMode)
+        {
+            AssignmentTab.IsSelected = true;
+        }
+        else
+        {
+            MatrixTab.IsSelected = true;
+        }
         _language = language;
         _project = project ?? throw new ArgumentNullException(nameof(project));
         _session = new PatchWorkspaceSession(project.PatchMatrix.Subscriptions, initialEdits);
@@ -73,6 +84,8 @@ public partial class PatchWorkspaceView : UserControl
     public bool HasChanges => _session.HasChanges;
 
     public bool CanRenameChannels => _renameChannelAction is not null;
+
+    public bool IsAssignmentModeSelected => AssignmentTab.IsSelected;
 
     public string? SelectedTxDeviceName => TxDeviceComboBox.SelectedItem as string;
 
@@ -292,7 +305,7 @@ public partial class PatchWorkspaceView : UserControl
                 AutomationName: BuildCellAutomationName(source, target, index == assignedSourceIndex)))
             .ToArray();
 
-        return new PatchMatrixRow(target.Display, assignment.IsPending, cells);
+        return new PatchMatrixRow(target, assignment.IsPending, cells);
     }
 
     private int FindAssignedSourceIndex(EffectivePatchAssignment assignment)
@@ -321,10 +334,36 @@ public partial class PatchWorkspaceView : UserControl
     private void BuildMatrixColumns()
     {
         MatrixGrid.Columns.Clear();
-        MatrixGrid.Columns.Add(new DataGridTextColumn
+        FrameworkElementFactory rxPanel = new(typeof(Grid));
+        FrameworkElementFactory rxId = new(typeof(TextBlock));
+        rxId.SetBinding(TextBlock.TextProperty, new Binding("Target.DanteId") { StringFormat = "{0:000} - " });
+        rxId.SetValue(FrameworkElement.VerticalAlignmentProperty, VerticalAlignment.Center);
+        rxPanel.AppendChild(rxId);
+
+        FrameworkElementFactory rxName = new(typeof(TextBox));
+        rxName.SetBinding(TextBox.TextProperty, new Binding("Target.ChannelName") { Mode = BindingMode.OneWay });
+        rxName.SetBinding(FrameworkElement.TagProperty, new Binding("Target"));
+        rxName.SetValue(FrameworkElement.MarginProperty, new Thickness(44, 0, 20, 0));
+        rxName.SetValue(Control.PaddingProperty, new Thickness(2, 0, 2, 0));
+        rxName.SetValue(Control.BorderThicknessProperty, new Thickness(0));
+        rxName.SetValue(Control.BackgroundProperty, Brushes.Transparent);
+        rxName.SetValue(Control.ForegroundProperty, (Brush)FindResource("TextBrush"));
+        rxName.SetValue(TextBox.IsReadOnlyProperty, _renameChannelAction is null);
+        rxName.SetValue(FrameworkElement.CursorProperty, Cursors.IBeam);
+        rxName.AddHandler(UIElement.PreviewMouseLeftButtonDownEvent, new MouseButtonEventHandler(InlineChannelNameTextBox_PreviewMouseLeftButtonDown));
+        rxName.AddHandler(UIElement.KeyDownEvent, new KeyEventHandler(InlineChannelNameTextBox_KeyDown));
+        rxName.AddHandler(UIElement.GotKeyboardFocusEvent, new KeyboardFocusChangedEventHandler(MatrixInlineTextBox_GotKeyboardFocus));
+        rxName.AddHandler(UIElement.LostKeyboardFocusEvent, new KeyboardFocusChangedEventHandler(InlineChannelNameTextBox_LostKeyboardFocus));
+        rxPanel.AppendChild(rxName);
+
+        FrameworkElementFactory rxSeries = BuildMatrixSeriesThumbFactory("Target", Cursors.SizeNS);
+        rxSeries.SetValue(FrameworkElement.HorizontalAlignmentProperty, HorizontalAlignment.Right);
+        rxPanel.AppendChild(rxSeries);
+
+        MatrixGrid.Columns.Add(new DataGridTemplateColumn
         {
             Header = L("Canal RX", "Rx channel"),
-            Binding = new Binding(nameof(PatchMatrixRow.TargetDisplay)),
+            CellTemplate = new DataTemplate { VisualTree = rxPanel },
             Width = new DataGridLength(190),
             IsReadOnly = true
         });
@@ -354,18 +393,179 @@ public partial class PatchWorkspaceView : UserControl
 
     private FrameworkElement BuildMatrixHeader(PatchSourceDescriptor source)
     {
-        TextBlock header = new()
+        Grid panel = new()
+        {
+            Width = 28,
+            Height = 28,
+            Tag = source
+        };
+        TextBlock label = new()
         {
             Text = source.DanteId.ToString("000"),
             TextWrapping = TextWrapping.NoWrap,
             TextAlignment = TextAlignment.Center,
             FontSize = 10,
             FontWeight = FontWeights.SemiBold,
-            Width = 28
+            Cursor = _renameChannelAction is null ? Cursors.Arrow : Cursors.IBeam,
+            VerticalAlignment = VerticalAlignment.Top
         };
-        ToolTipService.SetToolTip(header, source.FullDisplay);
-        AutomationProperties.SetName(header, source.FullDisplay);
-        return header;
+        label.MouseLeftButtonDown += MatrixTxHeader_MouseLeftButtonDown;
+        panel.Children.Add(label);
+
+        Thumb series = BuildMatrixSeriesThumb(source, Cursors.SizeWE);
+        series.HorizontalAlignment = HorizontalAlignment.Stretch;
+        series.VerticalAlignment = VerticalAlignment.Bottom;
+        panel.Children.Add(series);
+
+        ToolTipService.SetToolTip(panel, L(
+            $"{source.FullDisplay}. Double-cliquez pour renommer ; tirez la poignée pour étendre la série.",
+            $"{source.FullDisplay}. Double-click to rename; drag the handle to extend the series."));
+        AutomationProperties.SetName(panel, source.FullDisplay);
+        return panel;
+    }
+
+    private FrameworkElementFactory BuildMatrixSeriesThumbFactory(string tagPath, Cursor cursor)
+    {
+        FrameworkElementFactory thumb = new(typeof(Thumb));
+        thumb.SetBinding(FrameworkElement.TagProperty, new Binding(tagPath));
+        thumb.SetValue(FrameworkElement.WidthProperty, 16d);
+        thumb.SetValue(FrameworkElement.HeightProperty, 18d);
+        thumb.SetValue(FrameworkElement.CursorProperty, cursor);
+        thumb.SetValue(ToolTipService.ToolTipProperty, L("Étendre la série de noms", "Extend the name series"));
+        FrameworkElementFactory frame = new(typeof(Border));
+        frame.SetValue(Border.BackgroundProperty, (Brush)FindResource("AccentBrush"));
+        frame.SetValue(Border.CornerRadiusProperty, new CornerRadius(2));
+        FrameworkElementFactory glyph = new(typeof(TextBlock));
+        glyph.SetValue(TextBlock.TextProperty, "↕");
+        glyph.SetValue(TextBlock.ForegroundProperty, Brushes.White);
+        glyph.SetValue(FrameworkElement.HorizontalAlignmentProperty, HorizontalAlignment.Center);
+        glyph.SetValue(FrameworkElement.VerticalAlignmentProperty, VerticalAlignment.Center);
+        frame.AppendChild(glyph);
+        thumb.SetValue(Control.TemplateProperty, new ControlTemplate(typeof(Thumb)) { VisualTree = frame });
+        thumb.AddHandler(Thumb.DragStartedEvent, new DragStartedEventHandler(MatrixSeriesThumb_DragStarted));
+        thumb.AddHandler(Thumb.DragCompletedEvent, new DragCompletedEventHandler(MatrixSeriesThumb_DragCompleted));
+        return thumb;
+    }
+
+    private Thumb BuildMatrixSeriesThumb(PatchSourceDescriptor source, Cursor cursor)
+    {
+        Thumb thumb = new()
+        {
+            Tag = source,
+            Height = 8,
+            Cursor = cursor,
+            ToolTip = L("Étendre la série de noms", "Extend the name series"),
+            Background = (Brush)FindResource("AccentBrush")
+        };
+        thumb.DragStarted += MatrixSeriesThumb_DragStarted;
+        thumb.DragCompleted += MatrixSeriesThumb_DragCompleted;
+        return thumb;
+    }
+
+    private void MatrixTxHeader_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        if (e.ClickCount < 2 || _renameChannelAction is null
+            || sender is not TextBlock { Parent: FrameworkElement { Tag: PatchSourceDescriptor source } } label)
+        {
+            return;
+        }
+
+        e.Handled = true;
+        TextBox editor = new()
+        {
+            Text = source.ChannelName,
+            MinWidth = 180,
+            Padding = new Thickness(6, 4, 6, 4)
+        };
+        Border frame = new()
+        {
+            Child = editor,
+            Background = Brushes.White,
+            BorderBrush = (Brush)FindResource("AccentBrush"),
+            BorderThickness = new Thickness(2),
+            Padding = new Thickness(2)
+        };
+        Popup popup = new()
+        {
+            PlacementTarget = label,
+            Placement = PlacementMode.Bottom,
+            StaysOpen = false,
+            AllowsTransparency = true,
+            Child = frame,
+            IsOpen = true
+        };
+        bool cancelled = false;
+        bool committed = false;
+        void Commit()
+        {
+            if (committed || cancelled)
+            {
+                return;
+            }
+
+            committed = true;
+            RenameMatrixChannel(source.DeviceName, DanteChannelKind.Tx, source.DanteId, source.ChannelName, editor.Text);
+        }
+
+        editor.KeyDown += (_, args) =>
+        {
+            if (args.Key == Key.Escape)
+            {
+                cancelled = true;
+                popup.IsOpen = false;
+                args.Handled = true;
+            }
+            else if (args.Key == Key.Enter)
+            {
+                Commit();
+                popup.IsOpen = false;
+                args.Handled = true;
+            }
+        };
+        popup.Closed += (_, _) => Commit();
+        editor.Loaded += (_, _) =>
+        {
+            editor.Focus();
+            editor.SelectAll();
+        };
+    }
+
+    private void RenameMatrixChannel(
+        string deviceName,
+        DanteChannelKind kind,
+        int channelIndex,
+        string oldName,
+        string proposedName)
+    {
+        string newName = proposedName.Trim();
+        if (_renameChannelAction is null || string.Equals(oldName, newName, StringComparison.Ordinal))
+        {
+            return;
+        }
+
+        if (kind == DanteChannelKind.Tx)
+        {
+            _session.RenamePendingSourceChannel(deviceName, oldName, newName);
+        }
+
+        if (!_renameChannelAction(deviceName, kind, channelIndex, newName)
+            && kind == DanteChannelKind.Tx)
+        {
+            _session.RenamePendingSourceChannel(deviceName, newName, oldName);
+        }
+    }
+
+    private void MatrixInlineTextBox_GotKeyboardFocus(object sender, KeyboardFocusChangedEventArgs e)
+    {
+        if (sender is not TextBox editor)
+        {
+            return;
+        }
+
+        editor.Background = Brushes.White;
+        editor.Foreground = new SolidColorBrush(Color.FromRgb(17, 24, 39));
+        editor.BorderBrush = (Brush)FindResource("AccentBrush");
+        editor.BorderThickness = new Thickness(1);
     }
 
     private void PreviewSelectionButton_Click(object sender, RoutedEventArgs e)
@@ -938,11 +1138,37 @@ public partial class PatchWorkspaceView : UserControl
         }
     }
 
+    private void InlineChannelNameTextBox_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        if (sender is not TextBox editor || editor.IsReadOnly)
+        {
+            return;
+        }
+
+        if (FindVisualParent<ListBoxItem>(editor) is ListBoxItem row)
+        {
+            row.IsSelected = true;
+        }
+
+        if (!editor.IsKeyboardFocusWithin)
+        {
+            e.Handled = true;
+            editor.Focus();
+            editor.SelectAll();
+        }
+    }
+
     private void InlineChannelNameTextBox_LostKeyboardFocus(object sender, KeyboardFocusChangedEventArgs e)
     {
         if (sender is TextBox editor)
         {
             CommitInlineChannelRename(editor);
+            if (editor.Tag is PatchTargetDescriptor)
+            {
+                editor.Background = Brushes.Transparent;
+                editor.Foreground = (Brush)FindResource("TextBrush");
+                editor.BorderThickness = new Thickness(0);
+            }
         }
     }
 
@@ -975,21 +1201,25 @@ public partial class PatchWorkspaceView : UserControl
             deviceName = tx.Source.DeviceName;
             kind = DanteChannelKind.Tx;
             channelIndex = tx.Source.DanteId;
-            _session.RenamePendingSourceChannel(deviceName, oldName, newName);
+        }
+        else if (editor.Tag is PatchTargetDescriptor target)
+        {
+            deviceName = target.DeviceName;
+            kind = DanteChannelKind.Rx;
+            channelIndex = target.DanteId;
+        }
+        else if (editor.Tag is PatchSourceDescriptor source)
+        {
+            deviceName = source.DeviceName;
+            kind = DanteChannelKind.Tx;
+            channelIndex = source.DanteId;
         }
         else
         {
             return;
         }
 
-        if (!_renameChannelAction(deviceName, kind, channelIndex, newName))
-        {
-            if (kind == DanteChannelKind.Tx)
-            {
-                _session.RenamePendingSourceChannel(deviceName, newName, oldName);
-            }
-            editor.Text = oldName;
-        }
+        RenameMatrixChannel(deviceName, kind, channelIndex, oldName, newName);
     }
 
     private static string OriginalInlineChannelName(object? item)
@@ -998,6 +1228,8 @@ public partial class PatchWorkspaceView : UserControl
         {
             PatchRxListItem rx => rx.ChannelName,
             PatchTxListItem tx => tx.ChannelName,
+            PatchTargetDescriptor target => target.ChannelName,
+            PatchSourceDescriptor source => source.ChannelName,
             _ => string.Empty
         };
     }
@@ -1016,8 +1248,13 @@ public partial class PatchWorkspaceView : UserControl
         {
             PatchRxListItem[] selected = RxChannelListBox.SelectedItems
                 .OfType<PatchRxListItem>()
+                .Where(item => string.Equals(item.Target.DeviceName, rx.Target.DeviceName, StringComparison.OrdinalIgnoreCase))
                 .OrderBy(item => item.Target.DanteId)
                 .ToArray();
+            if (!selected.Contains(rx))
+            {
+                selected = [rx];
+            }
             _channelSeriesDeviceName = rx.Target.DeviceName;
             _channelSeriesKind = DanteChannelKind.Rx;
             _channelSeriesSeeds = selected.Select(item => item.Target.DanteId).ToArray();
@@ -1026,19 +1263,24 @@ public partial class PatchWorkspaceView : UserControl
         {
             PatchTxListItem[] selected = TxChannelListBox.SelectedItems
                 .OfType<PatchTxListItem>()
+                .Where(item => string.Equals(item.Source.DeviceName, tx.Source.DeviceName, StringComparison.OrdinalIgnoreCase))
                 .OrderBy(item => item.Source.DanteId)
                 .ToArray();
+            if (!selected.Contains(tx))
+            {
+                selected = [tx];
+            }
             _channelSeriesDeviceName = tx.Source.DeviceName;
             _channelSeriesKind = DanteChannelKind.Tx;
             _channelSeriesSeeds = selected.Select(item => item.Source.DanteId).ToArray();
         }
 
-        if (_channelSeriesSeeds.Length < 2)
+        if (_channelSeriesSeeds.Length == 0)
         {
             SetInfo(
                 L(
-                    "Sélectionnez au moins deux canaux numérotés avant de tirer la poignée de série.",
-                    "Select at least two numbered channels before dragging the series handle."),
+                    "Sélectionnez au moins un canal numéroté avant de tirer la poignée de série.",
+                    "Select at least one numbered channel before dragging the series handle."),
                 warning: true);
         }
     }
@@ -1046,7 +1288,7 @@ public partial class PatchWorkspaceView : UserControl
     private void ChannelSeriesThumb_DragCompleted(object sender, DragCompletedEventArgs e)
     {
         if (_extendChannelSeriesAction is null || _channelSeriesKind is null
-            || string.IsNullOrWhiteSpace(_channelSeriesDeviceName) || _channelSeriesSeeds.Length < 2)
+            || string.IsNullOrWhiteSpace(_channelSeriesDeviceName) || _channelSeriesSeeds.Length == 0)
         {
             return;
         }
@@ -1071,6 +1313,88 @@ public partial class PatchWorkspaceView : UserControl
             _channelSeriesKind.Value,
             _channelSeriesSeeds,
             targetIndex.Value);
+    }
+
+    private void MatrixSeriesThumb_DragStarted(object sender, DragStartedEventArgs e)
+    {
+        _matrixSeriesDeviceName = null;
+        _matrixSeriesKind = null;
+        _matrixSeriesSeeds = [];
+        if (_extendChannelSeriesAction is null || sender is not Thumb thumb)
+        {
+            return;
+        }
+
+        switch (thumb.Tag)
+        {
+            case PatchTargetDescriptor target:
+                _matrixSeriesDeviceName = target.DeviceName;
+                _matrixSeriesKind = DanteChannelKind.Rx;
+                _matrixSeriesSeeds = [target.DanteId];
+                break;
+            case PatchSourceDescriptor source:
+                _matrixSeriesDeviceName = source.DeviceName;
+                _matrixSeriesKind = DanteChannelKind.Tx;
+                _matrixSeriesSeeds = [source.DanteId];
+                break;
+        }
+    }
+
+    private void MatrixSeriesThumb_DragCompleted(object sender, DragCompletedEventArgs e)
+    {
+        if (_extendChannelSeriesAction is null || _matrixSeriesKind is null
+            || string.IsNullOrWhiteSpace(_matrixSeriesDeviceName) || _matrixSeriesSeeds.Length == 0)
+        {
+            return;
+        }
+
+        DependencyObject? hit = MatrixGrid.InputHitTest(Mouse.GetPosition(MatrixGrid)) as DependencyObject;
+        int? targetIndex = null;
+        string? targetDevice = null;
+        if (_matrixSeriesKind == DanteChannelKind.Rx
+            && FindVisualParent<DataGridRow>(hit)?.Item is PatchMatrixRow row)
+        {
+            targetIndex = row.Target.DanteId;
+            targetDevice = row.Target.DeviceName;
+        }
+        else if (_matrixSeriesKind == DanteChannelKind.Tx
+                 && FindTaggedVisualParent<PatchSourceDescriptor>(hit) is PatchSourceDescriptor source)
+        {
+            targetIndex = source.DanteId;
+            targetDevice = source.DeviceName;
+        }
+
+        if (targetIndex is null
+            || !string.Equals(targetDevice, _matrixSeriesDeviceName, StringComparison.OrdinalIgnoreCase))
+        {
+            SetInfo(
+                L("Déposez la poignée sur un canal du même axe et de la même machine.",
+                    "Drop the handle on a channel on the same axis and device."),
+                warning: true);
+            return;
+        }
+
+        _extendChannelSeriesAction(
+            _matrixSeriesDeviceName,
+            _matrixSeriesKind.Value,
+            _matrixSeriesSeeds,
+            targetIndex.Value);
+    }
+
+    private static TTag? FindTaggedVisualParent<TTag>(DependencyObject? current)
+        where TTag : class
+    {
+        while (current is not null)
+        {
+            if (current is FrameworkElement { Tag: TTag match })
+            {
+                return match;
+            }
+
+            current = VisualTreeHelper.GetParent(current);
+        }
+
+        return null;
     }
 
     private PatchTargetDescriptor[] SelectedTargets()
@@ -1293,7 +1617,7 @@ public partial class PatchWorkspaceView : UserControl
         string ActionKey);
 
     private sealed record PatchMatrixRow(
-        string TargetDisplay,
+        PatchTargetDescriptor Target,
         bool IsPending,
         IReadOnlyList<PatchMatrixCell> Cells);
 

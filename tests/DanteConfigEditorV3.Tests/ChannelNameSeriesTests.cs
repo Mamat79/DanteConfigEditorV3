@@ -19,6 +19,18 @@ public sealed class ChannelNameSeriesTests
     }
 
     [Fact]
+    public void ExtendsASingleNumberedSeedWithAUnitStep()
+    {
+        ChannelSeriesValue[] channels = Enumerable.Range(1, 5)
+            .Select(index => new ChannelSeriesValue(index, index == 1 ? "Micro 1" : index.ToString()))
+            .ToArray();
+
+        IReadOnlyList<ChannelSeriesValue> result = ChannelNameSeriesService.Extend(channels, [1], 5);
+
+        Assert.Equal(["Micro 2", "Micro 3", "Micro 4", "Micro 5"], result.Select(item => item.Name));
+    }
+
+    [Fact]
     public void PreservesExplicitNumericPaddingAndStep()
     {
         ChannelSeriesValue[] channels =

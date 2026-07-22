@@ -73,9 +73,16 @@ public sealed class PatchWorkspaceUiContractTests
 
         Assert.Contains("PatchModeTabControl.Items.Insert(0, MatrixTab)", codeBehind, StringComparison.Ordinal);
         Assert.Contains("MatrixTab.IsSelected = true", codeBehind, StringComparison.Ordinal);
+        Assert.Contains("startInAssignmentMode", codeBehind, StringComparison.Ordinal);
+        Assert.Contains("IsAssignmentModeSelected", codeBehind, StringComparison.Ordinal);
         Assert.Contains("InlineChannelNameTextBox_LostKeyboardFocus", xaml, StringComparison.Ordinal);
+        Assert.Equal(2, CountOccurrences(xaml, "PreviewMouseLeftButtonDown=\"InlineChannelNameTextBox_PreviewMouseLeftButtonDown\""));
         Assert.Contains("ChannelSeriesThumb_DragStarted", xaml, StringComparison.Ordinal);
         Assert.Contains("ChannelSeriesThumb_DragCompleted", xaml, StringComparison.Ordinal);
+        Assert.Contains("MatrixTxHeader_MouseLeftButtonDown", codeBehind, StringComparison.Ordinal);
+        Assert.Contains("MatrixSeriesThumb_DragStarted", codeBehind, StringComparison.Ordinal);
+        Assert.Contains("MatrixSeriesThumb_DragCompleted", codeBehind, StringComparison.Ordinal);
+        Assert.Contains("RenameMatrixChannel", codeBehind, StringComparison.Ordinal);
         Assert.Contains("ExtendEasyPatchChannelSeries", File.ReadAllText(RepositoryFile("MainWindow.xaml.cs")), StringComparison.Ordinal);
     }
 
@@ -89,8 +96,34 @@ public sealed class PatchWorkspaceUiContractTests
         Assert.Contains("x:Name=\"PatchRxDeviceColumn\"", xaml, StringComparison.Ordinal);
         Assert.Contains("x:Name=\"PatchRxChannelColumn\"", xaml, StringComparison.Ordinal);
         Assert.Contains("x:Name=\"PatchDisplayTxColumn\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("x:Name=\"PatchTxDanteIdColumn\"", xaml, StringComparison.Ordinal);
         Assert.Contains("x:Name=\"PatchTxChannelColumn\"", xaml, StringComparison.Ordinal);
         Assert.Contains("CellEditEnding=\"PatchGrid_CellEditEnding\"", xaml, StringComparison.Ordinal);
+        Assert.Equal(2, CountOccurrences(xaml, "DragStarted=\"PatchSeriesThumb_DragStarted\""));
+        Assert.Contains("ExtendChannelNameSeries(deviceName, kind, seeds", File.ReadAllText(RepositoryFile("MainWindow.xaml.cs")), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void ConfigurationPlacesGlobalToolsBeforeLinkedDeviceAndChannelPanels()
+    {
+        XDocument document = XDocument.Parse(File.ReadAllText(RepositoryFile("MainWindow.xaml")));
+        XNamespace xamlNamespace = "http://schemas.microsoft.com/winfx/2006/xaml";
+
+        XElement editors = NamedElement(document, xamlNamespace, "ConfigurationEditorsGrid");
+        XElement quickLists = editors.Descendants().Single(element =>
+            element.Name.LocalName == "GroupBox" && element.Attribute("Header")?.Value == "Listes rapides");
+        XElement device = editors.Descendants().Single(element =>
+            element.Name.LocalName == "GroupBox" && element.Attribute("Header")?.Value == "Machine sélectionnée");
+        XElement channels = editors.Descendants().Single(element =>
+            element.Name.LocalName == "GroupBox" && element.Attribute("Header")?.Value == "Canaux de la machine");
+
+        Assert.Equal("0", quickLists.Parent?.Attribute("Grid.Column")?.Value);
+        Assert.Equal("1", device.Attribute("Grid.Column")?.Value);
+        Assert.Equal("2", channels.Attribute("Grid.Column")?.Value);
+        Assert.Contains(editors.Elements(), element =>
+            element.Name.LocalName == "Border"
+            && element.Attribute("Grid.Column")?.Value == "1"
+            && element.Attribute("Grid.ColumnSpan")?.Value == "2");
     }
 
     [Fact]

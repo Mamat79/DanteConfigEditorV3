@@ -331,6 +331,9 @@
                                              Padding="2,1"
                                              BorderThickness="0"
                                              Background="Transparent"
+                                             Cursor="IBeam"
+                                             ToolTip="Cliquez pour renommer le canal RX ; Entrée valide, Échap annule."
+                                             PreviewMouseLeftButtonDown="InlineChannelNameTextBox_PreviewMouseLeftButtonDown"
                                              LostKeyboardFocus="InlineChannelNameTextBox_LostKeyboardFocus"
                                              KeyDown="InlineChannelNameTextBox_KeyDown">
                                         <TextBox.Style>
@@ -519,6 +522,9 @@
                                              Padding="2,1"
                                              BorderThickness="0"
                                              Background="Transparent"
+                                             Cursor="IBeam"
+                                             ToolTip="Cliquez pour renommer le canal TX ; Entrée valide, Échap annule."
+                                             PreviewMouseLeftButtonDown="InlineChannelNameTextBox_PreviewMouseLeftButtonDown"
                                              LostKeyboardFocus="InlineChannelNameTextBox_LostKeyboardFocus"
                                              KeyDown="InlineChannelNameTextBox_KeyDown">
                                         <TextBox.Style>

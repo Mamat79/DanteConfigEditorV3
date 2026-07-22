@@ -21,9 +21,9 @@ public static partial class ChannelNameSeriesService
             .Where(channel => seedChannelIndexes.Contains(channel.ChannelIndex))
             .OrderBy(channel => Array.FindIndex(orderedChannels.ToArray(), candidate => candidate.ChannelIndex == channel.ChannelIndex))
             .ToArray();
-        if (seeds.Length < 2)
+        if (seeds.Length == 0)
         {
-            throw new InvalidOperationException("Sélectionnez au moins deux canaux nommés pour prolonger une série.");
+            throw new InvalidOperationException("Sélectionnez au moins un canal numéroté pour prolonger une série.");
         }
 
         int firstPosition = IndexOf(orderedChannels, seeds[0].ChannelIndex);
@@ -40,26 +40,31 @@ public static partial class ChannelNameSeriesService
         }
 
         Match firstMatch = NumericSuffixRegex().Match(seeds[0].Name);
-        Match secondMatch = NumericSuffixRegex().Match(seeds[1].Name);
-        if (!firstMatch.Success || !secondMatch.Success)
+        if (!firstMatch.Success)
         {
-            throw new InvalidOperationException("Les deux premiers noms doivent se terminer par un numéro, par exemple Mic 1 et Mic 2.");
+            throw new InvalidOperationException("Le nom doit se terminer par un numéro, par exemple Mic 1.");
         }
 
         string prefix = firstMatch.Groups["prefix"].Value;
         string suffix = firstMatch.Groups["suffix"].Value;
-        if (!string.Equals(prefix, secondMatch.Groups["prefix"].Value, StringComparison.Ordinal)
-            || !string.Equals(suffix, secondMatch.Groups["suffix"].Value, StringComparison.Ordinal))
-        {
-            throw new InvalidOperationException("Les noms sélectionnés doivent partager le même préfixe.");
-        }
-
         int firstNumber = int.Parse(firstMatch.Groups["number"].Value);
-        int secondNumber = int.Parse(secondMatch.Groups["number"].Value);
-        int step = secondNumber - firstNumber;
-        if (step == 0)
+        int step = 1;
+        if (seeds.Length >= 2)
         {
-            throw new InvalidOperationException("La série doit contenir deux numéros différents.");
+            Match secondMatch = NumericSuffixRegex().Match(seeds[1].Name);
+            if (!secondMatch.Success
+                || !string.Equals(prefix, secondMatch.Groups["prefix"].Value, StringComparison.Ordinal)
+                || !string.Equals(suffix, secondMatch.Groups["suffix"].Value, StringComparison.Ordinal))
+            {
+                throw new InvalidOperationException("Les noms sélectionnés doivent partager le même préfixe.");
+            }
+
+            int secondNumber = int.Parse(secondMatch.Groups["number"].Value);
+            step = secondNumber - firstNumber;
+            if (step == 0)
+            {
+                throw new InvalidOperationException("La série doit contenir deux numéros différents.");
+            }
         }
 
         for (int index = 2; index < seeds.Length; index++)

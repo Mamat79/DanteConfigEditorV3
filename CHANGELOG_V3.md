@@ -2,6 +2,10 @@
 
 ## 2026-07-22 - Version 3.4 officielle - ergonomie Patch et synoptique directionnel
 
+- Maintenance V3.4 : Easy patch conserve désormais l'onglet `Sélection et plage` après un renommage, une prévisualisation ou une application.
+- Maintenance V3.4 : renommage RX/TX et extension des séries numériques disponibles directement dans la grille Easy patch, avec contraste corrigé dans le thème sombre.
+- Maintenance V3.4 : vue Patch enrichie avec les colonnes TX Device, TX Dante ID et TX Channel, renommage direct et poignées de recopie RX/TX.
+- Maintenance V3.4 : page Configuration réorganisée avec listes/actions globales à gauche et ensemble visuel commun machine/canaux.
 - Renommage direct des machines et canaux dans Patch, et des canaux TX/RX dans Easy patch.
 - Extension par glisser des séries de noms numériques.
 - Grille Easy patch placée avant `Sélection et plage` et filtres Patch RX placés avant TX.

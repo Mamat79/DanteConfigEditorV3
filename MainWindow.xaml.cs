@@ -8,6 +8,7 @@ using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
+using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
 using DanteConfigEditor.Models;
@@ -112,6 +113,9 @@ public partial class MainWindow : Window
     // eux-mêmes des actions utilisateur.
     private bool _refreshingUi;
     private bool _committingPatchInlineRename;
+    private string? _patchSeriesDeviceName;
+    private DanteChannelKind? _patchSeriesKind;
+    private int[] _patchSeriesSeeds = [];
 
     private sealed record ChannelChoice(DanteChannelKind Kind, int Index, string Name)
     {
@@ -1764,6 +1768,8 @@ public partial class MainWindow : Window
         }
 
         bool sameProject = ReferenceEquals(_easyPatchProject, _project);
+        bool startInAssignmentMode = sameProject
+            && _easyPatchWorkspace?.IsAssignmentModeSelected == true;
         PatchEditRequest[] pendingEdits = sameProject
             ? _easyPatchWorkspace?.Edits.ToArray() ?? []
             : [];
@@ -1792,7 +1798,8 @@ public partial class MainWindow : Window
                 pendingEdits,
                 embedded: true,
                 renameChannelAction: RenameEasyPatchChannel,
-                extendChannelSeriesAction: ExtendEasyPatchChannelSeries);
+                extendChannelSeriesAction: ExtendEasyPatchChannelSeries,
+                startInAssignmentMode: startInAssignmentMode);
             workspace.ApplyRequested += EasyPatchWorkspace_ApplyRequested;
             _easyPatchProject = _project;
             _easyPatchWorkspace = workspace;
@@ -1863,6 +1870,104 @@ public partial class MainWindow : Window
             editor.Focus();
             editor.SelectAll();
         }
+    }
+
+    private void PatchSeriesThumb_DragStarted(object sender, DragStartedEventArgs e)
+    {
+        _patchSeriesDeviceName = null;
+        _patchSeriesKind = null;
+        _patchSeriesSeeds = [];
+        if (sender is not Thumb { Tag: DanteSubscription subscription } thumb)
+        {
+            return;
+        }
+
+        if (!PatchGrid.SelectedItems.Contains(subscription))
+        {
+            PatchGrid.SelectedItems.Clear();
+            PatchGrid.SelectedItem = subscription;
+        }
+
+        DanteChannelKind kind = string.Equals(thumb.Uid, "Tx", StringComparison.Ordinal)
+            ? DanteChannelKind.Tx
+            : DanteChannelKind.Rx;
+        string? deviceName = kind == DanteChannelKind.Tx
+            ? ResolvePatchTxDeviceName(subscription)
+            : subscription.RxDevice;
+        if (string.IsNullOrWhiteSpace(deviceName))
+        {
+            return;
+        }
+
+        int[] seeds = PatchGrid.SelectedItems
+            .OfType<DanteSubscription>()
+            .Where(item => string.Equals(
+                kind == DanteChannelKind.Tx ? ResolvePatchTxDeviceName(item) : item.RxDevice,
+                deviceName,
+                StringComparison.OrdinalIgnoreCase))
+            .Select(item => kind == DanteChannelKind.Tx ? item.TxDanteId : item.RxDanteId)
+            .Where(index => index.HasValue)
+            .Select(index => index!.Value)
+            .Distinct()
+            .OrderBy(index => index)
+            .ToArray();
+
+        _patchSeriesDeviceName = deviceName;
+        _patchSeriesKind = kind;
+        _patchSeriesSeeds = seeds;
+    }
+
+    private void PatchSeriesThumb_DragCompleted(object sender, DragCompletedEventArgs e)
+    {
+        if (_project is null || _patchSeriesKind is null
+            || string.IsNullOrWhiteSpace(_patchSeriesDeviceName)
+            || _patchSeriesSeeds.Length == 0)
+        {
+            return;
+        }
+
+        DependencyObject? hit = PatchGrid.InputHitTest(Mouse.GetPosition(PatchGrid)) as DependencyObject;
+        DataGridRow? targetRow = FindVisualParent<DataGridRow>(hit);
+        if (targetRow?.Item is not DanteSubscription targetSubscription)
+        {
+            ShowError(T("Dialog.ActionImpossibleTitle"),
+                _language == UiLanguage.English
+                    ? "Drop the series handle on a channel row."
+                    : "Déposez la poignée de série sur une ligne de canal.");
+            return;
+        }
+
+        string? targetDeviceName = _patchSeriesKind == DanteChannelKind.Tx
+            ? ResolvePatchTxDeviceName(targetSubscription)
+            : targetSubscription.RxDevice;
+        int? targetChannelIndex = _patchSeriesKind == DanteChannelKind.Tx
+            ? targetSubscription.TxDanteId
+            : targetSubscription.RxDanteId;
+        if (!string.Equals(targetDeviceName, _patchSeriesDeviceName, StringComparison.OrdinalIgnoreCase)
+            || targetChannelIndex is null)
+        {
+            ShowError(T("Dialog.ActionImpossibleTitle"),
+                _language == UiLanguage.English
+                    ? "The series must stay on the same device."
+                    : "La série doit rester sur la même machine.");
+            return;
+        }
+
+        DanteChannelKind kind = _patchSeriesKind.Value;
+        string deviceName = _patchSeriesDeviceName;
+        int[] seeds = _patchSeriesSeeds;
+        RunProjectAction(
+            _language == UiLanguage.English ? "Channel name series extended." : "Série de noms de canaux étendue.",
+            () => _project.ExtendChannelNameSeries(deviceName, kind, seeds, targetChannelIndex.Value));
+    }
+
+    private static string? ResolvePatchTxDeviceName(DanteSubscription subscription)
+    {
+        return subscription.IsLocalSubscription
+            ? subscription.RxDevice
+            : string.IsNullOrWhiteSpace(subscription.ResolvedTxDeviceName)
+                ? null
+                : subscription.ResolvedTxDeviceName;
     }
 
     private bool RenameEasyPatchChannel(string deviceName, DanteChannelKind kind, int channelIndex, string newName)
@@ -3561,6 +3666,22 @@ public partial class MainWindow : Window
         return null;
     }
 
+    private static T? FindVisualParent<T>(DependencyObject? child)
+        where T : DependencyObject
+    {
+        while (child is not null)
+        {
+            if (child is T match)
+            {
+                return match;
+            }
+
+            child = VisualTreeHelper.GetParent(child);
+        }
+
+        return null;
+    }
+
     private string SelectedDeviceName()
     {
         return DeviceComboBox.SelectedItem as string ?? throw new InvalidOperationException("Aucun device sélectionné.");
@@ -3672,14 +3793,15 @@ public partial class MainWindow : Window
         bool expert = PatchViewMode.IsExpert(selectedKey);
         Visibility expertVisibility = expert ? Visibility.Visible : Visibility.Collapsed;
 
-        PatchDisplayTxColumn.Visibility = expertVisibility;
+        PatchDisplayTxColumn.Visibility = Visibility.Visible;
+        PatchTxDanteIdColumn.Visibility = Visibility.Visible;
         PatchRawTxColumn.Visibility = expertVisibility;
         PatchResolvedTxColumn.Visibility = expertVisibility;
-        PatchTxChannelColumn.Visibility = expertVisibility;
+        PatchTxChannelColumn.Visibility = Visibility.Visible;
         PatchTypeColumn.Visibility = expertVisibility;
         PatchActiveColumn.Visibility = expertVisibility;
         PatchModifiedColumn.Visibility = expertVisibility;
-        PatchSourceFullColumn.Visibility = Visibility.Visible;
+        PatchSourceFullColumn.Visibility = expertVisibility;
     }
 
     private string DistinctDeviceValues(string elementName)

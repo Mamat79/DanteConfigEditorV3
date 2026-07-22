@@ -556,6 +556,9 @@ public static class LocalizationService
         Add(map, "Reset patch RX/TX", "Clear Rx/Tx");
         Add(map, "Reset patch RX", "Clear Rx");
         Add(map, "Reset patch TX", "Clear Tx");
+        Add(map, "Étendre la série de noms jusqu'ici", "Extend the name series to this channel");
+        Add(map, "Étendre la série RX jusqu'à la ligne déposée", "Extend the Rx series to the dropped row");
+        Add(map, "Étendre la série TX jusqu'à la ligne déposée", "Extend the Tx series to the dropped row");
         Add(map, "Horloge", "Clock");
         Add(map, "Changer preferred master", "Change Preferred Master");
         Add(map, "Preferred Master à conserver", "Preferred Master to keep");

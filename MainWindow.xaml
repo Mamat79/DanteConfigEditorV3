@@ -605,12 +605,30 @@
 
                             <Grid x:Name="ConfigurationEditorsGrid" Grid.Row="0" Margin="0,0,0,12">
                                 <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="1.15*" />
-                                    <ColumnDefinition Width="1.15*" />
                                     <ColumnDefinition Width="0.9*" />
+                                    <ColumnDefinition Width="1.15*" />
+                                    <ColumnDefinition Width="1.15*" />
                                 </Grid.ColumnDefinitions>
 
-                                <GroupBox Header="Machine sélectionnée" Margin="0,0,12,0">
+                                <Border Grid.Column="1"
+                                        Grid.ColumnSpan="2"
+                                        Background="{DynamicResource SurfaceBrush}"
+                                        BorderBrush="{DynamicResource BorderLineBrush}"
+                                        BorderThickness="1"
+                                        CornerRadius="6"
+                                        Margin="0,0,0,12" />
+                                <Separator Grid.Column="2"
+                                           Panel.ZIndex="1"
+                                           HorizontalAlignment="Left"
+                                           VerticalAlignment="Stretch"
+                                           Width="1"
+                                           Margin="0,12,0,24"
+                                           Background="{DynamicResource BorderLineBrush}" />
+
+                                <GroupBox Grid.Column="1"
+                                          Header="Machine sélectionnée"
+                                          BorderThickness="0"
+                                          Margin="4,4,8,16">
                                     <Grid>
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="*" />
@@ -695,7 +713,10 @@
                                     </Grid>
                                 </GroupBox>
 
-                                <GroupBox Grid.Column="1" Header="Canaux de la machine" Margin="0,0,12,0">
+                                <GroupBox Grid.Column="2"
+                                          Header="Canaux de la machine"
+                                          BorderThickness="0"
+                                          Margin="8,4,4,16">
                                     <StackPanel>
                                         <Label Content="Canal à renommer" />
                                         <Grid>
@@ -752,7 +773,7 @@
                                     </StackPanel>
                                 </GroupBox>
 
-                                <Grid Grid.Column="2">
+                                <Grid Grid.Column="0" Margin="0,0,12,0">
                                     <Grid.RowDefinitions>
                                         <RowDefinition Height="Auto" />
                                         <RowDefinition Height="*" />
@@ -1134,7 +1155,35 @@
                                 </DataGridTemplateColumn>
                                 <DataGridTextColumn x:Name="PatchRxDanteIdColumn" Header="RX Dante Id" Binding="{Binding RxDanteId}" Width="0.7*" IsReadOnly="True" />
                                 <DataGridTemplateColumn x:Name="PatchRxChannelColumn" Header="RX canal" Width="1*">
-                                    <DataGridTemplateColumn.CellTemplate><DataTemplate><TextBlock Text="{Binding RxChannelName}" /></DataTemplate></DataGridTemplateColumn.CellTemplate>
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*" />
+                                                    <ColumnDefinition Width="Auto" />
+                                                </Grid.ColumnDefinitions>
+                                                <TextBlock Text="{Binding RxChannelName}" VerticalAlignment="Center" />
+                                                <Thumb Grid.Column="1"
+                                                       Uid="Rx"
+                                                       Tag="{Binding}"
+                                                       Width="16"
+                                                       Height="20"
+                                                       Margin="5,0,0,0"
+                                                       Cursor="SizeNS"
+                                                       ToolTip="Étendre la série RX jusqu'à la ligne déposée"
+                                                       DragStarted="PatchSeriesThumb_DragStarted"
+                                                       DragCompleted="PatchSeriesThumb_DragCompleted">
+                                                    <Thumb.Template>
+                                                        <ControlTemplate TargetType="Thumb">
+                                                            <Border Background="#DCE6F2" BorderBrush="#7890AC" BorderThickness="1" CornerRadius="2">
+                                                                <TextBlock Text="↕" Foreground="#1F2937" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                                            </Border>
+                                                        </ControlTemplate>
+                                                    </Thumb.Template>
+                                                </Thumb>
+                                            </Grid>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
                                     <DataGridTemplateColumn.CellEditingTemplate><DataTemplate><TextBox Text="{Binding RxChannelName, Mode=OneWay}" /></DataTemplate></DataGridTemplateColumn.CellEditingTemplate>
                                 </DataGridTemplateColumn>
                                 <DataGridTextColumn x:Name="PatchSourceFullColumn" Header="Source complète" Binding="{Binding SourceFull}" Width="1.7*" IsReadOnly="True" />
@@ -1142,10 +1191,39 @@
                                     <DataGridTemplateColumn.CellTemplate><DataTemplate><TextBlock Text="{Binding DisplayTxDeviceName}" /></DataTemplate></DataGridTemplateColumn.CellTemplate>
                                     <DataGridTemplateColumn.CellEditingTemplate><DataTemplate><TextBox Text="{Binding DisplayTxDeviceName, Mode=OneWay}" /></DataTemplate></DataGridTemplateColumn.CellEditingTemplate>
                                 </DataGridTemplateColumn>
+                                <DataGridTextColumn x:Name="PatchTxDanteIdColumn" Header="TX Dante Id" Binding="{Binding TxDanteIdDisplay}" Width="0.7*" IsReadOnly="True" />
                                 <DataGridTextColumn x:Name="PatchRawTxColumn" Header="TX brut XML" Binding="{Binding RawTxDeviceName}" Width="0.9*" IsReadOnly="True" />
                                 <DataGridTextColumn x:Name="PatchResolvedTxColumn" Header="TX résolu" Binding="{Binding ResolvedTxDeviceName}" Width="1.1*" IsReadOnly="True" />
                                 <DataGridTemplateColumn x:Name="PatchTxChannelColumn" Header="TX canal" Width="1*">
-                                    <DataGridTemplateColumn.CellTemplate><DataTemplate><TextBlock Text="{Binding TxChannelName}" /></DataTemplate></DataGridTemplateColumn.CellTemplate>
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*" />
+                                                    <ColumnDefinition Width="Auto" />
+                                                </Grid.ColumnDefinitions>
+                                                <TextBlock Text="{Binding TxChannelName}" VerticalAlignment="Center" />
+                                                <Thumb Grid.Column="1"
+                                                       Uid="Tx"
+                                                       Tag="{Binding}"
+                                                       Width="16"
+                                                       Height="20"
+                                                       Margin="5,0,0,0"
+                                                       Cursor="SizeNS"
+                                                       ToolTip="Étendre la série TX jusqu'à la ligne déposée"
+                                                       DragStarted="PatchSeriesThumb_DragStarted"
+                                                       DragCompleted="PatchSeriesThumb_DragCompleted">
+                                                    <Thumb.Template>
+                                                        <ControlTemplate TargetType="Thumb">
+                                                            <Border Background="#DCE6F2" BorderBrush="#7890AC" BorderThickness="1" CornerRadius="2">
+                                                                <TextBlock Text="↕" Foreground="#1F2937" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                                            </Border>
+                                                        </ControlTemplate>
+                                                    </Thumb.Template>
+                                                </Thumb>
+                                            </Grid>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
                                     <DataGridTemplateColumn.CellEditingTemplate><DataTemplate><TextBox Text="{Binding TxChannelName, Mode=OneWay}" /></DataTemplate></DataGridTemplateColumn.CellEditingTemplate>
                                 </DataGridTemplateColumn>
                                 <DataGridTextColumn x:Name="PatchTypeColumn" Header="Type" Binding="{Binding TypeLabel}" Width="1*" IsReadOnly="True" />

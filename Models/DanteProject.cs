@@ -1223,6 +1223,7 @@ public sealed partial class DanteProject
                     ? rxDevice.Name
                     : rawTxDeviceName;
                 string displayTxDeviceName = FormatDisplayTxDevice(rawTxDeviceName, resolvedTxDeviceName);
+                int? txDanteId = null;
                 string status = "Libre";
                 DanteSubscriptionKind kind = DanteSubscriptionKind.Free;
 
@@ -1256,6 +1257,11 @@ public sealed partial class DanteProject
                         status = "Patch actif";
                         kind = DanteSubscriptionKind.Normal;
                     }
+
+                    if (txDevice is not null)
+                    {
+                        txDanteId = FindReferencedChannel(txDevice.TxChannels, txChannelName)?.DanteId;
+                    }
                 }
 
                 subscriptions.Add(new DanteSubscription(
@@ -1268,6 +1274,7 @@ public sealed partial class DanteProject
                     resolvedTxDeviceName,
                     displayTxDeviceName,
                     txChannelName,
+                    txDanteId,
                     _modifiedRxElements.ContainsKey(rxChannel.Element),
                     status,
                     kind));
@@ -1289,6 +1296,16 @@ public sealed partial class DanteProject
         return channels.Any(channel =>
             string.Equals(channel.DisplayName, channelName, StringComparison.OrdinalIgnoreCase)
             || string.Equals(channel.Index.ToString(), channelName, StringComparison.OrdinalIgnoreCase));
+    }
+
+    private static DanteChannel? FindReferencedChannel(IEnumerable<DanteChannel> channels, string channelName)
+    {
+        DanteChannel[] matches = channels
+            .Where(channel =>
+                string.Equals(channel.DisplayName, channelName, StringComparison.OrdinalIgnoreCase)
+                || string.Equals(channel.Index.ToString(), channelName, StringComparison.OrdinalIgnoreCase))
+            .ToArray();
+        return matches.Length == 1 ? matches[0] : null;
     }
 
     private static XElement? FindFirstElement(XElement parent, IEnumerable<string> names)

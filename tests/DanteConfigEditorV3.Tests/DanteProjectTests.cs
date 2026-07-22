@@ -26,6 +26,7 @@ public sealed class DanteProjectTests
         Assert.Equal(3, project.Devices.Sum(device => device.TxCount));
         Assert.Equal(4, project.Devices.Sum(device => device.RxCount));
         Assert.Contains(project.PatchMatrix.Subscriptions, subscription => subscription.IsLocalSubscription);
+        Assert.Contains(project.PatchMatrix.Subscriptions, subscription => subscription.IsActive && subscription.TxDanteId == 1);
         Assert.False(project.ValidateXmlChangeGuard().HasErrors);
     }
 

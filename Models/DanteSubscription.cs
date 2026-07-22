@@ -24,6 +24,7 @@ public sealed class DanteSubscription
         string resolvedTxDeviceName,
         string displayTxDeviceName,
         string txChannelName,
+        int? txDanteId,
         bool isModified,
         string status,
         DanteSubscriptionKind kind)
@@ -39,6 +40,7 @@ public sealed class DanteSubscription
         DisplayTxDeviceName = displayTxDeviceName;
         TxDevice = displayTxDeviceName;
         TxChannelName = txChannelName;
+        TxDanteId = txDanteId;
         IsModified = isModified;
         Status = status;
         Kind = kind;
@@ -65,6 +67,10 @@ public sealed class DanteSubscription
     public string TxDevice { get; }
 
     public string TxChannelName { get; }
+
+    public int? TxDanteId { get; }
+
+    public string TxDanteIdDisplay => TxDanteId?.ToString() ?? "-";
 
     // Un patch est considéré actif dès qu'un device TX est renseigné.
     // Le canal peut rester vide selon certains formats XML.
