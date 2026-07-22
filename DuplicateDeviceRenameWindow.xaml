@@ -10,6 +10,7 @@
     <Grid Margin="16">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
@@ -18,8 +19,13 @@
                    TextWrapping="Wrap"
                    Margin="0,0,0,12" />
 
+        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,12">
+            <Label x:Name="SuffixLabel" Content="Suffixe du renommage automatique" VerticalAlignment="Center" />
+            <TextBox x:Name="SuffixTextBox" Width="220" Margin="10,0,0,0" Text="Import" TextChanged="SuffixTextBox_TextChanged" />
+        </StackPanel>
+
         <DataGrid x:Name="RenameGrid"
-                  Grid.Row="1"
+                  Grid.Row="2"
                   AutoGenerateColumns="False"
                   CanUserAddRows="False"
                   CanUserDeleteRows="False"
@@ -35,7 +41,7 @@
             </DataGrid.Columns>
         </DataGrid>
 
-        <WrapPanel Grid.Row="2"
+        <WrapPanel Grid.Row="3"
                    HorizontalAlignment="Right"
                    Margin="0,14,0,0">
             <Button x:Name="UniqueOnlyButton"

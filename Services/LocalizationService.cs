@@ -168,6 +168,7 @@ public static class LocalizationService
         ["DuplicateDialog.Intro"] = "Certaines machines du XML importé existent déjà dans le projet ouvert. Vous pouvez importer seulement les machines sans doublon, renommer automatiquement les doublons, ou choisir vous-même les nouveaux noms.",
         ["DuplicateDialog.OriginalName"] = "Nom dans le XML importé",
         ["DuplicateDialog.NewName"] = "Nouveau nom à importer",
+        ["DuplicateDialog.Suffix"] = "Suffixe du renommage automatique",
         ["DuplicateDialog.UniqueOnly"] = "Importer uniques seulement",
         ["DuplicateDialog.AutoRename"] = "Renommage auto",
         ["DuplicateDialog.ManualRename"] = "Importer avec ces noms",
@@ -395,6 +396,7 @@ public static class LocalizationService
         ["DuplicateDialog.Intro"] = "Some devices from the imported XML already exist in the open project. You can import only non-duplicate devices, automatically rename duplicates, or choose the new names manually.",
         ["DuplicateDialog.OriginalName"] = "Name in imported XML",
         ["DuplicateDialog.NewName"] = "New name to import",
+        ["DuplicateDialog.Suffix"] = "Automatic rename suffix",
         ["DuplicateDialog.UniqueOnly"] = "Import unique only",
         ["DuplicateDialog.AutoRename"] = "Auto rename",
         ["DuplicateDialog.ManualRename"] = "Import with these names",
@@ -675,6 +677,15 @@ public static class LocalizationService
         Add(map, "Machines regroupées par emplacement et patchs consécutifs réunis sur un même câble.", "Devices grouped by location, with consecutive subscriptions combined into one cable.");
         Add(map, "Emplacement de la sélection", "Selected devices location");
         Add(map, "Emplacement", "Location");
+        Add(map, "Ordre", "Order");
+        Add(map, "Zoom", "Zoom");
+        Add(map, "Zoom arrière", "Zoom out");
+        Add(map, "Zoom avant", "Zoom in");
+        Add(map, "Revenir à la taille réelle", "Return to actual size");
+        Add(map, "Ajuster", "Fit");
+        Add(map, "Afficher tout le synoptique", "Fit the entire synoptic");
+        Add(map, "Disposition automatique", "Automatic layout");
+        Add(map, "Efface les positions manuelles et recalcule le synoptique.", "Clears manual positions and recalculates the synoptic.");
         Add(map, "Affecter", "Assign");
         Add(map, "Saisissez une nouvelle zone ou choisissez une zone déjà utilisée.", "Enter a new location or choose one already used.");
         Add(map, "Zones déjà utilisées", "Locations already used");

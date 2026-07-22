@@ -109,3 +109,24 @@ public sealed record ChannelLabelTransferPreviewRow(
 public sealed record DmtLabelCompatibility(bool IsCompatible, string AdaptedLabel, IReadOnlyList<string> Warnings);
 
 public sealed record DmtWorkbookReadResult(string TemplateVersion, ChannelLabelDocument Document);
+
+public enum ChannelLabelCaseMode
+{
+    Preserve,
+    Lowercase,
+    Uppercase,
+    FirstLetterUppercase
+}
+
+public sealed record ChannelLabelTransformOptions(
+    bool AsciiOnly,
+    ChannelLabelCaseMode CaseMode,
+    int MaximumLength,
+    int StartPosition,
+    bool FromEnd);
+
+public sealed record ChannelLabelCollision(string Label, IReadOnlyList<int> Channels);
+
+public sealed record ChannelLabelTransformResult(
+    ChannelLabelSet Labels,
+    IReadOnlyList<ChannelLabelCollision> Collisions);

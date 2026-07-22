@@ -8,14 +8,19 @@
         ShowInTaskbar="False"
         WindowStartupLocation="CenterOwner"
         Background="{DynamicResource AppBackgroundBrush}">
-    <Grid RowDefinitions="Auto,*,Auto" Margin="18">
+    <Grid RowDefinitions="Auto,Auto,*,Auto" Margin="18">
         <StackPanel Spacing="6" Margin="0,0,0,12">
             <TextBlock x:Name="TitleText" FontSize="18" FontWeight="SemiBold" />
             <TextBlock x:Name="IntroText" Classes="muted" TextWrapping="Wrap" />
         </StackPanel>
 
+        <Grid Grid.Row="1" ColumnDefinitions="Auto,220" ColumnSpacing="10" Margin="0,0,0,12">
+            <TextBlock x:Name="SuffixLabel" VerticalAlignment="Center" />
+            <TextBox x:Name="SuffixTextBox" Grid.Column="1" Text="Import" TextChanged="SuffixTextBox_TextChanged" />
+        </Grid>
+
         <DataGrid x:Name="DuplicateGrid"
-                  Grid.Row="1"
+                  Grid.Row="2"
                   AutoGenerateColumns="False"
                   CanUserResizeColumns="True"
                   IsReadOnly="False">
@@ -25,7 +30,7 @@
             </DataGrid.Columns>
         </DataGrid>
 
-        <Grid Grid.Row="2" ColumnDefinitions="*,Auto" Margin="0,14,0,0">
+        <Grid Grid.Row="3" ColumnDefinitions="*,Auto" Margin="0,14,0,0">
             <Button x:Name="UniqueOnlyButton" HorizontalAlignment="Left" Click="UniqueOnlyButton_Click" />
             <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
                 <Button x:Name="CancelButton" MinWidth="95" Click="CancelButton_Click" />

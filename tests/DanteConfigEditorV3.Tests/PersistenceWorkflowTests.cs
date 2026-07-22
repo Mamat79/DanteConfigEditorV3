@@ -86,6 +86,22 @@ public sealed class PersistenceWorkflowTests
         Assert.Equal("DEVICE-A-IMPORTED", reloadedSubscription.RawTxDeviceName);
     }
 
+    [Fact]
+    public void AutomaticDuplicateRenameUsesCustomSuffixWithoutParentheses()
+    {
+        using TestDirectory directory = new();
+        string source = directory.CopyFixture("representative-preset.xml");
+        string imported = directory.PathFor("merge-with-reference.xml");
+        BuildMergePreset().Save(imported, SaveOptions.DisableFormatting);
+        DanteProject project = DanteProject.Load(source);
+
+        IReadOnlyDictionary<string, string> renameMap = project.BuildAutomaticDuplicateRenameMap(imported, "Formation");
+
+        Assert.Equal("DEVICE-A-Formation", renameMap["DEVICE-A"]);
+        Assert.DoesNotContain('(', renameMap["DEVICE-A"]);
+        Assert.DoesNotContain(')', renameMap["DEVICE-A"]);
+    }
+
     private static XDocument BuildMergePreset()
     {
         return new XDocument(

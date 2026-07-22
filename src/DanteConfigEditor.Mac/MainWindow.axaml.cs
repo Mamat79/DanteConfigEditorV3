@@ -192,7 +192,7 @@ public partial class MainWindow : Window
                 DuplicateMergeDialogResult? result = await DuplicateMergeDialog.ShowAsync(
                     this,
                     duplicates,
-                    _project.BuildAutomaticDuplicateRenameMap(path),
+                    suffix => _project.BuildAutomaticDuplicateRenameMap(path, suffix),
                     _language);
                 if (result is null)
                 {
@@ -1599,9 +1599,10 @@ public partial class MainWindow : Window
                 result.Kind,
                 result.StartChannel,
                 result.Count);
+            document = ChannelLabelTransformService.Transform(document, result.TransformOptions);
             if (BuiltInChannelLabelTemplateService.IsBuiltInFormat(result.Format))
             {
-                await ExportBuiltInTemplateCopiesAsync(document, result.Format, result.AdaptConsoleLabels);
+                await ExportBuiltInTemplateCopiesAsync(document, result.Format, adaptLabels: false);
                 return;
             }
 

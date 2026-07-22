@@ -7,22 +7,26 @@ namespace DanteConfigEditor;
 public partial class DuplicateDeviceRenameWindow : Window
 {
     private readonly UiLanguage _language;
-    private readonly IReadOnlyDictionary<string, string> _automaticRenameMap;
+    private readonly Func<string, IReadOnlyDictionary<string, string>> _automaticRenameFactory;
+    private IReadOnlyDictionary<string, string> _automaticRenameMap = new Dictionary<string, string>();
+    private bool _initializing = true;
 
     public DuplicateDeviceRenameWindow(
         UiLanguage language,
         IReadOnlyList<string> duplicateNames,
-        IReadOnlyDictionary<string, string> automaticRenameMap)
+        Func<string, IReadOnlyDictionary<string, string>> automaticRenameFactory)
     {
         InitializeComponent();
         _language = language;
-        _automaticRenameMap = automaticRenameMap;
+        _automaticRenameFactory = automaticRenameFactory;
+        _automaticRenameMap = automaticRenameFactory("Import");
         RenameItems = new ObservableCollection<DuplicateDeviceRenameItem>(
             duplicateNames.Select(name => new DuplicateDeviceRenameItem(
                 name,
-                automaticRenameMap.TryGetValue(name, out string? automaticName) ? automaticName : name + " (import)")));
+                _automaticRenameMap.TryGetValue(name, out string? automaticName) ? automaticName : name + "-Import")));
         DataContext = this;
         ApplyLanguage();
+        _initializing = false;
     }
 
     public ObservableCollection<DuplicateDeviceRenameItem> RenameItems { get; }
@@ -37,10 +41,37 @@ public partial class DuplicateDeviceRenameWindow : Window
         IntroTextBlock.Text = T("DuplicateDialog.Intro");
         OriginalNameColumn.Header = T("DuplicateDialog.OriginalName");
         NewNameColumn.Header = T("DuplicateDialog.NewName");
+        SuffixLabel.Content = T("DuplicateDialog.Suffix");
         UniqueOnlyButton.Content = T("DuplicateDialog.UniqueOnly");
         AutoRenameButton.Content = T("DuplicateDialog.AutoRename");
         ManualRenameButton.Content = T("DuplicateDialog.ManualRename");
         CancelImportButton.Content = T("DuplicateDialog.Cancel");
+    }
+
+    private void SuffixTextBox_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
+    {
+        if (_initializing || RenameItems is null)
+        {
+            return;
+        }
+
+        try
+        {
+            _automaticRenameMap = _automaticRenameFactory(SuffixTextBox.Text);
+            foreach (DuplicateDeviceRenameItem item in RenameItems)
+            {
+                if (_automaticRenameMap.TryGetValue(item.OriginalName, out string? automaticName))
+                {
+                    item.NewName = automaticName;
+                }
+            }
+            RenameGrid.Items.Refresh();
+        }
+        catch (InvalidOperationException)
+        {
+            // La validation détaillée est affichée seulement si l'utilisateur
+            // demande réellement le renommage automatique.
+        }
     }
 
     private void UniqueOnlyButton_Click(object sender, RoutedEventArgs e)
@@ -52,9 +83,17 @@ public partial class DuplicateDeviceRenameWindow : Window
 
     private void AutoRenameButton_Click(object sender, RoutedEventArgs e)
     {
-        Choice = DuplicateDeviceImportChoice.AutoRename;
-        RenameMap = new Dictionary<string, string>(_automaticRenameMap, StringComparer.OrdinalIgnoreCase);
-        DialogResult = true;
+        try
+        {
+            _automaticRenameMap = _automaticRenameFactory(SuffixTextBox.Text);
+            Choice = DuplicateDeviceImportChoice.AutoRename;
+            RenameMap = new Dictionary<string, string>(_automaticRenameMap, StringComparer.OrdinalIgnoreCase);
+            DialogResult = true;
+        }
+        catch (InvalidOperationException ex)
+        {
+            MessageBox.Show(this, ex.Message, T("DuplicateDialog.InvalidTitle"), MessageBoxButton.OK, MessageBoxImage.Error);
+        }
     }
 
     private void ManualRenameButton_Click(object sender, RoutedEventArgs e)

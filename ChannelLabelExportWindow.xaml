@@ -2,15 +2,15 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Exporter des labels"
-        Width="900"
-        Height="650"
-        MinWidth="780"
-        MinHeight="560"
+        Width="1040"
+        Height="800"
+        MinWidth="900"
+        MinHeight="650"
         WindowStartupLocation="CenterOwner">
     <Grid Margin="16">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
-            <RowDefinition Height="250" />
+            <RowDefinition Height="380" />
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
@@ -22,8 +22,8 @@
 
         <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="1.3*" />
-                <ColumnDefinition Width="1*" />
+                <ColumnDefinition Width="1.2*" />
+                <ColumnDefinition Width="1.1*" />
             </Grid.ColumnDefinitions>
             <GroupBox x:Name="DevicesGroupBox" Header="Machines à exporter" Margin="0,0,12,0" Padding="8">
                 <DataGrid x:Name="DevicesGrid" AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False"
@@ -58,6 +58,8 @@
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
                     <StackPanel Grid.ColumnSpan="2">
                         <Label x:Name="FormatLabel" Content="Format" />
@@ -82,19 +84,44 @@
                         <Label x:Name="StartLabel" Content="Premier canal" />
                         <TextBox x:Name="StartTextBox" Text="1" TextChanged="OptionsChanged" />
                     </StackPanel>
-                    <StackPanel Grid.Row="2" Grid.ColumnSpan="2" Margin="0,6,0,0">
+                    <StackPanel Grid.Row="2" Margin="0,6,6,0">
                         <Label x:Name="CountLabel" Content="Nombre (0 = tous)" />
                         <TextBox x:Name="CountTextBox" Text="0" TextChanged="OptionsChanged" />
                     </StackPanel>
+                    <StackPanel Grid.Row="2" Grid.Column="1" Margin="6,6,0,0">
+                        <Label x:Name="MaximumLengthLabel" Content="Longueur maximale (0 = aucune)" />
+                        <TextBox x:Name="MaximumLengthTextBox" Text="0" TextChanged="OptionsChanged" />
+                    </StackPanel>
+                    <StackPanel Grid.Row="3" Grid.ColumnSpan="2" Margin="0,6,0,0">
+                        <Label x:Name="CaseModeLabel" Content="Casse" />
+                        <ComboBox x:Name="CaseModeComboBox" SelectionChanged="CaseModeComboBox_SelectionChanged">
+                            <ComboBoxItem x:Name="PreserveCaseItem" Content="Conserver" />
+                            <ComboBoxItem x:Name="LowercaseItem" Content="Tout en minuscules" />
+                            <ComboBoxItem x:Name="UppercaseItem" Content="Tout en majuscules" />
+                            <ComboBoxItem x:Name="FirstUppercaseItem" Content="Première lettre en majuscule" />
+                        </ComboBox>
+                    </StackPanel>
+                    <StackPanel Grid.Row="4" Margin="0,6,6,0">
+                        <Label x:Name="StartPositionLabel" Content="Commencer au caractère" />
+                        <TextBox x:Name="StartPositionTextBox" Text="1" TextChanged="OptionsChanged" />
+                    </StackPanel>
+                    <CheckBox x:Name="FromEndCheckBox"
+                              Grid.Row="4"
+                              Grid.Column="1"
+                              Margin="6,26,0,0"
+                              Content="Compter depuis la fin"
+                              Click="OptionsChanged" />
                     <CheckBox x:Name="AdaptDmtCheckBox"
-                              Grid.Row="3"
+                              Grid.Row="5"
                               Grid.ColumnSpan="2"
                               Margin="0,10,0,0"
-                              Content="Adapter au format console : ASCII et 8 caractères"
-                              Checked="OptionsChanged"
-                              Unchecked="OptionsChanged" />
+                              Click="AdaptDmtCheckBox_Click">
+                        <TextBlock x:Name="AdaptDmtTextBlock"
+                                   Text="Adapter au format console : ASCII et 8 caractères"
+                                   TextWrapping="Wrap" />
+                    </CheckBox>
                     <TextBlock x:Name="FormatHelpTextBlock"
-                               Grid.Row="4"
+                               Grid.Row="6"
                                Grid.ColumnSpan="2"
                                Margin="0,8,0,0"
                                Foreground="#475569"

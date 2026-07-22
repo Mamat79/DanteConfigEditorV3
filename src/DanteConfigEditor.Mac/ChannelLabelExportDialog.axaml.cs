@@ -12,7 +12,8 @@ internal sealed record ChannelLabelExportDialogResult(
     DanteChannelKind Kind,
     int StartChannel,
     int? Count,
-    bool AdaptConsoleLabels);
+    bool AdaptConsoleLabels,
+    ChannelLabelTransformOptions TransformOptions);
 
 internal sealed partial class ChannelLabelExportDialog : Window
 {
@@ -21,6 +22,8 @@ internal sealed partial class ChannelLabelExportDialog : Window
     private DanteProject? _project;
     private UiLanguage _language;
     private bool _initializing = true;
+    private bool _adaptationUserOverride;
+    private int _collisionCount;
 
     public ChannelLabelExportDialog()
     {
@@ -76,6 +79,14 @@ internal sealed partial class ChannelLabelExportDialog : Window
             new("tx", "TX"),
             new("rx", "RX")
         };
+        FindControl<ComboBox>("CaseModeCombo")!.ItemsSource = new ChoiceValue[]
+        {
+            new("preserve", Local("Conserver", "Preserve")),
+            new("lower", Local("Tout en minuscules", "Lowercase")),
+            new("upper", Local("Tout en majuscules", "Uppercase")),
+            new("first-upper", Local("Première lettre en majuscule", "First letter uppercase"))
+        };
+        FindControl<ComboBox>("CaseModeCombo")!.SelectedIndex = 0;
         DanteDevice? selectedDevice = _project.Devices.FirstOrDefault(device =>
             string.Equals(device.Name, initiallySelectedDevice, StringComparison.OrdinalIgnoreCase));
         FindControl<ComboBox>("KindCombo")!.SelectedIndex = selectedDevice is { TxCount: 0, RxCount: > 0 } ? 1 : 0;
@@ -97,9 +108,13 @@ internal sealed partial class ChannelLabelExportDialog : Window
         FindControl<TextBlock>("KindLabel")!.Text = Local("Canaux", "Channels");
         FindControl<TextBlock>("StartLabel")!.Text = Local("Premier canal", "First channel");
         FindControl<TextBlock>("CountLabel")!.Text = Local("Nombre (0 = tous)", "Count (0 = all)");
-        FindControl<CheckBox>("AdaptDmtCheckBox")!.Content = Local(
-            "Adapter au format console : ASCII et 8 caractères",
-            "Adapt to console format: ASCII and 8 characters");
+        FindControl<TextBlock>("MaximumLengthLabel")!.Text = Local("Longueur maximale (0 = aucune)", "Maximum length (0 = none)");
+        FindControl<TextBlock>("CaseModeLabel")!.Text = Local("Casse", "Letter case");
+        FindControl<TextBlock>("StartPositionLabel")!.Text = Local("Commencer au caractère", "Start at character");
+        FindControl<CheckBox>("FromEndCheckBox")!.Content = Local("Compter depuis la fin", "Count from the end");
+        FindControl<TextBlock>("AdaptDmtText")!.Text = Local(
+            "Adapter au format console : ASCII compatible",
+            "Adapt to console format: compatible ASCII");
         FindControl<Button>("PreviewButton")!.Content = Local("Actualiser l'aperçu", "Refresh preview");
         FindControl<TextBlock>("PreviewTitle")!.Text = Local("Labels exportés", "Exported labels");
         DataGrid preview = FindControl<DataGrid>("PreviewGrid")!;
@@ -126,10 +141,9 @@ internal sealed partial class ChannelLabelExportDialog : Window
         }
         bool consoleTemplate = RequiresConsoleCompatibility(SelectedValue("FormatCombo"));
         adapt.IsEnabled = consoleTemplate;
-        if (!consoleTemplate)
-        {
-            adapt.IsChecked = false;
-        }
+        _adaptationUserOverride = false;
+        adapt.IsChecked = consoleTemplate;
+        FindControl<TextBox>("MaximumLengthTextBox")!.Text = consoleTemplate ? "8" : "0";
         UpdateFormatHelp();
         RefreshPreview();
     }
@@ -137,6 +151,28 @@ internal sealed partial class ChannelLabelExportDialog : Window
     private void DeviceSelectionCheckBox_Click(object? sender, RoutedEventArgs e)
     {
         Avalonia.Threading.Dispatcher.UIThread.Post(RefreshPreview);
+    }
+
+    private void CaseModeCombo_SelectionChanged(object? sender, SelectionChangedEventArgs e)
+    {
+        if (!_initializing)
+        {
+            RefreshPreview();
+        }
+    }
+
+    private void AdaptDmtCheckBox_Click(object? sender, RoutedEventArgs e)
+    {
+        _adaptationUserOverride = true;
+        RefreshPreview();
+    }
+
+    private void OptionsChanged(object? sender, RoutedEventArgs e)
+    {
+        if (!_initializing)
+        {
+            RefreshPreview();
+        }
     }
 
     private void KindCombo_SelectionChanged(object? sender, SelectionChangedEventArgs e)
@@ -218,7 +254,6 @@ internal sealed partial class ChannelLabelExportDialog : Window
         int? count = int.TryParse(FindControl<TextBox>("CountTextBox")!.Text, out int parsedCount) && parsedCount > 0 ? parsedCount : null;
         DanteChannelKind kind = SelectedValue("KindCombo") == "rx" ? DanteChannelKind.Rx : DanteChannelKind.Tx;
         bool consoleTemplate = RequiresConsoleCompatibility(SelectedValue("FormatCombo"));
-        bool adapt = FindControl<CheckBox>("AdaptDmtCheckBox")!.IsChecked == true;
         ChannelLabelDocument document;
         try
         {
@@ -232,13 +267,50 @@ internal sealed partial class ChannelLabelExportDialog : Window
             FindControl<Button>("ExportButton")!.IsEnabled = false;
             return;
         }
+
+        bool requiresAdaptation = consoleTemplate && document.Sets
+            .SelectMany(set => set.Channels)
+            .Any(channel => !DmtChannelWorkbookService.CheckCompatibility(channel.Label).IsCompatible);
+        if (consoleTemplate && !_adaptationUserOverride)
+        {
+            FindControl<CheckBox>("AdaptDmtCheckBox")!.IsChecked = requiresAdaptation;
+        }
+
+        ChannelLabelTransformOptions transformOptions;
+        try
+        {
+            transformOptions = ReadTransformOptions();
+        }
+        catch (InvalidOperationException exception)
+        {
+            FindControl<TextBlock>("SummaryText")!.Text = exception.Message;
+            FindControl<Button>("ExportButton")!.IsEnabled = false;
+            return;
+        }
+
+        bool adapt = transformOptions.AsciiOnly;
         int incompatible = 0;
+        _collisionCount = 0;
         foreach (ChannelLabelSet set in document.Sets)
         {
-            foreach (ChannelLabelEntry channel in set.Channels)
+            ChannelLabelTransformResult transformedSet = ChannelLabelTransformService.Transform(set, transformOptions);
+            _collisionCount += transformedSet.Collisions.Count;
+            Dictionary<string, ChannelLabelCollision> collisions = transformedSet.Collisions
+                .ToDictionary(collision => collision.Label, StringComparer.OrdinalIgnoreCase);
+            foreach ((ChannelLabelEntry channel, ChannelLabelEntry transformed) in set.Channels.Zip(transformedSet.Labels.Channels))
             {
-                DmtLabelCompatibility compatibility = DmtChannelWorkbookService.CheckCompatibility(channel.Label);
-                string warning = consoleTemplate && !compatibility.IsCompatible ? string.Join("; ", compatibility.Warnings) : string.Empty;
+                DmtLabelCompatibility compatibility = DmtChannelWorkbookService.CheckCompatibility(transformed.Label);
+                List<string> warnings = [];
+                if (consoleTemplate && !compatibility.IsCompatible && !adapt)
+                {
+                    warnings.AddRange(compatibility.Warnings);
+                }
+                if (collisions.TryGetValue(transformed.Label, out ChannelLabelCollision? collision))
+                {
+                    warnings.Add(Local(
+                        $"Doublon après transformation : canaux {string.Join(", ", collision.Channels)}",
+                        $"Duplicate after transformation: channels {string.Join(", ", collision.Channels)}"));
+                }
                 if (consoleTemplate && !compatibility.IsCompatible && !adapt)
                 {
                     incompatible++;
@@ -248,8 +320,8 @@ internal sealed partial class ChannelLabelExportDialog : Window
                     kind,
                     channel.ChannelNumber,
                     channel.Label,
-                    consoleTemplate && adapt ? compatibility.AdaptedLabel : channel.Label,
-                    warning));
+                    transformed.Label,
+                    string.Join("; ", warnings)));
             }
         }
 
@@ -263,8 +335,8 @@ internal sealed partial class ChannelLabelExportDialog : Window
         }
 
         FindControl<TextBlock>("SummaryText")!.Text = _language == UiLanguage.English
-            ? $"{document.Sets.Count} device(s), {_preview.Count} label(s), {incompatible} console-incompatible label(s)."
-            : $"{document.Sets.Count} machine(s), {_preview.Count} label(s), {incompatible} label(s) incompatible(s) avec la console.";
+            ? $"{document.Sets.Count} device(s), {_preview.Count} label(s), {incompatible} console-incompatible label(s), {_collisionCount} collision(s)."
+            : $"{document.Sets.Count} machine(s), {_preview.Count} label(s), {incompatible} label(s) incompatible(s) avec la console, {_collisionCount} collision(s).";
         FindControl<Button>("ExportButton")!.IsEnabled = true;
     }
 
@@ -291,6 +363,12 @@ internal sealed partial class ChannelLabelExportDialog : Window
                     "Certains labels ne sont pas compatibles avec le format console. Activez l'adaptation explicite ou choisissez JSON/CSV générique.",
                     "Some labels are not console-compatible. Enable explicit adaptation or choose generic JSON/CSV."));
             }
+            if (_collisionCount > 0)
+            {
+                throw new InvalidOperationException(Local(
+                    "La transformation crée des labels en doublon. Modifiez la casse, la position de départ ou la longueur avant l'export.",
+                    "The transformation creates duplicate labels. Change the letter case, start position, or length before exporting."));
+            }
 
             Close(new ChannelLabelExportDialogResult(
                 format,
@@ -298,7 +376,8 @@ internal sealed partial class ChannelLabelExportDialog : Window
                 SelectedValue("KindCombo") == "rx" ? DanteChannelKind.Rx : DanteChannelKind.Tx,
                 ParsePositive(FindControl<TextBox>("StartTextBox")!.Text, Local("premier canal", "first channel")),
                 ParseOptionalCount(FindControl<TextBox>("CountTextBox")!.Text),
-                adapt));
+                adapt,
+                ReadTransformOptions()));
         }
         catch (Exception exception)
         {
@@ -325,6 +404,31 @@ internal sealed partial class ChannelLabelExportDialog : Window
             throw new InvalidOperationException("Nombre de canaux invalide.");
         }
         return parsed == 0 ? null : parsed;
+    }
+
+    private ChannelLabelTransformOptions ReadTransformOptions()
+    {
+        int maximumLength = int.TryParse(FindControl<TextBox>("MaximumLengthTextBox")!.Text?.Trim(), out int parsedLength)
+            && parsedLength >= 0
+                ? parsedLength
+                : throw new InvalidOperationException(Local("Longueur maximale invalide.", "Invalid maximum length."));
+        int startPosition = int.TryParse(FindControl<TextBox>("StartPositionTextBox")!.Text?.Trim(), out int parsedStart)
+            && parsedStart > 0
+                ? parsedStart
+                : throw new InvalidOperationException(Local("Position de départ invalide.", "Invalid start position."));
+        ChannelLabelCaseMode caseMode = SelectedValue("CaseModeCombo") switch
+        {
+            "lower" => ChannelLabelCaseMode.Lowercase,
+            "upper" => ChannelLabelCaseMode.Uppercase,
+            "first-upper" => ChannelLabelCaseMode.FirstLetterUppercase,
+            _ => ChannelLabelCaseMode.Preserve
+        };
+        return new ChannelLabelTransformOptions(
+            FindControl<CheckBox>("AdaptDmtCheckBox")!.IsChecked == true,
+            caseMode,
+            maximumLength,
+            startPosition,
+            FindControl<CheckBox>("FromEndCheckBox")!.IsChecked == true);
     }
 
     private string Local(string french, string english) => _language == UiLanguage.English ? english : french;

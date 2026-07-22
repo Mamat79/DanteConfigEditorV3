@@ -313,7 +313,7 @@ public partial class MainWindow : Window
             DuplicateDeviceRenameWindow duplicateWindow = new(
                 _language,
                 duplicateNames,
-                _project!.BuildAutomaticDuplicateRenameMap(dialog.FileName))
+                suffix => _project!.BuildAutomaticDuplicateRenameMap(dialog.FileName, suffix))
             {
                 Owner = this
             };
@@ -2004,10 +2004,11 @@ public partial class MainWindow : Window
                 window.Kind,
                 window.StartChannel,
                 window.Count);
+            document = ChannelLabelTransformService.Transform(document, window.TransformOptions);
 
             if (BuiltInChannelLabelTemplateService.IsBuiltInFormat(window.Format))
             {
-                ExportBuiltInTemplateCopies(document, window.Format, window.AdaptConsoleLabels);
+                ExportBuiltInTemplateCopies(document, window.Format, adaptLabels: false);
                 return;
             }
 

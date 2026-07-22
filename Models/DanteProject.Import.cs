@@ -16,9 +16,10 @@ public sealed partial class DanteProject
             .ToArray();
     }
 
-    public IReadOnlyDictionary<string, string> BuildAutomaticDuplicateRenameMap(string path)
+    public IReadOnlyDictionary<string, string> BuildAutomaticDuplicateRenameMap(string path, string suffix = "Import")
     {
         DanteProject importedProject = Load(path);
+        string cleanSuffix = NormalizeImportSuffix(suffix);
         HashSet<string> usedNames = Devices.Select(device => device.Name).ToHashSet(StringComparer.OrdinalIgnoreCase);
         Dictionary<string, string> renameMap = new(StringComparer.OrdinalIgnoreCase);
 
@@ -30,7 +31,7 @@ public sealed partial class DanteProject
                 continue;
             }
 
-            string newName = BuildUniqueImportedDeviceName(device.Name, usedNames);
+            string newName = BuildUniqueImportedDeviceName(device.Name, cleanSuffix, usedNames);
             renameMap[device.Name] = newName;
             usedNames.Add(newName);
         }
@@ -116,14 +117,29 @@ public sealed partial class DanteProject
         return clean;
     }
 
-    private static string BuildUniqueImportedDeviceName(string originalName, ISet<string> usedNames)
+    private static string NormalizeImportSuffix(string suffix)
+    {
+        string clean = (suffix ?? string.Empty).Trim().Trim('(', ')').Trim();
+        clean = string.Join("-", clean.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries));
+        if (string.IsNullOrWhiteSpace(clean))
+        {
+            throw new InvalidOperationException("Le suffixe de renommage ne peut pas être vide.");
+        }
+        if (ContainsProblematicCharacters(clean))
+        {
+            throw new InvalidOperationException("Le suffixe de renommage contient des caractères non imprimables.");
+        }
+        return clean;
+    }
+
+    private static string BuildUniqueImportedDeviceName(string originalName, string suffix, ISet<string> usedNames)
     {
         string baseName = string.IsNullOrWhiteSpace(originalName) ? "Imported device" : originalName.Trim();
-        string candidate = baseName + " (import)";
+        string candidate = $"{baseName}-{suffix}";
         int index = 2;
         while (usedNames.Contains(candidate))
         {
-            candidate = $"{baseName} (import {index})";
+            candidate = $"{baseName}-{suffix}-{index}";
             index++;
         }
 
