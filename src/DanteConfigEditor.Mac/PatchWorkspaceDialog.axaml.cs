@@ -32,6 +32,11 @@ public sealed partial class PatchWorkspaceDialog : Window
     public PatchWorkspaceDialog()
     {
         InitializeComponent();
+        TabControl tabs = FindControl<TabControl>("PatchModeTabs")!;
+        TabItem matrix = FindControl<TabItem>("MatrixTab")!;
+        tabs.Items.Remove(matrix);
+        tabs.Items.Insert(0, matrix);
+        tabs.SelectedItem = matrix;
     }
 
     public PatchWorkspaceDialog(

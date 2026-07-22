@@ -77,6 +77,32 @@ public sealed class SynopticExportTests
     }
 
     [Fact]
+    public void ReciprocalSubscriptionsUseOneCableWithArrowsAtBothEnds()
+    {
+        using TestDirectory directory = new();
+        string source = directory.PathFor("bidirectional.xml");
+        SyntheticPresetFactory.Create(source, deviceCount: 2, txPerDevice: 4, rxPerDevice: 4);
+        DanteProject project = DanteProject.Load(source);
+        project.ApplyPatch("DEVICE-001", 1, "DEVICE-002", "TX-01");
+        SynopticLayoutDocument layout = SynopticExportService.LoadOrCreate(project, directory.PathFor("layout"));
+        SetLocation(layout, "DEVICE-001", "Régie");
+        SetLocation(layout, "DEVICE-002", "Scène");
+
+        SynopticDiagram diagram = SynopticExportService.BuildDiagram(project, layout);
+        SynopticCable cable = Assert.Single(diagram.Cables, item =>
+            !item.IsLoopback
+            && new[] { item.SourceDevice, item.TargetDevice }.ToHashSet(StringComparer.OrdinalIgnoreCase)
+                .SetEquals(["DEVICE-001", "DEVICE-002"]));
+        string svg = SynopticExportService.BuildSvg(diagram);
+
+        Assert.True(cable.IsBidirectional);
+        Assert.Contains(cable.Labels, label => label.StartsWith("DEVICE-001 → DEVICE-002", StringComparison.Ordinal));
+        Assert.Contains(cable.Labels, label => label.StartsWith("DEVICE-002 → DEVICE-001", StringComparison.Ordinal));
+        Assert.Contains("marker-start=", svg, StringComparison.Ordinal);
+        Assert.Contains("marker-end=", svg, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void RoutedCablesUseGuttersAndAvoidUnrelatedDeviceCards()
     {
         using TestDirectory directory = new();

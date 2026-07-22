@@ -260,7 +260,7 @@ public partial class MainWindow
             Data = new PathGeometry([figure]),
             Stroke = stroke,
             StrokeThickness = thickness,
-            StrokeStartLineCap = PenLineCap.Round,
+            StrokeStartLineCap = showArrow && cable.IsBidirectional ? PenLineCap.Triangle : PenLineCap.Round,
             StrokeEndLineCap = showArrow ? PenLineCap.Triangle : PenLineCap.Round,
             StrokeLineJoin = PenLineJoin.Round,
             Opacity = showArrow ? 0.92 : 0.96
@@ -533,6 +533,16 @@ public partial class MainWindow
         {
             placement.ManualX = null;
             placement.ManualY = null;
+        }
+
+        foreach (IGrouping<string, SynopticDevicePlacement> location in _synopticLayout.Devices
+                     .GroupBy(item => item.Location?.Trim() ?? string.Empty, StringComparer.OrdinalIgnoreCase))
+        {
+            int order = 0;
+            foreach (SynopticDevicePlacement placement in location.OrderBy(item => item.DeviceName, StringComparer.CurrentCultureIgnoreCase))
+            {
+                placement.Order = order++;
+            }
         }
         SaveAndRefreshSynoptic();
     }

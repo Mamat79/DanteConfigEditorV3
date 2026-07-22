@@ -7,13 +7,13 @@ namespace DanteConfigEditorV3.Tests;
 public sealed class DanteProjectTests
 {
     [Fact]
-    public void AssemblyMetadataUsesV33Version()
+    public void AssemblyMetadataUsesV34Version()
     {
         string version = typeof(DanteProject).Assembly
             .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?
             .InformationalVersion ?? string.Empty;
 
-        Assert.StartsWith("3.3", version, StringComparison.Ordinal);
+        Assert.StartsWith("3.4", version, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -74,6 +74,18 @@ public sealed class DanteProjectTests
 
         Assert.DoesNotContain(project.PatchMatrix.Subscriptions, subscription => subscription.TxChannelName == "PROGRAM L");
         Assert.True(project.PatchMatrix.Subscriptions.Count(subscription => subscription.TxChannelName == "PROGRAM NEW") >= 2);
+        Assert.False(project.ValidateXmlChangeGuard().HasErrors);
+    }
+
+    [Fact]
+    public void ExclusivePreferredMasterKeepsOnlyTheSelectedDevice()
+    {
+        using TestWorkspace workspace = new("representative-preset.xml");
+        DanteProject project = DanteProject.Load(workspace.SourcePath);
+
+        project.SetExclusivePreferredMaster("DEVICE-B");
+
+        Assert.Equal("DEVICE-B", Assert.Single(project.Devices, device => device.PreferredMaster).Name);
         Assert.False(project.ValidateXmlChangeGuard().HasErrors);
     }
 

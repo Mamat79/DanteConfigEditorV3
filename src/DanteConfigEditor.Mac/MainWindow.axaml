@@ -6,7 +6,7 @@
         d:DesignWidth="1500"
         d:DesignHeight="930"
         x:Class="DanteConfigEditor.Mac.MainWindow"
-        Title="Dante Config Editor V3.3 - macOS"
+        Title="Dante Config Editor V3.4 - macOS"
         Width="1500"
         Height="930"
         MinWidth="1120"
@@ -20,7 +20,7 @@
             <Grid RowDefinitions="Auto,Auto" RowSpacing="8">
                 <Grid Grid.Row="0" ColumnDefinitions="*,Auto,Auto,120,Auto" ColumnSpacing="10">
                     <StackPanel VerticalAlignment="Center">
-                    <TextBlock Text="Dante Config Editor V3.3" FontSize="20" FontWeight="Bold" />
+                    <TextBlock Text="Dante Config Editor V3.4" FontSize="20" FontWeight="Bold" />
                     <TextBlock x:Name="FilePathText" Classes="muted" Text="Aucun fichier ouvert" TextTrimming="CharacterEllipsis" />
                     </StackPanel>
                     <TextBlock x:Name="DirtyStateText" Grid.Column="1" VerticalAlignment="Center" Foreground="{DynamicResource MutedTextBrush}" Text="Non modifié" />
@@ -226,6 +226,13 @@
                                                 <TextBlock Text="Profil rapide" Classes="muted" />
                                                 <ComboBox x:Name="ProfileCombo" />
                                                 <Button Classes="primary" Click="ApplyProfileButton_Click">Appliquer le profil à toutes</Button>
+                                            </StackPanel>
+                                        </TabItem>
+                                        <TabItem Header="Horloge">
+                                            <StackPanel Spacing="8" Margin="0,8,0,0">
+                                                <TextBlock Text="Preferred Master à conserver" Classes="muted" />
+                                                <ComboBox x:Name="ExclusivePreferredMasterCombo" />
+                                                <Button Classes="primary" Click="ApplyExclusivePreferredMasterButton_Click">Conserver un seul Preferred Master</Button>
                                             </StackPanel>
                                         </TabItem>
                                     </TabControl>
@@ -556,8 +563,10 @@
                 <TabItem x:Name="AtomicTab" Header="Atomic Bomb">
                     <Grid Margin="0,12,0,0">
                         <Border Classes="atomicPanel"
-                                MaxWidth="900"
-                                Padding="26"
+                                MinWidth="920"
+                                MaxWidth="1120"
+                                MinHeight="520"
+                                Padding="34"
                                 HorizontalAlignment="Center"
                                 VerticalAlignment="Center">
                             <StackPanel HorizontalAlignment="Center" Spacing="10">

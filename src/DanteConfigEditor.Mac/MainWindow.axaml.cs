@@ -781,6 +781,23 @@ public partial class MainWindow : Window
             project => project.ApplyDeviceProfile(project.Devices.Select(device => device.Name), profile));
     }
 
+    private async void ApplyExclusivePreferredMasterButton_Click(object? sender, RoutedEventArgs e)
+    {
+        string? deviceName = FindControl<ComboBox>("ExclusivePreferredMasterCombo")!.SelectedItem as string;
+        if (string.IsNullOrWhiteSpace(deviceName))
+        {
+            await ShowInfoAsync(
+                L("Action impossible", "Action unavailable"),
+                L("Choisissez la machine qui doit rester Preferred Master.", "Select the device that must remain Preferred Master."));
+            return;
+        }
+
+        await ExecuteGlobalMutationAsync(
+            L("Preferred Master unique", "Single Preferred Master"),
+            L($"{deviceName} est maintenant le seul Preferred Master.", $"{deviceName} is now the only Preferred Master."),
+            project => project.SetExclusivePreferredMaster(deviceName));
+    }
+
     private async Task ExecuteGlobalMutationAsync(string undoLabel, string success, Action<DanteProject> mutation)
     {
         if (_project is null || !await EnsureEditableAsync())
@@ -1050,7 +1067,7 @@ public partial class MainWindow : Window
         if (path is null) return;
         try
         {
-            ReportExportService.ExportPdf(path, "Dante Config Editor V3.3", _project.BuildReportText());
+            ReportExportService.ExportPdf(path, "Dante Config Editor V3.4", _project.BuildReportText());
             SetStatus(LocalizationService.Text(_language, "Status.PdfExported"));
         }
         catch (Exception exception)
@@ -1262,6 +1279,14 @@ public partial class MainWindow : Window
             device.TxCount,
             device.RxCount)).ToArray();
         grid.ItemsSource = rows;
+
+        ComboBox preferredMaster = FindControl<ComboBox>("ExclusivePreferredMasterCombo")!;
+        string? selectedPreferredMaster = preferredMaster.SelectedItem as string
+            ?? _project.Devices.FirstOrDefault(device => device.PreferredMaster)?.Name;
+        string[] allDeviceNames = _project.Devices.Select(device => device.Name).ToArray();
+        preferredMaster.ItemsSource = allDeviceNames;
+        preferredMaster.SelectedItem = allDeviceNames.FirstOrDefault(name =>
+            string.Equals(name, selectedPreferredMaster, StringComparison.OrdinalIgnoreCase)) ?? allDeviceNames.FirstOrDefault();
 
         string? targetName = preferredDeviceName ?? SelectedDeviceRow()?.Name;
         grid.SelectedItem = rows.FirstOrDefault(row => string.Equals(row.Name, targetName, StringComparison.OrdinalIgnoreCase))
@@ -1746,7 +1771,7 @@ public partial class MainWindow : Window
         FindControl<TextBox>("SearchTextBox")!.Watermark = L("Machine ou canal", "Device or channel");
         ApplyDeviceFilterLanguage();
 
-        Title = L("Dante Config Editor V3.3 - macOS", "Dante Config Editor V3.3 - macOS");
+        Title = L("Dante Config Editor V3.4 - macOS", "Dante Config Editor V3.4 - macOS");
         FindControl<Button>("ThemeButton")!.Content = _darkTheme ? L("Thème clair", "Light theme") : L("Thème sombre", "Dark theme");
     }
 

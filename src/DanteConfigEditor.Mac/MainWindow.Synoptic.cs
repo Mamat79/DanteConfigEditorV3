@@ -160,8 +160,8 @@ public partial class MainWindow
 
         foreach (SynopticCable cable in diagram.Cables)
         {
-            AddCableSegments(canvas, cable, Brushes.White, 8, 0.96, 1);
-            AddCableSegments(canvas, cable, ColorBrush(cable.Color), 3.5, 0.92, 2);
+            AddCableSegments(canvas, cable, Brushes.White, 8, 0.96, 1, showArrows: false);
+            AddCableSegments(canvas, cable, ColorBrush(cable.Color), 3.5, 0.92, 2, showArrows: true);
         }
 
         foreach (SynopticDeviceNode node in diagram.Devices)
@@ -349,8 +349,8 @@ public partial class MainWindow
                     new SynopticRoutePoint(endX, endY)
                 ]
             };
-            AddCableSegments(canvas, movedCable, Brushes.White, 8, 0.96, 1);
-            AddCableSegments(canvas, movedCable, ColorBrush(cable.Color), 3.5, 0.92, 2);
+            AddCableSegments(canvas, movedCable, Brushes.White, 8, 0.96, 1, showArrows: false);
+            AddCableSegments(canvas, movedCable, ColorBrush(cable.Color), 3.5, 0.92, 2, showArrows: true);
         }
     }
 
@@ -436,6 +436,15 @@ public partial class MainWindow
         {
             placement.ManualX = null;
             placement.ManualY = null;
+        }
+        foreach (IGrouping<string, SynopticDevicePlacement> location in _synopticLayout.Devices
+                     .GroupBy(item => item.Location?.Trim() ?? string.Empty, StringComparer.OrdinalIgnoreCase))
+        {
+            int order = 0;
+            foreach (SynopticDevicePlacement placement in location.OrderBy(item => item.DeviceName, StringComparer.CurrentCultureIgnoreCase))
+            {
+                placement.Order = order++;
+            }
         }
         SaveAndRefreshSynoptic();
     }
@@ -573,7 +582,7 @@ public partial class MainWindow
 
     private static SolidColorBrush ColorBrush(string color) => new(Color.Parse(color));
 
-    private static void AddCableSegments(Canvas canvas, SynopticCable cable, IBrush stroke, double thickness, double opacity, int zIndex)
+    private static void AddCableSegments(Canvas canvas, SynopticCable cable, IBrush stroke, double thickness, double opacity, int zIndex, bool showArrows)
     {
         IReadOnlyList<SynopticRoutePoint> points = cable.RoutePoints.Count == 0
             ? [new SynopticRoutePoint(cable.StartX, cable.StartY), new SynopticRoutePoint(cable.EndX, cable.EndY)]
@@ -592,6 +601,44 @@ public partial class MainWindow
             line.ZIndex = zIndex;
             canvas.Children.Add(line);
         }
+
+        if (showArrows && points.Count >= 2)
+        {
+            AddArrowHead(canvas, points[^1], points[^2], stroke, zIndex);
+            if (cable.IsBidirectional)
+            {
+                AddArrowHead(canvas, points[0], points[1], stroke, zIndex);
+            }
+        }
+    }
+
+    private static void AddArrowHead(Canvas canvas, SynopticRoutePoint tip, SynopticRoutePoint previous, IBrush fill, int zIndex)
+    {
+        double dx = tip.X - previous.X;
+        double dy = tip.Y - previous.Y;
+        double length = Math.Sqrt(dx * dx + dy * dy);
+        if (length < 0.01)
+        {
+            return;
+        }
+
+        dx /= length;
+        dy /= length;
+        double backX = tip.X - dx * 9;
+        double backY = tip.Y - dy * 9;
+        double perpendicularX = -dy * 4;
+        double perpendicularY = dx * 4;
+        StreamGeometry geometry = new();
+        using (StreamGeometryContext context = geometry.Open())
+        {
+            context.BeginFigure(new Point(tip.X, tip.Y), isFilled: true);
+            context.LineTo(new Point(backX + perpendicularX, backY + perpendicularY));
+            context.LineTo(new Point(backX - perpendicularX, backY - perpendicularY));
+            context.EndFigure(isClosed: true);
+        }
+
+        Avalonia.Controls.Shapes.Path arrow = new() { Data = geometry, Fill = fill, ZIndex = zIndex };
+        canvas.Children.Add(arrow);
     }
 
     private void RenderSynopticLegend(Canvas canvas, SynopticDiagram diagram)

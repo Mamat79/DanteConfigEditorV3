@@ -18,6 +18,8 @@ public partial class PatchWorkspaceView : UserControl
     private readonly bool _returnEditsOnly;
     private readonly bool _lockRxDeviceSelection;
     private readonly bool _embedded;
+    private readonly Func<string, DanteChannelKind, int, string, bool>? _renameChannelAction;
+    private readonly Func<string, DanteChannelKind, IReadOnlyList<int>, int, bool>? _extendChannelSeriesAction;
     private readonly HashSet<string> _ambiguousSourceNames = new(StringComparer.OrdinalIgnoreCase);
     private readonly List<ToggleButton> _matrixGestureHighlights = [];
     private IReadOnlyList<PatchSourceDescriptor> _visibleSources = [];
@@ -25,6 +27,9 @@ public partial class PatchWorkspaceView : UserControl
     private PatchMatrixCell? _matrixGestureStart;
     private PatchMatrixCell? _matrixGestureCurrent;
     private bool _matrixGestureActive;
+    private string? _channelSeriesDeviceName;
+    private DanteChannelKind? _channelSeriesKind;
+    private int[] _channelSeriesSeeds = [];
     private bool _initializing = true;
 
     public PatchWorkspaceView(
@@ -36,15 +41,24 @@ public partial class PatchWorkspaceView : UserControl
         IEnumerable<PatchEditRequest>? initialEdits = null,
         bool returnEditsOnly = false,
         bool lockRxDeviceSelection = false,
-        bool embedded = false)
+        bool embedded = false,
+        Func<string, DanteChannelKind, int, string, bool>? renameChannelAction = null,
+        Func<string, DanteChannelKind, IReadOnlyList<int>, int, bool>? extendChannelSeriesAction = null)
     {
         InitializeComponent();
+        // La grille est le mode principal d'Easy patch. La sélection par plage
+        // reste immédiatement accessible dans le second onglet.
+        PatchModeTabControl.Items.Remove(MatrixTab);
+        PatchModeTabControl.Items.Insert(0, MatrixTab);
+        MatrixTab.IsSelected = true;
         _language = language;
         _project = project ?? throw new ArgumentNullException(nameof(project));
         _session = new PatchWorkspaceSession(project.PatchMatrix.Subscriptions, initialEdits);
         _returnEditsOnly = returnEditsOnly;
         _lockRxDeviceSelection = lockRxDeviceSelection;
         _embedded = embedded;
+        _renameChannelAction = renameChannelAction;
+        _extendChannelSeriesAction = extendChannelSeriesAction;
 
         ApplyTheme(useLightTheme);
         ApplyLanguage();
@@ -57,6 +71,8 @@ public partial class PatchWorkspaceView : UserControl
     public IReadOnlyList<PatchEditRequest> Edits => _session.Edits;
 
     public bool HasChanges => _session.HasChanges;
+
+    public bool CanRenameChannels => _renameChannelAction is not null;
 
     public string? SelectedTxDeviceName => TxDeviceComboBox.SelectedItem as string;
 
@@ -176,7 +192,7 @@ public partial class PatchWorkspaceView : UserControl
             .OrderBy(channel => channel.PositionIndex)
             .ToArray() ?? [];
 
-        TxChannelListBox.ItemsSource = _visibleSources;
+        TxChannelListBox.ItemsSource = _visibleSources.Select(source => new PatchTxListItem(source)).ToArray();
         RangeStartTxComboBox.ItemsSource = _visibleSources;
         RangeStartTxComboBox.SelectedItem = _visibleSources.FirstOrDefault(source => source.DanteId == selectedRangeDanteId)
             ?? _visibleSources.FirstOrDefault();
@@ -256,7 +272,7 @@ public partial class PatchWorkspaceView : UserControl
             ? $"{assignment.TxDeviceName} / {assignment.TxChannelName}"
             : L("Libre", "Free");
         string marker = assignment.IsPending ? L("  [modifié]", "  [changed]") : string.Empty;
-        return new PatchRxListItem(target, $"{target.Display}   <-   {source}{marker}");
+        return new PatchRxListItem(target, target.ChannelName, source + marker);
     }
 
     private PatchMatrixRow BuildMatrixRow(PatchTargetDescriptor target, int targetIndex)
@@ -896,9 +912,165 @@ public partial class PatchWorkspaceView : UserControl
     private PatchSourceDescriptor[] SelectedSources()
     {
         return TxChannelListBox.SelectedItems
-            .OfType<PatchSourceDescriptor>()
+            .OfType<PatchTxListItem>()
+            .Select(row => row.Source)
             .OrderBy(source => source.PositionIndex)
             .ToArray();
+    }
+
+    private void InlineChannelNameTextBox_KeyDown(object sender, KeyEventArgs e)
+    {
+        if (sender is not TextBox editor)
+        {
+            return;
+        }
+
+        if (e.Key == Key.Escape)
+        {
+            editor.Text = OriginalInlineChannelName(editor.Tag);
+            Keyboard.ClearFocus();
+            e.Handled = true;
+        }
+        else if (e.Key == Key.Enter)
+        {
+            Keyboard.ClearFocus();
+            e.Handled = true;
+        }
+    }
+
+    private void InlineChannelNameTextBox_LostKeyboardFocus(object sender, KeyboardFocusChangedEventArgs e)
+    {
+        if (sender is TextBox editor)
+        {
+            CommitInlineChannelRename(editor);
+        }
+    }
+
+    private void CommitInlineChannelRename(TextBox editor)
+    {
+        if (_renameChannelAction is null)
+        {
+            editor.Text = OriginalInlineChannelName(editor.Tag);
+            return;
+        }
+
+        string newName = editor.Text.Trim();
+        string oldName = OriginalInlineChannelName(editor.Tag);
+        if (string.Equals(oldName, newName, StringComparison.Ordinal))
+        {
+            return;
+        }
+
+        string deviceName;
+        DanteChannelKind kind;
+        int channelIndex;
+        if (editor.Tag is PatchRxListItem rx)
+        {
+            deviceName = rx.Target.DeviceName;
+            kind = DanteChannelKind.Rx;
+            channelIndex = rx.Target.DanteId;
+        }
+        else if (editor.Tag is PatchTxListItem tx)
+        {
+            deviceName = tx.Source.DeviceName;
+            kind = DanteChannelKind.Tx;
+            channelIndex = tx.Source.DanteId;
+            _session.RenamePendingSourceChannel(deviceName, oldName, newName);
+        }
+        else
+        {
+            return;
+        }
+
+        if (!_renameChannelAction(deviceName, kind, channelIndex, newName))
+        {
+            if (kind == DanteChannelKind.Tx)
+            {
+                _session.RenamePendingSourceChannel(deviceName, newName, oldName);
+            }
+            editor.Text = oldName;
+        }
+    }
+
+    private static string OriginalInlineChannelName(object? item)
+    {
+        return item switch
+        {
+            PatchRxListItem rx => rx.ChannelName,
+            PatchTxListItem tx => tx.ChannelName,
+            _ => string.Empty
+        };
+    }
+
+    private void ChannelSeriesThumb_DragStarted(object sender, DragStartedEventArgs e)
+    {
+        _channelSeriesDeviceName = null;
+        _channelSeriesKind = null;
+        _channelSeriesSeeds = [];
+        if (_extendChannelSeriesAction is null || sender is not Thumb thumb)
+        {
+            return;
+        }
+
+        if (thumb.Tag is PatchRxListItem rx)
+        {
+            PatchRxListItem[] selected = RxChannelListBox.SelectedItems
+                .OfType<PatchRxListItem>()
+                .OrderBy(item => item.Target.DanteId)
+                .ToArray();
+            _channelSeriesDeviceName = rx.Target.DeviceName;
+            _channelSeriesKind = DanteChannelKind.Rx;
+            _channelSeriesSeeds = selected.Select(item => item.Target.DanteId).ToArray();
+        }
+        else if (thumb.Tag is PatchTxListItem tx)
+        {
+            PatchTxListItem[] selected = TxChannelListBox.SelectedItems
+                .OfType<PatchTxListItem>()
+                .OrderBy(item => item.Source.DanteId)
+                .ToArray();
+            _channelSeriesDeviceName = tx.Source.DeviceName;
+            _channelSeriesKind = DanteChannelKind.Tx;
+            _channelSeriesSeeds = selected.Select(item => item.Source.DanteId).ToArray();
+        }
+
+        if (_channelSeriesSeeds.Length < 2)
+        {
+            SetInfo(
+                L(
+                    "Sélectionnez au moins deux canaux numérotés avant de tirer la poignée de série.",
+                    "Select at least two numbered channels before dragging the series handle."),
+                warning: true);
+        }
+    }
+
+    private void ChannelSeriesThumb_DragCompleted(object sender, DragCompletedEventArgs e)
+    {
+        if (_extendChannelSeriesAction is null || _channelSeriesKind is null
+            || string.IsNullOrWhiteSpace(_channelSeriesDeviceName) || _channelSeriesSeeds.Length < 2)
+        {
+            return;
+        }
+
+        ListBox list = _channelSeriesKind == DanteChannelKind.Tx ? TxChannelListBox : RxChannelListBox;
+        DependencyObject? hit = list.InputHitTest(Mouse.GetPosition(list)) as DependencyObject;
+        ListBoxItem? targetRow = FindVisualParent<ListBoxItem>(hit);
+        int? targetIndex = targetRow?.DataContext switch
+        {
+            PatchTxListItem tx => tx.Source.DanteId,
+            PatchRxListItem rx => rx.Target.DanteId,
+            _ => null
+        };
+        if (targetIndex is null)
+        {
+            SetInfo(L("Déposez la poignée sur un canal de la même liste.", "Drop the handle on a channel in the same list."), warning: true);
+            return;
+        }
+
+        _extendChannelSeriesAction(
+            _channelSeriesDeviceName,
+            _channelSeriesKind.Value,
+            _channelSeriesSeeds,
+            targetIndex.Value);
     }
 
     private PatchTargetDescriptor[] SelectedTargets()
@@ -1106,7 +1278,12 @@ public partial class PatchWorkspaceView : UserControl
         return _language == UiLanguage.English ? english : french;
     }
 
-    private sealed record PatchRxListItem(PatchTargetDescriptor Target, string Display);
+    private sealed record PatchRxListItem(PatchTargetDescriptor Target, string ChannelName, string SourceDisplay);
+
+    private sealed record PatchTxListItem(PatchSourceDescriptor Source)
+    {
+        public string ChannelName => Source.ChannelName;
+    }
 
     private sealed record PatchPreviewRow(
         string Target,

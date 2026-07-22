@@ -291,6 +291,19 @@ public sealed class PatchWorkspaceSession
         _pendingEdits.Clear();
     }
 
+    public void RenamePendingSourceChannel(string deviceName, string oldName, string newName)
+    {
+        foreach (PatchTargetKey key in _pendingEdits.Keys.ToArray())
+        {
+            PatchEditRequest edit = _pendingEdits[key];
+            if (string.Equals(edit.TxDeviceName, deviceName, StringComparison.OrdinalIgnoreCase)
+                && string.Equals(edit.TxChannelName, oldName, StringComparison.Ordinal))
+            {
+                _pendingEdits[key] = edit with { TxChannelName = newName };
+            }
+        }
+    }
+
     private void SetDesiredSource(PatchTargetDescriptor target, string? txDeviceName, string? txChannelName)
     {
         PatchTargetKey key = RequireKnownTarget(target);

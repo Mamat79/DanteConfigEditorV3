@@ -66,6 +66,34 @@ public sealed class PatchWorkspaceUiContractTests
     }
 
     [Fact]
+    public void EasyPatchOpensOnTheMatrixThenOffersSelectionAndInlineRename()
+    {
+        string xaml = File.ReadAllText(RepositoryFile("PatchWorkspaceView.xaml"));
+        string codeBehind = File.ReadAllText(RepositoryFile("PatchWorkspaceView.xaml.cs"));
+
+        Assert.Contains("PatchModeTabControl.Items.Insert(0, MatrixTab)", codeBehind, StringComparison.Ordinal);
+        Assert.Contains("MatrixTab.IsSelected = true", codeBehind, StringComparison.Ordinal);
+        Assert.Contains("InlineChannelNameTextBox_LostKeyboardFocus", xaml, StringComparison.Ordinal);
+        Assert.Contains("ChannelSeriesThumb_DragStarted", xaml, StringComparison.Ordinal);
+        Assert.Contains("ChannelSeriesThumb_DragCompleted", xaml, StringComparison.Ordinal);
+        Assert.Contains("ExtendEasyPatchChannelSeries", File.ReadAllText(RepositoryFile("MainWindow.xaml.cs")), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void PatchViewUsesRxFilterFirstAndEditableDeviceAndChannelColumns()
+    {
+        string xaml = File.ReadAllText(RepositoryFile("MainWindow.xaml"));
+
+        Assert.True(
+            xaml.IndexOf("Filtre récepteur RX", StringComparison.Ordinal) < xaml.IndexOf("Filtre émetteur TX", StringComparison.Ordinal));
+        Assert.Contains("x:Name=\"PatchRxDeviceColumn\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("x:Name=\"PatchRxChannelColumn\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("x:Name=\"PatchDisplayTxColumn\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("x:Name=\"PatchTxChannelColumn\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("CellEditEnding=\"PatchGrid_CellEditEnding\"", xaml, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void EmbeddedEasyPatchKeepsDeviceSelectorsOutsideAnyPageScroller()
     {
         XDocument document = XDocument.Parse(File.ReadAllText(RepositoryFile("MainWindow.xaml")));

@@ -273,11 +273,22 @@ public static class SynopticExportService
             .ToDictionary(item => item.key, item => item.index, StringComparer.OrdinalIgnoreCase);
 
         List<SynopticCable> cables = [];
+        HashSet<string> renderedBidirectionalPairs = new(StringComparer.OrdinalIgnoreCase);
         for (int cableIndex = 0; cableIndex < drafts.Length; cableIndex++)
         {
             CableDraft draft = drafts[cableIndex];
             string bundleKey = BundleKey(draft);
             bool loopback = string.Equals(draft.Source.Name, draft.Target.Name, StringComparison.OrdinalIgnoreCase);
+            CableDraft? reverseDraft = loopback
+                ? null
+                : drafts.FirstOrDefault(candidate =>
+                    string.Equals(candidate.Source.Name, draft.Target.Name, StringComparison.OrdinalIgnoreCase)
+                    && string.Equals(candidate.Target.Name, draft.Source.Name, StringComparison.OrdinalIgnoreCase));
+            bool bidirectional = reverseDraft is not null;
+            if (bidirectional && !renderedBidirectionalPairs.Add(UnorderedDevicePairKey(draft.Source.Name, draft.Target.Name)))
+            {
+                continue;
+            }
             double sourceOffset = PortOffset(drafts, draft, draft.Source.Name, source: true);
             double targetOffset = PortOffset(drafts, draft, draft.Target.Name, source: false);
             IReadOnlyList<SynopticRoutePoint> route;
@@ -306,11 +317,16 @@ public static class SynopticExportService
             SynopticRoutePoint start = route[0];
             SynopticRoutePoint end = route[^1];
             SynopticRoutePoint label = PreferredLabelPoint(route);
+            IReadOnlyList<string> labels = bidirectional
+                ? draft.Labels.Select(item => $"{draft.Source.Name} → {draft.Target.Name}: {item}")
+                    .Concat(reverseDraft!.Labels.Select(item => $"{reverseDraft.Source.Name} → {reverseDraft.Target.Name}: {item}"))
+                    .ToArray()
+                : draft.Labels;
             cables.Add(new SynopticCable(
                 draft.Source.Name,
                 draft.Target.Name,
                 Palette[bundleColorIndices[bundleKey] % Palette.Length],
-                draft.Labels,
+                labels,
                 start.X,
                 start.Y,
                 end.X,
@@ -318,7 +334,8 @@ public static class SynopticExportService
                 label.X,
                 label.Y,
                 route,
-                loopback));
+                loopback,
+                bidirectional));
         }
 
         double locationsRight = locations.Count == 0 ? 34 : locations.Max(location => location.X + location.Width);
@@ -447,7 +464,8 @@ public static class SynopticExportService
             cablesLayer.Add(
                 SvgPath(svgNamespace, path, "#FFFFFF", 8, opacity: 0.96),
                 SvgPath(svgNamespace, path, cable.Color, 3.5, opacity: 0.92,
-                    markerEnd: $"url(#{markerByColor[cable.Color]})"));
+                    markerEnd: $"url(#{markerByColor[cable.Color]})",
+                    markerStart: cable.IsBidirectional ? $"url(#{markerByColor[cable.Color]})" : null));
         }
 
         XElement devicesLayer = Layer(svgNamespace, "layer-devices", "Devices");
@@ -491,7 +509,7 @@ public static class SynopticExportService
         labelsLayer.Add(
             SvgText(svgNamespace, 34, diagram.Height - 30, summary, 11, "#526070"),
             SvgText(svgNamespace, diagram.Width - 34, diagram.Height - 30,
-                "Dante Config Editor V3.3 - By Mamat et ses agents  -------[]--", 10, "#718096", anchor: "end"));
+                "Dante Config Editor V3.4 - By Mamat et ses agents  -------[]--", 10, "#718096", anchor: "end"));
 
         root.Add(backgroundLayer, locationsLayer, cablesLayer, devicesLayer, labelsLayer);
         XDocument document = new(new XDeclaration("1.0", "UTF-8", null), root);
@@ -584,6 +602,13 @@ public static class SynopticExportService
     private static string BundleKey(int sourceLocationIndex, int targetLocationIndex, string sourceDevice)
     {
         return $"{sourceLocationIndex}>{targetLocationIndex}:{sourceDevice}";
+    }
+
+    private static string UnorderedDevicePairKey(string first, string second)
+    {
+        return string.Compare(first, second, StringComparison.OrdinalIgnoreCase) <= 0
+            ? $"{first}\u001f{second}"
+            : $"{second}\u001f{first}";
     }
 
     private static double PortOffset(CableDraft[] drafts, CableDraft current, string deviceName, bool source)
@@ -817,7 +842,8 @@ public static class SynopticExportService
         string stroke,
         double strokeWidth,
         double opacity,
-        string? markerEnd = null)
+        string? markerEnd = null,
+        string? markerStart = null)
     {
         XElement path = new(svgNamespace + "path",
             new XAttribute("d", data),
@@ -830,6 +856,10 @@ public static class SynopticExportService
         if (!string.IsNullOrWhiteSpace(markerEnd))
         {
             path.Add(new XAttribute("marker-end", markerEnd));
+        }
+        if (!string.IsNullOrWhiteSpace(markerStart))
+        {
+            path.Add(new XAttribute("marker-start", markerStart));
         }
         return path;
     }
@@ -866,7 +896,7 @@ public static class SynopticExportService
                         new XAttribute("fill", cable.Color)),
                     SvgText(svgNamespace, itemX + 19, y + 24, (index + 1).ToString(CultureInfo.InvariantCulture), 10, "#FFFFFF", bold: true, anchor: "middle"),
                     SvgText(svgNamespace, itemX + 38, y + 23,
-                        Trim($"{cable.SourceDevice} → {cable.TargetDevice}", columns == 1 ? 52 : 38), 12, "#172033", bold: true));
+                        Trim($"{cable.SourceDevice} {(cable.IsBidirectional ? "↔" : "→")} {cable.TargetDevice}", columns == 1 ? 52 : 38), 12, "#172033", bold: true));
                 for (int labelIndex = 0; labelIndex < cable.Labels.Count; labelIndex++)
                 {
                     layer.Add(SvgText(svgNamespace, itemX + 38, y + 42 + labelIndex * 16,

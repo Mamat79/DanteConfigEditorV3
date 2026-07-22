@@ -105,6 +105,24 @@ public sealed partial class DanteProject
         RegisterChange("Canaux global", "Réinitialisation des canaux de tous les devices");
     }
 
+    public void SetExclusivePreferredMaster(string deviceName)
+    {
+        DanteDevice selected = FindDevice(deviceName)
+            ?? throw new InvalidOperationException("La machine choisie est introuvable.");
+
+        foreach (DanteDevice device in Devices)
+        {
+            SetBooleanElementAttribute(
+                device.Element,
+                "preferred_master",
+                "value",
+                ReferenceEquals(device, selected),
+                afterElementName: "redundancy");
+        }
+
+        RegisterChange("Preferred master exclusif", $"{selected.Name} est le seul Preferred Master");
+    }
+
     public int ApplyDeviceProfile(IEnumerable<string> deviceNames, DeviceProfile profile)
     {
         ArgumentNullException.ThrowIfNull(profile);

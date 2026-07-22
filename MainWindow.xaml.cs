@@ -111,8 +111,7 @@ public partial class MainWindow : Window
     // Évite que les changements de sélection déclenchés par RefreshAll relancent
     // eux-mêmes des actions utilisateur.
     private bool _refreshingUi;
-    private bool _compactConfigurationLayout;
-    private bool _configurationEditorsAutoCollapsed;
+    private bool _committingPatchInlineRename;
 
     private sealed record ChannelChoice(DanteChannelKind Kind, int Index, string Name)
     {
@@ -237,6 +236,9 @@ public partial class MainWindow : Window
     {
         // Initialisation des sources de données utilisées par les contrôles.
         _language = LanguageSettingsService.Load();
+        ConfigurationEditorsGrid.Visibility = InterfaceSettingsService.LoadConfigurationEditorsExpanded()
+            ? Visibility.Visible
+            : Visibility.Collapsed;
         SessionRecoveryService.CleanupOld(TimeSpan.FromDays(30));
         SetupLanguageComboBox();
         LatencyComboBox.ItemsSource = _latencies;
@@ -923,6 +925,26 @@ public partial class MainWindow : Window
                 + T("Dialog.ProfileWarningContinue"));
     }
 
+    private void ApplyExclusivePreferredMasterButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (ExclusivePreferredMasterComboBox.SelectedItem is not string deviceName
+            || string.IsNullOrWhiteSpace(deviceName))
+        {
+            ShowError(
+                T("Dialog.ActionImpossibleTitle"),
+                _language == UiLanguage.English
+                    ? "Select the device that must remain Preferred Master."
+                    : "Choisissez la machine qui doit rester Preferred Master.");
+            return;
+        }
+
+        RunProjectAction(
+            _language == UiLanguage.English
+                ? $"{deviceName} is now the only Preferred Master."
+                : $"{deviceName} est maintenant le seul Preferred Master.",
+            () => _project!.SetExclusivePreferredMaster(deviceName));
+    }
+
     private static bool DeviceDiffersFromProfile(DanteDevice device, DeviceProfile profile)
     {
         return !string.Equals(device.Samplerate, profile.Samplerate, StringComparison.OrdinalIgnoreCase)
@@ -1187,7 +1209,7 @@ public partial class MainWindow : Window
         ConfigurationEditorsGrid.Visibility = ConfigurationEditorsGrid.Visibility == Visibility.Visible
             ? Visibility.Collapsed
             : Visibility.Visible;
-        _configurationEditorsAutoCollapsed = false;
+        InterfaceSettingsService.SaveConfigurationEditorsExpanded(ConfigurationEditorsGrid.Visibility == Visibility.Visible);
         UpdateConfigurationEditorsToggleText();
     }
 
@@ -1203,24 +1225,8 @@ public partial class MainWindow : Window
 
     private void UpdateResponsiveConfigurationLayout(double width, double height)
     {
-        bool compact = width < 1500 || height < 900;
-        if (compact == _compactConfigurationLayout)
-        {
-            return;
-        }
-
-        _compactConfigurationLayout = compact;
-        if (compact && ConfigurationEditorsGrid.Visibility == Visibility.Visible)
-        {
-            ConfigurationEditorsGrid.Visibility = Visibility.Collapsed;
-            _configurationEditorsAutoCollapsed = true;
-        }
-        else if (!compact && _configurationEditorsAutoCollapsed)
-        {
-            ConfigurationEditorsGrid.Visibility = Visibility.Visible;
-            _configurationEditorsAutoCollapsed = false;
-        }
-
+        // Le facteur DPI ne doit jamais cacher les réglages au premier lancement.
+        // L'utilisateur garde la main avec le bouton Réduire/Afficher.
         UpdateConfigurationEditorsToggleText();
     }
 
@@ -1630,12 +1636,8 @@ public partial class MainWindow : Window
 
     private void SourceChannelComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (_refreshingUi)
-        {
-            return;
-        }
-
-        PatchTxRenameChannelTextBox.Text = SelectedSourceChannelName();
+        // Le canal choisi reste la source à appliquer au patch. Les noms se
+        // modifient désormais directement dans la liste.
     }
 
     private void PatchGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -1651,9 +1653,6 @@ public partial class MainWindow : Window
             RefreshSourceChannels();
             SelectSourceChannel(subscription.TxChannelName);
         }
-
-        PatchRxRenameChannelTextBox.Text = subscription.RxChannelName;
-        PatchTxRenameChannelTextBox.Text = subscription.TxChannelName;
 
         if (subscription.IsExternalMissingDevice)
         {
@@ -1791,7 +1790,9 @@ public partial class MainWindow : Window
                 initialTxDevice,
                 initialRxDevice,
                 pendingEdits,
-                embedded: true);
+                embedded: true,
+                renameChannelAction: RenameEasyPatchChannel,
+                extendChannelSeriesAction: ExtendEasyPatchChannelSeries);
             workspace.ApplyRequested += EasyPatchWorkspace_ApplyRequested;
             _easyPatchProject = _project;
             _easyPatchWorkspace = workspace;
@@ -1855,46 +1856,126 @@ public partial class MainWindow : Window
         };
     }
 
-    private void RenamePatchTxChannelButton_Click(object sender, RoutedEventArgs e)
+    private void PatchGrid_PreparingCellForEdit(object sender, DataGridPreparingCellForEditEventArgs e)
     {
-        // Renommer un TX depuis la page Patch passe par la même logique que la
-        // page Configuration, pour garder la mise à jour des abonnements.
-        string sourceDeviceName = SourceDeviceComboBox.SelectedItem as string ?? string.Empty;
-        string sourceChannelName = SelectedSourceChannelName();
-        string newName = PatchTxRenameChannelTextBox.Text;
-
-        if (string.IsNullOrWhiteSpace(sourceDeviceName) || string.IsNullOrWhiteSpace(sourceChannelName))
+        if (FindVisualChild<TextBox>(e.EditingElement) is TextBox editor)
         {
-            ShowError(T("Dialog.MissingTxTitle"), T("Dialog.MissingTxMessage"));
+            editor.Focus();
+            editor.SelectAll();
+        }
+    }
+
+    private bool RenameEasyPatchChannel(string deviceName, DanteChannelKind kind, int channelIndex, string newName)
+    {
+        string action = kind == DanteChannelKind.Tx
+            ? T("Action.TxChannelRenamed")
+            : T("Action.RxChannelRenamed");
+        return RunProjectAction(action, () => _project!.RenameChannel(deviceName, kind, channelIndex, newName));
+    }
+
+    private bool ExtendEasyPatchChannelSeries(
+        string deviceName,
+        DanteChannelKind kind,
+        IReadOnlyList<int> seedChannelIndexes,
+        int targetChannelIndex)
+    {
+        string action = _language == UiLanguage.English
+            ? "Channel name series extended."
+            : "Série de noms de canaux étendue.";
+        return RunProjectAction(action, () =>
+            _project!.ExtendChannelNameSeries(deviceName, kind, seedChannelIndexes, targetChannelIndex));
+    }
+
+    private void PatchGrid_CellEditEnding(object sender, DataGridCellEditEndingEventArgs e)
+    {
+        if (_committingPatchInlineRename || e.EditAction != DataGridEditAction.Commit
+            || e.Row.Item is not DanteSubscription subscription
+            || FindVisualChild<TextBox>(e.EditingElement) is not TextBox editor)
+        {
+            return;
+        }
+
+        string newName = editor.Text.Trim();
+        DataGridColumn column = e.Column;
+        e.Cancel = true;
+        _committingPatchInlineRename = true;
+        Dispatcher.BeginInvoke(() =>
+        {
+            try
+            {
+                RenamePatchCell(subscription, column, newName);
+            }
+            finally
+            {
+                _committingPatchInlineRename = false;
+                PatchGrid.CancelEdit(DataGridEditingUnit.Cell);
+            }
+        });
+    }
+
+    private void RenamePatchCell(DanteSubscription subscription, DataGridColumn column, string newName)
+    {
+        if (column == PatchRxDeviceColumn)
+        {
+            if (!string.Equals(subscription.RxDevice, newName, StringComparison.Ordinal))
+            {
+                RunProjectAction(T("Action.DeviceRenamed"), () => _project!.RenameDevice(subscription.RxDevice, newName));
+            }
+            return;
+        }
+
+        if (column == PatchRxChannelColumn)
+        {
+            if (!string.Equals(subscription.RxChannelName, newName, StringComparison.Ordinal))
+            {
+                RunProjectAction(T("Action.RxChannelRenamed"), () =>
+                    _project!.RenameChannel(subscription.RxDevice, DanteChannelKind.Rx, subscription.RxIndex, newName));
+            }
+            return;
+        }
+
+        string txDeviceName = subscription.IsLocalSubscription
+            ? subscription.RxDevice
+            : subscription.ResolvedTxDeviceName;
+        if (string.IsNullOrWhiteSpace(txDeviceName) || _project!.FindDevice(txDeviceName) is not DanteDevice txDevice)
+        {
+            ShowError(
+                T("Dialog.MissingTxTitle"),
+                _language == UiLanguage.English
+                    ? "This external Tx device is not present in the loaded XML and cannot be renamed here."
+                    : "Cette machine TX externe n'est pas présente dans le XML chargé et ne peut pas être renommée ici.");
+            return;
+        }
+
+        if (column == PatchDisplayTxColumn)
+        {
+            if (!string.Equals(txDeviceName, newName, StringComparison.Ordinal))
+            {
+                RunProjectAction(T("Action.DeviceRenamed"), () => _project.RenameDevice(txDeviceName, newName));
+            }
+            return;
+        }
+
+        if (column != PatchTxChannelColumn || string.Equals(subscription.TxChannelName, newName, StringComparison.Ordinal))
+        {
+            return;
+        }
+
+        DanteChannel[] matchingChannels = txDevice.TxChannels
+            .Where(channel => string.Equals(channel.DisplayName, subscription.TxChannelName, StringComparison.OrdinalIgnoreCase))
+            .ToArray();
+        if (matchingChannels.Length != 1)
+        {
+            ShowError(
+                T("Dialog.MissingTxTitle"),
+                _language == UiLanguage.English
+                    ? "The Tx channel cannot be identified unambiguously. Open the device details to rename it."
+                    : "Le canal TX ne peut pas être identifié sans ambiguïté. Ouvrez le détail de la machine pour le renommer.");
             return;
         }
 
         RunProjectAction(T("Action.TxChannelRenamed"), () =>
-        {
-            DanteDevice txDevice = _project!.FindDevice(sourceDeviceName)
-                ?? throw new InvalidOperationException("Device TX introuvable.");
-            DanteChannel txChannel = txDevice.TxChannels.FirstOrDefault(channel =>
-                    SourceChannelComboBox.SelectedItem is TxChannelChoice choice && channel.DanteId == choice.DanteId
-                    || string.Equals(channel.DisplayName, sourceChannelName, StringComparison.OrdinalIgnoreCase)
-                    || string.Equals(channel.Index.ToString(), sourceChannelName, StringComparison.OrdinalIgnoreCase))
-                ?? throw new InvalidOperationException("Canal TX introuvable.");
-
-            _project.RenameChannel(sourceDeviceName, DanteChannelKind.Tx, txChannel.Index, newName);
-        });
-    }
-
-    private void RenamePatchRxChannelButton_Click(object sender, RoutedEventArgs e)
-    {
-        if (PatchGrid.SelectedItem is not DanteSubscription subscription)
-        {
-            ShowError(T("Dialog.NoRxTitle"), T("Dialog.NoRxLineMessage"));
-            return;
-        }
-
-        RunProjectAction(T("Action.RxChannelRenamed"), () =>
-        {
-            _project!.RenameChannel(subscription.RxDevice, DanteChannelKind.Rx, subscription.RxIndex, PatchRxRenameChannelTextBox.Text);
-        });
+            _project.RenameChannel(txDeviceName, DanteChannelKind.Tx, matchingChannels[0].Index, newName));
     }
 
     private void ValidateButton_Click(object sender, RoutedEventArgs e)
@@ -2606,6 +2687,7 @@ public partial class MainWindow : Window
                 ReceiverDeviceList.ItemsSource = new[] { AllReceiversItem };
                 ReceiverDeviceList.SelectedItem = AllReceiversItem;
                 SourceDeviceComboBox.ItemsSource = null;
+                ExclusivePreferredMasterComboBox.ItemsSource = null;
                 SaveSummaryTextBox.Text = T("Status.NoFileLoaded");
                 HealthSummaryTextBlock.Text = T("Status.NoFileLoaded");
                 _searchResults.Clear();
@@ -2700,6 +2782,14 @@ public partial class MainWindow : Window
             ReceiverDeviceList.SelectedItem = deviceNames.Contains(selectedReceiverFilter) ? selectedReceiverFilter : AllReceiversItem;
             SourceDeviceComboBox.ItemsSource = deviceNames;
             SourceDeviceComboBox.SelectedItem = deviceNames.Contains(selectedSourceDevice) ? selectedSourceDevice : deviceNames.FirstOrDefault();
+            string selectedPreferredMaster = ExclusivePreferredMasterComboBox.SelectedItem as string
+                ?? devices.FirstOrDefault(device => device.PreferredMaster)?.Name
+                ?? deviceNames.FirstOrDefault()
+                ?? string.Empty;
+            ExclusivePreferredMasterComboBox.ItemsSource = deviceNames;
+            ExclusivePreferredMasterComboBox.SelectedItem = deviceNames.Contains(selectedPreferredMaster, StringComparer.OrdinalIgnoreCase)
+                ? deviceNames.First(name => string.Equals(name, selectedPreferredMaster, StringComparison.OrdinalIgnoreCase))
+                : deviceNames.FirstOrDefault();
 
             SaveSummaryTextBox.Text = _project.BuildSaveSummary();
             RefreshGlobalSearchResults();
@@ -3086,11 +3176,6 @@ public partial class MainWindow : Window
         SourceChannelComboBox.ItemsSource = channels;
         SourceChannelComboBox.SelectedItem = channels.OfType<TxChannelChoice>().FirstOrDefault(choice => string.Equals(choice.ChannelName, previous, StringComparison.OrdinalIgnoreCase))
             ?? channels.FirstOrDefault();
-
-        if (!string.IsNullOrWhiteSpace(SelectedSourceChannelName()))
-        {
-            PatchTxRenameChannelTextBox.Text = SelectedSourceChannelName();
-        }
     }
 
     private void RefreshGlobalSearchResults()
@@ -3377,8 +3462,7 @@ public partial class MainWindow : Window
         yield return ApplyPatchButton;
         yield return RemovePatchButton;
         yield return OpenVisualPatchButton;
-        yield return RenamePatchRxChannelButton;
-        yield return RenamePatchTxChannelButton;
+        yield return ApplyExclusivePreferredMasterButton;
         yield return AtomicChaosButton;
     }
 
@@ -3451,6 +3535,30 @@ public partial class MainWindow : Window
             ShowError("Action impossible", ex.Message);
             return false;
         }
+    }
+
+    private static T? FindVisualChild<T>(DependencyObject? parent)
+        where T : DependencyObject
+    {
+        if (parent is null)
+        {
+            return null;
+        }
+
+        if (parent is T match)
+        {
+            return match;
+        }
+
+        for (int index = 0; index < VisualTreeHelper.GetChildrenCount(parent); index++)
+        {
+            if (FindVisualChild<T>(VisualTreeHelper.GetChild(parent, index)) is T descendant)
+            {
+                return descendant;
+            }
+        }
+
+        return null;
     }
 
     private string SelectedDeviceName()

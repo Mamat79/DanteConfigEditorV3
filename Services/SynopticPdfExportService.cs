@@ -95,6 +95,10 @@ internal static class SynopticPdfExportService
             DrawPolyline(pdf, cable, "#FFFFFF", 8, diagram.Height);
             DrawPolyline(pdf, cable, cable.Color, 3.5, diagram.Height);
             DrawArrow(pdf, cable, diagram.Height);
+            if (cable.IsBidirectional)
+            {
+                DrawArrow(pdf, cable, diagram.Height, atStart: true);
+            }
         }
 
         foreach (SynopticDeviceNode node in diagram.Devices)
@@ -126,7 +130,7 @@ internal static class SynopticPdfExportService
             ? $"{diagram.Devices.Count} devices shown - {diagram.Cables.Count} grouped cables - {diagram.HiddenDeviceCount} hidden - {diagram.SkippedPatchCount} subscriptions outside selection"
             : $"{diagram.Devices.Count} machines affichees - {diagram.Cables.Count} cables regroupes - {diagram.HiddenDeviceCount} masquee(s) - {diagram.SkippedPatchCount} patch(s) hors selection";
         DrawText(pdf, 34, diagram.Height - 30, 11, summary, "#526070", bold: false, diagram.Height);
-        DrawRightText(pdf, diagram.Width - 34, diagram.Height - 30, 10, "Dante Config Editor V3.3 - By Mamat et ses agents  -------[]--", "#718096", bold: false, diagram.Height);
+        DrawRightText(pdf, diagram.Width - 34, diagram.Height - 30, 10, "Dante Config Editor V3.4 - By Mamat et ses agents  -------[]--", "#718096", bold: false, diagram.Height);
         pdf.AppendLine("Q");
         return pdf.ToString();
     }
@@ -155,7 +159,7 @@ internal static class SynopticPdfExportService
                 FillCircle(pdf, itemX + 19, y + 20, 11, cable.Color, diagram.Height);
                 DrawCenteredText(pdf, itemX + 19, y + 24, 10, (index + 1).ToString(CultureInfo.InvariantCulture), "#FFFFFF", bold: true, diagram.Height);
                 int titleLength = columns == 1 ? 52 : 38;
-                DrawText(pdf, itemX + 38, y + 23, 12, Trim($"{cable.SourceDevice} -> {cable.TargetDevice}", titleLength), "#172033", bold: true, diagram.Height);
+                DrawText(pdf, itemX + 38, y + 23, 12, Trim($"{cable.SourceDevice} {(cable.IsBidirectional ? "<->" : "->")} {cable.TargetDevice}", titleLength), "#172033", bold: true, diagram.Height);
                 for (int labelIndex = 0; labelIndex < cable.Labels.Count; labelIndex++)
                 {
                     int labelLength = columns == 1 ? 58 : 42;
@@ -186,7 +190,7 @@ internal static class SynopticPdfExportService
         pdf.AppendLine("S");
     }
 
-    private static void DrawArrow(StringBuilder pdf, SynopticCable cable, double pageHeight)
+    private static void DrawArrow(StringBuilder pdf, SynopticCable cable, double pageHeight, bool atStart = false)
     {
         IReadOnlyList<SynopticRoutePoint> points = cable.RoutePoints;
         if (points.Count < 2)
@@ -194,8 +198,8 @@ internal static class SynopticPdfExportService
             return;
         }
 
-        SynopticRoutePoint tip = points[^1];
-        SynopticRoutePoint previous = points[^2];
+        SynopticRoutePoint tip = atStart ? points[0] : points[^1];
+        SynopticRoutePoint previous = atStart ? points[1] : points[^2];
         double dx = tip.X - previous.X;
         double dy = tip.Y - previous.Y;
         double length = Math.Sqrt(dx * dx + dy * dy);

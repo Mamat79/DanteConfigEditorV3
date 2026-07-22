@@ -463,6 +463,63 @@ public sealed partial class DanteProject
         RegisterChange("Renommage série", $"{deviceName} {channelKind}: canaux {startChannelIndex}-{endChannelIndex}, {cleanPrefix} depuis {firstNumber}");
     }
 
+    public int ExtendChannelNameSeries(
+        string deviceName,
+        DanteChannelKind channelKind,
+        IReadOnlyList<int> seedChannelIndexes,
+        int targetChannelIndex)
+    {
+        DanteDevice device = FindDevice(deviceName) ?? throw new InvalidOperationException("Device introuvable.");
+        IReadOnlyList<DanteChannel> channels = channelKind == DanteChannelKind.Tx ? device.TxChannels : device.RxChannels;
+        ChannelSeriesValue[] ordered = channels
+            .OrderBy(channel => channel.PositionIndex)
+            .Select(channel => new ChannelSeriesValue(channel.Index, channel.DisplayName))
+            .ToArray();
+        IReadOnlyList<ChannelSeriesValue> generated = ChannelNameSeriesService.Extend(
+            ordered,
+            seedChannelIndexes,
+            targetChannelIndex);
+
+        HashSet<int> generatedIndexes = generated.Select(item => item.ChannelIndex).ToHashSet();
+        HashSet<string> untouchedNames = channels
+            .Where(channel => !generatedIndexes.Contains(channel.Index))
+            .Select(channel => channel.DisplayName)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+        string? duplicate = generated
+            .Select(item => item.Name)
+            .FirstOrDefault(name => untouchedNames.Contains(name));
+        if (!string.IsNullOrWhiteSpace(duplicate))
+        {
+            throw new InvalidOperationException($"La série produirait un nom déjà utilisé : {duplicate}.");
+        }
+
+        List<(string OldName, string NewName)> txRenames = [];
+        foreach (ChannelSeriesValue item in generated)
+        {
+            DanteChannel channel = channels.Single(candidate => candidate.Index == item.ChannelIndex);
+            if (ContainsProblematicCharacters(item.Name))
+            {
+                throw new InvalidOperationException("La série contient des caractères non imprimables.");
+            }
+
+            SetChannelDisplayName(channel, channelKind == DanteChannelKind.Tx ? "label" : "name", item.Name);
+            if (channelKind == DanteChannelKind.Tx)
+            {
+                txRenames.Add((channel.DisplayName, item.Name));
+            }
+        }
+
+        if (channelKind == DanteChannelKind.Tx)
+        {
+            UpdateSubscriptionsForRenamedTxChannels(device.Name, txRenames);
+        }
+
+        RegisterChange(
+            "Série de canaux prolongée",
+            $"{deviceName} {channelKind}: {generated.Count} canal(aux) jusqu'au canal {targetChannelIndex}");
+        return generated.Count;
+    }
+
     private static string BuildBatchChannelName(string pattern, int number, int defaultDigits, string deviceName)
     {
         if (pattern.Contains('{', StringComparison.Ordinal))

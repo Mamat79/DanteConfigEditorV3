@@ -558,11 +558,17 @@ public static class LocalizationService
         Add(map, "Reset patch TX", "Clear Tx");
         Add(map, "Horloge", "Clock");
         Add(map, "Changer preferred master", "Change Preferred Master");
+        Add(map, "Preferred Master à conserver", "Preferred Master to keep");
+        Add(map, "Conserver un seul Preferred Master", "Keep one Preferred Master");
+        Add(map, "Choisissez la seule machine qui restera Preferred Master.", "Select the only device that will remain Preferred Master.");
+        Add(map, "Active le Preferred Master sur la machine choisie et le désactive sur toutes les autres.", "Enables Preferred Master on the selected device and disables it on every other device.");
         Add(map, "Canaux de la machine", "Device channels");
         Add(map, "Canal à renommer", "Channel to rename");
         Add(map, "Nouveau nom de canal", "New channel name");
         Add(map, "Renommer le canal", "Rename channel");
         Add(map, "Réinitialiser les canaux de la machine", "Reset device channels");
+        Add(map, "Reset", "Reset");
+        Add(map, "Efface les positions et l’ordre manuels, puis reconstruit automatiquement un synoptique propre.", "Clears manual positions and ordering, then automatically rebuilds a clean synoptic.");
         Add(map, "Renommage en série", "Batch rename");
         Add(map, "Canal début", "Start channel");
         Add(map, "Canal fin", "End channel");

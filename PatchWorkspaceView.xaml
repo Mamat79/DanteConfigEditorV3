@@ -1,6 +1,7 @@
 <UserControl x:Class="DanteConfigEditor.PatchWorkspaceView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:DanteConfigEditor"
              xmlns:automation="clr-namespace:System.Windows.Automation;assembly=PresentationCore"
              MinWidth="900">
     <UserControl.Resources>
@@ -219,7 +220,7 @@
                     </Grid.ColumnDefinitions>
                     <Button x:Name="PreviousRxDeviceButton"
                             Width="36"
-                            Height="32"
+                            MinHeight="32"
                             Padding="0"
                             Margin="0"
                             Content="←"
@@ -234,7 +235,7 @@
                     <Button x:Name="NextRxDeviceButton"
                             Grid.Column="2"
                             Width="36"
-                            Height="32"
+                            MinHeight="32"
                             Padding="0"
                             Margin="0"
                             Content="→"
@@ -253,7 +254,7 @@
                     </Grid.ColumnDefinitions>
                     <Button x:Name="PreviousTxDeviceButton"
                             Width="36"
-                            Height="32"
+                            MinHeight="32"
                             Padding="0"
                             Margin="0"
                             Content="←"
@@ -268,7 +269,7 @@
                     <Button x:Name="NextTxDeviceButton"
                             Grid.Column="2"
                             Width="36"
-                            Height="32"
+                            MinHeight="32"
                             Padding="0"
                             Margin="0"
                             Content="→"
@@ -279,7 +280,7 @@
             </StackPanel>
         </Grid>
 
-        <TabControl Grid.Row="2" Margin="16,0,16,10">
+        <TabControl x:Name="PatchModeTabControl" Grid.Row="2" Margin="16,0,16,10">
             <TabItem x:Name="AssignmentTab" Header="Sélection et plage">
                 <Grid Margin="12">
                     <Grid.ColumnDefinitions>
@@ -310,9 +311,68 @@
                              Grid.Column="0"
                              Grid.Row="1"
                              SelectionMode="Extended"
-                             DisplayMemberPath="Display"
                              automation:AutomationProperties.Name="Canaux RX et source actuelle"
-                             SelectionChanged="RxChannelListBox_SelectionChanged" />
+                             SelectionChanged="RxChannelListBox_SelectionChanged">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="{Binding Target.DanteId, StringFormat={}{0:000} - }"
+                                               VerticalAlignment="Center" />
+                                    <TextBox Grid.Column="1"
+                                             Text="{Binding ChannelName, Mode=OneWay}"
+                                             Tag="{Binding}"
+                                             Margin="2,0,4,0"
+                                             Padding="2,1"
+                                             BorderThickness="0"
+                                             Background="Transparent"
+                                             LostKeyboardFocus="InlineChannelNameTextBox_LostKeyboardFocus"
+                                             KeyDown="InlineChannelNameTextBox_KeyDown">
+                                        <TextBox.Style>
+                                            <Style TargetType="TextBox" BasedOn="{StaticResource {x:Type TextBox}}">
+                                                <Setter Property="IsReadOnly" Value="True" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:PatchWorkspaceView}}, Path=CanRenameChannels}" Value="True">
+                                                        <Setter Property="IsReadOnly" Value="False" />
+                                                    </DataTrigger>
+                                                    <Trigger Property="IsKeyboardFocusWithin" Value="True">
+                                                        <Setter Property="Background" Value="White" />
+                                                        <Setter Property="BorderThickness" Value="1" />
+                                                    </Trigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBox.Style>
+                                    </TextBox>
+                                    <TextBlock Grid.Column="2"
+                                               Text="{Binding SourceDisplay, StringFormat={}←  {0}}"
+                                               VerticalAlignment="Center"
+                                               TextTrimming="CharacterEllipsis" />
+                                    <Thumb Grid.Column="3"
+                                           Width="16"
+                                           Height="20"
+                                           Margin="5,0,0,0"
+                                           Cursor="SizeNS"
+                                           Tag="{Binding}"
+                                           ToolTip="Étendre la série de noms jusqu'ici"
+                                           DragStarted="ChannelSeriesThumb_DragStarted"
+                                           DragCompleted="ChannelSeriesThumb_DragCompleted">
+                                        <Thumb.Template>
+                                            <ControlTemplate TargetType="Thumb">
+                                                <Border Background="#DCE6F2" BorderBrush="#7890AC" BorderThickness="1" CornerRadius="2">
+                                                    <TextBlock Text="↕" Foreground="#1F2937" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                                </Border>
+                                            </ControlTemplate>
+                                        </Thumb.Template>
+                                    </Thumb>
+                                </Grid>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
 
                     <ScrollViewer Grid.Column="1"
                                   Grid.RowSpan="2"
@@ -440,9 +500,63 @@
                              Grid.Column="2"
                              Grid.Row="1"
                              SelectionMode="Extended"
-                             DisplayMemberPath="Display"
                              automation:AutomationProperties.Name="Canaux TX disponibles"
-                             SelectionChanged="TxChannelListBox_SelectionChanged" />
+                             SelectionChanged="TxChannelListBox_SelectionChanged">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="{Binding Source.DanteId, StringFormat={}{0:000} - }"
+                                               VerticalAlignment="Center" />
+                                    <TextBox Grid.Column="1"
+                                             Text="{Binding ChannelName, Mode=OneWay}"
+                                             Tag="{Binding}"
+                                             Margin="2,0,0,0"
+                                             Padding="2,1"
+                                             BorderThickness="0"
+                                             Background="Transparent"
+                                             LostKeyboardFocus="InlineChannelNameTextBox_LostKeyboardFocus"
+                                             KeyDown="InlineChannelNameTextBox_KeyDown">
+                                        <TextBox.Style>
+                                            <Style TargetType="TextBox" BasedOn="{StaticResource {x:Type TextBox}}">
+                                                <Setter Property="IsReadOnly" Value="True" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:PatchWorkspaceView}}, Path=CanRenameChannels}" Value="True">
+                                                        <Setter Property="IsReadOnly" Value="False" />
+                                                    </DataTrigger>
+                                                    <Trigger Property="IsKeyboardFocusWithin" Value="True">
+                                                        <Setter Property="Background" Value="White" />
+                                                        <Setter Property="BorderThickness" Value="1" />
+                                                    </Trigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBox.Style>
+                                    </TextBox>
+                                    <Thumb Grid.Column="2"
+                                           Width="16"
+                                           Height="20"
+                                           Margin="5,0,0,0"
+                                           Cursor="SizeNS"
+                                           Tag="{Binding}"
+                                           ToolTip="Étendre la série de noms jusqu'ici"
+                                           DragStarted="ChannelSeriesThumb_DragStarted"
+                                           DragCompleted="ChannelSeriesThumb_DragCompleted">
+                                        <Thumb.Template>
+                                            <ControlTemplate TargetType="Thumb">
+                                                <Border Background="#DCE6F2" BorderBrush="#7890AC" BorderThickness="1" CornerRadius="2">
+                                                    <TextBlock Text="↕" Foreground="#1F2937" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                                </Border>
+                                            </ControlTemplate>
+                                        </Thumb.Template>
+                                    </Thumb>
+                                </Grid>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
 
                     <GroupBox x:Name="PreviewGroupBox"
                               Grid.Row="2"

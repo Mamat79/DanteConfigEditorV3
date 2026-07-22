@@ -72,6 +72,7 @@ public sealed record SynopticCable(
     double LabelX,
     double LabelY,
     IReadOnlyList<SynopticRoutePoint> RoutePoints,
-    bool IsLoopback);
+    bool IsLoopback,
+    bool IsBidirectional);
 
 public sealed record SynopticRoutePoint(double X, double Y);
