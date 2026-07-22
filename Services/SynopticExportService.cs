@@ -1,15 +1,17 @@
 using System.Globalization;
 using System.IO;
-using System.Security;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using System.Xml.Linq;
 using DanteConfigEditor.Models;
 
 namespace DanteConfigEditor.Services;
 
 public static class SynopticExportService
 {
+    private static readonly XNamespace IllustratorNamespace = "http://ns.adobe.com/AdobeIllustrator/10.0/";
+
     private const double LocationWidth = 300;
     private const double LocationGap = 280;
     private const double NodeWidth = 240;
@@ -130,7 +132,8 @@ public static class SynopticExportService
 
         SynopticDevicePlacement[] visiblePlacements = layout.Devices
             .Where(placement => placement.IsVisible && devicesByName.ContainsKey(placement.DeviceName))
-            .OrderBy(placement => placement.Order)
+            .OrderBy(placement => placement.Location, StringComparer.CurrentCultureIgnoreCase)
+            .ThenBy(placement => placement.Order)
             .ThenBy(placement => placement.DeviceName, StringComparer.OrdinalIgnoreCase)
             .ToArray();
 
@@ -138,7 +141,6 @@ public static class SynopticExportService
         IGrouping<string, SynopticDevicePlacement>[] locationGroups = visiblePlacements
             .GroupBy(placement => string.IsNullOrWhiteSpace(placement.Location) ? unspecified : placement.Location.Trim(), StringComparer.OrdinalIgnoreCase)
             .OrderBy(group => group.Key == unspecified ? 1 : 0)
-            .ThenBy(group => group.Min(item => item.Order))
             .ThenBy(group => group.Key, StringComparer.OrdinalIgnoreCase)
             .ToArray();
 
@@ -205,8 +207,8 @@ public static class SynopticExportService
                     color,
                     device.TxCount,
                     device.RxCount,
-                    x + (LocationWidth - NodeWidth) / 2,
-                    nodeY,
+                    placement.ManualX ?? x + (LocationWidth - NodeWidth) / 2,
+                    placement.ManualY ?? nodeY,
                     NodeWidth,
                     nodeHeight));
                 nodeY += nodeHeight + NodeGap;
@@ -214,6 +216,27 @@ public static class SynopticExportService
 
             double locationHeight = Math.Max(190, nodeY - topMargin - NodeGap + 18);
             locations.Add(new SynopticLocationArea(group.Key, color, x, topMargin, LocationWidth, locationHeight));
+        }
+
+        // Une position manuelle reste une donnée graphique du fichier annexe.
+        // La zone est agrandie pour garder la machine déplacée dans le cadre sans
+        // jamais écrire cette disposition dans le XML Dante.
+        for (int index = 0; index < locations.Count; index++)
+        {
+            SynopticLocationArea location = locations[index];
+            SynopticDeviceNode[] locationNodes = nodes
+                .Where(node => string.Equals(node.Location, location.Name, StringComparison.OrdinalIgnoreCase))
+                .ToArray();
+            if (locationNodes.Length == 0)
+            {
+                continue;
+            }
+
+            double left = Math.Min(location.X, locationNodes.Min(node => node.X) - 30);
+            double top = Math.Min(location.Y, locationNodes.Min(node => node.Y) - 52);
+            double right = Math.Max(location.X + location.Width, locationNodes.Max(node => node.X + node.Width) + 30);
+            double bottom = Math.Max(location.Y + location.Height, locationNodes.Max(node => node.Y + node.Height) + 18);
+            locations[index] = location with { X = left, Y = top, Width = right - left, Height = bottom - top };
         }
 
         Dictionary<string, SynopticDeviceNode> nodesByName = nodes
@@ -258,7 +281,12 @@ public static class SynopticExportService
             double sourceOffset = PortOffset(drafts, draft, draft.Source.Name, source: true);
             double targetOffset = PortOffset(drafts, draft, draft.Target.Name, source: false);
             IReadOnlyList<SynopticRoutePoint> route;
-            if (Math.Abs(draft.SourceLocationIndex - draft.TargetLocationIndex) <= 1)
+            bool manuallyPositioned = HasManualPosition(layout, draft.Source.Identity) || HasManualPosition(layout, draft.Target.Identity);
+            if (manuallyPositioned)
+            {
+                route = BuildManualRoute(draft, sourceOffset, targetOffset);
+            }
+            else if (Math.Abs(draft.SourceLocationIndex - draft.TargetLocationIndex) <= 1)
             {
                 int corridor = CorridorIndex(draft);
                 string[] bundles = corridorBundles[corridor];
@@ -295,6 +323,11 @@ public static class SynopticExportService
 
         double locationsRight = locations.Count == 0 ? 34 : locations.Max(location => location.X + location.Width);
         double locationsBottom = locations.Count == 0 ? topMargin : locations.Max(location => location.Y + location.Height);
+        if (nodes.Count > 0)
+        {
+            locationsRight = Math.Max(locationsRight, nodes.Max(node => node.X + node.Width));
+            locationsBottom = Math.Max(locationsBottom, nodes.Max(node => node.Y + node.Height));
+        }
         int legendColumns = cables.Count > 18 ? 2 : 1;
         double legendWidth = legendColumns == 1 ? LegendSingleWidth : LegendDoubleWidth;
         double legendHeight = 52 + LegendRowsHeight(cables, legendColumns);
@@ -328,7 +361,23 @@ public static class SynopticExportService
             Directory.CreateDirectory(directory);
         }
 
-        File.WriteAllText(path, BuildSvg(diagram, english), new UTF8Encoding(false));
+        string svg = BuildSvg(diagram, english);
+        _ = XDocument.Parse(svg, LoadOptions.PreserveWhitespace);
+        string temporaryPath = Path.Combine(
+            string.IsNullOrWhiteSpace(directory) ? Environment.CurrentDirectory : directory,
+            $".{Path.GetFileName(path)}.{Guid.NewGuid():N}.tmp");
+        try
+        {
+            File.WriteAllText(temporaryPath, svg, new UTF8Encoding(false));
+            File.Move(temporaryPath, path, overwrite: true);
+        }
+        finally
+        {
+            if (File.Exists(temporaryPath))
+            {
+                File.Delete(temporaryPath);
+            }
+        }
     }
 
     public static void ExportPdf(string path, SynopticDiagram diagram, bool english = false)
@@ -339,68 +388,116 @@ public static class SynopticExportService
     public static string BuildSvg(SynopticDiagram diagram, bool english = false)
     {
         ArgumentNullException.ThrowIfNull(diagram);
-        StringBuilder svg = new();
         string width = Number(diagram.Width);
         string height = Number(diagram.Height);
-        svg.AppendLine("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
-        svg.AppendLine($"<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"{width}\" height=\"{height}\" viewBox=\"0 0 {width} {height}\" role=\"img\">");
-        svg.AppendLine($"  <title>{Escape(diagram.Title)}</title>");
-        svg.AppendLine("  <rect width=\"100%\" height=\"100%\" fill=\"#F7F9FC\"/>");
-        svg.AppendLine($"  <text x=\"34\" y=\"38\" font-family=\"Segoe UI,Arial,sans-serif\" font-size=\"24\" font-weight=\"700\" fill=\"#172033\">{Escape(diagram.Title)}</text>");
-        svg.AppendLine($"  <text x=\"34\" y=\"62\" font-family=\"Segoe UI,Arial,sans-serif\" font-size=\"12\" fill=\"#526070\">{Escape(english ? "Grouped Dante subscriptions - offline export" : "Abonnements Dante regroupés - export hors ligne")}</text>");
+        XNamespace svgNamespace = "http://www.w3.org/2000/svg";
+        XElement root = new(svgNamespace + "svg",
+            new XAttribute(XNamespace.Xmlns + "i", IllustratorNamespace),
+            new XAttribute("width", width),
+            new XAttribute("height", height),
+            new XAttribute("viewBox", $"0 0 {width} {height}"),
+            new XAttribute("version", "1.1"),
+            new XAttribute("role", "img"),
+            new XAttribute("shape-rendering", "geometricPrecision"),
+            new XElement(svgNamespace + "title", diagram.Title));
 
-        for (int index = 0; index < diagram.Cables.Count; index++)
+        XElement definitions = new(svgNamespace + "defs");
+        Dictionary<string, string> markerByColor = diagram.Cables
+            .Select(cable => cable.Color)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .Select((color, index) => (color, id: $"arrow-{index + 1}"))
+            .ToDictionary(item => item.color, item => item.id, StringComparer.OrdinalIgnoreCase);
+        foreach (KeyValuePair<string, string> marker in markerByColor)
         {
-            SynopticCable cable = diagram.Cables[index];
-            svg.AppendLine($"  <defs><marker id=\"arrow-{index}\" markerWidth=\"8\" markerHeight=\"6\" refX=\"7\" refY=\"3\" orient=\"auto\"><path d=\"M0,0 L8,3 L0,6 z\" fill=\"{cable.Color}\"/></marker></defs>");
+            definitions.Add(new XElement(svgNamespace + "marker",
+                new XAttribute("id", marker.Value),
+                new XAttribute("markerWidth", "8"),
+                new XAttribute("markerHeight", "6"),
+                new XAttribute("refX", "7"),
+                new XAttribute("refY", "3"),
+                new XAttribute("orient", "auto"),
+                new XAttribute("markerUnits", "strokeWidth"),
+                new XElement(svgNamespace + "path",
+                    new XAttribute("d", "M0,0 L8,3 L0,6 Z"),
+                    new XAttribute("fill", marker.Key))));
         }
+        root.Add(definitions);
 
+        XElement backgroundLayer = Layer(svgNamespace, "layer-background", "Background");
+        backgroundLayer.Add(
+            SvgRect(svgNamespace, 0, 0, diagram.Width, diagram.Height, "#F7F9FC"),
+            SvgText(svgNamespace, 34, 38, diagram.Title, 24, "#172033", bold: true),
+            SvgText(svgNamespace, 34, 62,
+                english ? "Grouped Dante subscriptions - offline export" : "Abonnements Dante regroupés - export hors ligne",
+                12, "#526070"));
+
+        XElement locationsLayer = Layer(svgNamespace, "layer-locations", "Locations");
         foreach (SynopticLocationArea location in diagram.Locations)
         {
-            svg.AppendLine($"  <rect x=\"{Number(location.X)}\" y=\"{Number(location.Y)}\" width=\"{Number(location.Width)}\" height=\"{Number(location.Height)}\" rx=\"8\" fill=\"#FFFFFF\" stroke=\"{location.Color}\" stroke-width=\"2\"/>");
-            svg.AppendLine($"  <rect x=\"{Number(location.X)}\" y=\"{Number(location.Y)}\" width=\"{Number(location.Width)}\" height=\"36\" rx=\"7\" fill=\"{location.Color}\"/>");
-            svg.AppendLine($"  <text x=\"{Number(location.X + 14)}\" y=\"{Number(location.Y + 24)}\" font-family=\"Segoe UI,Arial,sans-serif\" font-size=\"14\" font-weight=\"700\" fill=\"#FFFFFF\">{Escape(location.Name)}</text>");
+            locationsLayer.Add(
+                SvgRect(svgNamespace, location.X, location.Y, location.Width, location.Height, "#FFFFFF", location.Color, 2, 8),
+                SvgRect(svgNamespace, location.X, location.Y, location.Width, 36, location.Color, radius: 7),
+                SvgText(svgNamespace, location.X + 14, location.Y + 24, location.Name, 14, "#FFFFFF", bold: true));
         }
 
-        for (int index = 0; index < diagram.Cables.Count; index++)
+        XElement cablesLayer = Layer(svgNamespace, "layer-cables", "Cables");
+        foreach (SynopticCable cable in diagram.Cables)
         {
-            SynopticCable cable = diagram.Cables[index];
             string path = BuildCablePath(cable);
-            svg.AppendLine($"  <path d=\"{path}\" fill=\"none\" stroke=\"#FFFFFF\" stroke-width=\"8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" opacity=\"0.96\"/>");
-            svg.AppendLine($"  <path d=\"{path}\" fill=\"none\" stroke=\"{cable.Color}\" stroke-width=\"3.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\" opacity=\"0.92\" marker-end=\"url(#arrow-{index})\"/>");
+            cablesLayer.Add(
+                SvgPath(svgNamespace, path, "#FFFFFF", 8, opacity: 0.96),
+                SvgPath(svgNamespace, path, cable.Color, 3.5, opacity: 0.92,
+                    markerEnd: $"url(#{markerByColor[cable.Color]})"));
         }
 
+        XElement devicesLayer = Layer(svgNamespace, "layer-devices", "Devices");
         foreach (SynopticDeviceNode node in diagram.Devices)
         {
-            svg.AppendLine($"  <rect x=\"{Number(node.X)}\" y=\"{Number(node.Y)}\" width=\"{Number(node.Width)}\" height=\"{Number(node.Height)}\" rx=\"6\" fill=\"#FFFFFF\" stroke=\"{node.Color}\" stroke-width=\"2\"/>");
-            svg.AppendLine($"  <rect x=\"{Number(node.X)}\" y=\"{Number(node.Y)}\" width=\"8\" height=\"{Number(node.Height)}\" rx=\"4\" fill=\"{node.Color}\"/>");
-            svg.AppendLine($"  <text x=\"{Number(node.X + 20)}\" y=\"{Number(node.Y + 29)}\" font-family=\"Segoe UI,Arial,sans-serif\" font-size=\"16\" font-weight=\"700\" fill=\"#172033\">{Escape(node.Name)}</text>");
-            if (!string.IsNullOrWhiteSpace(node.FriendlyName) && !string.Equals(node.FriendlyName, node.Name, StringComparison.OrdinalIgnoreCase))
+            devicesLayer.Add(
+                SvgRect(svgNamespace, node.X, node.Y, node.Width, node.Height, "#FFFFFF", node.Color, 2, 6),
+                SvgRect(svgNamespace, node.X, node.Y, 8, node.Height, node.Color, radius: 4),
+                SvgText(svgNamespace, node.X + 20, node.Y + 29, node.Name, 16, "#172033", bold: true));
+            if (!string.IsNullOrWhiteSpace(node.FriendlyName)
+                && !string.Equals(node.FriendlyName, node.Name, StringComparison.OrdinalIgnoreCase))
             {
-                svg.AppendLine($"  <text x=\"{Number(node.X + 20)}\" y=\"{Number(node.Y + 49)}\" font-family=\"Segoe UI,Arial,sans-serif\" font-size=\"11\" fill=\"#526070\">{Escape(Trim(node.FriendlyName, 32))}</text>");
+                devicesLayer.Add(SvgText(svgNamespace, node.X + 20, node.Y + 49, Trim(node.FriendlyName, 32), 11, "#526070"));
             }
-            svg.AppendLine($"  <text x=\"{Number(node.X + 20)}\" y=\"{Number(node.Y + 68)}\" font-family=\"Segoe UI,Arial,sans-serif\" font-size=\"11\" fill=\"#526070\">TX {node.TxCount}   RX {node.RxCount}</text>");
+            devicesLayer.Add(SvgText(svgNamespace, node.X + 20, node.Y + 68, $"TX {node.TxCount}   RX {node.RxCount}", 11, "#526070"));
         }
 
+        XElement labelsLayer = Layer(svgNamespace, "layer-labels", "Labels and legend");
         if (diagram.Cables.Count <= 18)
         {
             for (int index = 0; index < diagram.Cables.Count; index++)
             {
                 SynopticCable cable = diagram.Cables[index];
-                svg.AppendLine($"  <circle cx=\"{Number(cable.LabelX)}\" cy=\"{Number(cable.LabelY)}\" r=\"9\" fill=\"#FFFFFF\" stroke=\"{cable.Color}\" stroke-width=\"2\"/>");
-                svg.AppendLine($"  <text x=\"{Number(cable.LabelX)}\" y=\"{Number(cable.LabelY + 3)}\" text-anchor=\"middle\" font-family=\"Segoe UI,Arial,sans-serif\" font-size=\"8\" font-weight=\"700\" fill=\"#172033\">{index + 1}</text>");
+                labelsLayer.Add(
+                    new XElement(svgNamespace + "circle",
+                        new XAttribute("cx", Number(cable.LabelX)),
+                        new XAttribute("cy", Number(cable.LabelY)),
+                        new XAttribute("r", "9"),
+                        new XAttribute("fill", "#FFFFFF"),
+                        new XAttribute("stroke", cable.Color),
+                        new XAttribute("stroke-width", "2")),
+                    SvgText(svgNamespace, cable.LabelX, cable.LabelY + 3, (index + 1).ToString(CultureInfo.InvariantCulture), 8, "#172033", bold: true, anchor: "middle"));
             }
         }
 
-        AppendLegend(svg, diagram, english);
+        AppendLegend(labelsLayer, svgNamespace, diagram, english);
 
         string summary = english
             ? $"{diagram.Devices.Count} devices shown - {diagram.Cables.Count} grouped cables - {diagram.HiddenDeviceCount} hidden - {diagram.SkippedPatchCount} subscriptions outside selection"
             : $"{diagram.Devices.Count} machines affichées - {diagram.Cables.Count} câbles regroupés - {diagram.HiddenDeviceCount} masquée(s) - {diagram.SkippedPatchCount} patch(s) hors sélection";
-        svg.AppendLine($"  <text x=\"34\" y=\"{Number(diagram.Height - 30)}\" font-family=\"Segoe UI,Arial,sans-serif\" font-size=\"11\" fill=\"#526070\">{Escape(summary)}</text>");
-        svg.AppendLine($"  <text x=\"{Number(diagram.Width - 34)}\" y=\"{Number(diagram.Height - 30)}\" text-anchor=\"end\" font-family=\"Segoe UI,Arial,sans-serif\" font-size=\"10\" fill=\"#718096\">Dante Config Editor V3.3 - By Mamat et ses agents</text>");
-        svg.AppendLine("</svg>");
-        return svg.ToString();
+        labelsLayer.Add(
+            SvgText(svgNamespace, 34, diagram.Height - 30, summary, 11, "#526070"),
+            SvgText(svgNamespace, diagram.Width - 34, diagram.Height - 30,
+                "Dante Config Editor V3.3 - By Mamat et ses agents  -------[]--", 10, "#718096", anchor: "end"));
+
+        root.Add(backgroundLayer, locationsLayer, cablesLayer, devicesLayer, labelsLayer);
+        XDocument document = new(new XDeclaration("1.0", "UTF-8", null), root);
+        string svg = document.ToString(SaveOptions.DisableFormatting);
+        _ = XDocument.Parse(svg);
+        return svg + Environment.NewLine;
     }
 
     public static string ResolveLayoutPath(DanteProject project, string? storageDirectory = null)
@@ -546,6 +643,41 @@ public static class SynopticExportService
         ];
     }
 
+    private static bool HasManualPosition(SynopticLayoutDocument layout, string identity)
+    {
+        SynopticDevicePlacement? placement = layout.Devices.FirstOrDefault(item =>
+            string.Equals(item.DeviceIdentity, identity, StringComparison.OrdinalIgnoreCase));
+        return placement is { ManualX: not null, ManualY: not null };
+    }
+
+    private static IReadOnlyList<SynopticRoutePoint> BuildManualRoute(
+        CableDraft draft,
+        double sourceOffset,
+        double targetOffset)
+    {
+        SynopticDeviceNode source = draft.Source;
+        SynopticDeviceNode target = draft.Target;
+        if (string.Equals(source.Name, target.Name, StringComparison.OrdinalIgnoreCase))
+        {
+            double loopLaneX = source.X + source.Width + 42;
+            return BuildCorridorRoute(draft, loopLaneX, sourceOffset, targetOffset, loopback: true);
+        }
+
+        bool forward = source.X + source.Width / 2 <= target.X + target.Width / 2;
+        double startX = forward ? source.X + source.Width : source.X;
+        double endX = forward ? target.X : target.X + target.Width;
+        double startY = source.Y + source.Height / 2 + sourceOffset;
+        double endY = target.Y + target.Height / 2 + targetOffset;
+        double laneX = (startX + endX) / 2;
+        return
+        [
+            new SynopticRoutePoint(startX, startY),
+            new SynopticRoutePoint(laneX, startY),
+            new SynopticRoutePoint(laneX, endY),
+            new SynopticRoutePoint(endX, endY)
+        ];
+    }
+
     private static IReadOnlyList<SynopticRoutePoint> BuildOverheadRoute(
         CableDraft draft,
         double laneY,
@@ -614,9 +746,95 @@ public static class SynopticExportService
         return "M " + string.Join(" L ", cable.RoutePoints.Select(point => $"{Number(point.X)} {Number(point.Y)}"));
     }
 
-    private static string Escape(string value) => SecurityElement.Escape(value) ?? string.Empty;
+    private static XElement Layer(XNamespace svgNamespace, string id, string name)
+    {
+        // Illustrator exige cet attribut propriétaire pour rouvrir un groupe comme un vrai calque.
+        return new XElement(svgNamespace + "g",
+            new XAttribute("id", id),
+            new XAttribute("data-name", name),
+            new XAttribute(IllustratorNamespace + "layer", "yes"));
+    }
 
-    private static void AppendLegend(StringBuilder svg, SynopticDiagram diagram, bool english)
+    private static XElement SvgRect(
+        XNamespace svgNamespace,
+        double x,
+        double y,
+        double width,
+        double height,
+        string fill,
+        string? stroke = null,
+        double strokeWidth = 0,
+        double radius = 0)
+    {
+        XElement rectangle = new(svgNamespace + "rect",
+            new XAttribute("x", Number(x)),
+            new XAttribute("y", Number(y)),
+            new XAttribute("width", Number(width)),
+            new XAttribute("height", Number(height)),
+            new XAttribute("fill", fill));
+        if (radius > 0)
+        {
+            rectangle.Add(new XAttribute("rx", Number(radius)));
+        }
+        if (!string.IsNullOrWhiteSpace(stroke))
+        {
+            rectangle.Add(new XAttribute("stroke", stroke), new XAttribute("stroke-width", Number(strokeWidth)));
+        }
+        return rectangle;
+    }
+
+    private static XElement SvgText(
+        XNamespace svgNamespace,
+        double x,
+        double y,
+        string text,
+        double fontSize,
+        string fill,
+        bool bold = false,
+        string? anchor = null)
+    {
+        XElement element = new(svgNamespace + "text",
+            new XAttribute("x", Number(x)),
+            new XAttribute("y", Number(y)),
+            new XAttribute("font-family", "Arial, sans-serif"),
+            new XAttribute("font-size", Number(fontSize)),
+            new XAttribute("fill", fill),
+            text);
+        if (bold)
+        {
+            element.Add(new XAttribute("font-weight", "700"));
+        }
+        if (!string.IsNullOrWhiteSpace(anchor))
+        {
+            element.Add(new XAttribute("text-anchor", anchor));
+        }
+        return element;
+    }
+
+    private static XElement SvgPath(
+        XNamespace svgNamespace,
+        string data,
+        string stroke,
+        double strokeWidth,
+        double opacity,
+        string? markerEnd = null)
+    {
+        XElement path = new(svgNamespace + "path",
+            new XAttribute("d", data),
+            new XAttribute("fill", "none"),
+            new XAttribute("stroke", stroke),
+            new XAttribute("stroke-width", Number(strokeWidth)),
+            new XAttribute("stroke-linecap", "round"),
+            new XAttribute("stroke-linejoin", "round"),
+            new XAttribute("opacity", Number(opacity)));
+        if (!string.IsNullOrWhiteSpace(markerEnd))
+        {
+            path.Add(new XAttribute("marker-end", markerEnd));
+        }
+        return path;
+    }
+
+    private static void AppendLegend(XElement layer, XNamespace svgNamespace, SynopticDiagram diagram, bool english)
     {
         double topMargin = diagram.Locations.Count == 0 ? BaseTopMargin : diagram.Locations.Min(location => location.Y);
         double legendX = diagram.LegendX;
@@ -624,8 +842,10 @@ public static class SynopticExportService
         int columns = Math.Max(1, diagram.LegendColumns);
         double gap = 10;
         double itemWidth = (diagram.LegendWidth - 24 - (columns - 1) * gap) / columns;
-        svg.AppendLine($"  <rect x=\"{Number(legendX)}\" y=\"{Number(topMargin)}\" width=\"{Number(diagram.LegendWidth)}\" height=\"{Number(legendHeight)}\" rx=\"8\" fill=\"#FFFFFF\" stroke=\"#CBD5E1\" stroke-width=\"1.5\"/>");
-        svg.AppendLine($"  <text x=\"{Number(legendX + 18)}\" y=\"{Number(topMargin + 29)}\" font-family=\"Segoe UI,Arial,sans-serif\" font-size=\"15\" font-weight=\"700\" fill=\"#172033\">{Escape(english ? "Grouped subscriptions" : "Liaisons regroupées")}</text>");
+        layer.Add(
+            SvgRect(svgNamespace, legendX, topMargin, diagram.LegendWidth, legendHeight, "#FFFFFF", "#CBD5E1", 1.5, 8),
+            SvgText(svgNamespace, legendX + 18, topMargin + 29,
+                english ? "Grouped subscriptions" : "Liaisons regroupées", 15, "#172033", bold: true));
 
         double y = topMargin + 48;
         for (int rowStart = 0; rowStart < diagram.Cables.Count; rowStart += columns)
@@ -637,13 +857,20 @@ public static class SynopticExportService
                 int index = rowStart + column;
                 SynopticCable cable = row[column];
                 double itemX = legendX + 12 + column * (itemWidth + gap);
-                svg.AppendLine($"  <rect x=\"{Number(itemX)}\" y=\"{Number(y)}\" width=\"{Number(itemWidth)}\" height=\"{Number(rowHeight - 6)}\" rx=\"5\" fill=\"#F8FAFC\" stroke=\"#E2E8F0\"/>");
-                svg.AppendLine($"  <circle cx=\"{Number(itemX + 19)}\" cy=\"{Number(y + 20)}\" r=\"11\" fill=\"{cable.Color}\"/>");
-                svg.AppendLine($"  <text x=\"{Number(itemX + 19)}\" y=\"{Number(y + 24)}\" text-anchor=\"middle\" font-family=\"Segoe UI,Arial,sans-serif\" font-size=\"10\" font-weight=\"700\" fill=\"#FFFFFF\">{index + 1}</text>");
-                svg.AppendLine($"  <text x=\"{Number(itemX + 38)}\" y=\"{Number(y + 23)}\" font-family=\"Segoe UI,Arial,sans-serif\" font-size=\"12\" font-weight=\"700\" fill=\"#172033\">{Escape(Trim($"{cable.SourceDevice} → {cable.TargetDevice}", columns == 1 ? 52 : 38))}</text>");
+                layer.Add(
+                    SvgRect(svgNamespace, itemX, y, itemWidth, rowHeight - 6, "#F8FAFC", "#E2E8F0", 1, 5),
+                    new XElement(svgNamespace + "circle",
+                        new XAttribute("cx", Number(itemX + 19)),
+                        new XAttribute("cy", Number(y + 20)),
+                        new XAttribute("r", "11"),
+                        new XAttribute("fill", cable.Color)),
+                    SvgText(svgNamespace, itemX + 19, y + 24, (index + 1).ToString(CultureInfo.InvariantCulture), 10, "#FFFFFF", bold: true, anchor: "middle"),
+                    SvgText(svgNamespace, itemX + 38, y + 23,
+                        Trim($"{cable.SourceDevice} → {cable.TargetDevice}", columns == 1 ? 52 : 38), 12, "#172033", bold: true));
                 for (int labelIndex = 0; labelIndex < cable.Labels.Count; labelIndex++)
                 {
-                    svg.AppendLine($"  <text x=\"{Number(itemX + 38)}\" y=\"{Number(y + 42 + labelIndex * 16)}\" font-family=\"Segoe UI,Arial,sans-serif\" font-size=\"10.5\" fill=\"#526070\">{Escape(Trim(cable.Labels[labelIndex], columns == 1 ? 58 : 42))}</text>");
+                    layer.Add(SvgText(svgNamespace, itemX + 38, y + 42 + labelIndex * 16,
+                        Trim(cable.Labels[labelIndex], columns == 1 ? 58 : 42), 10.5, "#526070"));
                 }
             }
             y += rowHeight;

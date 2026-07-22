@@ -6,6 +6,7 @@ using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
+using System.Windows.Input;
 using System.Windows.Media;
 using DanteConfigEditor.Models;
 using DanteConfigEditor.Services;
@@ -18,6 +19,10 @@ public partial class MainWindow
     private readonly ObservableCollection<SynopticDeviceRow> _synopticRows = [];
     private SynopticLayoutDocument? _synopticLayout;
     private string? _synopticLayoutPath;
+    private readonly Dictionary<string, SynopticDeviceNode> _synopticPreviewNodes = new(StringComparer.OrdinalIgnoreCase);
+    private Border? _draggedSynopticCard;
+    private string? _draggedSynopticIdentity;
+    private Point _synopticDragOffset;
 
     private void RefreshSynopticWorkspace(bool persistCurrentRows = true)
     {
@@ -58,7 +63,10 @@ public partial class MainWindow
             .ToDictionary(group => group.Key, group => group.First(), StringComparer.OrdinalIgnoreCase);
 
         _synopticRows.Clear();
-        foreach (SynopticDevicePlacement placement in _synopticLayout.Devices.OrderBy(item => item.Order))
+        foreach (SynopticDevicePlacement placement in _synopticLayout.Devices
+                     .OrderBy(item => item.Location, StringComparer.CurrentCultureIgnoreCase)
+                     .ThenBy(item => item.Order)
+                     .ThenBy(item => item.DeviceName, StringComparer.CurrentCultureIgnoreCase))
         {
             if (devicesByIdentity.TryGetValue(placement.DeviceIdentity, out DanteDevice? device))
             {
@@ -86,15 +94,14 @@ public partial class MainWindow
 
         Dictionary<string, SynopticDevicePlacement> placements = _synopticLayout.Devices
             .ToDictionary(item => item.DeviceIdentity, StringComparer.OrdinalIgnoreCase);
-        for (int index = 0; index < _synopticRows.Count; index++)
+        foreach (SynopticDeviceRow row in _synopticRows)
         {
-            SynopticDeviceRow row = _synopticRows[index];
             if (placements.TryGetValue(row.DeviceIdentity, out SynopticDevicePlacement? placement))
             {
                 placement.DeviceName = row.DeviceName;
                 placement.Location = row.Location.Trim();
                 placement.IsVisible = row.IsVisible;
-                placement.Order = index;
+                placement.Order = Math.Max(0, row.Order);
             }
         }
     }
@@ -108,6 +115,11 @@ public partial class MainWindow
         }
 
         SynopticDiagram diagram = SynopticExportService.BuildDiagram(_project, _synopticLayout, _language == UiLanguage.English);
+        _synopticPreviewNodes.Clear();
+        foreach (SynopticDeviceNode node in diagram.Devices)
+        {
+            _synopticPreviewNodes[node.Identity] = node;
+        }
         SynopticCanvas.Width = diagram.Width;
         SynopticCanvas.Height = diagram.Height;
 
@@ -150,10 +162,12 @@ public partial class MainWindow
         foreach (SynopticCable cable in diagram.Cables)
         {
             System.Windows.Shapes.Path underlay = BuildPreviewCablePath(cable, Brushes.White, 8, showArrow: false);
+            underlay.Tag = cable;
             Panel.SetZIndex(underlay, 1);
             SynopticCanvas.Children.Add(underlay);
 
             System.Windows.Shapes.Path path = BuildPreviewCablePath(cable, BrushFromHex(cable.Color), 3.5, showArrow: true);
+            path.Tag = cable;
             Panel.SetZIndex(path, 2);
             SynopticCanvas.Children.Add(path);
         }
@@ -179,6 +193,14 @@ public partial class MainWindow
                     }
                 }
             };
+            deviceCard.Tag = node.Identity;
+            deviceCard.Cursor = Cursors.SizeAll;
+            deviceCard.ToolTip = _language == UiLanguage.English
+                ? "Drag this device to arrange the synoptic."
+                : "Faites glisser cette machine pour organiser le synoptique.";
+            deviceCard.MouseLeftButtonDown += SynopticDeviceCard_MouseLeftButtonDown;
+            deviceCard.MouseMove += SynopticDeviceCard_MouseMove;
+            deviceCard.MouseLeftButtonUp += SynopticDeviceCard_MouseLeftButtonUp;
             Canvas.SetLeft(deviceCard, node.X);
             Canvas.SetTop(deviceCard, node.Y);
             Panel.SetZIndex(deviceCard, 4);
@@ -341,6 +363,98 @@ public partial class MainWindow
         SaveAndRefreshSynoptic();
     }
 
+    private void SynopticDeviceCard_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        if (sender is not Border card || card.Tag is not string identity || !_synopticPreviewNodes.TryGetValue(identity, out SynopticDeviceNode? node))
+        {
+            return;
+        }
+
+        _draggedSynopticCard = card;
+        _draggedSynopticIdentity = identity;
+        Point pointer = e.GetPosition(SynopticCanvas);
+        _synopticDragOffset = new Point(pointer.X - node.X, pointer.Y - node.Y);
+        card.CaptureMouse();
+        e.Handled = true;
+    }
+
+    private void SynopticDeviceCard_MouseMove(object sender, MouseEventArgs e)
+    {
+        if (e.LeftButton != MouseButtonState.Pressed
+            || _draggedSynopticCard is null
+            || _draggedSynopticIdentity is null
+            || !_synopticPreviewNodes.TryGetValue(_draggedSynopticIdentity, out SynopticDeviceNode? node)
+            || _synopticLayout is null)
+        {
+            return;
+        }
+
+        Point pointer = e.GetPosition(SynopticCanvas);
+        double x = Math.Max(4, pointer.X - _synopticDragOffset.X);
+        double y = Math.Max(74, pointer.Y - _synopticDragOffset.Y);
+        Canvas.SetLeft(_draggedSynopticCard, x);
+        Canvas.SetTop(_draggedSynopticCard, y);
+        SynopticDeviceNode movedNode = node with { X = x, Y = y };
+        _synopticPreviewNodes[_draggedSynopticIdentity] = movedNode;
+
+        SynopticDevicePlacement? placement = _synopticLayout.Devices.FirstOrDefault(item =>
+            string.Equals(item.DeviceIdentity, _draggedSynopticIdentity, StringComparison.OrdinalIgnoreCase));
+        if (placement is not null)
+        {
+            placement.ManualX = x;
+            placement.ManualY = y;
+        }
+        UpdateSynopticCablesDuringDrag();
+        e.Handled = true;
+    }
+
+    private void SynopticDeviceCard_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+    {
+        if (_draggedSynopticCard is null)
+        {
+            return;
+        }
+
+        _draggedSynopticCard.ReleaseMouseCapture();
+        _draggedSynopticCard = null;
+        _draggedSynopticIdentity = null;
+        SaveAndRefreshSynoptic();
+        e.Handled = true;
+    }
+
+    private void UpdateSynopticCablesDuringDrag()
+    {
+        Dictionary<string, SynopticDeviceNode> nodesByName = _synopticPreviewNodes.Values
+            .GroupBy(node => node.Name, StringComparer.OrdinalIgnoreCase)
+            .ToDictionary(group => group.Key, group => group.First(), StringComparer.OrdinalIgnoreCase);
+        foreach (System.Windows.Shapes.Path path in SynopticCanvas.Children.OfType<System.Windows.Shapes.Path>())
+        {
+            if (path.Tag is not SynopticCable cable
+                || !nodesByName.TryGetValue(cable.SourceDevice, out SynopticDeviceNode? source)
+                || !nodesByName.TryGetValue(cable.TargetDevice, out SynopticDeviceNode? target))
+            {
+                continue;
+            }
+
+            bool forward = source.X + source.Width / 2 <= target.X + target.Width / 2;
+            double startX = forward ? source.X + source.Width : source.X;
+            double endX = forward ? target.X : target.X + target.Width;
+            double startY = source.Y + source.Height / 2;
+            double endY = target.Y + target.Height / 2;
+            double laneX = (startX + endX) / 2;
+            IReadOnlyList<SynopticRoutePoint> points =
+            [
+                new SynopticRoutePoint(startX, startY),
+                new SynopticRoutePoint(laneX, startY),
+                new SynopticRoutePoint(laneX, endY),
+                new SynopticRoutePoint(endX, endY)
+            ];
+            PathFigure figure = new() { StartPoint = new Point(points[0].X, points[0].Y) };
+            figure.Segments.Add(new PolyLineSegment(points.Skip(1).Select(point => new Point(point.X, point.Y)), true));
+            path.Data = new PathGeometry([figure]);
+        }
+    }
+
     private void SynopticVisibilityCheckBox_Click(object sender, RoutedEventArgs e)
     {
         // Le clic doit rester immédiat : on attend seulement que le binding ait
@@ -390,16 +504,80 @@ public partial class MainWindow
             return;
         }
 
-        int oldIndex = _synopticRows.IndexOf(selected);
-        int newIndex = Math.Clamp(oldIndex + offset, 0, _synopticRows.Count - 1);
-        if (newIndex == oldIndex)
+        SynopticDeviceRow[] siblings = _synopticRows
+            .Where(row => string.Equals(row.Location, selected.Location, StringComparison.OrdinalIgnoreCase))
+            .OrderBy(row => row.Order)
+            .ThenBy(row => row.DeviceName, StringComparer.CurrentCultureIgnoreCase)
+            .ToArray();
+        int oldIndex = Array.IndexOf(siblings, selected);
+        int newIndex = Math.Clamp(oldIndex + offset, 0, siblings.Length - 1);
+        if (oldIndex < 0 || newIndex == oldIndex)
         {
             return;
         }
 
-        _synopticRows.Move(oldIndex, newIndex);
-        SynopticDeviceGrid.SelectedItem = selected;
+        SynopticDeviceRow other = siblings[newIndex];
+        (selected.Order, other.Order) = (other.Order, selected.Order);
         SaveAndRefreshSynoptic();
+        SynopticDeviceGrid.SelectedItem = selected;
+    }
+
+    private void ResetSynopticLayoutButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (_synopticLayout is null)
+        {
+            return;
+        }
+
+        foreach (SynopticDevicePlacement placement in _synopticLayout.Devices)
+        {
+            placement.ManualX = null;
+            placement.ManualY = null;
+        }
+        SaveAndRefreshSynoptic();
+    }
+
+    private void SynopticZoomSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+    {
+        if (SynopticCanvas is null || SynopticZoomTextBlock is null)
+        {
+            return;
+        }
+
+        double scale = Math.Clamp(e.NewValue, 0.1, 2.5);
+        SynopticCanvas.LayoutTransform = new ScaleTransform(scale, scale);
+        SynopticZoomTextBlock.Text = $"{Math.Round(scale * 100):0} %";
+    }
+
+    private void ResetSynopticZoomButton_Click(object sender, RoutedEventArgs e)
+    {
+        SynopticZoomSlider.Value = 1;
+    }
+
+    private void ZoomOutSynopticButton_Click(object sender, RoutedEventArgs e)
+    {
+        SynopticZoomSlider.Value = Math.Max(SynopticZoomSlider.Minimum, SynopticZoomSlider.Value - 0.25);
+    }
+
+    private void ZoomInSynopticButton_Click(object sender, RoutedEventArgs e)
+    {
+        SynopticZoomSlider.Value = Math.Min(SynopticZoomSlider.Maximum, SynopticZoomSlider.Value + 0.25);
+    }
+
+    private void FitSynopticZoomButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (SynopticCanvas.Width <= 0 || SynopticCanvas.Height <= 0)
+        {
+            return;
+        }
+
+        double availableWidth = Math.Max(1, SynopticScrollViewer.ViewportWidth - 24);
+        double availableHeight = Math.Max(1, SynopticScrollViewer.ViewportHeight - 24);
+        SynopticZoomSlider.Value = Math.Clamp(
+            Math.Min(availableWidth / SynopticCanvas.Width, availableHeight / SynopticCanvas.Height),
+            SynopticZoomSlider.Minimum,
+            1);
+        SynopticScrollViewer.ScrollToHome();
     }
 
     private void SynopticDeviceGrid_CellEditEnding(object sender, DataGridCellEditEndingEventArgs e)
@@ -522,6 +700,7 @@ public partial class MainWindow
     {
         private bool _isVisible;
         private string _location;
+        private int _order;
 
         public SynopticDeviceRow(SynopticDevicePlacement placement, int txCount, int rxCount)
         {
@@ -529,6 +708,7 @@ public partial class MainWindow
             DeviceName = placement.DeviceName;
             _location = placement.Location;
             _isVisible = placement.IsVisible;
+            _order = placement.Order;
             TxCount = txCount;
             RxCount = rxCount;
         }
@@ -538,6 +718,12 @@ public partial class MainWindow
         public int TxCount { get; }
         public int RxCount { get; }
         public string ChannelCount => $"{TxCount}/{RxCount}";
+
+        public int Order
+        {
+            get => _order;
+            set => SetField(ref _order, Math.Max(0, value));
+        }
 
         public bool IsVisible
         {

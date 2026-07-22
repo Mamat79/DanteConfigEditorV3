@@ -2,7 +2,7 @@ namespace DanteConfigEditor.Models;
 
 public sealed class SynopticLayoutDocument
 {
-    public const int CurrentSchemaVersion = 1;
+    public const int CurrentSchemaVersion = 2;
 
     public int SchemaVersion { get; set; } = CurrentSchemaVersion;
 
@@ -20,6 +20,10 @@ public sealed class SynopticDevicePlacement
     public bool IsVisible { get; set; } = true;
 
     public int Order { get; set; }
+
+    public double? ManualX { get; set; }
+
+    public double? ManualY { get; set; }
 }
 
 public sealed record SynopticDiagram(

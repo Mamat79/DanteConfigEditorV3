@@ -92,6 +92,7 @@
                     <StackPanel Grid.Row="4" HorizontalAlignment="Center" Margin="0,12,0,0" Spacing="0">
                         <TextBlock Text="By Mamat" HorizontalAlignment="Center" Classes="muted" />
                         <TextBlock Text="et ses agents" HorizontalAlignment="Center" Classes="muted" FontSize="10" />
+                        <TextBlock Text="-------[]--" HorizontalAlignment="Center" Classes="muted" FontFamily="Menlo,Consolas,monospace" FontSize="8" Opacity="0.7" />
                     </StackPanel>
                 </Grid>
             </Border>
@@ -422,7 +423,8 @@
                                 <DataGrid x:Name="SynopticDeviceGrid"
                                           Grid.Row="1"
                                           AutoGenerateColumns="False"
-                                      SelectionMode="Extended">
+                                          SelectionMode="Extended"
+                                          CellEditEnded="SynopticDeviceGrid_CellEditEnded">
                                     <DataGrid.Columns>
                                         <DataGridTemplateColumn Header="Voir" Width="54">
                                             <DataGridTemplateColumn.CellTemplate>
@@ -436,6 +438,7 @@
                                         </DataGridTemplateColumn>
                                         <DataGridTextColumn Header="Machine" Binding="{Binding DeviceName}" IsReadOnly="True" Width="1.3*" />
                                         <DataGridTextColumn Header="Emplacement" Binding="{Binding Location, Mode=TwoWay}" Width="1.2*" />
+                                        <DataGridTextColumn Header="Ordre" Binding="{Binding Order, Mode=TwoWay}" Width="70" />
                                         <DataGridTextColumn Header="TX/RX" Binding="{Binding ChannelCount}" IsReadOnly="True" Width="72" />
                                     </DataGrid.Columns>
                                 </DataGrid>
@@ -446,30 +449,56 @@
                                     BorderBrush="{DynamicResource PanelBorderBrush}"
                                     BorderThickness="1"
                                     CornerRadius="6">
-                                <ScrollViewer HorizontalScrollBarVisibility="Auto"
-                                              VerticalScrollBarVisibility="Auto">
-                                    <Canvas x:Name="SynopticCanvas"
-                                            Width="900"
-                                            Height="560"
-                                            Background="#F7F9FC" />
-                                </ScrollViewer>
+                                <Grid RowDefinitions="Auto,*">
+                                    <StackPanel Orientation="Horizontal" Spacing="7" Margin="8,6">
+                                        <TextBlock Text="Zoom" VerticalAlignment="Center" />
+                                        <Button Width="34" Click="ZoomOutSynopticButton_Click" ToolTip.Tip="Zoom arrière">−</Button>
+                                        <Slider x:Name="SynopticZoomSlider"
+                                                Width="150"
+                                                Minimum="0.1"
+                                                Maximum="2.5"
+                                                Value="1"
+                                                ValueChanged="SynopticZoomSlider_ValueChanged" />
+                                        <Button Width="34" Click="ZoomInSynopticButton_Click" ToolTip.Tip="Zoom avant">+</Button>
+                                        <TextBlock x:Name="SynopticZoomText" Width="58" Text="100 %" TextAlignment="Center" VerticalAlignment="Center" />
+                                        <Button Click="ResetSynopticZoomButton_Click">100 %</Button>
+                                        <Button Click="FitSynopticZoomButton_Click">Ajuster</Button>
+                                    </StackPanel>
+                                    <ScrollViewer x:Name="SynopticScrollViewer"
+                                                  Grid.Row="1"
+                                                  HorizontalScrollBarVisibility="Auto"
+                                                  VerticalScrollBarVisibility="Auto">
+                                        <LayoutTransformControl x:Name="SynopticZoomHost">
+                                            <Canvas x:Name="SynopticCanvas"
+                                                    Width="900"
+                                                    Height="560"
+                                                    Background="#F7F9FC" />
+                                        </LayoutTransformControl>
+                                    </ScrollViewer>
+                                </Grid>
                             </Border>
                         </Grid>
 
-                        <Grid Grid.Row="2" ColumnDefinitions="Auto,Auto,Auto,Auto,*,Auto,Auto,Auto" ColumnSpacing="8">
-                            <Button x:Name="ShowAllSynopticDevicesButton" Click="ShowAllSynopticDevicesButton_Click">Tout afficher</Button>
-                            <Button x:Name="HideSelectedSynopticDevicesButton" Grid.Column="1" Click="HideSelectedSynopticDevicesButton_Click">Masquer sélection</Button>
-                            <Button x:Name="MoveSynopticDeviceUpButton" Grid.Column="2" Width="42" Click="MoveSynopticDeviceUpButton_Click" ToolTip.Tip="Place la machine plus haut.">↑</Button>
-                            <Button x:Name="MoveSynopticDeviceDownButton" Grid.Column="3" Width="42" Click="MoveSynopticDeviceDownButton_Click" ToolTip.Tip="Place la machine plus bas.">↓</Button>
-                            <CheckBox x:Name="OpenSynopticAfterExportCheckBox"
-                                      Grid.Column="4"
-                                      Content="Ouvrir après export"
-                                      IsChecked="True"
-                                      HorizontalAlignment="Right"
-                                      VerticalAlignment="Center" />
-                            <Button x:Name="RefreshSynopticButton" Grid.Column="5" Click="RefreshSynopticButton_Click">Actualiser l’aperçu</Button>
-                            <Button x:Name="ExportSynopticButton" Grid.Column="6" Classes="primary" Click="ExportSynopticButton_Click">Exporter le synoptique SVG</Button>
-                            <Button x:Name="ExportSynopticPdfButton" Grid.Column="7" Classes="primary" Click="ExportSynopticPdfButton_Click">Exporter le synoptique PDF</Button>
+                        <Grid Grid.Row="2" RowDefinitions="Auto,Auto" RowSpacing="6">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <Button x:Name="ShowAllSynopticDevicesButton" Click="ShowAllSynopticDevicesButton_Click">Tout afficher</Button>
+                                <Button x:Name="HideSelectedSynopticDevicesButton" Click="HideSelectedSynopticDevicesButton_Click">Masquer sélection</Button>
+                                <Button x:Name="MoveSynopticDeviceUpButton" Width="42" Click="MoveSynopticDeviceUpButton_Click" ToolTip.Tip="Place la machine plus haut.">↑</Button>
+                                <Button x:Name="MoveSynopticDeviceDownButton" Width="42" Click="MoveSynopticDeviceDownButton_Click" ToolTip.Tip="Place la machine plus bas.">↓</Button>
+                                <Button x:Name="ResetSynopticLayoutButton" Click="ResetSynopticLayoutButton_Click">Disposition automatique</Button>
+                            </StackPanel>
+                            <StackPanel Grid.Row="1"
+                                        Orientation="Horizontal"
+                                        Spacing="8"
+                                        HorizontalAlignment="Right">
+                                <CheckBox x:Name="OpenSynopticAfterExportCheckBox"
+                                          Content="Ouvrir après export"
+                                          IsChecked="True"
+                                          VerticalAlignment="Center" />
+                                <Button x:Name="RefreshSynopticButton" Click="RefreshSynopticButton_Click">Actualiser l’aperçu</Button>
+                                <Button x:Name="ExportSynopticButton" Classes="primary" Click="ExportSynopticButton_Click">Exporter le synoptique SVG</Button>
+                                <Button x:Name="ExportSynopticPdfButton" Classes="primary" Click="ExportSynopticPdfButton_Click">Exporter le synoptique PDF</Button>
+                            </StackPanel>
                         </Grid>
                             </Grid>
                         </TabItem>

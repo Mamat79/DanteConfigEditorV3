@@ -42,6 +42,10 @@ public sealed class ChannelLabelUiContractTests
 
         Assert.Contains("PreviewGrid", windowsImport, StringComparison.Ordinal);
         Assert.Contains("AdaptDmtCheckBox", windowsExport, StringComparison.Ordinal);
+        Assert.Contains("CaseModeComboBox", windowsExport, StringComparison.Ordinal);
+        Assert.Contains("MaximumLengthTextBox", windowsExport, StringComparison.Ordinal);
+        Assert.Contains("StartPositionTextBox", windowsExport, StringComparison.Ordinal);
+        Assert.Contains("FromEndCheckBox", windowsExport, StringComparison.Ordinal);
         Assert.Contains("CSV générique - nouveau fichier", windowsExport, StringComparison.Ordinal);
         Assert.Contains("Tag=\"dmt-dlive\"", windowsExport, StringComparison.Ordinal);
         Assert.Contains("Tag=\"dmt-ods-dlive\"", windowsExport, StringComparison.Ordinal);
@@ -53,6 +57,10 @@ public sealed class ChannelLabelUiContractTests
         Assert.Contains("TargetDeviceCheckBox_Click", windowsImport, StringComparison.Ordinal);
         Assert.Contains("PreviewGrid", macImport, StringComparison.Ordinal);
         Assert.Contains("AdaptDmtCheckBox", macExport, StringComparison.Ordinal);
+        Assert.Contains("CaseModeCombo", macExport, StringComparison.Ordinal);
+        Assert.Contains("MaximumLengthTextBox", macExport, StringComparison.Ordinal);
+        Assert.Contains("StartPositionTextBox", macExport, StringComparison.Ordinal);
+        Assert.Contains("FromEndCheckBox", macExport, StringComparison.Ordinal);
         Assert.Contains("IsEnabled=\"{Binding IsAvailable}\"", macExport, StringComparison.Ordinal);
         Assert.Contains("RowDefinitions=\"Auto,286,*,Auto\"", macImport, StringComparison.Ordinal);
         Assert.Contains("TargetDeviceCheckBox_Click", macImport, StringComparison.Ordinal);
@@ -64,6 +72,8 @@ public sealed class ChannelLabelUiContractTests
         Assert.Contains("yamaha-ql", macExportCode, StringComparison.Ordinal);
         Assert.Contains("BuiltInChannelLabelTemplateService.Write", windowsMain, StringComparison.Ordinal);
         Assert.Contains("BuiltInChannelLabelTemplateService.Write", macMain, StringComparison.Ordinal);
+        Assert.Contains("ChannelLabelTransformService.Transform", windowsMain, StringComparison.Ordinal);
+        Assert.Contains("ChannelLabelTransformService.Transform", macMain, StringComparison.Ordinal);
         Assert.DoesNotContain("Choose the original DMT template", windowsMain, StringComparison.Ordinal);
         Assert.DoesNotContain("Choose the original DMT template", macMain, StringComparison.Ordinal);
         string windowsExportCode = Read("ChannelLabelExportWindow.xaml.cs");
@@ -91,6 +101,27 @@ public sealed class ChannelLabelUiContractTests
         Assert.Contains("Refusing to overwrite it", workflow, StringComparison.Ordinal);
         Assert.DoesNotContain("gh release delete", workflow, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("--clobber", workflow, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void WindowsAndMacExposeSynopticOrderDragAndZoomControls()
+    {
+        string windowsXaml = Read("MainWindow.xaml");
+        string windowsCode = Read("MainWindow.Synoptic.cs");
+        string macXaml = Read("src", "DanteConfigEditor.Mac", "MainWindow.axaml");
+        string macCode = Read("src", "DanteConfigEditor.Mac", "MainWindow.Synoptic.cs");
+
+        foreach (string xaml in new[] { windowsXaml, macXaml })
+        {
+            Assert.Contains("SynopticZoomSlider", xaml, StringComparison.Ordinal);
+            Assert.Contains("SynopticScrollViewer", xaml, StringComparison.Ordinal);
+            Assert.Contains("ResetSynopticLayoutButton", xaml, StringComparison.Ordinal);
+            Assert.Contains("Binding=\"{Binding Order", xaml, StringComparison.Ordinal);
+        }
+        Assert.Contains("SynopticDeviceCard_MouseMove", windowsCode, StringComparison.Ordinal);
+        Assert.Contains("SynopticDevice_PointerMoved", macCode, StringComparison.Ordinal);
+        Assert.Contains("UpdateSynopticCablesDuringDrag", windowsCode, StringComparison.Ordinal);
+        Assert.Contains("UpdateSynopticCablesDuringDrag", macCode, StringComparison.Ordinal);
     }
 
     private static string Read(params string[] parts)

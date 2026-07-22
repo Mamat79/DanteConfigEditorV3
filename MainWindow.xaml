@@ -1387,6 +1387,7 @@
                                         </DataGridTemplateColumn>
                                         <DataGridTextColumn Header="Machine" Binding="{Binding DeviceName}" IsReadOnly="True" Width="1.35*" />
                                         <DataGridTextColumn Header="Emplacement" Binding="{Binding Location, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="1.25*" />
+                                        <DataGridTextColumn Header="Ordre" Binding="{Binding Order, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="70" />
                                         <DataGridTextColumn Header="TX/RX" Binding="{Binding ChannelCount}" IsReadOnly="True" Width="72" />
                                     </DataGrid.Columns>
                                 </DataGrid>
@@ -1397,72 +1398,99 @@
                                     BorderBrush="{DynamicResource BorderLineBrush}"
                                     BorderThickness="1"
                                     CornerRadius="6">
-                                <ScrollViewer HorizontalScrollBarVisibility="Auto"
-                                              VerticalScrollBarVisibility="Auto">
-                                    <Canvas x:Name="SynopticCanvas"
-                                            Width="900"
-                                            Height="560"
-                                            Background="#F7F9FC" />
-                                </ScrollViewer>
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="*" />
+                                    </Grid.RowDefinitions>
+                                    <Border Background="{DynamicResource SurfaceBrush}"
+                                            BorderBrush="{DynamicResource BorderLineBrush}"
+                                            BorderThickness="0,0,0,1"
+                                            Padding="8,6">
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="Zoom" VerticalAlignment="Center" Margin="0,0,8,0" />
+                                            <Button Content="−" Width="34" Click="ZoomOutSynopticButton_Click" ToolTip="Zoom arrière" />
+                                            <Slider x:Name="SynopticZoomSlider"
+                                                    Width="150"
+                                                    Minimum="0.1"
+                                                    Maximum="2.5"
+                                                    Value="1"
+                                                    TickFrequency="0.25"
+                                                    Margin="7,0"
+                                                    ValueChanged="SynopticZoomSlider_ValueChanged" />
+                                            <Button Content="+" Width="34" Click="ZoomInSynopticButton_Click" ToolTip="Zoom avant" />
+                                            <TextBlock x:Name="SynopticZoomTextBlock" Text="100 %" Width="58" TextAlignment="Center" VerticalAlignment="Center" />
+                                            <Button Content="100 %" Margin="5,0,0,0" Click="ResetSynopticZoomButton_Click" ToolTip="Revenir à la taille réelle" />
+                                            <Button Content="Ajuster" Margin="5,0,0,0" Click="FitSynopticZoomButton_Click" ToolTip="Afficher tout le synoptique" />
+                                        </StackPanel>
+                                    </Border>
+                                    <ScrollViewer x:Name="SynopticScrollViewer"
+                                                  Grid.Row="1"
+                                                  HorizontalScrollBarVisibility="Auto"
+                                                  VerticalScrollBarVisibility="Auto">
+                                        <Canvas x:Name="SynopticCanvas"
+                                                Width="900"
+                                                Height="560"
+                                                Background="#F7F9FC" />
+                                    </ScrollViewer>
+                                </Grid>
                             </Border>
                         </Grid>
 
                         <Grid Grid.Row="2" Margin="0,12,0,0">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="Auto" />
-                            </Grid.ColumnDefinitions>
-                            <Button x:Name="ShowAllSynopticDevicesButton"
-                                    Content="Tout afficher"
-                                    Style="{StaticResource SecondaryButtonStyle}"
-                                    Click="ShowAllSynopticDevicesButton_Click" />
-                            <Button x:Name="HideSelectedSynopticDevicesButton"
-                                    Grid.Column="1"
-                                    Content="Masquer sélection"
-                                    Style="{StaticResource SecondaryButtonStyle}"
-                                    Click="HideSelectedSynopticDevicesButton_Click" />
-                            <Button x:Name="MoveSynopticDeviceUpButton"
-                                    Grid.Column="2"
-                                    Content="↑"
-                                    Width="42"
-                                    Style="{StaticResource SecondaryButtonStyle}"
-                                    Click="MoveSynopticDeviceUpButton_Click"
-                                    ToolTip="Place la machine sélectionnée plus haut dans son emplacement." />
-                            <Button x:Name="MoveSynopticDeviceDownButton"
-                                    Grid.Column="3"
-                                    Content="↓"
-                                    Width="42"
-                                    Style="{StaticResource SecondaryButtonStyle}"
-                                    Click="MoveSynopticDeviceDownButton_Click"
-                                    ToolTip="Place la machine sélectionnée plus bas dans son emplacement." />
-                            <CheckBox x:Name="OpenSynopticAfterExportCheckBox"
-                                      Grid.Column="4"
-                                      Content="Ouvrir après export"
-                                      IsChecked="True"
-                                      HorizontalAlignment="Right"
-                                      VerticalAlignment="Center"
-                                      Margin="0,0,14,0" />
-                            <Button x:Name="RefreshSynopticButton"
-                                    Grid.Column="5"
-                                    Content="Actualiser l’aperçu"
-                                    Style="{StaticResource SecondaryButtonStyle}"
-                                    Click="RefreshSynopticButton_Click" />
-                            <Button x:Name="ExportSynopticButton"
-                                    Grid.Column="6"
-                                    Content="Exporter le synoptique SVG"
-                                    Click="ExportSynopticButton_Click"
-                                    ToolTip="Crée un fichier vectoriel en couleur sans modifier le XML Dante." />
-                            <Button x:Name="ExportSynopticPdfButton"
-                                    Grid.Column="7"
-                                    Content="Exporter le synoptique PDF"
-                                    Click="ExportSynopticPdfButton_Click"
-                                    ToolTip="Crée un PDF vectoriel en couleur sans modifier le XML Dante." />
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+                            <StackPanel Orientation="Horizontal">
+                                <Button x:Name="ShowAllSynopticDevicesButton"
+                                        Content="Tout afficher"
+                                        Style="{StaticResource SecondaryButtonStyle}"
+                                        Click="ShowAllSynopticDevicesButton_Click" />
+                                <Button x:Name="HideSelectedSynopticDevicesButton"
+                                        Content="Masquer sélection"
+                                        Style="{StaticResource SecondaryButtonStyle}"
+                                        Click="HideSelectedSynopticDevicesButton_Click" />
+                                <Button x:Name="MoveSynopticDeviceUpButton"
+                                        Content="↑"
+                                        Width="42"
+                                        Style="{StaticResource SecondaryButtonStyle}"
+                                        Click="MoveSynopticDeviceUpButton_Click"
+                                        ToolTip="Place la machine sélectionnée plus haut dans son emplacement." />
+                                <Button x:Name="MoveSynopticDeviceDownButton"
+                                        Content="↓"
+                                        Width="42"
+                                        Style="{StaticResource SecondaryButtonStyle}"
+                                        Click="MoveSynopticDeviceDownButton_Click"
+                                        ToolTip="Place la machine sélectionnée plus bas dans son emplacement." />
+                                <Button x:Name="ResetSynopticLayoutButton"
+                                        Content="Disposition automatique"
+                                        Style="{StaticResource SecondaryButtonStyle}"
+                                        Click="ResetSynopticLayoutButton_Click"
+                                        ToolTip="Efface les positions manuelles et recalcule le synoptique." />
+                            </StackPanel>
+                            <StackPanel Grid.Row="1"
+                                        Orientation="Horizontal"
+                                        HorizontalAlignment="Right"
+                                        Margin="0,6,0,0">
+                                <CheckBox x:Name="OpenSynopticAfterExportCheckBox"
+                                          Content="Ouvrir après export"
+                                          IsChecked="True"
+                                          VerticalAlignment="Center"
+                                          Margin="0,0,14,0" />
+                                <Button x:Name="RefreshSynopticButton"
+                                        Content="Actualiser l’aperçu"
+                                        Style="{StaticResource SecondaryButtonStyle}"
+                                        Click="RefreshSynopticButton_Click" />
+                                <Button x:Name="ExportSynopticButton"
+                                        Content="Exporter le synoptique SVG"
+                                        Click="ExportSynopticButton_Click"
+                                        ToolTip="Crée un fichier vectoriel en couleur sans modifier le XML Dante." />
+                                <Button x:Name="ExportSynopticPdfButton"
+                                        Content="Exporter le synoptique PDF"
+                                        Click="ExportSynopticPdfButton_Click"
+                                        ToolTip="Crée un PDF vectoriel en couleur sans modifier le XML Dante." />
+                            </StackPanel>
                         </Grid>
                             </Grid>
                         </TabItem>
@@ -1683,6 +1711,12 @@
                                Foreground="{DynamicResource MutedTextBrush}"
                                TextAlignment="Right"
                                Opacity="0.68" />
+                    <TextBlock Text="-------[]--"
+                               FontSize="7"
+                               FontFamily="Consolas"
+                               Foreground="{DynamicResource MutedTextBrush}"
+                               TextAlignment="Right"
+                               Opacity="0.52" />
                 </StackPanel>
             </Grid>
         </Border>

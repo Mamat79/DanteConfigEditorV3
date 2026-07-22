@@ -8,6 +8,53 @@ namespace DanteConfigEditorV3.Tests;
 public sealed class SynopticExportTests
 {
     [Fact]
+    public void DevicesAreSortedByLocationThenExplicitOrder()
+    {
+        using TestDirectory directory = new();
+        string source = directory.PathFor("ordered.xml");
+        SyntheticPresetFactory.Create(source, deviceCount: 4, txPerDevice: 2, rxPerDevice: 2);
+        DanteProject project = DanteProject.Load(source);
+        SynopticLayoutDocument layout = SynopticExportService.LoadOrCreate(project, directory.PathFor("layout"));
+        SetLocation(layout, "DEVICE-001", "Scène");
+        SetLocation(layout, "DEVICE-002", "Régie");
+        SetLocation(layout, "DEVICE-003", "Scène");
+        SetLocation(layout, "DEVICE-004", "Régie");
+        layout.Devices.Single(item => item.DeviceName == "DEVICE-001").Order = 20;
+        layout.Devices.Single(item => item.DeviceName == "DEVICE-003").Order = 10;
+        layout.Devices.Single(item => item.DeviceName == "DEVICE-002").Order = 20;
+        layout.Devices.Single(item => item.DeviceName == "DEVICE-004").Order = 10;
+
+        SynopticDiagram diagram = SynopticExportService.BuildDiagram(project, layout);
+
+        Assert.Equal(["Régie", "Scène"], diagram.Locations.Select(location => location.Name));
+        Assert.Equal(
+            ["DEVICE-004", "DEVICE-002", "DEVICE-003", "DEVICE-001"],
+            diagram.Devices.OrderBy(device => device.X).ThenBy(device => device.Y).Select(device => device.Name));
+    }
+
+    [Fact]
+    public void ManualDeviceCoordinatesArePersistedAndUsedByTheDiagram()
+    {
+        using TestDirectory directory = new();
+        string source = directory.PathFor("manual-layout.xml");
+        string layoutDirectory = directory.PathFor("layout");
+        SyntheticPresetFactory.Create(source, deviceCount: 2, txPerDevice: 2, rxPerDevice: 2);
+        DanteProject project = DanteProject.Load(source);
+        SynopticLayoutDocument layout = SynopticExportService.LoadOrCreate(project, layoutDirectory);
+        SynopticDevicePlacement moved = layout.Devices.Single(item => item.DeviceName == "DEVICE-002");
+        moved.ManualX = 777;
+        moved.ManualY = 333;
+
+        SynopticExportService.SaveLayout(project, layout, layoutDirectory);
+        SynopticLayoutDocument reloaded = SynopticExportService.LoadOrCreate(project, layoutDirectory);
+        SynopticDiagram diagram = SynopticExportService.BuildDiagram(project, reloaded);
+        SynopticDeviceNode node = diagram.Devices.Single(item => item.Name == "DEVICE-002");
+
+        Assert.Equal(777, node.X);
+        Assert.Equal(333, node.Y);
+    }
+
+    [Fact]
     public void ConsecutiveSubscriptionsAreCollapsedIntoOneCableRange()
     {
         using TestDirectory directory = new();
@@ -165,6 +212,34 @@ public sealed class SynopticExportTests
         Assert.True(pdf.Length > 1_000);
         Assert.Equal("%PDF-1.4", System.Text.Encoding.ASCII.GetString(pdf, 0, 8));
         Assert.EndsWith("%%EOF", System.Text.Encoding.ASCII.GetString(pdf), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void SvgIsValidXmlWithStableNamedLayersAndOneDefinitionsBlock()
+    {
+        using TestDirectory directory = new();
+        string source = directory.PathFor("layered-svg.xml");
+        SyntheticPresetFactory.Create(source, deviceCount: 6, txPerDevice: 8, rxPerDevice: 8);
+        DanteProject project = DanteProject.Load(source);
+        SynopticLayoutDocument layout = SynopticExportService.LoadOrCreate(project, directory.PathFor("layout"));
+
+        string svg = SynopticExportService.BuildSvg(SynopticExportService.BuildDiagram(project, layout));
+        XDocument document = XDocument.Parse(svg, LoadOptions.PreserveWhitespace);
+        XNamespace svgNamespace = "http://www.w3.org/2000/svg";
+        XNamespace illustratorNamespace = "http://ns.adobe.com/AdobeIllustrator/10.0/";
+        XElement[] layers = document
+            .Descendants(svgNamespace + "g")
+            .Where(element => ((string?)element.Attribute("id"))?.StartsWith("layer-", StringComparison.Ordinal) == true)
+            .ToArray();
+
+        Assert.Single(document.Descendants(svgNamespace + "defs"));
+        Assert.Equal(
+            ["layer-background", "layer-locations", "layer-cables", "layer-devices", "layer-labels"],
+            layers.Select(element => (string)element.Attribute("id")!).ToArray());
+        Assert.All(layers, layer => Assert.Equal("yes", (string?)layer.Attribute(illustratorNamespace + "layer")));
+        Assert.Equal(
+            document.Descendants().Attributes("id").Select(attribute => attribute.Value).Count(),
+            document.Descendants().Attributes("id").Select(attribute => attribute.Value).Distinct(StringComparer.Ordinal).Count());
     }
 
     [Fact]
