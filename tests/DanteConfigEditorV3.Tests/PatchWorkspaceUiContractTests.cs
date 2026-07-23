@@ -189,6 +189,29 @@ public sealed class PatchWorkspaceUiContractTests
     }
 
     [Fact]
+    public void PatchMatrixKeepsHeadersFixedAndUsesIncrementalRowUpdates()
+    {
+        string xaml = File.ReadAllText(RepositoryFile("PatchWorkspaceView.xaml"));
+        string codeBehind = File.ReadAllText(RepositoryFile("PatchWorkspaceView.xaml.cs"));
+        XDocument document = XDocument.Parse(xaml);
+        XNamespace xamlNamespace = "http://schemas.microsoft.com/winfx/2006/xaml";
+        XElement matrix = NamedElement(document, xamlNamespace, "MatrixGrid");
+
+        Assert.Equal("1", matrix.Attribute("FrozenColumnCount")?.Value);
+        Assert.Equal("Column", matrix.Attribute("HeadersVisibility")?.Value);
+        Assert.Equal("True", matrix.Attribute("EnableRowVirtualization")?.Value);
+        Assert.Equal("True", matrix.Attribute("EnableColumnVirtualization")?.Value);
+        Assert.Contains("ObservableCollection<PatchMatrixRow>", codeBehind, StringComparison.Ordinal);
+        Assert.Contains("RefreshTargetStates", codeBehind, StringComparison.Ordinal);
+        Assert.Contains("RefreshTargetState(targetIndex)", codeBehind, StringComparison.Ordinal);
+
+        int gestureStart = codeBehind.IndexOf("private void ExecuteMatrixGesture", StringComparison.Ordinal);
+        int nextMethod = codeBehind.IndexOf("private void UpdateMatrixGestureHighlight", gestureStart, StringComparison.Ordinal);
+        string gestureMethod = codeBehind[gestureStart..nextMethod];
+        Assert.DoesNotContain("RefreshTargetRows()", gestureMethod, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void DeviceDetailsExposesRxPatchWorkspaceAndAppliesPatchesBeforeRenames()
     {
         string xaml = File.ReadAllText(RepositoryFile("DeviceDetailsWindow.xaml"));

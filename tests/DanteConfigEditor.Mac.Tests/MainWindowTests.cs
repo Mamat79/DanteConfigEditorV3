@@ -300,20 +300,28 @@ public sealed class MainWindowTests
             ListBox txList = dialog.FindControl<ListBox>("TxChannelList")!;
             ListBox rxList = dialog.FindControl<ListBox>("RxChannelList")!;
             Grid matrix = dialog.FindControl<Grid>("MatrixPanel")!;
+            Grid txHeaders = dialog.FindControl<Grid>("MatrixTxHeaderPanel")!;
+            Grid rxHeaders = dialog.FindControl<Grid>("MatrixRxHeaderPanel")!;
             Button apply = dialog.FindControl<Button>("ApplyButton")!;
 
             Assert.Equal(2, txList.ItemCount);
             Assert.Equal(2, rxList.ItemCount);
-            Assert.Equal(3, matrix.ColumnDefinitions.Count);
-            Assert.Equal(3, matrix.RowDefinitions.Count);
+            Assert.Equal(2, matrix.ColumnDefinitions.Count);
+            Assert.Equal(2, matrix.RowDefinitions.Count);
+            Assert.Equal(2, txHeaders.ColumnDefinitions.Count);
+            Assert.Equal(2, rxHeaders.RowDefinitions.Count);
+            Assert.Equal(1, Grid.GetColumn(dialog.FindControl<ScrollViewer>("MatrixTxHeaderScrollViewer")!));
+            Assert.Equal(1, Grid.GetRow(dialog.FindControl<ScrollViewer>("MatrixRxHeaderScrollViewer")!));
             Assert.False(apply.IsEnabled);
             Assert.Empty(dialog.Edits);
             Assert.False(project.IsModified);
 
+            int matrixBuildCount = dialog.MatrixBuildCount;
             Button activeCell = matrix.Children.OfType<Button>().First(button => Equals(button.Content, "●"));
             activeCell.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
 
             Assert.True(apply.IsEnabled);
+            Assert.Equal(matrixBuildCount, dialog.MatrixBuildCount);
             PatchEditRequest edit = Assert.Single(dialog.Edits);
             Assert.True(edit.IsRemoval);
             Assert.Equal("DEVICE-B", edit.RxDeviceName);
