@@ -84,6 +84,7 @@ Each video lasts 55 seconds, with no voice-over or audio track, and uses text bu
 - Provides the classic `Patch` view and the Windows `Easy patch` workspace.
 - Supports cumulative patch previews, direct apply, strict ranges and explicit conflict handling.
 - Displays a compact interactive TX/RX patch matrix with horizontal, vertical and diagonal gestures.
+- In `Easy patch`, provides a highly visible `FLIP TX ⇄ RX` button, one-to-one patching from either `Selection and range` or the matrix itself, and Tab/Shift+Tab navigation while renaming.
 - Opens a device details window to edit formats, IP data, channel names and RX patches.
 - Applies global actions only to the selected or locked target scope.
 - Resets all RX patches, TX references, or both for a device.
@@ -147,7 +148,7 @@ The macOS builds are ad hoc signed but are not notarized with an Apple Developer
 2. Select `Open XML` and choose a copy of a Dante configuration file.
 3. Review detected devices and warnings.
 4. Make the required changes.
-5. In `Easy patch`, choose RX and TX devices and preview a selection or range.
+5. In `Easy patch`, choose RX and TX devices and preview a selection or range. In the matrix, click the first crosspoint and use `PATCH 1:1` to quickly prepare a series.
 6. Repeat as needed; previews accumulate without changing the XML.
 7. Select `Apply the whole batch`, or use direct apply for the current operation.
 8. Save under a new name.

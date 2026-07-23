@@ -28,13 +28,15 @@ Les en-têtes TX et RX restent fixes, les ascenseurs sont synchronisés et les l
 ## Phase 2 - opérations de patch
 
 - Patch 1:1 par premier TX, premier RX et nombre de canaux.
+- Patch 1:1 également disponible directement dans la grille depuis le premier point sélectionné.
+- Bouton `FLIP TX ⇄ RX` agrandi et coloré pour être immédiatement repérable.
 - Contrôle des limites et collisions.
 - Prévisualisation et changements en attente.
 - Application atomique en un lot.
 - Échange TX/RX sans créer de patch inverse.
 - Dialogue appliquer, abandonner ou annuler si des changements sont en attente.
 - Zoom 50, 67, 75, 100, 125, 150 et 200 %, réinitialisation et ajustement.
-- Tab et Maj+Tab pour valider puis passer au canal suivant ou précédent.
+- Tab et Maj+Tab pour valider puis passer au canal suivant ou précédent, même quand l'application reconstruit le composant Easy patch après une modification XML.
 
 ## Phase 3 - traductions et mise en page
 

@@ -1801,6 +1801,7 @@ public partial class MainWindow : Window
                 extendChannelSeriesAction: ExtendEasyPatchChannelSeries,
                 startInAssignmentMode: startInAssignmentMode);
             workspace.ApplyRequested += EasyPatchWorkspace_ApplyRequested;
+            workspace.InlineChannelNavigationRequested += EasyPatchWorkspace_InlineChannelNavigationRequested;
             _easyPatchProject = _project;
             _easyPatchWorkspace = workspace;
             EasyPatchHost.Content = workspace;
@@ -1810,6 +1811,14 @@ public partial class MainWindow : Window
             _easyPatchWorkspace = null;
             ShowEasyPatchPlaceholder(exception.Message);
         }
+    }
+
+    private void EasyPatchWorkspace_InlineChannelNavigationRequested(
+        object? sender,
+        InlineChannelNavigationRequestEventArgs e)
+    {
+        Dispatcher.BeginInvoke(new Action(() =>
+            _easyPatchWorkspace?.FocusChannelEditor(e.Kind, e.DanteId, e.Matrix)));
     }
 
     private void EasyPatchWorkspace_ApplyRequested(object? sender, EventArgs e)

@@ -84,6 +84,7 @@ Chaque vidéo dure 55 secondes, sans voix ni piste audio, avec le texte directem
 - Modifie les paramètres réseau et audio exposés par les fichiers XML reconnus.
 - Affiche une page Patch pour visualiser et modifier les abonnements RX vers TX lorsque le format XML le permet.
 - Ajoute l'onglet Windows `Easy patch` avec RX à gauche, TX à droite, navigation rapide entre machines, lot prévisualisé cumulatif, plages strictes, résolution explicite des conflits et matrice interactive compacte avec glissement en série.
+- Dans `Easy patch`, propose un bouton `FLIP TX ⇄ RX` très visible, un patch `1:1` accessible depuis `Sélection et plage` ou directement depuis la grille, et la navigation Tab/Maj+Tab pendant le renommage.
 - Met à jour les patchs RX quand un canal TX utilisé est renommé.
 - Crée une sauvegarde du fichier source et de toute destination existante avant sauvegarde.
 - Sauvegarde via un fichier temporaire relu puis un remplacement atomique de la destination.
@@ -182,7 +183,7 @@ L'installateur V3.5 remplace uniquement une V3.5 déjà installée. Il possède 
 3. Sélectionner une copie du fichier de configuration Dante.
 4. Vérifier les devices et paramètres détectés.
 5. Modifier les champs souhaités.
-6. Dans l'onglet `Easy patch`, choisir les machines RX et TX, puis cliquer sur `Prévisualiser` : chaque opération s'ajoute au lot temporaire sans modifier le XML.
+6. Dans l'onglet `Easy patch`, choisir les machines RX et TX, puis cliquer sur `Prévisualiser` : chaque opération s'ajoute au lot temporaire sans modifier le XML. Dans la grille, cliquer sur le premier point et utiliser `PATCH 1:1` pour préparer rapidement une série.
 7. Répéter l'opération sur autant de machines, sélections ou plages que nécessaire. Les conflits demandent toujours un choix explicite.
 8. Cliquer sur `Appliquer tout le lot` lorsque tout est prêt, ou utiliser `Appliquer` pour valider immédiatement l'opération courante avec le lot déjà accumulé.
 9. Si besoin, utiliser `Ajouter XML au projet` pour importer les devices d'un autre export XML.

@@ -12,6 +12,18 @@ using DanteConfigEditor.Services;
 
 namespace DanteConfigEditor;
 
+public sealed class InlineChannelNavigationRequestEventArgs(
+    DanteChannelKind kind,
+    int danteId,
+    bool matrix) : EventArgs
+{
+    public DanteChannelKind Kind { get; } = kind;
+
+    public int DanteId { get; } = danteId;
+
+    public bool Matrix { get; } = matrix;
+}
+
 public partial class PatchWorkspaceView : UserControl
 {
     private const double MinimumMatrixZoom = 0.5;
@@ -34,6 +46,7 @@ public partial class PatchWorkspaceView : UserControl
     private IReadOnlyList<PatchTargetDescriptor> _visibleTargets = [];
     private PatchMatrixCell? _matrixGestureStart;
     private PatchMatrixCell? _matrixGestureCurrent;
+    private PatchMatrixCell? _matrixOneToOneStart;
     private bool _matrixGestureActive;
     private string? _channelSeriesDeviceName;
     private DanteChannelKind? _channelSeriesKind;
@@ -105,6 +118,14 @@ public partial class PatchWorkspaceView : UserControl
     public event EventHandler? ApplyRequested;
 
     public event EventHandler? CancelRequested;
+
+    public event EventHandler<InlineChannelNavigationRequestEventArgs>? InlineChannelNavigationRequested;
+
+    public void FocusChannelEditor(DanteChannelKind kind, int danteId, bool matrix)
+    {
+        Dispatcher.BeginInvoke(new Action(() =>
+            FocusInlineChannelEditor(new InlineChannelNavigationTarget(kind, danteId, matrix))));
+    }
 
     public void ResetPendingChanges()
     {
@@ -240,6 +261,7 @@ public partial class PatchWorkspaceView : UserControl
 
     private void RefreshSourceChannelsAndMatrixColumns()
     {
+        _matrixOneToOneStart = null;
         int? selectedRangeDanteId = (RangeStartTxComboBox.SelectedItem as PatchSourceDescriptor)?.DanteId;
         DanteDevice? device = _project.FindDevice(TxDeviceComboBox.SelectedItem as string);
         _visibleSources = device?.TxChannels
@@ -282,6 +304,7 @@ public partial class PatchWorkspaceView : UserControl
 
     private void RefreshTargetRows()
     {
+        _matrixOneToOneStart = null;
         string? requestedDeviceName = RxDeviceComboBox.SelectedItem as string;
         HashSet<int> selectedDanteIds = RxChannelListBox.SelectedItems
             .OfType<PatchRxListItem>()
@@ -512,7 +535,7 @@ public partial class PatchWorkspaceView : UserControl
         }
 
         MatrixGrid.RowHeight = 26 * _matrixZoom;
-        MatrixGrid.ColumnHeaderHeight = 168 * _matrixZoom;
+        MatrixGrid.ColumnHeaderHeight = 132 * _matrixZoom;
     }
 
     private FrameworkElement BuildMatrixHeader(PatchSourceDescriptor source)
@@ -520,13 +543,13 @@ public partial class PatchWorkspaceView : UserControl
         Grid panel = new()
         {
             Width = 28 * _matrixZoom,
-            Height = 162 * _matrixZoom,
+            Height = 126 * _matrixZoom,
             Tag = source
         };
         TextBlock label = new()
         {
             Text = source.Display,
-            Width = 146 * _matrixZoom,
+            Width = 112 * _matrixZoom,
             TextWrapping = TextWrapping.NoWrap,
             TextTrimming = TextTrimming.CharacterEllipsis,
             TextAlignment = TextAlignment.Center,
@@ -600,6 +623,11 @@ public partial class PatchWorkspaceView : UserControl
         }
 
         e.Handled = true;
+        OpenMatrixTxRenameEditor(source, label);
+    }
+
+    private void OpenMatrixTxRenameEditor(PatchSourceDescriptor source, FrameworkElement placementTarget)
+    {
         TextBox editor = new()
         {
             Text = source.ChannelName,
@@ -616,7 +644,7 @@ public partial class PatchWorkspaceView : UserControl
         };
         Popup popup = new()
         {
-            PlacementTarget = label,
+            PlacementTarget = placementTarget,
             Placement = PlacementMode.Bottom,
             StaysOpen = false,
             AllowsTransparency = true,
@@ -649,6 +677,21 @@ public partial class PatchWorkspaceView : UserControl
                 Commit();
                 popup.IsOpen = false;
                 args.Handled = true;
+            }
+            else if (args.Key == Key.Tab)
+            {
+                InlineChannelNavigationTarget? target = BuildInlineNavigationTarget(
+                    source,
+                    backwards: (Keyboard.Modifiers & ModifierKeys.Shift) != 0);
+                if (target is null)
+                {
+                    return;
+                }
+
+                Commit();
+                popup.IsOpen = false;
+                args.Handled = true;
+                RequestInlineChannelNavigation(target);
             }
         };
         popup.Closed += (_, _) => Commit();
@@ -984,6 +1027,7 @@ public partial class PatchWorkspaceView : UserControl
             return;
         }
 
+        SelectMatrixOneToOneStart(cell);
         ExecuteMatrixGesture(cell, cell);
     }
 
@@ -998,6 +1042,7 @@ public partial class PatchWorkspaceView : UserControl
         _matrixGestureActive = true;
         _matrixGestureStart = cell;
         _matrixGestureCurrent = cell;
+        SelectMatrixOneToOneStart(cell);
         MatrixGrid.CaptureMouse();
         UpdateMatrixGestureHighlight();
     }
@@ -1226,6 +1271,47 @@ public partial class PatchWorkspaceView : UserControl
         }
     }
 
+    private void SelectMatrixOneToOneStart(PatchMatrixCell cell)
+    {
+        _matrixOneToOneStart = cell;
+        UpdateCommandState();
+    }
+
+    private void MatrixOneToOneCountTextBox_TextChanged(object sender, TextChangedEventArgs e)
+    {
+        if (!_initializing)
+        {
+            UpdateCommandState();
+        }
+    }
+
+    private void MatrixOneToOneButton_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            if (_matrixOneToOneStart is null
+                || !int.TryParse(MatrixOneToOneCountTextBox.Text, out int count)
+                || count <= 0)
+            {
+                throw new InvalidOperationException(L(
+                    "Cliquez sur le premier point TX/RX de la grille et indiquez un nombre valide.",
+                    "Click the first Tx/Rx point in the matrix and enter a valid count."));
+            }
+
+            PatchAssignmentPlan plan = PatchAssignmentPlanner.PlanOneToOne(
+                _visibleSources,
+                _matrixOneToOneStart.Source,
+                _visibleTargets,
+                _matrixOneToOneStart.Target,
+                count);
+            StagePlanAsPreview(plan);
+        }
+        catch (Exception exception)
+        {
+            SetInfo(exception.Message, warning: true);
+        }
+    }
+
     private bool TryGetMatrixCell(Point point, out PatchMatrixCell cell)
     {
         DependencyObject? hit = MatrixGrid.InputHitTest(point) as DependencyObject;
@@ -1234,6 +1320,17 @@ public partial class PatchWorkspaceView : UserControl
         {
             cell = match;
             return true;
+        }
+
+        DataGridCell? dataGridCell = FindVisualParent<DataGridCell>(hit);
+        if (dataGridCell?.DataContext is PatchMatrixRow row)
+        {
+            int sourceIndex = MatrixGrid.Columns.IndexOf(dataGridCell.Column) - 1;
+            if (sourceIndex >= 0 && sourceIndex < row.Cells.Count)
+            {
+                cell = row.Cells[sourceIndex];
+                return true;
+            }
         }
 
         cell = null!;
@@ -1339,8 +1436,21 @@ public partial class PatchWorkspaceView : UserControl
             CommitInlineChannelRename(editor);
             editor.Tag = null;
             e.Handled = true;
-            Dispatcher.BeginInvoke(new Action(() => FocusInlineChannelEditor(target)));
+            RequestInlineChannelNavigation(target);
         }
+    }
+
+    private void RequestInlineChannelNavigation(InlineChannelNavigationTarget target)
+    {
+        if (InlineChannelNavigationRequested is not null)
+        {
+            InlineChannelNavigationRequested.Invoke(
+                this,
+                new InlineChannelNavigationRequestEventArgs(target.Kind, target.DanteId, target.Matrix));
+            return;
+        }
+
+        Dispatcher.BeginInvoke(new Action(() => FocusInlineChannelEditor(target)));
     }
 
     private InlineChannelNavigationTarget? BuildInlineNavigationTarget(object? item, bool backwards)
@@ -1363,6 +1473,11 @@ public partial class PatchWorkspaceView : UserControl
             case PatchTargetDescriptor target:
                 kind = DanteChannelKind.Rx;
                 currentDanteId = target.DanteId;
+                matrix = true;
+                break;
+            case PatchSourceDescriptor source:
+                kind = DanteChannelKind.Tx;
+                currentDanteId = source.DanteId;
                 matrix = true;
                 break;
             default:
@@ -1388,6 +1503,12 @@ public partial class PatchWorkspaceView : UserControl
     {
         if (target.Matrix)
         {
+            if (target.Kind == DanteChannelKind.Tx)
+            {
+                FocusMatrixTxChannelEditor(target.DanteId);
+                return;
+            }
+
             PatchMatrixRow? row = _matrixRows.FirstOrDefault(candidate =>
                 candidate.Target.DanteId == target.DanteId);
             if (row is null)
@@ -1422,6 +1543,45 @@ public partial class PatchWorkspaceView : UserControl
             TextBox? editor = FindVisualChildren<TextBox>(containerItem).FirstOrDefault();
             editor?.Focus();
             editor?.SelectAll();
+        }
+    }
+
+    private void FocusMatrixTxChannelEditor(int danteId)
+    {
+        int sourceIndex = -1;
+        for (int index = 0; index < _visibleSources.Count; index++)
+        {
+            if (_visibleSources[index].DanteId == danteId)
+            {
+                sourceIndex = index;
+                break;
+            }
+        }
+
+        if (sourceIndex < 0 || sourceIndex + 1 >= MatrixGrid.Columns.Count)
+        {
+            return;
+        }
+
+        PatchSourceDescriptor source = _visibleSources[sourceIndex];
+        DataGridColumn column = MatrixGrid.Columns[sourceIndex + 1];
+        if (_matrixRows.Count > 0)
+        {
+            MatrixGrid.ScrollIntoView(_matrixRows[0], column);
+        }
+
+        MatrixGrid.UpdateLayout();
+        DataGridColumnHeader? header = FindVisualChildren<DataGridColumnHeader>(MatrixGrid)
+            .FirstOrDefault(candidate => ReferenceEquals(candidate.Column, column));
+        TextBlock? label = header is null
+            ? null
+            : FindVisualChildren<TextBlock>(header)
+                .FirstOrDefault(candidate =>
+                    candidate.Parent is FrameworkElement { Tag: PatchSourceDescriptor descriptor }
+                    && descriptor.DanteId == danteId);
+        if (label is not null)
+        {
+            OpenMatrixTxRenameEditor(source, label);
         }
     }
 
@@ -1729,6 +1889,8 @@ public partial class PatchWorkspaceView : UserControl
         bool hasRxSelection = RxChannelListBox.SelectedItems.Count > 0;
         bool hasTxSelection = TxChannelListBox.SelectedItems.Count > 0;
         bool hasValidRangeCount = int.TryParse(RangeCountTextBox.Text, out int rangeCount) && rangeCount > 0;
+        bool hasValidMatrixCount = int.TryParse(MatrixOneToOneCountTextBox.Text, out int matrixCount)
+            && matrixCount > 0;
         PreviewSelectionButton.IsEnabled = hasRxSelection && hasTxSelection;
         ApplySelectionDirectButton.IsEnabled = hasRxSelection && hasTxSelection;
         RemoveSelectedRxButton.IsEnabled = hasRxSelection;
@@ -1739,6 +1901,7 @@ public partial class PatchWorkspaceView : UserControl
             && RangeStartRxComboBox.SelectedItem is PatchTargetDescriptor
             && hasValidRangeCount;
         ApplyRangeDirectButton.IsEnabled = PreviewRangeButton.IsEnabled;
+        MatrixOneToOneButton.IsEnabled = _matrixOneToOneStart is not null && hasValidMatrixCount;
         ResetPendingButton.IsEnabled = _session.HasChanges;
         ApplyButton.IsEnabled = _session.HasChanges || _returnEditsOnly;
 
@@ -1750,6 +1913,42 @@ public partial class PatchWorkspaceView : UserControl
         PendingHeaderTextBlock.Text = pending;
         PendingFooterTextBlock.Text = pending;
         UpdateRangeCapacityStatus();
+        UpdateMatrixOneToOneStatus();
+    }
+
+    private void UpdateMatrixOneToOneStatus()
+    {
+        if (_matrixOneToOneStart is null)
+        {
+            MatrixOneToOneHintTextBlock.Text = L(
+                "Cliquez sur le premier point de patch dans la grille.",
+                "Click the first patch point in the matrix.");
+            MatrixOneToOneHintTextBlock.Foreground = (Brush)FindResource("MutedTextBrush");
+            return;
+        }
+
+        try
+        {
+            PatchRangeCapacity capacity = PatchAssignmentPlanner.GetRangeCapacity(
+                _visibleSources,
+                _matrixOneToOneStart.Source,
+                _visibleTargets,
+                _matrixOneToOneStart.Target);
+            bool validCount = int.TryParse(MatrixOneToOneCountTextBox.Text, out int count)
+                && count > 0
+                && count <= capacity.MaximumCount;
+            MatrixOneToOneHintTextBlock.Text = L(
+                $"Départ : {_matrixOneToOneStart.Source.Display} vers {_matrixOneToOneStart.Target.Display}. Maximum : {capacity.MaximumCount}.",
+                $"Start: {_matrixOneToOneStart.Source.Display} to {_matrixOneToOneStart.Target.Display}. Maximum: {capacity.MaximumCount}.");
+            MatrixOneToOneHintTextBlock.Foreground = validCount
+                ? (Brush)FindResource("MutedTextBrush")
+                : (Brush)FindResource("WarningBrush");
+        }
+        catch (InvalidOperationException exception)
+        {
+            MatrixOneToOneHintTextBlock.Text = exception.Message;
+            MatrixOneToOneHintTextBlock.Foreground = (Brush)FindResource("WarningBrush");
+        }
     }
 
     private void UpdateRangeCapacityStatus()
@@ -1797,6 +1996,7 @@ public partial class PatchWorkspaceView : UserControl
         NextRxDeviceButton.ToolTip = L("Machine RX suivante", "Next Rx device");
         PreviousTxDeviceButton.ToolTip = L("Machine TX précédente", "Previous Tx device");
         NextTxDeviceButton.ToolTip = L("Machine TX suivante", "Next Tx device");
+        SwapDeviceSelectionButton.Content = L("FLIP TX ⇄ RX", "FLIP TX ⇄ RX");
         SwapDeviceSelectionButton.ToolTip = L(
             "Inverser les machines TX et RX sans créer de patch inverse",
             "Swap the Tx and Rx devices without creating reverse subscriptions");
@@ -1834,6 +2034,12 @@ public partial class PatchWorkspaceView : UserControl
         MatrixHintTextBlock.Text = L(
             "RX en lignes, TX en colonnes. Cliquez pour un patch, ou maintenez et glissez : horizontal = série TX/RX, vertical = un TX vers plusieurs RX, diagonale = série un-à-un.",
             "Rx channels are rows and Tx channels are columns. Click for one patch, or hold and drag: horizontal = Tx/Rx range, vertical = one Tx to several Rx channels, diagonal = one-to-one range.");
+        MatrixOneToOneHeadingTextBlock.Text = L("Patch 1:1 depuis la grille", "One-to-one patch from the matrix");
+        MatrixOneToOneCountLabel.Text = L("Nombre", "Count");
+        MatrixOneToOneButton.Content = L("PATCH 1:1", "PATCH 1:1");
+        MatrixOneToOneButton.ToolTip = L(
+            "Cliquez d'abord sur le premier point TX/RX de la grille, choisissez le nombre, puis préparez la série 1:1.",
+            "First click the starting Tx/Rx point in the matrix, choose the count, then stage the one-to-one range.");
         ResetPendingButton.Content = L("Annuler les changements visuels", "Discard visual changes");
         CancelButton.Content = L("Fermer sans appliquer", "Close without applying");
         CancelButton.Visibility = _embedded ? Visibility.Collapsed : Visibility.Visible;
@@ -1860,6 +2066,9 @@ public partial class PatchWorkspaceView : UserControl
         AutomationProperties.SetName(MatrixZoomResetButton, L("Réinitialiser le zoom de la grille", "Reset matrix zoom"));
         AutomationProperties.SetName(MatrixZoomInButton, L("Augmenter le zoom de la grille", "Zoom into the matrix"));
         AutomationProperties.SetName(MatrixZoomFitButton, L("Ajuster la grille à la fenêtre", "Fit matrix to window"));
+        AutomationProperties.SetName(
+            MatrixOneToOneButton,
+            L("Préparer un patch un pour un depuis le dernier point cliqué", "Stage a one-to-one patch from the last clicked point"));
     }
 
     private string TranslateSwapError(string? french)

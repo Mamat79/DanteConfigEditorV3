@@ -29,8 +29,15 @@ public sealed class PatchWorkspaceUiContractTests
         Assert.Contains("PreviewMouseLeftButtonUp=\"MatrixGrid_PreviewMouseLeftButtonUp\"", xaml, StringComparison.Ordinal);
         Assert.Contains("PlanMatrixGesture", codeBehind, StringComparison.Ordinal);
         Assert.Contains("x:Name=\"SwapDeviceSelectionButton\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("Content=\"FLIP TX ⇄ RX\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("Style=\"{StaticResource FlipButtonStyle}\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("<Setter Property=\"Background\" Value=\"{DynamicResource WarningBrush}\"", xaml, StringComparison.Ordinal);
         Assert.Contains("x:Name=\"RangeCapacityTextBlock\"", xaml, StringComparison.Ordinal);
         Assert.Contains("PlanOneToOne", codeBehind, StringComparison.Ordinal);
+        Assert.Contains("x:Name=\"MatrixOneToOneButton\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("x:Name=\"MatrixOneToOneCountTextBox\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("MatrixOneToOneButton_Click", xaml, StringComparison.Ordinal);
+        Assert.Contains("_matrixOneToOneStart.Source", codeBehind, StringComparison.Ordinal);
         Assert.Contains("x:Name=\"MatrixZoomOutButton\"", xaml, StringComparison.Ordinal);
         Assert.Contains("x:Name=\"MatrixZoomResetButton\"", xaml, StringComparison.Ordinal);
         Assert.Contains("x:Name=\"MatrixZoomInButton\"", xaml, StringComparison.Ordinal);
@@ -88,7 +95,8 @@ public sealed class PatchWorkspaceUiContractTests
         Assert.Contains("ChannelSeriesThumb_DragStarted", xaml, StringComparison.Ordinal);
         Assert.Contains("ChannelSeriesThumb_DragCompleted", xaml, StringComparison.Ordinal);
         Assert.Contains("MatrixTxHeader_MouseLeftButtonDown", codeBehind, StringComparison.Ordinal);
-        Assert.Contains("ColumnHeaderHeight=\"168\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("MinHeight=\"230\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("ColumnHeaderHeight=\"132\"", xaml, StringComparison.Ordinal);
         Assert.Contains("Text = source.Display", codeBehind, StringComparison.Ordinal);
         Assert.Contains("LayoutTransform = new RotateTransform(-90)", codeBehind, StringComparison.Ordinal);
         Assert.Contains("MatrixSeriesThumb_DragStarted", codeBehind, StringComparison.Ordinal);
@@ -96,6 +104,12 @@ public sealed class PatchWorkspaceUiContractTests
         Assert.Contains("RenameMatrixChannel", codeBehind, StringComparison.Ordinal);
         Assert.Contains("e.Key == Key.Tab", codeBehind, StringComparison.Ordinal);
         Assert.Contains("FocusInlineChannelEditor", codeBehind, StringComparison.Ordinal);
+        Assert.Contains("InlineChannelNavigationRequested", codeBehind, StringComparison.Ordinal);
+        Assert.Contains("RequestInlineChannelNavigation(target)", codeBehind, StringComparison.Ordinal);
+        Assert.Contains("case PatchSourceDescriptor source:", codeBehind, StringComparison.Ordinal);
+        Assert.Contains("FindVisualParent<DataGridCell>(hit)", codeBehind, StringComparison.Ordinal);
+        Assert.Contains("row.Cells[sourceIndex]", codeBehind, StringComparison.Ordinal);
+        Assert.Contains("EasyPatchWorkspace_InlineChannelNavigationRequested", File.ReadAllText(RepositoryFile("MainWindow.xaml.cs")), StringComparison.Ordinal);
         Assert.Contains("ExtendEasyPatchChannelSeries", File.ReadAllText(RepositoryFile("MainWindow.xaml.cs")), StringComparison.Ordinal);
     }
 

@@ -5,8 +5,9 @@
 - Matrice macOS mise à jour cellule par cellule sans reconstruction complète après chaque clic.
 - Changements visuels conservés en attente jusqu'à `Appliquer au projet`, avec abandon et annulation explicites.
 - En-têtes TX/RX fixes, défilement synchronisé et labels complets en infobulle.
-- Patch 1:1 par plage, échange des sélections TX/RX et zoom 50 à 200 % avec ajustement à la fenêtre.
-- Validation par Tab et retour par Maj+Tab pendant le renommage direct.
+- Patch 1:1 par plage et directement depuis la grille, échange des sélections TX/RX et zoom 50 à 200 % avec ajustement à la fenêtre.
+- Bouton `FLIP TX ⇄ RX` rendu très visible dans Easy patch.
+- Validation par Tab et retour par Maj+Tab pendant le renommage direct, y compris après le rafraîchissement de la grille.
 - Audit bilingue et corrections de mise en page macOS, notamment dans les imports/exports de labels.
 - Architecture d'import par adaptateurs séparés JSON, CSV, XLSX, ODS et ZIP console.
 - Validation JSON stricte, rejet des versions CSV mélangées, canaux dupliqués et colonnes XLSX/ODS manquantes.
