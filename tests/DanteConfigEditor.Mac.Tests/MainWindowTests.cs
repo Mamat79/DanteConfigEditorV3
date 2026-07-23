@@ -248,6 +248,18 @@ public sealed class MainWindowTests
             owner,
             project,
             document,
+            new ChannelLabelImportReport(
+                "Test JSON",
+                document.SourceApplication,
+                document.SourceVersion,
+                document.Sets.Count,
+                1,
+                document.Sets.Sum(set => set.Channels.Count),
+                0,
+                0,
+                0,
+                [],
+                []),
             UiLanguage.English,
             "DEVICE-A");
         Dispatcher.UIThread.RunJobs();
@@ -270,6 +282,7 @@ public sealed class MainWindowTests
                 preview);
             Assert.True(preview.Bounds.Height >= 34);
             Assert.False(apply.IsEnabled);
+            Assert.Contains("Test JSON", dialog.FindControl<TextBlock>("SourceInfoText")!.Text);
             Assert.Contains("0 change", dialog.FindControl<TextBlock>("PreviewSummaryText")!.Text);
             Assert.Contains("already match", dialog.FindControl<TextBlock>("SafetyText")!.Text);
         }

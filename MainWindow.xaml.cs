@@ -2118,8 +2118,13 @@ public partial class MainWindow : Window
 
         try
         {
-            ChannelLabelDocument document = ChannelLabelExchangeService.Read(dialog.FileName);
-            ChannelLabelImportWindow window = new(_language, _project!, document, DeviceComboBox.SelectedItem as string)
+            ChannelLabelReadResult readResult = ChannelLabelExchangeService.ReadWithReport(dialog.FileName);
+            ChannelLabelImportWindow window = new(
+                _language,
+                _project!,
+                readResult.Document,
+                readResult.Report,
+                DeviceComboBox.SelectedItem as string)
             {
                 Owner = this
             };

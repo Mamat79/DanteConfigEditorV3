@@ -1559,11 +1559,12 @@ public partial class MainWindow : Window
 
         try
         {
-            ChannelLabelDocument document = ChannelLabelExchangeService.Read(path);
+            ChannelLabelReadResult readResult = ChannelLabelExchangeService.ReadWithReport(path);
             IReadOnlyList<ChannelLabelAssignment>? assignments = await ChannelLabelImportDialog.ShowAsync(
                 this,
                 _project,
-                document,
+                readResult.Document,
+                readResult.Report,
                 _language,
                 SelectedDeviceRow()?.Name);
             if (assignments is null)

@@ -14,6 +14,7 @@ internal sealed partial class ChannelLabelImportDialog : Window
     private readonly ObservableCollection<MacChannelLabelPreviewRow> _previewRows = [];
     private DanteProject? _project;
     private ChannelLabelDocument? _document;
+    private ChannelLabelImportReport? _importReport;
     private UiLanguage _language;
 
     public ChannelLabelImportDialog()
@@ -27,12 +28,14 @@ internal sealed partial class ChannelLabelImportDialog : Window
         Window owner,
         DanteProject project,
         ChannelLabelDocument document,
+        ChannelLabelImportReport importReport,
         UiLanguage language,
         string? initiallySelectedDevice)
     {
         ChannelLabelImportDialog dialog = new();
         dialog._project = project;
         dialog._document = document;
+        dialog._importReport = importReport;
         dialog._language = language;
         dialog.Populate(initiallySelectedDevice);
         dialog.ApplyLanguage();
@@ -67,7 +70,9 @@ internal sealed partial class ChannelLabelImportDialog : Window
         autoMatch.IsChecked = document.Sets.Count > 1
             && document.Sets.All(set => _project.Devices.Any(device =>
                 string.Equals(device.Name, set.DeviceName, StringComparison.OrdinalIgnoreCase)));
-        FindControl<TextBlock>("SourceInfoText")!.Text = $"{document.SourceApplication} {document.SourceVersion} - {document.Sets.Count} {Local("liste(s)", "set(s)")}".Trim();
+        string source = $"{document.SourceApplication} {document.SourceVersion}".Trim();
+        FindControl<TextBlock>("SourceInfoText")!.Text =
+            $"{source} - {_importReport!.AdapterName}{Environment.NewLine}{_importReport.ToDisplayText(_language == UiLanguage.English)}";
         UpdateRangeDefaults();
         UpdateAutoMatchState();
     }
