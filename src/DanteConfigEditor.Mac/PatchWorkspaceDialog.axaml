@@ -126,11 +126,48 @@
                     <TextBlock x:Name="MatrixHintText"
                                Classes="muted"
                                Text="RX en lignes, TX en colonnes. Cliquez dans une case pour affecter ou retirer un patch." />
-                    <ScrollViewer Grid.Row="1"
-                                  HorizontalScrollBarVisibility="Auto"
-                                  VerticalScrollBarVisibility="Auto">
-                        <Grid x:Name="MatrixPanel" />
-                    </ScrollViewer>
+                    <Grid Grid.Row="1"
+                          x:Name="MatrixViewport"
+                          RowDefinitions="Auto,*"
+                          ColumnDefinitions="220,*">
+                        <Border Grid.Row="0"
+                                Grid.Column="0"
+                                MinHeight="54"
+                                Padding="8,4"
+                                Background="{DynamicResource PanelBackgroundBrush}"
+                                BorderBrush="{DynamicResource PanelBorderBrush}"
+                                BorderThickness="0,0,1,1">
+                            <TextBlock x:Name="MatrixCornerHeader"
+                                       Text="Canal RX"
+                                       FontWeight="SemiBold"
+                                       VerticalAlignment="Center"
+                                       TextTrimming="CharacterEllipsis" />
+                        </Border>
+                        <ScrollViewer x:Name="MatrixTxHeaderScrollViewer"
+                                      Grid.Row="0"
+                                      Grid.Column="1"
+                                      HorizontalScrollBarVisibility="Hidden"
+                                      VerticalScrollBarVisibility="Disabled"
+                                      Background="{DynamicResource PanelBackgroundBrush}">
+                            <Grid x:Name="MatrixTxHeaderPanel" />
+                        </ScrollViewer>
+                        <ScrollViewer x:Name="MatrixRxHeaderScrollViewer"
+                                      Grid.Row="1"
+                                      Grid.Column="0"
+                                      HorizontalScrollBarVisibility="Disabled"
+                                      VerticalScrollBarVisibility="Hidden"
+                                      Background="{DynamicResource PanelBackgroundBrush}">
+                            <Grid x:Name="MatrixRxHeaderPanel" />
+                        </ScrollViewer>
+                        <ScrollViewer x:Name="MatrixBodyScrollViewer"
+                                      Grid.Row="1"
+                                      Grid.Column="1"
+                                      HorizontalScrollBarVisibility="Auto"
+                                      VerticalScrollBarVisibility="Auto"
+                                      ScrollChanged="MatrixBodyScrollViewer_ScrollChanged">
+                            <Grid x:Name="MatrixPanel" />
+                        </ScrollViewer>
+                    </Grid>
                 </Grid>
             </TabItem>
         </TabControl>

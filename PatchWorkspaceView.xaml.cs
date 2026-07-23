@@ -1,3 +1,5 @@
+using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Controls;
@@ -22,6 +24,8 @@ public partial class PatchWorkspaceView : UserControl
     private readonly Func<string, DanteChannelKind, IReadOnlyList<int>, int, bool>? _extendChannelSeriesAction;
     private readonly HashSet<string> _ambiguousSourceNames = new(StringComparer.OrdinalIgnoreCase);
     private readonly List<ToggleButton> _matrixGestureHighlights = [];
+    private readonly ObservableCollection<PatchRxListItem> _rxRows = [];
+    private readonly ObservableCollection<PatchMatrixRow> _matrixRows = [];
     private IReadOnlyList<PatchSourceDescriptor> _visibleSources = [];
     private IReadOnlyList<PatchTargetDescriptor> _visibleTargets = [];
     private PatchMatrixCell? _matrixGestureStart;
@@ -70,6 +74,8 @@ public partial class PatchWorkspaceView : UserControl
         _embedded = embedded;
         _renameChannelAction = renameChannelAction;
         _extendChannelSeriesAction = extendChannelSeriesAction;
+        RxChannelListBox.ItemsSource = _rxRows;
+        MatrixGrid.ItemsSource = _matrixRows;
 
         ApplyTheme(useLightTheme);
         ApplyLanguage();
@@ -98,7 +104,7 @@ public partial class PatchWorkspaceView : UserControl
     public void ResetPendingChanges()
     {
         _session.Reset();
-        RefreshTargetRows();
+        RefreshAllTargetStates();
         SetInfo(L("Tous les changements Easy patch ont été appliqués.", "All Easy patch changes were applied."));
     }
 
@@ -253,27 +259,32 @@ public partial class PatchWorkspaceView : UserControl
             .OrderBy(channel => channel.PositionIndex)
             .ToArray() ?? [];
 
-        PatchRxListItem[] rows = _visibleTargets
-            .Select(BuildRxListItem)
-            .ToArray();
-        RxChannelListBox.ItemsSource = rows;
-        foreach (PatchRxListItem row in rows.Where(row => selectedDanteIds.Contains(row.Target.DanteId)))
+        _rxRows.Clear();
+        foreach (PatchTargetDescriptor target in _visibleTargets)
+        {
+            _rxRows.Add(BuildRxListItem(target));
+        }
+
+        foreach (PatchRxListItem row in _rxRows.Where(row => selectedDanteIds.Contains(row.Target.DanteId)))
         {
             RxChannelListBox.SelectedItems.Add(row);
         }
 
-        if (RxChannelListBox.SelectedItems.Count == 0 && rows.Length > 0)
+        if (RxChannelListBox.SelectedItems.Count == 0 && _rxRows.Count > 0)
         {
-            RxChannelListBox.SelectedItem = rows[0];
+            RxChannelListBox.SelectedItem = _rxRows[0];
         }
 
         RangeStartRxComboBox.ItemsSource = _visibleTargets;
         RangeStartRxComboBox.SelectedItem = _visibleTargets.FirstOrDefault(target => target.DanteId == selectedRangeDanteId)
             ?? _visibleTargets.FirstOrDefault();
 
-        MatrixGrid.ItemsSource = _visibleTargets
-            .Select((target, targetIndex) => BuildMatrixRow(target, targetIndex))
-            .ToArray();
+        _matrixRows.Clear();
+        for (int targetIndex = 0; targetIndex < _visibleTargets.Count; targetIndex++)
+        {
+            _matrixRows.Add(BuildMatrixRow(_visibleTargets[targetIndex], targetIndex));
+        }
+
         RefreshPendingPreview();
         UpdateCommandState();
     }
@@ -296,16 +307,84 @@ public partial class PatchWorkspaceView : UserControl
             .Select((source, index) => new PatchMatrixCell(
                 source,
                 target,
-                SourceIndex: index,
-                TargetIndex: targetIndex,
-                IsAssigned: index == assignedSourceIndex,
-                IsPending: assignment.IsPending,
-                Marker: index == assignedSourceIndex ? "●" : string.Empty,
-                ToolTip: BuildCellToolTip(source, target, index == assignedSourceIndex, assignment.IsPending),
-                AutomationName: BuildCellAutomationName(source, target, index == assignedSourceIndex)))
+                index,
+                targetIndex,
+                index == assignedSourceIndex,
+                assignment.IsPending,
+                index == assignedSourceIndex ? "●" : string.Empty,
+                BuildCellToolTip(source, target, index == assignedSourceIndex, assignment.IsPending),
+                BuildCellAutomationName(source, target, index == assignedSourceIndex)))
             .ToArray();
 
         return new PatchMatrixRow(target, assignment.IsPending, cells);
+    }
+
+    private void RefreshTargetStates(IEnumerable<PatchTargetDescriptor> targets)
+    {
+        string? visibleDeviceName = RxDeviceComboBox.SelectedItem as string;
+        HashSet<int> danteIds = targets
+            .Where(target => string.Equals(
+                target.DeviceName,
+                visibleDeviceName,
+                StringComparison.OrdinalIgnoreCase))
+            .Select(target => target.DanteId)
+            .ToHashSet();
+
+        for (int targetIndex = 0; targetIndex < _visibleTargets.Count; targetIndex++)
+        {
+            if (danteIds.Contains(_visibleTargets[targetIndex].DanteId))
+            {
+                RefreshTargetState(targetIndex);
+            }
+        }
+
+        RefreshPendingPreview();
+        UpdateCommandState();
+    }
+
+    private void RefreshAllTargetStates()
+    {
+        for (int targetIndex = 0; targetIndex < _visibleTargets.Count; targetIndex++)
+        {
+            RefreshTargetState(targetIndex);
+        }
+
+        RefreshPendingPreview();
+        UpdateCommandState();
+    }
+
+    private void RefreshTargetState(int targetIndex)
+    {
+        if (targetIndex < 0
+            || targetIndex >= _visibleTargets.Count
+            || targetIndex >= _matrixRows.Count
+            || targetIndex >= _rxRows.Count)
+        {
+            return;
+        }
+
+        PatchTargetDescriptor target = _visibleTargets[targetIndex];
+        EffectivePatchAssignment assignment = _session.GetEffectiveAssignment(target);
+        string source = assignment.IsActive
+            ? $"{assignment.TxDeviceName} / {assignment.TxChannelName}"
+            : L("Libre", "Free");
+        string marker = assignment.IsPending ? L("  [modifié]", "  [changed]") : string.Empty;
+        _rxRows[targetIndex].SourceDisplay = source + marker;
+
+        PatchMatrixRow row = _matrixRows[targetIndex];
+        row.IsPending = assignment.IsPending;
+        int assignedSourceIndex = FindAssignedSourceIndex(assignment);
+        for (int sourceIndex = 0; sourceIndex < row.Cells.Count; sourceIndex++)
+        {
+            PatchMatrixCell cell = row.Cells[sourceIndex];
+            bool isAssigned = sourceIndex == assignedSourceIndex;
+            cell.Update(
+                isAssigned,
+                assignment.IsPending,
+                isAssigned ? "●" : string.Empty,
+                BuildCellToolTip(cell.Source, cell.Target, isAssigned, assignment.IsPending),
+                BuildCellAutomationName(cell.Source, cell.Target, isAssigned));
+        }
     }
 
     private int FindAssignedSourceIndex(EffectivePatchAssignment assignment)
@@ -666,7 +745,7 @@ public partial class PatchWorkspaceView : UserControl
             string message = L(
                 $"{result.StagedCount} changement(s) prévisualisé(s) et ajouté(s) au lot, {result.SkippedConflictCount} conflit(s) ignoré(s), {result.UnchangedCount} ligne(s) inchangée(s).",
                 $"{result.StagedCount} change(s) previewed and added to the batch, {result.SkippedConflictCount} conflict(s) skipped, {result.UnchangedCount} row(s) unchanged.");
-            RefreshTargetRows();
+            RefreshTargetStates(plan.Assignments.Select(assignment => assignment.Target));
             SetInfo(message, warning: result.SkippedConflictCount > 0);
         }
         catch (Exception exception)
@@ -763,7 +842,7 @@ public partial class PatchWorkspaceView : UserControl
             return;
         }
 
-        RefreshTargetRows();
+        RefreshTargetStates(plan.Assignments.Select(assignment => assignment.Target));
         if (!_session.HasChanges)
         {
             SetInfo(L(
@@ -823,7 +902,7 @@ public partial class PatchWorkspaceView : UserControl
         try
         {
             int removed = _session.RemoveMany(targets);
-            RefreshTargetRows();
+            RefreshTargetStates(targets);
             SetInfo(L($"{removed} déconnexion(s) ajoutée(s) au lot.", $"{removed} disconnection(s) added to the batch."));
         }
         catch (Exception exception)
@@ -938,7 +1017,7 @@ public partial class PatchWorkspaceView : UserControl
             && start.IsAssigned)
         {
             _session.Remove(start.Target);
-            RefreshTargetRows();
+            RefreshTargetStates([start.Target]);
             SetInfo(L("Déconnexion ajoutée au lot.", "Disconnection added to the batch."));
             return;
         }
@@ -1414,7 +1493,7 @@ public partial class PatchWorkspaceView : UserControl
     private void ResetPendingButton_Click(object sender, RoutedEventArgs e)
     {
         _session.Reset();
-        RefreshTargetRows();
+        RefreshAllTargetStates();
         SetInfo(L("Tous les changements visuels ont été annulés.", "All visual changes were discarded."));
     }
 
@@ -1607,7 +1686,34 @@ public partial class PatchWorkspaceView : UserControl
         return _language == UiLanguage.English ? english : french;
     }
 
-    private sealed record PatchRxListItem(PatchTargetDescriptor Target, string ChannelName, string SourceDisplay);
+    private sealed class PatchRxListItem(
+        PatchTargetDescriptor target,
+        string channelName,
+        string sourceDisplay) : INotifyPropertyChanged
+    {
+        private string _sourceDisplay = sourceDisplay;
+
+        public PatchTargetDescriptor Target { get; } = target;
+
+        public string ChannelName { get; } = channelName;
+
+        public string SourceDisplay
+        {
+            get => _sourceDisplay;
+            set
+            {
+                if (string.Equals(_sourceDisplay, value, StringComparison.Ordinal))
+                {
+                    return;
+                }
+
+                _sourceDisplay = value;
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(SourceDisplay)));
+            }
+        }
+
+        public event PropertyChangedEventHandler? PropertyChanged;
+    }
 
     private sealed record PatchTxListItem(PatchSourceDescriptor Source)
     {
@@ -1621,19 +1727,115 @@ public partial class PatchWorkspaceView : UserControl
         string Action,
         string ActionKey);
 
-    private sealed record PatchMatrixRow(
-        PatchTargetDescriptor Target,
-        bool IsPending,
-        IReadOnlyList<PatchMatrixCell> Cells);
+    private sealed class PatchMatrixRow(
+        PatchTargetDescriptor target,
+        bool isPending,
+        IReadOnlyList<PatchMatrixCell> cells) : INotifyPropertyChanged
+    {
+        private bool _isPending = isPending;
 
-    private sealed record PatchMatrixCell(
-        PatchSourceDescriptor Source,
-        PatchTargetDescriptor Target,
-        int SourceIndex,
-        int TargetIndex,
-        bool IsAssigned,
-        bool IsPending,
-        string Marker,
-        string ToolTip,
-        string AutomationName);
+        public PatchTargetDescriptor Target { get; } = target;
+
+        public IReadOnlyList<PatchMatrixCell> Cells { get; } = cells;
+
+        public bool IsPending
+        {
+            get => _isPending;
+            set
+            {
+                if (_isPending == value)
+                {
+                    return;
+                }
+
+                _isPending = value;
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsPending)));
+            }
+        }
+
+        public event PropertyChangedEventHandler? PropertyChanged;
+    }
+
+    private sealed class PatchMatrixCell(
+        PatchSourceDescriptor source,
+        PatchTargetDescriptor target,
+        int sourceIndex,
+        int targetIndex,
+        bool isAssigned,
+        bool isPending,
+        string marker,
+        string toolTip,
+        string automationName) : INotifyPropertyChanged
+    {
+        private bool _isAssigned = isAssigned;
+        private bool _isPending = isPending;
+        private string _marker = marker;
+        private string _toolTip = toolTip;
+        private string _automationName = automationName;
+
+        public PatchSourceDescriptor Source { get; } = source;
+
+        public PatchTargetDescriptor Target { get; } = target;
+
+        public int SourceIndex { get; } = sourceIndex;
+
+        public int TargetIndex { get; } = targetIndex;
+
+        public bool IsAssigned
+        {
+            get => _isAssigned;
+            private set => SetField(ref _isAssigned, value, nameof(IsAssigned));
+        }
+
+        public bool IsPending
+        {
+            get => _isPending;
+            private set => SetField(ref _isPending, value, nameof(IsPending));
+        }
+
+        public string Marker
+        {
+            get => _marker;
+            private set => SetField(ref _marker, value, nameof(Marker));
+        }
+
+        public string ToolTip
+        {
+            get => _toolTip;
+            private set => SetField(ref _toolTip, value, nameof(ToolTip));
+        }
+
+        public string AutomationName
+        {
+            get => _automationName;
+            private set => SetField(ref _automationName, value, nameof(AutomationName));
+        }
+
+        public event PropertyChangedEventHandler? PropertyChanged;
+
+        public void Update(
+            bool assigned,
+            bool pending,
+            string markerValue,
+            string toolTipValue,
+            string automationNameValue)
+        {
+            IsAssigned = assigned;
+            IsPending = pending;
+            Marker = markerValue;
+            ToolTip = toolTipValue;
+            AutomationName = automationNameValue;
+        }
+
+        private void SetField<T>(ref T field, T value, string propertyName)
+        {
+            if (EqualityComparer<T>.Default.Equals(field, value))
+            {
+                return;
+            }
+
+            field = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+    }
 }

@@ -22,12 +22,17 @@ public sealed partial class PatchWorkspaceDialog : Window
     private DanteProject _project = null!;
     private PatchWorkspaceSession _session = null!;
     private readonly HashSet<string> _ambiguousSourceNames = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<MatrixCellKey, PatchMatrixCell> _matrixCells = [];
+    private readonly Dictionary<int, TextBlock> _matrixRxHeaders = [];
     private IReadOnlyList<PatchSourceDescriptor> _visibleSources = [];
     private IReadOnlyList<PatchTargetDescriptor> _visibleTargets = [];
+    private IReadOnlyList<PatchRxListItem> _rxRows = [];
     private Point _dragStart;
     private bool _dragReady;
     private bool _dragInProgress;
     private bool _initializing = true;
+
+    internal int MatrixBuildCount { get; private set; }
 
     public PatchWorkspaceDialog()
     {
@@ -168,10 +173,10 @@ public sealed partial class PatchWorkspaceDialog : Window
             .OrderBy(channel => channel.PositionIndex)
             .ToArray() ?? [];
 
-        PatchRxListItem[] rows = _visibleTargets.Select(BuildRxListItem).ToArray();
-        rxList.ItemsSource = rows;
-        rxList.SelectedItem = rows.FirstOrDefault(row => row.Target.DanteId == selectedDanteId)
-            ?? rows.FirstOrDefault();
+        _rxRows = _visibleTargets.Select(BuildRxListItem).ToArray();
+        rxList.ItemsSource = _rxRows;
+        rxList.SelectedItem = _rxRows.FirstOrDefault(row => row.Target.DanteId == selectedDanteId)
+            ?? _rxRows.FirstOrDefault();
 
         BuildMatrix();
         UpdateCommandState();
@@ -180,38 +185,45 @@ public sealed partial class PatchWorkspaceDialog : Window
     private PatchRxListItem BuildRxListItem(PatchTargetDescriptor target)
     {
         EffectivePatchAssignment assignment = _session.GetEffectiveAssignment(target);
-        string source = assignment.IsActive
-            ? $"{assignment.TxDeviceName} / {assignment.TxChannelName}"
-            : L("Libre", "Free");
-        string marker = assignment.IsPending ? L("  [modifié]", "  [changed]") : string.Empty;
-        return new PatchRxListItem(target, $"{target.Display}   <-   {source}{marker}");
+        return new PatchRxListItem(target, BuildRxDisplay(target, assignment));
     }
 
     private void BuildMatrix()
     {
+        MatrixBuildCount++;
         Grid matrix = FindControl<Grid>("MatrixPanel")!;
+        Grid txHeaders = FindControl<Grid>("MatrixTxHeaderPanel")!;
+        Grid rxHeaders = FindControl<Grid>("MatrixRxHeaderPanel")!;
         matrix.Children.Clear();
         matrix.RowDefinitions.Clear();
         matrix.ColumnDefinitions.Clear();
+        txHeaders.Children.Clear();
+        txHeaders.RowDefinitions.Clear();
+        txHeaders.ColumnDefinitions.Clear();
+        rxHeaders.Children.Clear();
+        rxHeaders.RowDefinitions.Clear();
+        rxHeaders.ColumnDefinitions.Clear();
+        _matrixCells.Clear();
+        _matrixRxHeaders.Clear();
 
         PatchSourceDescriptor[] sources = _visibleSources.Take(MaxMatrixChannels).ToArray();
         PatchTargetDescriptor[] targets = _visibleTargets.Take(MaxMatrixChannels).ToArray();
-        matrix.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(220) });
+        txHeaders.RowDefinitions.Add(new RowDefinition { Height = new GridLength(54) });
         foreach (PatchSourceDescriptor _ in sources)
         {
             matrix.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(92) });
+            txHeaders.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(92) });
         }
 
-        matrix.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-        AddMatrixText(matrix, L("Canal RX", "Rx channel"), 0, 0, FontWeight.SemiBold, pending: false);
+        rxHeaders.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(220) });
         for (int sourceIndex = 0; sourceIndex < sources.Length; sourceIndex++)
         {
             PatchSourceDescriptor source = sources[sourceIndex];
             TextBlock header = AddMatrixText(
-                matrix,
+                txHeaders,
                 $"TX {source.DanteId}\n{source.ChannelName}",
                 0,
-                sourceIndex + 1,
+                sourceIndex,
                 FontWeight.SemiBold,
                 pending: false);
             header.Width = 86;
@@ -226,15 +238,24 @@ public sealed partial class PatchWorkspaceDialog : Window
             PatchTargetDescriptor target = targets[targetIndex];
             EffectivePatchAssignment assignment = _session.GetEffectiveAssignment(target);
             int assignedSourceIndex = FindAssignedSourceIndex(assignment, sources);
-            int row = targetIndex + 1;
             matrix.RowDefinitions.Add(new RowDefinition { Height = new GridLength(38) });
-            AddMatrixText(matrix, target.Display, row, 0, FontWeight.Normal, assignment.IsPending);
+            rxHeaders.RowDefinitions.Add(new RowDefinition { Height = new GridLength(38) });
+            TextBlock rxHeader = AddMatrixText(
+                rxHeaders,
+                target.Display,
+                targetIndex,
+                0,
+                FontWeight.Normal,
+                assignment.IsPending);
+            ToolTip.SetTip(rxHeader, target.FullDisplay);
+            AutomationProperties.SetName(rxHeader, target.FullDisplay);
+            _matrixRxHeaders[targetIndex] = rxHeader;
 
             for (int sourceIndex = 0; sourceIndex < sources.Length; sourceIndex++)
             {
                 PatchSourceDescriptor source = sources[sourceIndex];
                 bool isAssigned = sourceIndex == assignedSourceIndex;
-                PatchMatrixCell cell = new(source, target, isAssigned);
+                PatchMatrixCell cell = new(source, target, sourceIndex, targetIndex, isAssigned);
                 Button button = new()
                 {
                     Content = isAssigned ? "●" : string.Empty,
@@ -251,13 +272,135 @@ public sealed partial class PatchWorkspaceDialog : Window
                 button.Click += MatrixCellButton_Click;
                 ToolTip.SetTip(button, BuildCellToolTip(source, target, isAssigned, assignment.IsPending));
                 AutomationProperties.SetName(button, BuildCellAutomationName(source, target, isAssigned));
-                Grid.SetRow(button, row);
-                Grid.SetColumn(button, sourceIndex + 1);
+                Grid.SetRow(button, targetIndex);
+                Grid.SetColumn(button, sourceIndex);
                 matrix.Children.Add(button);
+                cell.Button = button;
+                _matrixCells[new MatrixCellKey(sourceIndex, targetIndex)] = cell;
             }
         }
 
+        FindControl<TextBlock>("MatrixCornerHeader")!.Text = L("Canal RX", "Rx channel");
         UpdateMatrixHint(sources.Length, targets.Length);
+    }
+
+    private void RefreshTargetStates(IEnumerable<PatchTargetDescriptor> targets)
+    {
+        HashSet<int> danteIds = targets
+            .Where(target => string.Equals(
+                target.DeviceName,
+                FindControl<ComboBox>("RxDeviceCombo")!.SelectedItem as string,
+                StringComparison.OrdinalIgnoreCase))
+            .Select(target => target.DanteId)
+            .ToHashSet();
+
+        for (int targetIndex = 0; targetIndex < _visibleTargets.Count; targetIndex++)
+        {
+            if (danteIds.Contains(_visibleTargets[targetIndex].DanteId))
+            {
+                RefreshTargetState(targetIndex);
+            }
+        }
+
+        UpdateCommandState();
+    }
+
+    private void RefreshAllTargetStates()
+    {
+        for (int targetIndex = 0; targetIndex < _visibleTargets.Count; targetIndex++)
+        {
+            RefreshTargetState(targetIndex);
+        }
+
+        UpdateCommandState();
+    }
+
+    private void RefreshTargetState(int targetIndex)
+    {
+        if (targetIndex < 0 || targetIndex >= _visibleTargets.Count)
+        {
+            return;
+        }
+
+        PatchTargetDescriptor target = _visibleTargets[targetIndex];
+        EffectivePatchAssignment assignment = _session.GetEffectiveAssignment(target);
+        if (targetIndex < _rxRows.Count)
+        {
+            _rxRows[targetIndex].Display = BuildRxDisplay(target, assignment);
+        }
+
+        if (targetIndex >= MaxMatrixChannels)
+        {
+            return;
+        }
+
+        if (_matrixRxHeaders.TryGetValue(targetIndex, out TextBlock? rowHeader))
+        {
+            SetPendingRowClass(rowHeader, assignment.IsPending);
+        }
+
+        int assignedSourceIndex = FindAssignedSourceIndex(
+            assignment,
+            _visibleSources.Take(MaxMatrixChannels).ToArray());
+        for (int sourceIndex = 0;
+             sourceIndex < Math.Min(_visibleSources.Count, MaxMatrixChannels);
+             sourceIndex++)
+        {
+            if (!_matrixCells.TryGetValue(new MatrixCellKey(sourceIndex, targetIndex), out PatchMatrixCell? cell))
+            {
+                continue;
+            }
+
+            bool isAssigned = sourceIndex == assignedSourceIndex;
+            cell.IsAssigned = isAssigned;
+            cell.Button.Content = isAssigned ? "●" : string.Empty;
+            SetAssignedCellClass(cell.Button, isAssigned);
+            ToolTip.SetTip(
+                cell.Button,
+                BuildCellToolTip(cell.Source, cell.Target, isAssigned, assignment.IsPending));
+            AutomationProperties.SetName(
+                cell.Button,
+                BuildCellAutomationName(cell.Source, cell.Target, isAssigned));
+        }
+    }
+
+    private string BuildRxDisplay(PatchTargetDescriptor target, EffectivePatchAssignment assignment)
+    {
+        string source = assignment.IsActive
+            ? $"{assignment.TxDeviceName} / {assignment.TxChannelName}"
+            : L("Libre", "Free");
+        string marker = assignment.IsPending ? L("  [modifié]", "  [changed]") : string.Empty;
+        return $"{target.Display}   <-   {source}{marker}";
+    }
+
+    private static void SetAssignedCellClass(Button button, bool assigned)
+    {
+        if (assigned)
+        {
+            if (!button.Classes.Contains("assigned"))
+            {
+                button.Classes.Add("assigned");
+            }
+        }
+        else
+        {
+            button.Classes.Remove("assigned");
+        }
+    }
+
+    private static void SetPendingRowClass(TextBlock rowHeader, bool pending)
+    {
+        if (pending)
+        {
+            if (!rowHeader.Classes.Contains("pendingRow"))
+            {
+                rowHeader.Classes.Add("pendingRow");
+            }
+        }
+        else
+        {
+            rowHeader.Classes.Remove("pendingRow");
+        }
     }
 
     private TextBlock AddMatrixText(
@@ -336,7 +479,7 @@ public sealed partial class PatchWorkspaceDialog : Window
         }
 
         _session.Remove(targetRow.Target);
-        RefreshTargetRows();
+        RefreshTargetStates([targetRow.Target]);
         SetInfo(L("Déconnexion préparée.", "Disconnection staged."));
     }
 
@@ -350,7 +493,7 @@ public sealed partial class PatchWorkspaceDialog : Window
         try
         {
             SequentialPatchPlan plan = _session.AssignSequential(sources, _visibleTargets, firstTarget);
-            RefreshTargetRows();
+            RefreshTargetStates(plan.Assignments.Select(assignment => assignment.Target));
             SetInfo(plan.UnassignedSources.Count == 0
                 ? L(
                     $"{plan.Assignments.Count} affectation(s) préparée(s).",
@@ -402,7 +545,6 @@ public sealed partial class PatchWorkspaceDialog : Window
         {
             if (!SourcesAreUnambiguous([cell.Source]))
             {
-                BuildMatrix();
                 return;
             }
 
@@ -410,7 +552,16 @@ public sealed partial class PatchWorkspaceDialog : Window
             SetInfo(L("Affectation préparée.", "Assignment staged."));
         }
 
-        RefreshTargetRows();
+        RefreshTargetStates([cell.Target]);
+    }
+
+    private void MatrixBodyScrollViewer_ScrollChanged(object? sender, ScrollChangedEventArgs e)
+    {
+        ScrollViewer body = FindControl<ScrollViewer>("MatrixBodyScrollViewer")!;
+        FindControl<ScrollViewer>("MatrixTxHeaderScrollViewer")!.Offset =
+            new Vector(body.Offset.X, 0);
+        FindControl<ScrollViewer>("MatrixRxHeaderScrollViewer")!.Offset =
+            new Vector(0, body.Offset.Y);
     }
 
     private void TxChannelList_PointerPressed(object? sender, PointerPressedEventArgs e)
@@ -528,7 +679,7 @@ public sealed partial class PatchWorkspaceDialog : Window
     private void ResetPendingButton_Click(object? sender, RoutedEventArgs e)
     {
         _session.Reset();
-        RefreshTargetRows();
+        RefreshAllTargetStates();
         SetInfo(L("Tous les changements visuels ont été annulés.", "All visual changes were discarded."));
     }
 
@@ -649,10 +800,50 @@ public sealed partial class PatchWorkspaceDialog : Window
 
     private string L(string french, string english) => _language == UiLanguage.English ? english : french;
 
-    private sealed record PatchRxListItem(PatchTargetDescriptor Target, string Display);
+    private sealed class PatchRxListItem(PatchTargetDescriptor target, string display)
+        : System.ComponentModel.INotifyPropertyChanged
+    {
+        private string _display = display;
 
-    private sealed record PatchMatrixCell(
-        PatchSourceDescriptor Source,
-        PatchTargetDescriptor Target,
-        bool IsAssigned);
+        public PatchTargetDescriptor Target { get; } = target;
+
+        public string Display
+        {
+            get => _display;
+            set
+            {
+                if (string.Equals(_display, value, StringComparison.Ordinal))
+                {
+                    return;
+                }
+
+                _display = value;
+                PropertyChanged?.Invoke(this, new System.ComponentModel.PropertyChangedEventArgs(nameof(Display)));
+            }
+        }
+
+        public event System.ComponentModel.PropertyChangedEventHandler? PropertyChanged;
+    }
+
+    private sealed class PatchMatrixCell(
+        PatchSourceDescriptor source,
+        PatchTargetDescriptor target,
+        int sourceIndex,
+        int targetIndex,
+        bool isAssigned)
+    {
+        public PatchSourceDescriptor Source { get; } = source;
+
+        public PatchTargetDescriptor Target { get; } = target;
+
+        public int SourceIndex { get; } = sourceIndex;
+
+        public int TargetIndex { get; } = targetIndex;
+
+        public bool IsAssigned { get; set; } = isAssigned;
+
+        public Button Button { get; set; } = null!;
+    }
+
+    private readonly record struct MatrixCellKey(int SourceIndex, int TargetIndex);
 }
