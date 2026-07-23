@@ -107,14 +107,14 @@ public sealed class InstallerContractTests
     }
 
     [Fact]
-    public void V34IncludesMacPackagingMetadata()
+    public void DevelopmentV35KeepsStableV34MacPackagingMetadata()
     {
         string project = File.ReadAllText(RepositoryFile("src", "DanteConfigEditor.Mac", "DanteConfigEditor.Mac.csproj"));
         string plist = File.ReadAllText(RepositoryFile("packaging", "macos", "Info.plist"));
         string packaging = File.ReadAllText(RepositoryFile("packaging", "macos", "build-macos.sh"));
         string workflow = File.ReadAllText(RepositoryFile(".github", "workflows", "macos-ci.yml"));
 
-        Assert.Contains("<InformationalVersion>3.4</InformationalVersion>", project, StringComparison.Ordinal);
+        Assert.Contains("<InformationalVersion>3.5</InformationalVersion>", project, StringComparison.Ordinal);
         Assert.Contains("<string>Dante Config Editor V3.4</string>", plist, StringComparison.Ordinal);
         Assert.Contains("<string>3.4.0</string>", plist, StringComparison.Ordinal);
         Assert.Contains("Dante Config Editor V3.4", packaging, StringComparison.Ordinal);
