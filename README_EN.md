@@ -54,8 +54,8 @@ The screenshots and manuals use only a synthetic anonymized preset. They contain
 
 ## Presentation videos
 
-- **[English presentation of DCE v3.3](https://github.com/Mamat79/DanteConfigEditorV3/releases/download/v3.3/dce-v33-presentation-en.mp4)**
-- **[Présentation française de DCE v3.3](https://github.com/Mamat79/DanteConfigEditorV3/releases/download/v3.3/dce-v33-presentation-fr.mp4)**
+- **[English presentation of DCE v3.3](docs/media/dce-v33-presentation-en.mp4)**
+- **[Présentation française de DCE v3.3](docs/media/dce-v33-presentation-fr.mp4)**
 
 Each video lasts about one minute and includes burned-in subtitles. Separate `.srt` files and SHA-256 checksums are also available in the V3.3 Release. Every screen uses a synthetic anonymized preset.
 

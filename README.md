@@ -54,8 +54,8 @@ Les captures et notices utilisent uniquement un preset synthétique anonymisé. 
 
 ## Vidéos de présentation
 
-- **[Présentation française de DCE v3.3](https://github.com/Mamat79/DanteConfigEditorV3/releases/download/v3.3/dce-v33-presentation-fr.mp4)**
-- **[English presentation of DCE v3.3](https://github.com/Mamat79/DanteConfigEditorV3/releases/download/v3.3/dce-v33-presentation-en.mp4)**
+- **[Présentation française de DCE v3.3](docs/media/dce-v33-presentation-fr.mp4)**
+- **[English presentation of DCE v3.3](docs/media/dce-v33-presentation-en.mp4)**
 
 Chaque vidéo dure environ une minute et utilise des sous-titres intégrés. Les fichiers `.srt` séparés et les sommes SHA-256 sont également fournis dans la Release V3.3. Les écrans ont été réalisés avec un preset synthétique anonymisé.
 
