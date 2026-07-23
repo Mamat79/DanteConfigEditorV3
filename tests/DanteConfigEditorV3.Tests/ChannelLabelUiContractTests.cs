@@ -62,7 +62,13 @@ public sealed class ChannelLabelUiContractTests
         Assert.Contains("StartPositionTextBox", macExport, StringComparison.Ordinal);
         Assert.Contains("FromEndCheckBox", macExport, StringComparison.Ordinal);
         Assert.Contains("IsEnabled=\"{Binding IsAvailable}\"", macExport, StringComparison.Ordinal);
-        Assert.Contains("RowDefinitions=\"Auto,286,*,Auto\"", macImport, StringComparison.Ordinal);
+        Assert.Contains("RowDefinitions=\"Auto,Auto,*,Auto\"", macImport, StringComparison.Ordinal);
+        Assert.Contains("MinHeight=\"320\"", macImport, StringComparison.Ordinal);
+        Assert.Contains("MaxHeight=\"350\"", macImport, StringComparison.Ordinal);
+        Assert.Contains("RowDefinitions=\"Auto,Auto,*,Auto\"", macExport, StringComparison.Ordinal);
+        Assert.Contains("MinHeight=\"330\"", macExport, StringComparison.Ordinal);
+        Assert.Contains("x:Name=\"PreviewButton\"", macExport, StringComparison.Ordinal);
+        Assert.Contains("x:Name=\"PreviewTitle\"", macExport, StringComparison.Ordinal);
         Assert.Contains("TargetDeviceCheckBox_Click", macImport, StringComparison.Ordinal);
         string windowsMain = Read("MainWindow.xaml.cs");
         string macMain = Read("src", "DanteConfigEditor.Mac", "MainWindow.axaml.cs");

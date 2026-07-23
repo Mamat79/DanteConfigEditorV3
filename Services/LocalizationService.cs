@@ -227,6 +227,10 @@ public static class LocalizationService
         ["Profile.48k24b1msRedundant"] = "48 kHz / 24 bit / 1 ms / Redondant / IP auto",
         ["Profile.48k24b1msDaisychain"] = "48 kHz / 24 bit / 1 ms / Daisychain / IP auto",
 
+        ["ChannelLabel.Warning.MoreThanEightCharacters"] = "plus de 8 caractères",
+        ["ChannelLabel.Warning.UnsupportedDmtCharacters"] = "caractères non pris en charge par DMT/dLive",
+        ["Ui.Placeholder.RecentFiles"] = "Fichiers récents",
+
         ["Blank"] = "(vide)"
     };
 
@@ -454,6 +458,10 @@ public static class LocalizationService
         ["Profile.96k24b2msAuto"] = "96 kHz / 24 bit / 2 ms / automatic IP",
         ["Profile.48k24b1msRedundant"] = "48 kHz / 24 bit / 1 ms / Redundant / automatic IP",
         ["Profile.48k24b1msDaisychain"] = "48 kHz / 24 bit / 1 ms / Daisy-chain / automatic IP",
+
+        ["ChannelLabel.Warning.MoreThanEightCharacters"] = "more than 8 characters",
+        ["ChannelLabel.Warning.UnsupportedDmtCharacters"] = "characters not supported by DMT/dLive",
+        ["Ui.Placeholder.RecentFiles"] = "Recent files",
 
         ["Blank"] = "(empty)"
     };

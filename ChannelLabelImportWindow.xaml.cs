@@ -171,9 +171,18 @@ public partial class ChannelLabelImportWindow : Window
         {
             TargetDevicesGrid.CommitEdit(DataGridEditingUnit.Cell, true);
             TargetDevicesGrid.CommitEdit(DataGridEditingUnit.Row, true);
-            int sourceStart = ParsePositive(SourceStartTextBox.Text, L("premier canal source", "first source channel"));
-            int targetStart = ParsePositive(TargetStartTextBox.Text, L("premier canal Dante", "first Dante channel"));
-            int count = ParsePositive(CountTextBox.Text, L("nombre de canaux", "channel count"));
+            int sourceStart = LocalizedNumberParser.ParsePositive(
+                SourceStartTextBox.Text,
+                L("premier canal source", "first source channel"),
+                _language);
+            int targetStart = LocalizedNumberParser.ParsePositive(
+                TargetStartTextBox.Text,
+                L("premier canal Dante", "first Dante channel"),
+                _language);
+            int count = LocalizedNumberParser.ParsePositive(
+                CountTextBox.Text,
+                L("nombre de canaux", "channel count"),
+                _language);
             DanteChannelKind selectedKind = TargetKindComboBox.SelectedIndex == 0 ? DanteChannelKind.Tx : DanteChannelKind.Rx;
             List<ChannelLabelTransferPreviewRow> rows = [];
 
@@ -258,13 +267,6 @@ public partial class ChannelLabelImportWindow : Window
             "Prévisualisez le transfert pour vérifier chaque correspondance.",
             "Preview the transfer to verify each mapping.");
         ApplyButton.IsEnabled = false;
-    }
-
-    private static int ParsePositive(string value, string label)
-    {
-        return int.TryParse(value.Trim(), out int parsed) && parsed > 0
-            ? parsed
-            : throw new InvalidOperationException($"{label} : valeur invalide.");
     }
 
     private string L(string french, string english) => IsEnglish ? english : french;

@@ -225,9 +225,18 @@ internal sealed partial class ChannelLabelImportDialog : Window
 
     private IReadOnlyList<ChannelLabelTransferPreviewRow> BuildPreview()
     {
-        int sourceStart = ParsePositive(FindControl<TextBox>("SourceStartTextBox")!.Text, Local("premier canal source", "first source channel"));
-        int targetStart = ParsePositive(FindControl<TextBox>("TargetStartTextBox")!.Text, Local("premier canal Dante", "first Dante channel"));
-        int count = ParsePositive(FindControl<TextBox>("CountTextBox")!.Text, Local("nombre de canaux", "channel count"));
+        int sourceStart = LocalizedNumberParser.ParsePositive(
+            FindControl<TextBox>("SourceStartTextBox")!.Text,
+            Local("premier canal source", "first source channel"),
+            _language);
+        int targetStart = LocalizedNumberParser.ParsePositive(
+            FindControl<TextBox>("TargetStartTextBox")!.Text,
+            Local("premier canal Dante", "first Dante channel"),
+            _language);
+        int count = LocalizedNumberParser.ParsePositive(
+            FindControl<TextBox>("CountTextBox")!.Text,
+            Local("nombre de canaux", "channel count"),
+            _language);
         DanteChannelKind selectedKind = SelectedValue("KindCombo") == "rx" ? DanteChannelKind.Rx : DanteChannelKind.Tx;
         List<ChannelLabelTransferPreviewRow> rows = [];
 
@@ -301,11 +310,6 @@ internal sealed partial class ChannelLabelImportDialog : Window
 
     private string SelectedValue(string controlName) =>
         (FindControl<ComboBox>(controlName)!.SelectedItem as ChoiceValue)?.Value ?? string.Empty;
-
-    private static int ParsePositive(string? value, string label) =>
-        int.TryParse(value?.Trim(), out int parsed) && parsed > 0
-            ? parsed
-            : throw new InvalidOperationException($"{label} : valeur invalide.");
 
     private string Local(string french, string english) => _language == UiLanguage.English ? english : french;
 }

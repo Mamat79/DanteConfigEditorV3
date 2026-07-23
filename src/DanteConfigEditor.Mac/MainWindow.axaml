@@ -100,7 +100,11 @@
             <TabControl x:Name="MainTabs" Grid.Column="1" Margin="14">
                 <TabItem x:Name="ConfigurationTab" Header="Configuration">
                     <Grid RowDefinitions="Auto,*" RowSpacing="12" Margin="0,12,0,0">
-                        <Grid Grid.Row="0" ColumnDefinitions="1.05*,1.05*,0.9*" ColumnSpacing="12" Height="385">
+                        <Grid Grid.Row="0"
+                              ColumnDefinitions="1.05*,1.05*,0.9*"
+                              ColumnSpacing="12"
+                              MinHeight="350"
+                              MaxHeight="385">
                             <Border Grid.Column="0" Classes="panel">
                                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                                     <StackPanel Spacing="8">
@@ -157,37 +161,40 @@
                             </Border>
 
                             <Border Grid.Column="1" Classes="panel">
-                                <StackPanel Spacing="8">
-                                    <TextBlock Classes="section" Text="Canaux de la machine" />
-                                    <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
-                                        <ComboBox x:Name="ChannelKindCombo" SelectionChanged="ChannelKindCombo_SelectionChanged">
-                                            <ComboBoxItem Tag="tx">TX</ComboBoxItem>
-                                            <ComboBoxItem Tag="rx">RX</ComboBoxItem>
-                                        </ComboBox>
-                                        <ComboBox x:Name="ChannelCombo" Grid.Column="1" SelectionChanged="ChannelCombo_SelectionChanged" />
-                                    </Grid>
-                                    <TextBox x:Name="ChannelNameTextBox" Watermark="Nouveau nom de canal" />
-                                    <Button x:Name="RenameChannelButton" Classes="primary" HorizontalAlignment="Left" Click="RenameChannelButton_Click">Renommer le canal</Button>
+                                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                    <StackPanel Spacing="8">
+                                        <TextBlock Classes="section" Text="Canaux de la machine" />
+                                        <Grid ColumnDefinitions="110,*" ColumnSpacing="8">
+                                            <ComboBox x:Name="ChannelKindCombo" SelectionChanged="ChannelKindCombo_SelectionChanged">
+                                                <ComboBoxItem Tag="tx">TX</ComboBoxItem>
+                                                <ComboBoxItem Tag="rx">RX</ComboBoxItem>
+                                            </ComboBox>
+                                            <ComboBox x:Name="ChannelCombo" Grid.Column="1" SelectionChanged="ChannelCombo_SelectionChanged" />
+                                        </Grid>
+                                        <TextBox x:Name="ChannelNameTextBox" Watermark="Nouveau nom de canal" />
+                                        <Button x:Name="RenameChannelButton" Classes="primary" HorizontalAlignment="Left" Click="RenameChannelButton_Click">Renommer le canal</Button>
 
-                                    <Border Height="1" Background="{DynamicResource PanelBorderBrush}" Margin="0,4" />
-                                    <TextBlock Text="Renommage en série" FontWeight="SemiBold" />
-                                    <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
-                                        <ComboBox x:Name="StartChannelCombo" PlaceholderText="Canal début" />
-                                        <ComboBox x:Name="EndChannelCombo" Grid.Column="1" PlaceholderText="Canal fin" />
-                                    </Grid>
-                                    <Grid ColumnDefinitions="*,90" ColumnSpacing="8">
-                                        <TextBox x:Name="BatchPrefixTextBox" Watermark="Préfixe ou modèle HF {00}" />
-                                        <TextBox x:Name="BatchNumberTextBox" Grid.Column="1" Text="1" Watermark="Numéro" />
-                                    </Grid>
-                                    <Button x:Name="BatchRenameButton" Classes="primary" Click="BatchRenameButton_Click">Renommer la série</Button>
-                                    <Button x:Name="ResetDeviceChannelsButton" Click="ResetDeviceChannelsButton_Click">Réinitialiser les canaux de la machine</Button>
-                                </StackPanel>
+                                        <Border Height="1" Background="{DynamicResource PanelBorderBrush}" Margin="0,4" />
+                                        <TextBlock Text="Renommage en série" FontWeight="SemiBold" />
+                                        <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
+                                            <ComboBox x:Name="StartChannelCombo" PlaceholderText="Canal début" />
+                                            <ComboBox x:Name="EndChannelCombo" Grid.Column="1" PlaceholderText="Canal fin" />
+                                        </Grid>
+                                        <Grid ColumnDefinitions="*,90" ColumnSpacing="8">
+                                            <TextBox x:Name="BatchPrefixTextBox" Watermark="Préfixe ou modèle HF {00}" />
+                                            <TextBox x:Name="BatchNumberTextBox" Grid.Column="1" Text="1" Watermark="Numéro" />
+                                        </Grid>
+                                        <Button x:Name="BatchRenameButton" Classes="primary" Click="BatchRenameButton_Click">Renommer la série</Button>
+                                        <Button x:Name="ResetDeviceChannelsButton" Click="ResetDeviceChannelsButton_Click">Réinitialiser les canaux de la machine</Button>
+                                    </StackPanel>
+                                </ScrollViewer>
                             </Border>
 
                             <Border Grid.Column="2" Classes="panel">
-                                <StackPanel Spacing="8">
-                                    <TextBlock Classes="section" Text="Actions globales" />
-                                    <TabControl>
+                                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                    <StackPanel Spacing="8">
+                                        <TextBlock Classes="section" Text="Actions globales" />
+                                        <TabControl>
                                         <TabItem Header="Réseau / audio">
                                             <ScrollViewer VerticalScrollBarVisibility="Auto">
                                                 <StackPanel Spacing="7" Margin="0,8,0,0">
@@ -235,8 +242,9 @@
                                                 <Button Classes="primary" Click="ApplyExclusivePreferredMasterButton_Click">Conserver un seul Preferred Master</Button>
                                             </StackPanel>
                                         </TabItem>
-                                    </TabControl>
-                                </StackPanel>
+                                        </TabControl>
+                                    </StackPanel>
+                                </ScrollViewer>
                             </Border>
                         </Grid>
 

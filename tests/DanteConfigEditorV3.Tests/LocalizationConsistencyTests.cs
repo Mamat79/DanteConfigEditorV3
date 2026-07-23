@@ -34,6 +34,10 @@ public sealed class LocalizationConsistencyTests
             LocalizationService.TranslateLiteral(UiLanguage.English, "Labels JSON/CSV, DMT XLSX/ODS, A&H dLive/Avantis et Yamaha CL/QL."));
         Assert.Equal("Export a generic file or create a copy of a DMT, A&H, or Yamaha template.",
             LocalizationService.TranslateLiteral(UiLanguage.English, "Exportez en générique ou créez une copie d'un modèle DMT, A&H ou Yamaha."));
+        Assert.Equal("more than 8 characters",
+            LocalizationService.TranslateLiteral(UiLanguage.English, "plus de 8 caractères"));
+        Assert.Equal("characters not supported by DMT/dLive",
+            LocalizationService.TranslateLiteral(UiLanguage.English, "caractères non pris en charge par DMT/dLive"));
     }
 
     [Fact]
@@ -47,7 +51,7 @@ public sealed class LocalizationConsistencyTests
         ];
         HashSet<string> localizableAttributes = new(StringComparer.Ordinal)
         {
-            "Text", "Content", "Header", "ToolTip", "Watermark", "Title"
+            "Text", "Content", "Header", "ToolTip", "Watermark", "PlaceholderText", "Title"
         };
         IReadOnlyDictionary<string, string> literalTranslations = Dictionary("LiteralFrenchToEnglish");
 
@@ -95,6 +99,30 @@ public sealed class LocalizationConsistencyTests
                     $"Accessibility literal is not registered for translation in {string.Join('/', relativeParts)}: {literal}");
             }
         }
+    }
+
+    [Theory]
+    [InlineData(UiLanguage.French, "nombre de canaux : valeur invalide.")]
+    [InlineData(UiLanguage.English, "channel count: invalid value.")]
+    public void NumericValidationMessagesUseTheSelectedLanguage(UiLanguage language, string expected)
+    {
+        string label = language == UiLanguage.English ? "channel count" : "nombre de canaux";
+
+        InvalidOperationException exception = Assert.Throws<InvalidOperationException>(() =>
+            LocalizedNumberParser.ParsePositive("invalid", label, language));
+
+        Assert.Equal(expected, exception.Message);
+    }
+
+    [Theory]
+    [InlineData(UiLanguage.French, "Nombre de canaux invalide.")]
+    [InlineData(UiLanguage.English, "Invalid channel count.")]
+    public void OptionalCountValidationUsesTheSelectedLanguage(UiLanguage language, string expected)
+    {
+        InvalidOperationException exception = Assert.Throws<InvalidOperationException>(() =>
+            LocalizedNumberParser.ParseOptionalCount("-1", language));
+
+        Assert.Equal(expected, exception.Message);
     }
 
     private static IReadOnlyDictionary<string, string> Dictionary(string fieldName)

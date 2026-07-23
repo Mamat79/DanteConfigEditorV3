@@ -1739,11 +1739,17 @@ public partial class MainWindow : Window
         {
             switch (element)
             {
+                case HeaderedContentControl headered when headered.Header is string header:
+                    headered.Header = LocalizationService.TranslateLiteral(_language, header);
+                    break;
                 case TextBlock text when !string.IsNullOrWhiteSpace(text.Text):
                     text.Text = LocalizationService.TranslateLiteral(_language, text.Text);
                     break;
                 case ContentControl content when content.Content is string value:
                     content.Content = LocalizationService.TranslateLiteral(_language, value);
+                    break;
+                case ComboBox comboBox when !string.IsNullOrWhiteSpace(comboBox.PlaceholderText):
+                    comboBox.PlaceholderText = LocalizationService.TranslateLiteral(_language, comboBox.PlaceholderText!);
                     break;
                 case TextBox textBox when !string.IsNullOrWhiteSpace(textBox.Watermark):
                     textBox.Watermark = LocalizationService.TranslateLiteral(_language, textBox.Watermark!);

@@ -37,6 +37,35 @@ public sealed class MainWindowTests
     }
 
     [AvaloniaFact]
+    public void LanguageSwitchTranslatesTabHeadersAndComboBoxPlaceholdersBothWays()
+    {
+        MainWindow window = new();
+        window.Show();
+        try
+        {
+            ApplyLanguage(window, UiLanguage.English);
+
+            Assert.Equal("Reports and patchbook", window.FindControl<TabItem>("ReportsExportTab")!.Header);
+            Assert.Equal("Synoptic", window.FindControl<TabItem>("SynopticTab")!.Header);
+            Assert.Equal("File health", window.FindControl<TabItem>("HealthTab")!.Header);
+            Assert.Equal("Recent files", window.FindControl<ComboBox>("RecentCombo")!.PlaceholderText);
+            Assert.Equal("Start channel", window.FindControl<ComboBox>("StartChannelCombo")!.PlaceholderText);
+            Assert.Equal("Tx source to apply", window.FindControl<ComboBox>("SourceDeviceCombo")!.PlaceholderText);
+            Assert.Equal("Add XML", window.FindControl<Button>("MergeButton")!.Content);
+
+            ApplyLanguage(window, UiLanguage.French);
+
+            Assert.Equal("Rapports et patchbook", window.FindControl<TabItem>("ReportsExportTab")!.Header);
+            Assert.Equal("Synoptique", window.FindControl<TabItem>("SynopticTab")!.Header);
+            Assert.Equal("Fichiers récents", window.FindControl<ComboBox>("RecentCombo")!.PlaceholderText);
+        }
+        finally
+        {
+            window.Close();
+        }
+    }
+
+    [AvaloniaFact]
     public void ImportantWarnings_AreKeptInsideProjectSidebar()
     {
         MainWindow window = new();
@@ -228,15 +257,62 @@ public sealed class MainWindowTests
         {
             Button preview = dialog.FindControl<Button>("PreviewButton")!;
             Button apply = dialog.FindControl<Button>("ApplyButton")!;
+            dialog.Width = 900;
+            dialog.Height = 620;
+            Dispatcher.UIThread.RunJobs();
             preview.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
             Dispatcher.UIThread.RunJobs();
 
             AssertControlFits(dialog, preview);
             AssertControlFits(dialog, apply);
+            AssertControlFitsInside(
+                dialog.FindControl<TextBlock>("MappingTitle")!.GetLogicalAncestors().OfType<Border>().First(),
+                preview);
             Assert.True(preview.Bounds.Height >= 34);
             Assert.False(apply.IsEnabled);
             Assert.Contains("0 change", dialog.FindControl<TextBlock>("PreviewSummaryText")!.Text);
             Assert.Contains("already match", dialog.FindControl<TextBlock>("SafetyText")!.Text);
+        }
+        finally
+        {
+            dialog.Close();
+            owner.Close();
+        }
+
+        Assert.Null(await resultTask);
+    }
+
+    [AvaloniaFact]
+    public async Task LabelExportPreviewActionBelongsToPreviewPanelAndFitsCompactWindow()
+    {
+        string source = Path.Combine(AppContext.BaseDirectory, "Fixtures", "representative-preset.xml");
+        DanteProject project = DanteProject.Load(source);
+        MainWindow owner = new() { Width = 1366, Height = 768 };
+        owner.Show();
+
+        Task<ChannelLabelExportDialogResult?> resultTask = ChannelLabelExportDialog.ShowAsync(
+            owner,
+            project,
+            UiLanguage.English,
+            "DEVICE-A");
+        Dispatcher.UIThread.RunJobs();
+
+        Window dialog = Assert.Single(owner.OwnedWindows);
+        try
+        {
+            dialog.Width = 900;
+            dialog.Height = 650;
+            Dispatcher.UIThread.RunJobs();
+
+            Button preview = dialog.FindControl<Button>("PreviewButton")!;
+            TextBlock title = dialog.FindControl<TextBlock>("PreviewTitle")!;
+            Border previewPanel = title.GetLogicalAncestors().OfType<Border>().First();
+
+            Assert.Equal("Refresh preview", preview.Content);
+            Assert.Contains(previewPanel, preview.GetLogicalAncestors());
+            AssertControlFits(dialog, preview);
+            AssertControlFitsInside(previewPanel, preview);
+            AssertControlFits(dialog, dialog.FindControl<Button>("ExportButton")!);
         }
         finally
         {
@@ -378,5 +454,28 @@ public sealed class MainWindowTests
         Assert.InRange(origin.Value.Y, -0.5, window.ClientSize.Height + 0.5);
         Assert.True(origin.Value.X + control.Bounds.Width <= window.ClientSize.Width + 0.5, $"{control.Name} dépasse horizontalement.");
         Assert.True(origin.Value.Y + control.Bounds.Height <= window.ClientSize.Height + 0.5, $"{control.Name} dépasse verticalement.");
+    }
+
+    private static void AssertControlFitsInside(Control container, Control control)
+    {
+        Point? origin = control.TranslatePoint(default, container);
+        Assert.NotNull(origin);
+        Assert.InRange(origin.Value.X, -0.5, container.Bounds.Width + 0.5);
+        Assert.InRange(origin.Value.Y, -0.5, container.Bounds.Height + 0.5);
+        Assert.True(origin.Value.X + control.Bounds.Width <= container.Bounds.Width + 0.5,
+            $"{control.Name} dépasse horizontalement de {container.Name}.");
+        Assert.True(origin.Value.Y + control.Bounds.Height <= container.Bounds.Height + 0.5,
+            $"{control.Name} dépasse verticalement de {container.Name}.");
+    }
+
+    private static void ApplyLanguage(MainWindow window, UiLanguage language)
+    {
+        typeof(MainWindow)
+            .GetField("_language", BindingFlags.Instance | BindingFlags.NonPublic)!
+            .SetValue(window, language);
+        typeof(MainWindow)
+            .GetMethod("ApplyLanguageToVisualTree", BindingFlags.Instance | BindingFlags.NonPublic)!
+            .Invoke(window, null);
+        Dispatcher.UIThread.RunJobs();
     }
 }
