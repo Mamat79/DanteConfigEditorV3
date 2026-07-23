@@ -134,6 +134,24 @@ public sealed class DanteProjectTests
     }
 
     [Fact]
+    public void DeletedDeviceCanBeSavedAndReloadedWithoutDanglingSubscriptions()
+    {
+        using TestWorkspace workspace = new("representative-preset.xml");
+        DanteProject project = DanteProject.Load(workspace.SourcePath);
+        string outputPath = Path.Combine(workspace.DirectoryPath, "device-deleted.xml");
+
+        project.DeleteDevice("DEVICE-A");
+        project.SaveAs(outputPath);
+        DanteProject reloaded = DanteProject.Load(outputPath);
+
+        Assert.Null(reloaded.FindDevice("DEVICE-A"));
+        Assert.DoesNotContain(
+            reloaded.PatchMatrix.Subscriptions,
+            subscription => string.Equals(subscription.ResolvedTxDeviceName, "DEVICE-A", StringComparison.OrdinalIgnoreCase));
+        Assert.False(reloaded.Validate().HasErrors);
+    }
+
+    [Fact]
     public void MergeImportsUniqueDevicesEvenWhenAnotherNameIsDuplicated()
     {
         using TestWorkspace workspace = new("representative-preset.xml");
