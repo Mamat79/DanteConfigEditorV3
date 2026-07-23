@@ -23,8 +23,8 @@ from reportlab.platypus import (
 ROOT = Path(__file__).resolve().parent
 # Les quatre PDF sont générés depuis une source unique pour garder les versions
 # française et anglaise synchronisées avec l'application et l'installateur.
-PRODUCT = "Dante Config Editor V3.3"
-VERSION = "3.3"
+PRODUCT = "Dante Config Editor V3.5"
+VERSION = "3.5"
 GITHUB = "github.com/Mamat79/DanteConfigEditorV3"
 
 INK = colors.HexColor("#172033")
@@ -315,9 +315,9 @@ def quick_start(language: str) -> None:
         else "Quick start - offline editing of Dante XML files"
     )
     warning = (
-        "<b>Outil tiers non officiel Audinate.</b> Cette V3.3 est la version officielle courante du projet et peut encore contenir des bugs. Travaillez sur une copie et validez toujours le XML final par un import dans l'outil Dante officiel adapté avant toute utilisation réelle."
+        "<b>Outil tiers non officiel Audinate.</b> Cette V3.5 est une version de développement et peut encore contenir des bugs. Travaillez sur une copie et validez toujours le XML final par un import dans l'outil Dante officiel adapté avant toute utilisation réelle."
         if french
-        else "<b>Third-party tool, not an official Audinate product.</b> V3.3 is the project's current official version and may still contain bugs. Work on a copy and always validate the final XML by importing it into the appropriate official Dante tool before real use."
+        else "<b>Third-party tool, not an official Audinate product.</b> V3.5 is a development version and may still contain bugs. Work on a copy and always validate the final XML by importing it into the appropriate official Dante tool before real use."
     )
     steps = (
         [
@@ -414,13 +414,13 @@ def full_guide(language: str) -> None:
     if french:
         page1 = [
             para("1. Installation et démarrage", "h1"),
-            callout("<b>Important :</b> cette application est un outil tiers non officiel Audinate. La V3.3 est la version officielle courante du projet et peut encore contenir des bugs. Elle édite des XML hors ligne, sans connexion au réseau Dante ni API Audinate. Conservez l'original et validez le fichier généré dans Dante Controller avant toute utilisation en production."),
+            callout("<b>Important :</b> cette application est un outil tiers non officiel Audinate. La V3.5 est une version de développement et peut encore contenir des bugs. Elle édite des XML hors ligne, sans connexion au réseau Dante ni API Audinate. Conservez l'original et validez le fichier généré dans Dante Controller avant toute utilisation en production."),
             para("L'installateur Windows x64 contient l'application et le runtime .NET 8 nécessaire. Il n'est normalement pas nécessaire d'installer .NET séparément."),
             *bullets([
                 "L'installation proposée par défaut se trouve dans Program Files et crée des raccourcis dans le menu Démarrer et sur le Bureau.",
-                "La V3.3 utilise son propre dossier Program Files et crée des raccourcis au nom de la version officielle.",
-                "L'installateur V3.3 remplace les anciennes installations V3 détectées et conserve les données locales de travail.",
-                "Deux DMG autonomes sont distribués pour les Mac Apple Silicon et Intel.",
+                "La V3.5 utilise son propre dossier et ses propres raccourcis afin de pouvoir cohabiter avec la V3.4.2 stable.",
+                "L'installateur V3.5 remplace uniquement une installation V3.5 existante et conserve les données locales de travail.",
+                "Deux DMG V3.5 autonomes sont fournis pour Apple Silicon et Intel. Le bundle V3.5 distinct peut cohabiter avec la V3.4.2.",
                 "Les quatre notices PDF françaises et anglaises sont installées et restent accessibles depuis l'application.",
             ]),
             para("2. Principes de sécurité", "h1"),
@@ -498,6 +498,7 @@ def full_guide(language: str) -> None:
                 "Plusieurs TX vers un RX et les sélections multiples de tailles différentes sont refusés.",
                 "Le patch par plage demande un premier TX, un premier RX et une quantité exacte ; une plage incomplète est entièrement bloquée.",
                 "Chaque prévisualisation rejoint automatiquement le lot cumulatif sans modifier le XML. Pour les conflits, choisissez annuler, ignorer ou remplacer.",
+                "Les clics et glissements mettent uniquement à jour les cellules concernées : la matrice entière n'est plus reconstruite après chaque action.",
                 "Appliquer exécute directement la sélection ou la plage avec le lot déjà accumulé ; Appliquer tout le lot valide tout en une seule fois.",
                 "Dans la grille compacte, les RX sont en lignes et les TX en colonnes. Cliquez pour une affectation ou maintenez et glissez horizontalement, verticalement ou en diagonale pour une série sûre.",
                 "Les changements ajoutés au lot restent en attente jusqu'à Appliquer tout le lot. Ils sont alors exécutés en une seule étape d'annulation.",
@@ -548,7 +549,8 @@ def full_guide(language: str) -> None:
                 "Contrôlez l'aperçu. Activez l'adaptation ASCII/8 caractères uniquement si la destination l'exige, puis cliquez sur Exporter.",
                 "DCE ouvre directement Enregistrer sous. La destination est écrite atomiquement et un échec ne détruit pas un fichier existant.",
             ]),
-            callout("À l'import, Appliquer exige au moins un changement sans erreur. Après un second chargement identique, le bouton reste volontairement désactivé et DCE indique que les labels correspondent déjà."),
+            callout("À l'import, DCE affiche le format détecté, la version source, les listes, machines, canaux, lignes ignorées, labels vides, doublons et avertissements. Appliquer exige au moins un changement sans erreur. Après un second chargement identique, le bouton reste volontairement désactivé et DCE indique que les labels correspondent déjà."),
+            callout("Les exports JSON/CSV de DMT 2.14.0-RC1 sont vérifiés sur des fixtures produites avec les exporteurs DMT au commit 3c34052. Les classeurs XLSX/ODS restent fondés sur la feuille Channels des modèles DMT observés."),
             callout("Avant utilisation, ouvrez toujours le fichier généré dans DMT, dLive Director, Avantis Director ou Yamaha CL/QL Editor et vérifiez les labels et le modèle ciblé.", PALE_RED),
             para("Les classeurs DMT inclus proviennent du projet MIT dLive MIDI Tools de Tobias Grupe. Le fichier DMT_LICENSE.txt est fourni avec l'application.", "small"),
         ]
@@ -575,7 +577,7 @@ def full_guide(language: str) -> None:
                 [48, 122],
             ),
             para("14. Tests de non-régression", "h1"),
-            para("La suite V3.3 exécute 150 tests Core/Windows et 11 tests Mac sans écran. Ils couvrent notamment les garde-fous XML, sauvegarde et récupération, interfaces IPv4, subscriptions, gros presets, modèles DMT XLSX/ODS, labels, synoptique, Atomic Bomb configurable, Easy patch, détail machine et cohérence des traductions."),
+            para("La suite V3.5 exécute 199 tests Core/Windows et 16 tests Mac sans écran. Ils couvrent notamment les garde-fous XML, la sauvegarde et la récupération, les interfaces IPv4, les subscriptions, les gros presets, la suppression complète d'une machine, les formats DMT, les rapports d'import, le synoptique, Atomic Bomb, Easy patch et la cohérence des traductions."),
             para("15. Limites connues", "h1"),
             *bullets([
                 "Aucun pilotage en temps réel et aucune communication avec les appareils.",
@@ -586,13 +588,33 @@ def full_guide(language: str) -> None:
                 "Les DMG Mac sont signés ad hoc mais non notariés ; le premier lancement peut nécessiter un clic droit puis Ouvrir.",
                 "L'onglet Windows Easy patch n'est pas reproduit à l'identique sur Mac, qui conserve l'atelier visuel Avalonia.",
                 "Des noms TX dupliqués sont ambigus dans les subscriptions Dante et doivent être renommés avant Easy patch.",
-                "Les modèles natifs correspondent à DMT 2.13.0 et aux exemples dLive, Avantis, CL5 et QL5 fournis. Une évolution des formats peut demander une mise à jour ; validez toujours dans l'éditeur officiel.",
+                "Les classeurs natifs correspondent aux modèles DMT 2.13.0 observés et aux exemples dLive, Avantis, CL5 et QL5 fournis ; JSON/CSV DMT 2.14.0-RC1 est testé séparément.",
+                "La création de machines génériques et la duplication de rôles ne sont pas proposées sans règle officielle vérifiée pour fabriquer des identifiants techniques importables.",
             ]),
             para("16. Aide et informations", "h1"),
             para(
                 f"Quick start et Notice complète ouvrent automatiquement le PDF français ou anglais selon la langue active. "
                 f"Projet public : {GITHUB} - Crédit : By Mamat et ses agents.",
                 "small",
+            ),
+        ]
+        screen_map = [
+            para("Repère des écrans", "h1"),
+            para("La barre supérieure ouvre, fusionne, sauvegarde, annule et restaure le projet. La colonne Projet reste visible pour les compteurs, alertes et recherches."),
+            data_table(
+                ["Écran", "Utilité principale"],
+                [
+                    ["Configuration", "Vue d'ensemble, machine sélectionnée, canaux, listes rapides, actions globales et tableau des machines."],
+                    ["Patch", "Lecture et modification tabulaire des subscriptions RX vers TX, avec filtres et renommage direct."],
+                    ["Easy patch", "Grille visuelle, sélection/plage, prévisualisation et lot de changements différés."],
+                    ["Import / Export > Labels", "Échange JSON/CSV, DMT XLSX/ODS, A&H et Yamaha, avec rapport d'import."],
+                    ["Import / Export > Rapports", "Rapports TXT/PDF, patchbooks TXT/CSV et topologie textuelle simple."],
+                    ["Import / Export > Synoptique", "Emplacements, ordre, visibilité, zoom, reset et exports SVG/PDF."],
+                    ["Santé du fichier", "Erreurs, avertissements, informations de patch et filtres de contrôle."],
+                    ["Sécurité et journal", "Validation, rapport final, compatibilité, historique, comparaison XML et notices."],
+                    ["Atomic Bomb", "Création hors ligne d'un exercice de dépannage configurable et annulable."],
+                ],
+                [54, 116],
             ),
         ]
         visual_overview = [
@@ -639,13 +661,13 @@ def full_guide(language: str) -> None:
     else:
         page1 = [
             para("1. Installation and startup", "h1"),
-            callout("<b>Important:</b> this is a third-party tool, not an official Audinate product. V3.3 is the project's current official version and may still contain bugs. It edits XML files offline without connecting to a Dante network or using an Audinate API. Keep the original and validate the generated file in Dante Controller before production use."),
+            callout("<b>Important:</b> this is a third-party tool, not an official Audinate product. V3.5 is a development version and may still contain bugs. It edits XML files offline without connecting to a Dante network or using an Audinate API. Keep the original and validate the generated file in Dante Controller before production use."),
             para("The Windows x64 installer includes the application and the required .NET 8 runtime. A separate .NET installation is normally not required."),
             *bullets([
                 "The default location is Program Files, with Start menu and desktop shortcuts.",
-                "V3.3 uses its own Program Files folder and creates shortcuts under the official version name.",
-                "The V3.3 installer replaces detected older V3 installations and preserves local working data.",
-                "Two self-contained DMGs are distributed for Apple Silicon and Intel Macs.",
+                "V3.5 uses its own folder and shortcuts so it can coexist with stable V3.4.2.",
+                "The V3.5 installer replaces only an existing V3.5 installation and preserves local working data.",
+                "Two self-contained V3.5 DMGs are provided for Apple Silicon and Intel. The separate V3.5 bundle can coexist with V3.4.2.",
                 "All four French and English PDFs are installed and remain available from the application.",
             ]),
             para("2. Safety principles", "h1"),
@@ -723,6 +745,7 @@ def full_guide(language: str) -> None:
                 "Several Tx channels to one Rx and unequal multiple selections are blocked.",
                 "Range patching requires a first Tx, first Rx, and exact count; an incomplete range is blocked as a whole.",
                 "Every preview automatically joins the cumulative batch without modifying the XML. For conflicts, choose cancel, skip, or replace.",
+                "Clicks and drags update only the affected cells: the entire matrix is no longer rebuilt after every action.",
                 "Apply executes the selection or range with the accumulated batch; Apply entire batch validates everything once.",
                 "In the compact matrix, Rx channels are rows and Tx channels are columns. Click for one assignment, or hold and drag horizontally, vertically, or diagonally for a safe range.",
                 "Changes added to the batch remain pending until Apply entire batch. They are then executed in one undo step.",
@@ -773,7 +796,8 @@ def full_guide(language: str) -> None:
                 "Review the preview. Enable ASCII/eight-character adaptation only when required, then choose Export.",
                 "DCE opens Save as directly. Output is written atomically, so a failed export does not destroy an existing file.",
             ]),
-            callout("During import, Apply requires at least one error-free change. After loading the same labels again, the button intentionally remains disabled and DCE states that the labels already match."),
+            callout("During import, DCE reports the detected format, source version, lists, devices, channels, ignored rows, empty labels, duplicates, and warnings. Apply requires at least one error-free change. After loading the same labels again, the button intentionally remains disabled and DCE states that the labels already match."),
+            callout("DMT 2.14.0-RC1 JSON/CSV exports are checked with fixtures generated by the DMT exporters at commit 3c34052. XLSX/ODS support continues to target the Channels sheet from observed DMT workbooks."),
             callout("Before use, always open the generated file in DMT, dLive Director, Avantis Director, or Yamaha CL/QL Editor and verify labels and the selected model.", PALE_RED),
             para("Bundled DMT workbooks come from Tobias Grupe's MIT-licensed dLive MIDI Tools project. DMT_LICENSE.txt is included with the application.", "small"),
         ]
@@ -800,7 +824,7 @@ def full_guide(language: str) -> None:
                 [48, 122],
             ),
             para("14. Regression tests", "h1"),
-            para("The V3.3 suite runs 150 Core/Windows tests and 11 headless Mac tests. Coverage includes XML guards, save and recovery, IPv4 interfaces, subscriptions, large presets, DMT XLSX/ODS templates, labels, synoptic export, configurable Atomic Bomb, Easy patch, Device details, and translation consistency."),
+            para("The V3.5 suite runs 199 Core/Windows tests and 16 headless Mac tests. Coverage includes XML guards, save and recovery, IPv4 interfaces, subscriptions, large presets, complete device deletion, DMT formats, import reports, synoptic export, Atomic Bomb, Easy patch, and translation consistency."),
             para("15. Known limitations", "h1"),
             *bullets([
                 "No real-time Dante control and no communication with devices.",
@@ -811,13 +835,33 @@ def full_guide(language: str) -> None:
                 "Mac DMGs are ad hoc signed but not notarized; first launch may require right-clicking the application and choosing Open.",
                 "The Windows Easy patch tab is not reproduced identically on Mac, which keeps the Avalonia visual patch workshop.",
                 "Duplicate Tx names are ambiguous in Dante subscriptions and must be renamed before using Easy patch.",
-                "Native models match DMT 2.13.0 and the supplied dLive, Avantis, CL5, and QL5 examples. Future format changes may require an update; always validate in the official editor.",
+                "Native workbooks match observed DMT 2.13.0 templates and the supplied dLive, Avantis, CL5, and QL5 examples; DMT 2.14.0-RC1 JSON/CSV is tested separately.",
+                "Generic device creation and role duplication are not offered without a verified official rule for generating importable technical identifiers.",
             ]),
             para("16. Help and information", "h1"),
             para(
                 f"Quick start and Full guide automatically open the French or English PDF for the active language. "
                 f"Public project: {GITHUB} - Credit: By Mamat et ses agents.",
                 "small",
+            ),
+        ]
+        screen_map = [
+            para("Screen map", "h1"),
+            para("The top bar opens, merges, saves, undoes, and restores the project. The Project column stays visible for counters, alerts, and search."),
+            data_table(
+                ["Screen", "Main purpose"],
+                [
+                    ["Configuration", "Overview, selected device, channels, quick lists, global actions, and device table."],
+                    ["Patch", "Tabular review and editing of Rx-to-Tx subscriptions, with filters and direct renaming."],
+                    ["Easy patch", "Visual matrix, selection/range tools, preview, and deferred change batch."],
+                    ["Import / Export > Labels", "JSON/CSV, DMT XLSX/ODS, A&H, and Yamaha exchange with an import report."],
+                    ["Import / Export > Reports", "TXT/PDF reports, TXT/CSV patchbooks, and a simple text topology."],
+                    ["Import / Export > Synoptic", "Locations, order, visibility, zoom, reset, and SVG/PDF exports."],
+                    ["File health", "Errors, warnings, subscription information, and review filters."],
+                    ["Safety and log", "Validation, final report, compatibility, history, XML comparison, and user guides."],
+                    ["Atomic Bomb", "Configurable, undoable, offline troubleshooting exercise generation."],
+                ],
+                [54, 116],
             ),
         ]
         visual_overview = [
@@ -866,6 +910,7 @@ def full_guide(language: str) -> None:
     pages = [
         cover_page(language),
         page1,
+        screen_map,
         visual_overview,
         page2,
         visual_device,

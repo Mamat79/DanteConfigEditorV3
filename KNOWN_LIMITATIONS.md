@@ -1,4 +1,4 @@
-# Limites connues - V3.3
+# Limites connues - V3.5 en développement
 
 ## Compatibilité Dante
 
@@ -24,12 +24,13 @@
 
 ## Fichiers et récupération
 
-- Le support XLSX/ODS DMT cible la feuille `Channels` des modèles observés avec DMT 2.13.0. Une évolution future de ces modèles peut demander une adaptation.
+- Le support XLSX/ODS DMT cible la feuille `Channels` des modèles observés avec DMT 2.13.0. Les exports JSON/CSV de DMT 2.14.0-RC1 sont testés séparément sur la branche source `feature/add-json-export` au commit `3c34052`.
 - Les noms DMT sont limités à huit caractères ASCII. Dante Config Editor n'applique cette conversion que si l'utilisateur l'active explicitement ; JSON et CSV conservent les labels Unicode complets.
 - L'échange DMT se fait par fichiers et plages de canaux. Il n'existe pas de connexion directe ou de synchronisation en temps réel entre les applications.
 - Le CSV Allen & Heath cible les sections `[Channels]` et les lignes `Input` observées dans les exemples dLive et Avantis fournis. Une évolution du format console peut demander une adaptation.
 - Le support Yamaha cible `InName.csv` dans les packages CL/QL observés. Les autres fichiers du ZIP sont conservés, mais une structure future différente peut être refusée.
 - Les imports et exports de labels ne configurent pas directement une console : ils créent des fichiers à importer ensuite avec les outils du fabricant.
+- La création d'appareils génériques n'est pas intégrée. La duplication d'un rôle de device n'est pas proposée, car aucune règle officielle vérifiée ne permet de fabriquer des `device_id` et `instance_id` arbitraires tout en garantissant l'import Dante Controller.
 
 - Le fichier ouvert doit être sauvegardé sous un nouveau nom avant toute écriture. Le nouveau chemin devient ensuite la référence de session.
 - Une sauvegarde atomique protège la destination contre les échecs testés, mais ne remplace pas une sauvegarde externe du projet.
@@ -47,7 +48,7 @@
 
 - L'installateur Windows est autonome pour Windows x64 et inclut .NET 8. Les architectures Windows ARM64 et x86 ne sont pas distribuées.
 - L'installateur Windows n'est pas signé avec un certificat Authenticode public. Vérifier le SHA-256 publié avant distribution ; Windows peut afficher un avertissement de réputation.
-- La V3.3 est distribuée sur Windows x64, macOS Apple Silicon et macOS Intel. Windows ARM64 et x86 ne sont pas distribués.
+- La V3.5 de développement est produite pour Windows x64, macOS Apple Silicon et macOS Intel. Windows ARM64 et x86 ne sont pas distribués.
 - Les DMG macOS sont signés ad hoc, sans certificat Apple Developer ID ni notarisation. Gatekeeper peut demander un clic droit puis `Ouvrir` au premier lancement.
 - Le moteur XML est partagé, mais l'interface Mac n'offre pas encore le nouvel onglet Windows `Easy patch` à l'identique. Elle conserve l'atelier visuel Avalonia avec sélection multiple, glisser-déposer et matrice.
 - Les tests Avalonia sans écran ne remplacent pas une validation manuelle sur plusieurs modèles de Mac, ni un contrôle VoiceOver réel.
@@ -55,4 +56,4 @@
 
 ## Statut de la version
 
-La V3.3 est la version officielle courante de `main` pour Windows et macOS. La Release V3.2 reste disponible ; les pages V3.08 et V3.09 ont été retirées à la demande du mainteneur, mais leurs tags restent dans Git. Dante Config Editor reste un outil tiers non officiel Audinate. Toujours travailler sur une copie, lire le rapport avant/après et valider le fichier généré dans l'outil Dante officiel avant une utilisation terrain.
+La V3.4.2 reste la version officielle courante de `main` pour Windows et macOS. La V3.5 est une branche de développement et ses paquets ne remplacent pas la release stable. Dante Config Editor reste un outil tiers non officiel Audinate. Toujours travailler sur une copie, lire le rapport avant/après et valider le fichier généré dans l'outil Dante officiel avant une utilisation terrain.

@@ -1,5 +1,22 @@
 # Changelog V3
 
+## 2026-07-23 - Version 3.5 en développement
+
+- Matrice macOS mise à jour cellule par cellule sans reconstruction complète après chaque clic.
+- Changements visuels conservés en attente jusqu'à `Appliquer au projet`, avec abandon et annulation explicites.
+- En-têtes TX/RX fixes, défilement synchronisé et labels complets en infobulle.
+- Patch 1:1 par plage, échange des sélections TX/RX et zoom 50 à 200 % avec ajustement à la fenêtre.
+- Validation par Tab et retour par Maj+Tab pendant le renommage direct.
+- Audit bilingue et corrections de mise en page macOS, notamment dans les imports/exports de labels.
+- Architecture d'import par adaptateurs séparés JSON, CSV, XLSX, ODS et ZIP console.
+- Validation JSON stricte, rejet des versions CSV mélangées, canaux dupliqués et colonnes XLSX/ODS manquantes.
+- Rapport d'import visible : listes, machines, canaux, lignes ignorées, labels vides, doublons et avertissements.
+- Compatibilité automatisée avec la structure JSON/CSV de DMT 2.14.0-RC1 au commit `3c34052`.
+- Création d'appareils génériques abandonnée à la demande de l'utilisateur. La suppression reste testée de bout en bout ; la duplication de rôles n'est pas proposée sans validation Dante Controller.
+- Notices complète et rapide V3.5 régénérées en français et en anglais, avec une carte de tous les écrans et fonctions.
+- Deux présentations V3.5 de 55 secondes, sans voix ni piste audio, avec texte intégré et captures synthétiques anonymisées.
+- Installateurs de développement V3.5 autonomes pour Windows x64, macOS Apple Silicon et macOS Intel, avec identités séparées de la V3.4.2 stable.
+
 ## 2026-07-22 - Version 3.4 officielle - ergonomie Patch et synoptique directionnel
 
 - Maintenance V3.4 : la grille Easy patch affiche désormais le numéro et le label complet de chaque TX dans un en-tête vertical, avec infobulle et renommage direct conservés.

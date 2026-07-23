@@ -1,5 +1,28 @@
 # Tests et historique V3
 
+## Validation locale de la branche V3.5 du 2026-07-23
+
+Périmètre :
+
+- branche : `v3.5` ;
+- base avant optimisation : `174236ab2ce417dfe51c76fcf7237f980c6e2162` ;
+- système de test : Windows, .NET 8 ;
+- aucun Mac physique ni Dante Controller utilisé pendant cette validation.
+
+Résultats :
+
+- 199 tests cœur et contrats Windows réussis ;
+- 16 tests Avalonia/macOS sans écran réussis ;
+- builds Windows et macOS Release réussis sans warning ;
+- clic 64 x 64 avant/après : `4 231,58 ms` / `70,29 ms` ;
+- clic 128 x 128 avant/après : `21 784,06 ms` / `2,87 ms` ;
+- 100 clics en attente dans une matrice 128 x 128 : `490,80 ms`, sans reconstruction ni modification du projet principal ;
+- suppression d'une machine sauvegardée et relue sans subscription pendante ;
+- JSON et CSV DMT 2.14.0-RC1 reproduits depuis les exporteurs du commit `3c34052`, puis importés avec succès ;
+- propriétés JSON inconnues, versions CSV mélangées, canaux dupliqués et colonnes XLSX/ODS manquantes refusés.
+
+Les temps sont issus d'une exécution headless locale et ne constituent pas des seuils contractuels. Le détail se trouve dans `V3_5_IMPLEMENTATION_REPORT.md`.
+
 ## Validation locale de la V3.2 officielle du 2026-07-21
 
 Source validée avant promotion du tag immuable `v3.2` :

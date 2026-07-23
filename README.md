@@ -1,13 +1,19 @@
-# Dante Config Editor V3.4
+# Dante Config Editor V3.5 - branche de développement
 
 ## Français
 
-Version V3.4 officielle pour Windows et macOS. Le code publié se trouve dans `main`.
+La V3.5 est développée et testée dans la branche `v3.5`. La V3.4.2 officielle reste publiée dans `main`.
 
-**Version stable : [Release V3.4 Windows et macOS](https://github.com/Mamat79/DanteConfigEditorV3/releases/tag/v3.4)**
+**Version stable : [Release V3.4.2 Windows et macOS](https://github.com/Mamat79/DanteConfigEditorV3/releases/tag/v3.4.2)**
 
-> **Statut : V3.4 officielle. Outil tiers non officiel Audinate.**
-> Cette version peut encore contenir des bugs. La V3.3 reste accessible comme version historique dans les Releases GitHub. Travaillez toujours sur une copie et validez le XML généré dans les outils Dante officiels.
+> **Statut : V3.5 en développement. Outil tiers non officiel Audinate.**
+> Cette branche peut encore contenir des bugs. Travaillez toujours sur une copie et validez le XML généré dans les outils Dante officiels.
+
+**Documentation et présentation V3.5 :**
+[notice complète FR](docs/Notice_DanteConfigEditorV3_FR.pdf) ·
+[full English guide](docs/Notice_DanteConfigEditorV3_EN.pdf) ·
+[vidéo FR](docs/media/dce-v35-presentation-fr.mp4) ·
+[English video](docs/media/dce-v35-presentation-en.mp4)
 
 > **Import et export de labels en JSON, CSV, DMT XLSX/ODS pour dLive et Avantis, A&H CSV et Yamaha CL/QL ZIP/CSV.** Les modèles natifs sont inclus dans l'application : aucun fichier modèle externe n'est nécessaire pour exporter.
 
@@ -30,6 +36,7 @@ Le CSV générique est proposé en premier et demande uniquement un nom de fichi
 Les formats JSON et CSV restent génériques. Des profils natifs permettent aussi les échanges avec les consoles et outils suivants :
 
 - **DMT → Dante Config Editor** : lecture directe de la feuille `Channels` d'un classeur XLSX ou ODS DMT, puis affectation des labels aux TX ou RX d'une ou plusieurs machines Dante.
+- **DMT 2.14.0-RC1 → Dante Config Editor** : les exports JSON et CSV de la branche `feature/add-json-export` sont couverts par des fixtures reproduisant exactement la sortie des exporteurs DMT au commit `3c34052`.
 - **Dante Config Editor → DMT** : création directe d'un classeur XLSX ou ODS dLive/Avantis depuis l'un des quatre modèles DMT inclus, avec désactivation des lignes absentes de la sélection.
 - **Projet DMT** : [togrupe/dlive-midi-tools](https://github.com/togrupe/dlive-midi-tools).
 - **Allen & Heath dLive / Avantis** : lecture d'un export CSV existant ou création directe d'un nouveau CSV natif depuis le modèle inclus ; seule la colonne des noms `Input` est modifiée.
@@ -54,10 +61,10 @@ Les captures et notices utilisent uniquement un preset synthétique anonymisé. 
 
 ## Vidéos de présentation
 
-- **[Présentation française de DCE v3.3](https://github.com/Mamat79/DanteConfigEditorV3/releases/download/v3.3/dce-v33-presentation-fr.mp4)**
-- **[English presentation of DCE v3.3](https://github.com/Mamat79/DanteConfigEditorV3/releases/download/v3.3/dce-v33-presentation-en.mp4)**
+- **[Présentation française de DCE v3.5](docs/media/dce-v35-presentation-fr.mp4)**
+- **[English presentation of DCE v3.5](docs/media/dce-v35-presentation-en.mp4)**
 
-Chaque vidéo dure environ une minute et utilise des sous-titres intégrés. Les fichiers `.srt` séparés et les sommes SHA-256 sont également fournis dans la Release V3.3. Les écrans ont été réalisés avec un preset synthétique anonymisé.
+Chaque vidéo dure 55 secondes, sans voix ni piste audio, avec le texte directement intégré à l'image. Les fichiers `.srt` séparés et les sommes SHA-256 sont fournis dans `docs/media`. Les écrans ont été réalisés avec un preset synthétique anonymisé.
 
 ## Ce que fait l'application
 
@@ -126,9 +133,9 @@ Chaque vidéo dure environ une minute et utilise des sous-titres intégrés. Les
 
 ## Télécharger / installer
 
-Téléchargez la [Release GitHub V3.4](https://github.com/Mamat79/DanteConfigEditorV3/releases/tag/v3.4).
+La [Release GitHub V3.4.2](https://github.com/Mamat79/DanteConfigEditorV3/releases/tag/v3.4.2) reste la version stable. Les paquets de développement V3.5 sont générés dans les exécutions `Windows CI` et `macOS CI` de la branche `v3.5`.
 
-- Pour Windows x64, utilisez `DanteConfigEditorV3_4_Installer.exe`, un installateur autonome qui remplace les anciennes installations V3.
+- Windows x64 : artefact `DCE-v3.5-Windows-Installer`, contenant `DanteConfigEditorV3_5_Installer.exe` et sa somme SHA-256.
 
 La version autonome inclut le runtime .NET nécessaire. Sur une machine Windows x64, il ne devrait pas être nécessaire d'installer .NET séparément pour utiliser l'application.
 
@@ -136,10 +143,10 @@ La version autonome inclut le runtime .NET nécessaire. Sur une machine Windows 
 
 Deux DMG autonomes sont fournis :
 
-- `DanteConfigEditorV3_macOS_AppleSilicon.dmg` pour les Mac M1, M2, M3, M4 et suivants ;
-- `DanteConfigEditorV3_macOS_Intel.dmg` pour les Mac Intel 64 bits.
+- `DanteConfigEditorV3_5_macOS_AppleSilicon.dmg` pour les Mac M1, M2, M3, M4 et suivants ;
+- `DanteConfigEditorV3_5_macOS_Intel.dmg` pour les Mac Intel 64 bits.
 
-Ouvrir le DMG, puis glisser `Dante Config Editor` dans `Applications`. Le runtime .NET 8 et les notices FR/EN sont inclus.
+Ouvrir le DMG, puis glisser `Dante Config Editor V3.5` dans `Applications`. Le runtime .NET 8 et les notices FR/EN sont inclus. Son bundle distinct permet de conserver la V3.4.2.
 
 La distribution Mac n'est pas encore notariée avec un compte Apple Developer. Au premier lancement, faire un clic droit sur l'application dans `Applications`, choisir `Ouvrir`, puis confirmer l'ouverture. Les détails de compilation, signature et notarisation sont documentés dans `MACOS_BUILD.md`.
 
@@ -154,11 +161,12 @@ Notices fournies :
 
 Dans l'application, les boutons d'aide ouvrent automatiquement les fichiers FR ou EN selon la langue active.
 
-L'installateur V3.4 retire les anciennes installations V3 détectées, notamment la V3.3, puis installe une seule V3.4. Les données locales de travail ne sont pas supprimées par cette mise à niveau.
+L'installateur V3.5 remplace uniquement une V3.5 déjà installée. Il possède son propre AppId, son propre dossier `Program Files` et ses propres raccourcis afin de conserver la V3.4.2 stable. Les données locales de travail ne sont pas supprimées par cette mise à niveau.
 
 ## Version distribuée
 
 - La branche `main` contient la V3.4 officielle pour Windows et macOS.
+- La branche `v3.5` contient la version de développement et ses workflows Windows/macOS ; elle ne remplace pas encore la release stable.
 - Le tag immuable `v3.4` identifie le code source des applications distribuées dans la Release V3.4, marquée `Latest`.
 - La Release historique [`v3.3`](https://github.com/Mamat79/DanteConfigEditorV3/releases/tag/v3.3) reste téléchargeable avec ses propres fichiers et ses vidéos de présentation.
 - La Release historique [`v3.2`](https://github.com/Mamat79/DanteConfigEditorV3/releases/tag/v3.2) reste téléchargeable avec ses propres fichiers.

@@ -1,41 +1,49 @@
-# Dante Config Editor V3.4
+# Dante Config Editor V3.5 - développement
 
 [English release notes](RELEASE_NOTES_EN.md)
 
 ## Statut
 
-V3.4 est la version officielle courante pour Windows et macOS. Dante Config Editor reste un outil tiers non officiel Audinate et peut encore contenir des bugs. Travaillez sur une copie des XML Dante et validez toujours le fichier généré dans l'outil Dante officiel adapté.
+V3.5 est une version de développement pour Windows et macOS, installable à côté de la V3.4.2 stable. Dante Config Editor reste un outil tiers non officiel Audinate et peut encore contenir des bugs. Travaillez sur une copie des XML Dante et validez toujours le fichier généré dans l'outil Dante officiel adapté.
 
-## Ergonomie Patch
+## Patch et performances
 
-- Renommage direct des machines, canaux RX et canaux TX dans la page Patch.
-- Renommage direct des canaux RX/TX dans Easy patch.
-- Extension d'une série numérique, par exemple `Mic 1`, `Mic 2`, puis glisser jusqu'au canal cible.
-- Grille de patch ouverte en premier ; `Sélection et plage` reste disponible dans le second onglet.
-- Filtres RX placés au-dessus des filtres TX.
-- Action globale permettant de choisir l'unique Preferred Master du projet.
+- La matrice visuelle met à jour uniquement les cellules concernées au lieu de reconstruire tous les contrôles après chaque clic.
+- Les changements restent en attente jusqu'à leur application explicite au projet.
+- Les en-têtes TX/RX restent visibles et les ascenseurs sont synchronisés.
+- Patch 1:1 par plage, échange des sélections, zoom de 50 à 200 % et ajustement à la fenêtre.
+- Tab et Maj+Tab valident un renommage direct puis passent au canal suivant ou précédent.
 
-## Synoptique
+## Imports de labels
 
-- `Reset` efface les déplacements manuels et reconstruit un ordre propre dans chaque emplacement.
-- Un flux simple garde une flèche TX vers RX.
-- Deux flux opposés entre les mêmes machines sont regroupés en une seule ligne avec une flèche à chaque extrémité.
-- L'aperçu, le SVG et le PDF utilisent la même représentation directionnelle.
+- Adaptateurs séparés pour JSON, CSV, DMT XLSX/ODS et packages console.
+- Validation stricte des versions, colonnes obligatoires, canaux dupliqués et champs JSON inconnus.
+- Rapport visible avant application : format, version source, listes, machines, canaux, lignes ignorées, labels vides, doublons et avertissements.
+- Compatibilité JSON/CSV testée avec les exporteurs DMT 2.14.0-RC1 au commit `3c34052`.
 
-## Affichage
+## Sécurité XML
 
-- Les panneaux de réglages Configuration sont visibles au premier lancement ; leur état est ensuite mémorisé.
-- Les boutons et contrôles principaux ont une hauteur minimale adaptée à l'échelle Windows 125 %.
-- La zone centrale Atomic Bomb est agrandie.
+- La suppression d'une machine et de ses subscriptions associées est testée jusqu'à la sauvegarde et la relecture.
+- La création de machines génériques est abandonnée.
+- La duplication de rôle n'est pas proposée sans preuve d'import Dante Controller pour les identifiants techniques générés.
+- Les règles de sauvegarde atomique, de récupération et de protection des chemins XML inconnus restent actives.
+
+## Documentation
+
+- Notices complète et rapide actualisées en français et en anglais.
+- Deux vidéos de présentation de 55 secondes, sans voix ni piste audio, avec texte intégré.
+- Les captures utilisent exclusivement un preset synthétique anonymisé.
 
 ## Distribution
 
-- Installateur Windows x64 autonome : `DanteConfigEditorV3_4_Installer.exe`, runtime .NET 8 inclus.
-- Paquets macOS Apple Silicon et Intel prévus par le workflow de publication.
-- La V3.3 reste disponible comme version historique et n'est pas remplacée par la V3.4.
+- Installateur Windows x64 autonome : `DanteConfigEditorV3_5_Installer.exe`, runtime .NET 8 inclus.
+- La V3.5 possède son propre AppId et son propre dossier Program Files ; elle ne remplace pas la V3.4.2.
+- DMG autonomes V3.5 pour Apple Silicon et Intel, avec runtime .NET 8 et notices FR/EN.
+- L'application Mac V3.5 possède son propre nom de bundle et son propre identifiant ; elle peut cohabiter avec la V3.4.2.
 
 ## Limites
 
 - Seul un import réussi dans Dante Controller ou l'outil Dante officiel adapté confirme la compatibilité finale.
-- Le renommage direct d'une source TX externe absente du XML reste bloqué, car la machine ne peut pas être identifiée de manière sûre.
-- L'installateur Windows n'est pas signé Authenticode et les paquets macOS ne sont pas notariés.
+- Le renommage direct d'une source TX externe absente du XML reste bloqué.
+- L'installateur Windows n'est pas signé Authenticode.
+- Les DMG Mac sont signés ad hoc, sans certificat Apple Developer ID ni notarisation.
