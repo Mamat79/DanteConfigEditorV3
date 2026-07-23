@@ -28,6 +28,14 @@ public sealed class PatchWorkspaceUiContractTests
         Assert.Contains("PreviewMouseMove=\"MatrixGrid_PreviewMouseMove\"", xaml, StringComparison.Ordinal);
         Assert.Contains("PreviewMouseLeftButtonUp=\"MatrixGrid_PreviewMouseLeftButtonUp\"", xaml, StringComparison.Ordinal);
         Assert.Contains("PlanMatrixGesture", codeBehind, StringComparison.Ordinal);
+        Assert.Contains("x:Name=\"SwapDeviceSelectionButton\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("x:Name=\"RangeCapacityTextBlock\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("PlanOneToOne", codeBehind, StringComparison.Ordinal);
+        Assert.Contains("x:Name=\"MatrixZoomOutButton\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("x:Name=\"MatrixZoomResetButton\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("x:Name=\"MatrixZoomInButton\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("x:Name=\"MatrixZoomFitButton\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("PreviewMouseWheel=\"MatrixGrid_PreviewMouseWheel\"", xaml, StringComparison.Ordinal);
 
         string mainWindowXaml = File.ReadAllText(RepositoryFile("MainWindow.xaml"));
         Assert.DoesNotContain("glisser-déposer", mainWindowXaml, StringComparison.OrdinalIgnoreCase);
@@ -86,6 +94,8 @@ public sealed class PatchWorkspaceUiContractTests
         Assert.Contains("MatrixSeriesThumb_DragStarted", codeBehind, StringComparison.Ordinal);
         Assert.Contains("MatrixSeriesThumb_DragCompleted", codeBehind, StringComparison.Ordinal);
         Assert.Contains("RenameMatrixChannel", codeBehind, StringComparison.Ordinal);
+        Assert.Contains("e.Key == Key.Tab", codeBehind, StringComparison.Ordinal);
+        Assert.Contains("FocusInlineChannelEditor", codeBehind, StringComparison.Ordinal);
         Assert.Contains("ExtendEasyPatchChannelSeries", File.ReadAllText(RepositoryFile("MainWindow.xaml.cs")), StringComparison.Ordinal);
     }
 
@@ -186,6 +196,54 @@ public sealed class PatchWorkspaceUiContractTests
 
         Assert.True(setters["Width"] <= 30);
         Assert.True(setters["Height"] <= 24);
+    }
+
+    [Fact]
+    public void MacPatchWorkspaceOffersOneToOneSwapAndZoomWithoutRebuildingOnZoom()
+    {
+        string xaml = File.ReadAllText(RepositoryFile(
+            "src",
+            "DanteConfigEditor.Mac",
+            "PatchWorkspaceDialog.axaml"));
+        string codeBehind = File.ReadAllText(RepositoryFile(
+            "src",
+            "DanteConfigEditor.Mac",
+            "PatchWorkspaceDialog.axaml.cs"));
+
+        Assert.Contains("x:Name=\"SwapDeviceSelectionButton\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("x:Name=\"OneToOneFirstTxCombo\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("x:Name=\"OneToOneFirstRxCombo\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("x:Name=\"OneToOneCountTextBox\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("x:Name=\"PreviewOneToOneButton\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("PlanOneToOne", codeBehind, StringComparison.Ordinal);
+        Assert.Contains("ShowChoiceAsync", codeBehind, StringComparison.Ordinal);
+        Assert.Contains("x:Name=\"MatrixZoomFitButton\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("PointerWheelChanged=\"MatrixViewport_PointerWheelChanged\"", xaml, StringComparison.Ordinal);
+
+        int zoomStart = codeBehind.IndexOf("private void SetMatrixZoom", StringComparison.Ordinal);
+        int nextMethod = codeBehind.IndexOf("private void TxChannelList_PointerPressed", zoomStart, StringComparison.Ordinal);
+        Assert.True(zoomStart >= 0 && nextMethod > zoomStart);
+        Assert.DoesNotContain("BuildMatrix()", codeBehind[zoomStart..nextMethod], StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void PatchAndSynopticZoomSupportButtonsAndControlMouseWheel()
+    {
+        string patchXaml = File.ReadAllText(RepositoryFile("PatchWorkspaceView.xaml"));
+        string mainXaml = File.ReadAllText(RepositoryFile("MainWindow.xaml"));
+        string macPatchXaml = File.ReadAllText(RepositoryFile(
+            "src",
+            "DanteConfigEditor.Mac",
+            "PatchWorkspaceDialog.axaml"));
+        string macMainXaml = File.ReadAllText(RepositoryFile(
+            "src",
+            "DanteConfigEditor.Mac",
+            "MainWindow.axaml"));
+
+        Assert.Contains("PreviewMouseWheel=\"MatrixGrid_PreviewMouseWheel\"", patchXaml, StringComparison.Ordinal);
+        Assert.Contains("PreviewMouseWheel=\"SynopticScrollViewer_PreviewMouseWheel\"", mainXaml, StringComparison.Ordinal);
+        Assert.Contains("PointerWheelChanged=\"MatrixViewport_PointerWheelChanged\"", macPatchXaml, StringComparison.Ordinal);
+        Assert.Contains("PointerWheelChanged=\"SynopticScrollViewer_PointerWheelChanged\"", macMainXaml, StringComparison.Ordinal);
     }
 
     [Fact]

@@ -207,7 +207,7 @@
         <Grid Grid.Row="1" Margin="16,10,16,8">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="24" />
+                <ColumnDefinition Width="58" />
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
             <StackPanel x:Name="RxDevicePanel" Grid.Column="0">
@@ -244,6 +244,19 @@
                             Click="NextRxDeviceButton_Click" />
                 </Grid>
             </StackPanel>
+            <Button x:Name="SwapDeviceSelectionButton"
+                    Grid.Column="1"
+                    Width="42"
+                    Height="36"
+                    Padding="0"
+                    Margin="8,24,8,0"
+                    VerticalAlignment="Center"
+                    Content="⇄"
+                    FontSize="20"
+                    Style="{StaticResource SecondaryButtonStyle}"
+                    ToolTip="Inverser les machines TX et RX sans modifier le patch"
+                    automation:AutomationProperties.Name="Inverser les machines TX et RX"
+                    Click="SwapDeviceSelectionButton_Click" />
             <StackPanel x:Name="TxDevicePanel" Grid.Column="2">
                 <Label x:Name="TxDeviceLabel" Content="Machine émettrice TX" />
                 <Grid>
@@ -483,6 +496,10 @@
                                     ToolTip="Applique immédiatement la plage et les éventuels changements déjà ajoutés au lot."
                                     Click="ApplyRangeDirectButton_Click" />
                         </Grid>
+                        <TextBlock x:Name="RangeCapacityTextBlock"
+                                   Foreground="{DynamicResource MutedTextBrush}"
+                                   Margin="0,5,0,0"
+                                   FontSize="11" />
                     </StackPanel>
                     </ScrollViewer>
 
@@ -629,10 +646,52 @@
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="*" />
                     </Grid.RowDefinitions>
-                    <TextBlock x:Name="MatrixHintTextBlock"
-                               Text="RX en lignes, TX en colonnes. Cliquez ou maintenez puis glissez pour préparer plusieurs patchs."
-                               Foreground="{DynamicResource MutedTextBrush}"
-                               Margin="0,0,0,8" />
+                    <Grid Margin="0,0,0,8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock x:Name="MatrixHintTextBlock"
+                                   Text="RX en lignes, TX en colonnes. Cliquez ou maintenez puis glissez pour préparer plusieurs patchs."
+                                   Foreground="{DynamicResource MutedTextBrush}"
+                                   VerticalAlignment="Center"
+                                   Margin="0,0,12,0" />
+                        <StackPanel Grid.Column="1" Orientation="Horizontal">
+                            <Button x:Name="MatrixZoomOutButton"
+                                    Content="−"
+                                    Width="34"
+                                    Padding="0"
+                                    Margin="0,0,4,0"
+                                    Style="{StaticResource SecondaryButtonStyle}"
+                                    Click="MatrixZoomOutButton_Click" />
+                            <Button x:Name="MatrixZoomResetButton"
+                                    Content="100 %"
+                                    MinWidth="62"
+                                    Padding="7,4"
+                                    Margin="0,0,4,0"
+                                    Style="{StaticResource SecondaryButtonStyle}"
+                                    Click="MatrixZoomResetButton_Click" />
+                            <Button x:Name="MatrixZoomInButton"
+                                    Content="+"
+                                    Width="34"
+                                    Padding="0"
+                                    Margin="0,0,4,0"
+                                    Style="{StaticResource SecondaryButtonStyle}"
+                                    Click="MatrixZoomInButton_Click" />
+                            <Button x:Name="MatrixZoomFitButton"
+                                    Content="Ajuster"
+                                    Padding="7,4"
+                                    Margin="0"
+                                    Style="{StaticResource SecondaryButtonStyle}"
+                                    Click="MatrixZoomFitButton_Click" />
+                            <TextBlock x:Name="MatrixZoomTextBlock"
+                                       Text="100 %"
+                                       Width="58"
+                                       Margin="7,0,0,0"
+                                       TextAlignment="Center"
+                                       VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Grid>
                     <DataGrid x:Name="MatrixGrid"
                               Grid.Row="1"
                               RowHeight="26"
@@ -655,6 +714,7 @@
                               PreviewMouseLeftButtonDown="MatrixGrid_PreviewMouseLeftButtonDown"
                               PreviewMouseMove="MatrixGrid_PreviewMouseMove"
                               PreviewMouseLeftButtonUp="MatrixGrid_PreviewMouseLeftButtonUp"
+                              PreviewMouseWheel="MatrixGrid_PreviewMouseWheel"
                               LostMouseCapture="MatrixGrid_LostMouseCapture">
                         <DataGrid.Resources>
                             <Style TargetType="{x:Type DataGridColumnHeader}"

@@ -474,7 +474,8 @@
                                     <ScrollViewer x:Name="SynopticScrollViewer"
                                                   Grid.Row="1"
                                                   HorizontalScrollBarVisibility="Auto"
-                                                  VerticalScrollBarVisibility="Auto">
+                                                  VerticalScrollBarVisibility="Auto"
+                                                  PointerWheelChanged="SynopticScrollViewer_PointerWheelChanged">
                                         <LayoutTransformControl x:Name="SynopticZoomHost">
                                             <Canvas x:Name="SynopticCanvas"
                                                     Width="900"

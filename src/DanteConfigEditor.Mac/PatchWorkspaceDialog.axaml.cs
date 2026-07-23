@@ -15,6 +15,9 @@ namespace DanteConfigEditor.Mac;
 public sealed partial class PatchWorkspaceDialog : Window
 {
     private const int MaxMatrixChannels = 128;
+    private const double MinimumMatrixZoom = 0.5;
+    private const double MaximumMatrixZoom = 2.0;
+    private const double MatrixZoomStep = 0.1;
     private static readonly DataFormat<string> DragDataFormat =
         DataFormat.CreateStringApplicationFormat("DanteConfigEditor.PatchSources");
 
@@ -30,6 +33,7 @@ public sealed partial class PatchWorkspaceDialog : Window
     private Point _dragStart;
     private bool _dragReady;
     private bool _dragInProgress;
+    private double _matrixZoom = 1.0;
     private bool _initializing = true;
 
     internal int MatrixBuildCount { get; private set; }
@@ -91,6 +95,36 @@ public sealed partial class PatchWorkspaceDialog : Window
         rxCombo.SelectedItem = FindDeviceName(rxDevices, initialRxDeviceName) ?? rxDevices.FirstOrDefault();
     }
 
+    private void SwapDeviceSelectionButton_Click(object? sender, RoutedEventArgs e)
+    {
+        ComboBox txCombo = FindControl<ComboBox>("TxDeviceCombo")!;
+        ComboBox rxCombo = FindControl<ComboBox>("RxDeviceCombo")!;
+        PatchDeviceSelectionSwapResult result = PatchDeviceSelectionSwapper.TrySwap(
+            txCombo.SelectedItem as string,
+            rxCombo.SelectedItem as string,
+            txCombo.ItemsSource?.OfType<string>() ?? [],
+            rxCombo.ItemsSource?.OfType<string>() ?? []);
+        if (!result.Success)
+        {
+            SetInfo(
+                _language == UiLanguage.English
+                    ? TranslateSwapError(result.ErrorMessage)
+                    : result.ErrorMessage ?? "Inversion impossible.",
+                warning: true);
+            return;
+        }
+
+        _initializing = true;
+        txCombo.SelectedItem = result.TxDeviceName;
+        rxCombo.SelectedItem = result.RxDeviceName;
+        _initializing = false;
+        RefreshSourceChannels();
+        RefreshTargetRows();
+        SetInfo(L(
+            "Machines TX et RX inversées. Le lot en attente est conservé.",
+            "Tx and Rx devices swapped. The pending batch was preserved."));
+    }
+
     private void TxDeviceCombo_SelectionChanged(object? sender, SelectionChangedEventArgs e)
     {
         if (_initializing)
@@ -122,6 +156,8 @@ public sealed partial class PatchWorkspaceDialog : Window
 
     private void RefreshSourceChannels()
     {
+        ComboBox rangeCombo = FindControl<ComboBox>("OneToOneFirstTxCombo")!;
+        int? selectedRangeDanteId = (rangeCombo.SelectedItem as PatchSourceDescriptor)?.DanteId;
         string? deviceName = FindControl<ComboBox>("TxDeviceCombo")!.SelectedItem as string;
         DanteDevice? device = _project.FindDevice(deviceName);
         _visibleSources = device?.TxChannels
@@ -133,6 +169,9 @@ public sealed partial class PatchWorkspaceDialog : Window
             .OrderBy(channel => channel.PositionIndex)
             .ToArray() ?? [];
         FindControl<ListBox>("TxChannelList")!.ItemsSource = _visibleSources;
+        rangeCombo.ItemsSource = _visibleSources;
+        rangeCombo.SelectedItem = _visibleSources.FirstOrDefault(source => source.DanteId == selectedRangeDanteId)
+            ?? _visibleSources.FirstOrDefault();
 
         _ambiguousSourceNames.Clear();
         foreach (IGrouping<string, PatchSourceDescriptor> duplicate in _visibleSources
@@ -162,6 +201,8 @@ public sealed partial class PatchWorkspaceDialog : Window
     {
         ListBox rxList = FindControl<ListBox>("RxChannelList")!;
         int? selectedDanteId = (rxList.SelectedItem as PatchRxListItem)?.Target.DanteId;
+        ComboBox rangeCombo = FindControl<ComboBox>("OneToOneFirstRxCombo")!;
+        int? selectedRangeDanteId = (rangeCombo.SelectedItem as PatchTargetDescriptor)?.DanteId;
         string? deviceName = FindControl<ComboBox>("RxDeviceCombo")!.SelectedItem as string;
         DanteDevice? device = _project.FindDevice(deviceName);
         _visibleTargets = device?.RxChannels
@@ -177,6 +218,9 @@ public sealed partial class PatchWorkspaceDialog : Window
         rxList.ItemsSource = _rxRows;
         rxList.SelectedItem = _rxRows.FirstOrDefault(row => row.Target.DanteId == selectedDanteId)
             ?? _rxRows.FirstOrDefault();
+        rangeCombo.ItemsSource = _visibleTargets;
+        rangeCombo.SelectedItem = _visibleTargets.FirstOrDefault(target => target.DanteId == selectedRangeDanteId)
+            ?? _visibleTargets.FirstOrDefault();
 
         BuildMatrix();
         UpdateCommandState();
@@ -208,14 +252,16 @@ public sealed partial class PatchWorkspaceDialog : Window
 
         PatchSourceDescriptor[] sources = _visibleSources.Take(MaxMatrixChannels).ToArray();
         PatchTargetDescriptor[] targets = _visibleTargets.Take(MaxMatrixChannels).ToArray();
-        txHeaders.RowDefinitions.Add(new RowDefinition { Height = new GridLength(54) });
+        txHeaders.RowDefinitions.Add(new RowDefinition { Height = new GridLength(54 * _matrixZoom) });
         foreach (PatchSourceDescriptor _ in sources)
         {
-            matrix.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(92) });
-            txHeaders.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(92) });
+            matrix.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(92 * _matrixZoom) });
+            txHeaders.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(92 * _matrixZoom) });
         }
 
-        rxHeaders.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(220) });
+        double rxHeaderWidth = Math.Max(150, 220 * _matrixZoom);
+        rxHeaders.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(rxHeaderWidth) });
+        FindControl<Grid>("MatrixViewport")!.ColumnDefinitions[0].Width = new GridLength(rxHeaderWidth);
         for (int sourceIndex = 0; sourceIndex < sources.Length; sourceIndex++)
         {
             PatchSourceDescriptor source = sources[sourceIndex];
@@ -226,7 +272,8 @@ public sealed partial class PatchWorkspaceDialog : Window
                 sourceIndex,
                 FontWeight.SemiBold,
                 pending: false);
-            header.Width = 86;
+            header.Width = 86 * _matrixZoom;
+            header.FontSize = Math.Max(9, 12 * _matrixZoom);
             header.TextAlignment = TextAlignment.Center;
             header.TextTrimming = TextTrimming.CharacterEllipsis;
             ToolTip.SetTip(header, source.FullDisplay);
@@ -238,8 +285,8 @@ public sealed partial class PatchWorkspaceDialog : Window
             PatchTargetDescriptor target = targets[targetIndex];
             EffectivePatchAssignment assignment = _session.GetEffectiveAssignment(target);
             int assignedSourceIndex = FindAssignedSourceIndex(assignment, sources);
-            matrix.RowDefinitions.Add(new RowDefinition { Height = new GridLength(38) });
-            rxHeaders.RowDefinitions.Add(new RowDefinition { Height = new GridLength(38) });
+            matrix.RowDefinitions.Add(new RowDefinition { Height = new GridLength(38 * _matrixZoom) });
+            rxHeaders.RowDefinitions.Add(new RowDefinition { Height = new GridLength(38 * _matrixZoom) });
             TextBlock rxHeader = AddMatrixText(
                 rxHeaders,
                 target.Display,
@@ -260,6 +307,9 @@ public sealed partial class PatchWorkspaceDialog : Window
                 {
                     Content = isAssigned ? "●" : string.Empty,
                     DataContext = cell,
+                    Width = 84 * _matrixZoom,
+                    Height = 30 * _matrixZoom,
+                    FontSize = Math.Max(9, 12 * _matrixZoom),
                     HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Center,
                     VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center
                 };
@@ -452,7 +502,7 @@ public sealed partial class PatchWorkspaceDialog : Window
         return -1;
     }
 
-    private void AssignSequentialButton_Click(object? sender, RoutedEventArgs e)
+    private async void AssignSequentialButton_Click(object? sender, RoutedEventArgs e)
     {
         PatchSourceDescriptor[] sources = SelectedSources();
         if (sources.Length == 0)
@@ -467,7 +517,7 @@ public sealed partial class PatchWorkspaceDialog : Window
             return;
         }
 
-        AssignSources(sources, targetRow.Target);
+        await AssignSourcesAsync(sources, targetRow.Target);
     }
 
     private void RemoveSelectedRxButton_Click(object? sender, RoutedEventArgs e)
@@ -483,7 +533,9 @@ public sealed partial class PatchWorkspaceDialog : Window
         SetInfo(L("Déconnexion préparée.", "Disconnection staged."));
     }
 
-    private void AssignSources(IReadOnlyList<PatchSourceDescriptor> sources, PatchTargetDescriptor firstTarget)
+    private async Task AssignSourcesAsync(
+        IReadOnlyList<PatchSourceDescriptor> sources,
+        PatchTargetDescriptor firstTarget)
     {
         if (!SourcesAreUnambiguous(sources))
         {
@@ -492,21 +544,158 @@ public sealed partial class PatchWorkspaceDialog : Window
 
         try
         {
-            SequentialPatchPlan plan = _session.AssignSequential(sources, _visibleTargets, firstTarget);
-            RefreshTargetStates(plan.Assignments.Select(assignment => assignment.Target));
-            SetInfo(plan.UnassignedSources.Count == 0
-                ? L(
-                    $"{plan.Assignments.Count} affectation(s) préparée(s).",
-                    $"{plan.Assignments.Count} assignment(s) staged.")
-                : L(
-                    $"{plan.Assignments.Count} affectation(s), {plan.UnassignedSources.Count} TX sans RX disponible.",
-                    $"{plan.Assignments.Count} assignment(s), {plan.UnassignedSources.Count} Tx channel(s) without an available Rx."),
-                warning: plan.UnassignedSources.Count > 0);
+            SequentialPatchPlan sequential = PatchAssignmentPlanner.PlanSequential(sources, _visibleTargets, firstTarget);
+            bool staged = await PreviewAndStagePlanAsync(
+                new PatchAssignmentPlan(sequential.Assignments),
+                requireConfirmation: true);
+            if (staged && sequential.UnassignedSources.Count > 0)
+            {
+                SetInfo(L(
+                    $"{sequential.Assignments.Count} affectation(s) ajoutée(s), {sequential.UnassignedSources.Count} TX sans RX disponible.",
+                    $"{sequential.Assignments.Count} assignment(s) added, {sequential.UnassignedSources.Count} Tx channel(s) without an available Rx."),
+                    warning: true);
+            }
         }
         catch (Exception exception)
         {
             SetInfo(exception.Message, warning: true);
         }
+    }
+
+    private void OneToOneControl_SelectionChanged(object? sender, SelectionChangedEventArgs e)
+    {
+        if (!_initializing)
+        {
+            UpdateCommandState();
+        }
+    }
+
+    private void OneToOneCountTextBox_TextChanged(object? sender, TextChangedEventArgs e)
+    {
+        if (!_initializing)
+        {
+            UpdateCommandState();
+        }
+    }
+
+    private async void PreviewOneToOneButton_Click(object? sender, RoutedEventArgs e)
+    {
+        try
+        {
+            await PreviewAndStagePlanAsync(BuildOneToOnePlan(), requireConfirmation: true);
+        }
+        catch (Exception exception)
+        {
+            SetInfo(exception.Message, warning: true);
+        }
+    }
+
+    private PatchAssignmentPlan BuildOneToOnePlan()
+    {
+        if (FindControl<ComboBox>("OneToOneFirstTxCombo")!.SelectedItem is not PatchSourceDescriptor firstSource
+            || FindControl<ComboBox>("OneToOneFirstRxCombo")!.SelectedItem is not PatchTargetDescriptor firstTarget
+            || !int.TryParse(FindControl<TextBox>("OneToOneCountTextBox")!.Text, out int count))
+        {
+            throw new InvalidOperationException(L(
+                "Renseignez le premier TX, le premier RX et un nombre de canaux valide.",
+                "Choose the first Tx, first Rx and a valid channel count."));
+        }
+
+        return PatchAssignmentPlanner.PlanOneToOne(
+            _visibleSources,
+            firstSource,
+            _visibleTargets,
+            firstTarget,
+            count);
+    }
+
+    private async Task<bool> PreviewAndStagePlanAsync(
+        PatchAssignmentPlan plan,
+        bool requireConfirmation)
+    {
+        if (!SourcesAreUnambiguous(plan.Assignments.Select(assignment => assignment.Source)))
+        {
+            return false;
+        }
+
+        PatchBatchPreview preview = _session.BuildPreview(plan.Assignments);
+        PatchConflictResolution resolution;
+        if (preview.HasConflicts)
+        {
+            resolution = await ChooseConflictResolutionAsync(preview);
+        }
+        else
+        {
+            if (requireConfirmation)
+            {
+                PlannedPatchAssignment first = plan.Assignments[0];
+                PlannedPatchAssignment last = plan.Assignments[^1];
+                bool confirmed = await MessageDialog.ShowAsync(
+                    this,
+                    L("Prévisualisation du patch", "Patch preview"),
+                    L(
+                        $"{plan.Assignments.Count} affectation(s) seront ajoutée(s) au lot.\n\n" +
+                        $"Début : {first.Source.FullDisplay} -> {first.Target.FullDisplay}\n" +
+                        $"Fin : {last.Source.FullDisplay} -> {last.Target.FullDisplay}\n\n" +
+                        "Le XML ne sera modifié qu'avec « Appliquer au projet ».",
+                        $"{plan.Assignments.Count} assignment(s) will be added to the batch.\n\n" +
+                        $"First: {first.Source.FullDisplay} -> {first.Target.FullDisplay}\n" +
+                        $"Last: {last.Source.FullDisplay} -> {last.Target.FullDisplay}\n\n" +
+                        "The XML will only change after choosing “Apply to project”."),
+                    L("Ajouter au lot", "Add to batch"),
+                    L("Annuler", "Cancel"));
+                if (!confirmed)
+                {
+                    SetInfo(L(
+                        "Prévisualisation annulée : le lot reste inchangé.",
+                        "Preview cancelled: the batch is unchanged."));
+                    return false;
+                }
+            }
+
+            resolution = PatchConflictResolution.Replace;
+        }
+
+        PatchStageResult result = _session.StagePreview(preview, resolution);
+        if (result.IsCancelled)
+        {
+            SetInfo(L(
+                "Prévisualisation annulée : le lot reste inchangé.",
+                "Preview cancelled: the batch is unchanged."));
+            return false;
+        }
+
+        RefreshTargetStates(plan.Assignments.Select(assignment => assignment.Target));
+        SetInfo(L(
+            $"{result.StagedCount} changement(s) ajouté(s) au lot, {result.SkippedConflictCount} conflit(s) ignoré(s), {result.UnchangedCount} ligne(s) inchangée(s).",
+            $"{result.StagedCount} change(s) added to the batch, {result.SkippedConflictCount} conflict(s) skipped, {result.UnchangedCount} row(s) unchanged."),
+            warning: result.SkippedConflictCount > 0);
+        return true;
+    }
+
+    private async Task<PatchConflictResolution> ChooseConflictResolutionAsync(PatchBatchPreview preview)
+    {
+        MessageDialogChoice choice = await MessageDialog.ShowChoiceAsync(
+            this,
+            L("Conflits de patch", "Patch conflicts"),
+            L(
+                $"{preview.ReplaceCount} RX possède(nt) déjà une source.\n\n" +
+                "Remplacer = remplacer ces abonnements.\n" +
+                "Ignorer = conserver les abonnements existants.\n" +
+                "Annuler = ne rien ajouter au lot.",
+                $"{preview.ReplaceCount} Rx channel(s) already have a source.\n\n" +
+                "Replace = replace those subscriptions.\n" +
+                "Skip = preserve the existing subscriptions.\n" +
+                "Cancel = add nothing to the batch."),
+            L("Remplacer", "Replace"),
+            L("Ignorer", "Skip"),
+            L("Annuler", "Cancel"));
+        return choice switch
+        {
+            MessageDialogChoice.Primary => PatchConflictResolution.Replace,
+            MessageDialogChoice.Secondary => PatchConflictResolution.Skip,
+            _ => PatchConflictResolution.Cancel
+        };
     }
 
     private bool SourcesAreUnambiguous(IEnumerable<PatchSourceDescriptor> sources)
@@ -529,7 +718,7 @@ public sealed partial class PatchWorkspaceDialog : Window
         return false;
     }
 
-    private void MatrixCellButton_Click(object? sender, RoutedEventArgs e)
+    private async void MatrixCellButton_Click(object? sender, RoutedEventArgs e)
     {
         if (sender is not Button { DataContext: PatchMatrixCell cell })
         {
@@ -548,8 +737,10 @@ public sealed partial class PatchWorkspaceDialog : Window
                 return;
             }
 
-            _session.Assign(new PlannedPatchAssignment(cell.Source, cell.Target));
-            SetInfo(L("Affectation préparée.", "Assignment staged."));
+            await PreviewAndStagePlanAsync(
+                new PatchAssignmentPlan([new PlannedPatchAssignment(cell.Source, cell.Target)]),
+                requireConfirmation: false);
+            return;
         }
 
         RefreshTargetStates([cell.Target]);
@@ -562,6 +753,104 @@ public sealed partial class PatchWorkspaceDialog : Window
             new Vector(body.Offset.X, 0);
         FindControl<ScrollViewer>("MatrixRxHeaderScrollViewer")!.Offset =
             new Vector(0, body.Offset.Y);
+    }
+
+    private void MatrixViewport_PointerWheelChanged(object? sender, PointerWheelEventArgs e)
+    {
+        if (!e.KeyModifiers.HasFlag(KeyModifiers.Control))
+        {
+            return;
+        }
+
+        SetMatrixZoom(_matrixZoom + (e.Delta.Y > 0 ? MatrixZoomStep : -MatrixZoomStep));
+        e.Handled = true;
+    }
+
+    private void MatrixZoomOutButton_Click(object? sender, RoutedEventArgs e)
+    {
+        SetMatrixZoom(_matrixZoom - MatrixZoomStep);
+    }
+
+    private void MatrixZoomResetButton_Click(object? sender, RoutedEventArgs e)
+    {
+        SetMatrixZoom(1.0);
+    }
+
+    private void MatrixZoomInButton_Click(object? sender, RoutedEventArgs e)
+    {
+        SetMatrixZoom(_matrixZoom + MatrixZoomStep);
+    }
+
+    private void MatrixZoomFitButton_Click(object? sender, RoutedEventArgs e)
+    {
+        ScrollViewer body = FindControl<ScrollViewer>("MatrixBodyScrollViewer")!;
+        double unscaledWidth = Math.Max(1, Math.Min(_visibleSources.Count, MaxMatrixChannels)) * 92d;
+        double unscaledHeight = Math.Max(1, Math.Min(_visibleTargets.Count, MaxMatrixChannels)) * 38d;
+        if (body.Bounds.Width <= 0 || body.Bounds.Height <= 0)
+        {
+            SetMatrixZoom(1.0);
+            return;
+        }
+
+        SetMatrixZoom(Math.Min(
+            (body.Bounds.Width - 12) / unscaledWidth,
+            (body.Bounds.Height - 12) / unscaledHeight));
+    }
+
+    private void SetMatrixZoom(double requestedZoom)
+    {
+        double zoom = Math.Clamp(Math.Round(requestedZoom, 2), MinimumMatrixZoom, MaximumMatrixZoom);
+        if (Math.Abs(zoom - _matrixZoom) < 0.001)
+        {
+            return;
+        }
+
+        _matrixZoom = zoom;
+        double columnWidth = 92 * zoom;
+        double rowHeight = 38 * zoom;
+        double rxHeaderWidth = Math.Max(150, 220 * zoom);
+        Grid matrix = FindControl<Grid>("MatrixPanel")!;
+        Grid txHeaders = FindControl<Grid>("MatrixTxHeaderPanel")!;
+        Grid rxHeaders = FindControl<Grid>("MatrixRxHeaderPanel")!;
+        foreach (ColumnDefinition column in matrix.ColumnDefinitions)
+        {
+            column.Width = new GridLength(columnWidth);
+        }
+        foreach (ColumnDefinition column in txHeaders.ColumnDefinitions)
+        {
+            column.Width = new GridLength(columnWidth);
+        }
+        foreach (RowDefinition row in matrix.RowDefinitions)
+        {
+            row.Height = new GridLength(rowHeight);
+        }
+        foreach (RowDefinition row in rxHeaders.RowDefinitions)
+        {
+            row.Height = new GridLength(rowHeight);
+        }
+        if (txHeaders.RowDefinitions.Count > 0)
+        {
+            txHeaders.RowDefinitions[0].Height = new GridLength(54 * zoom);
+        }
+        if (rxHeaders.ColumnDefinitions.Count > 0)
+        {
+            rxHeaders.ColumnDefinitions[0].Width = new GridLength(rxHeaderWidth);
+        }
+        FindControl<Grid>("MatrixViewport")!.ColumnDefinitions[0].Width = new GridLength(rxHeaderWidth);
+
+        foreach (TextBlock header in txHeaders.Children.OfType<TextBlock>())
+        {
+            header.Width = 86 * zoom;
+            header.FontSize = Math.Max(9, 12 * zoom);
+        }
+        foreach (PatchMatrixCell cell in _matrixCells.Values)
+        {
+            cell.Button.Width = 84 * zoom;
+            cell.Button.Height = 30 * zoom;
+            cell.Button.FontSize = Math.Max(9, 12 * zoom);
+        }
+
+        FindControl<TextBlock>("MatrixZoomText")!.Text = $"{Math.Round(zoom * 100):0} %";
     }
 
     private void TxChannelList_PointerPressed(object? sender, PointerPressedEventArgs e)
@@ -638,7 +927,7 @@ public sealed partial class PatchWorkspaceDialog : Window
         FindControl<Border>("RxDropBorder")!.BorderBrush = ResourceBrush("PanelBorderBrush");
     }
 
-    private void RxChannelList_Drop(object? sender, DragEventArgs e)
+    private async void RxChannelList_Drop(object? sender, DragEventArgs e)
     {
         FindControl<Border>("RxDropBorder")!.BorderBrush = ResourceBrush("PanelBorderBrush");
         string? payload = e.DataTransfer.TryGetValue(DragDataFormat);
@@ -664,7 +953,7 @@ public sealed partial class PatchWorkspaceDialog : Window
         }
 
         FindControl<ListBox>("RxChannelList")!.SelectedItem = targetRow;
-        AssignSources(sources, targetRow.Target);
+        await AssignSourcesAsync(sources, targetRow.Target);
         e.DragEffects = DragDropEffects.Copy;
     }
 
@@ -705,8 +994,12 @@ public sealed partial class PatchWorkspaceDialog : Window
         bool hasRxSelection = FindControl<ListBox>("RxChannelList")!.SelectedItem is PatchRxListItem;
         FindControl<Button>("AssignSequentialButton")!.IsEnabled = hasTxSelection && hasRxSelection;
         FindControl<Button>("RemoveSelectedRxButton")!.IsEnabled = hasRxSelection;
+        FindControl<Button>("SwapDeviceSelectionButton")!.IsEnabled =
+            FindControl<ComboBox>("TxDeviceCombo")!.SelectedItem is string
+            && FindControl<ComboBox>("RxDeviceCombo")!.SelectedItem is string;
         FindControl<Button>("ResetPendingButton")!.IsEnabled = _session.HasChanges;
         FindControl<Button>("ApplyButton")!.IsEnabled = _session.HasChanges;
+        UpdateOneToOneState();
 
         string pending = _session.PendingCount == 0
             ? L("Aucun changement en attente", "No pending changes")
@@ -715,6 +1008,45 @@ public sealed partial class PatchWorkspaceDialog : Window
                 $"{_session.PendingCount} pending change(s)");
         FindControl<TextBlock>("PendingHeaderText")!.Text = pending;
         FindControl<TextBlock>("PendingFooterText")!.Text = pending;
+    }
+
+    private void UpdateOneToOneState()
+    {
+        ComboBox txCombo = FindControl<ComboBox>("OneToOneFirstTxCombo")!;
+        ComboBox rxCombo = FindControl<ComboBox>("OneToOneFirstRxCombo")!;
+        TextBox countTextBox = FindControl<TextBox>("OneToOneCountTextBox")!;
+        TextBlock capacityText = FindControl<TextBlock>("OneToOneCapacityText")!;
+        Button previewButton = FindControl<Button>("PreviewOneToOneButton")!;
+        if (txCombo.SelectedItem is not PatchSourceDescriptor firstSource
+            || rxCombo.SelectedItem is not PatchTargetDescriptor firstTarget)
+        {
+            capacityText.Text = string.Empty;
+            previewButton.IsEnabled = false;
+            return;
+        }
+
+        try
+        {
+            PatchRangeCapacity capacity = PatchAssignmentPlanner.GetRangeCapacity(
+                _visibleSources,
+                firstSource,
+                _visibleTargets,
+                firstTarget);
+            bool validCount = int.TryParse(countTextBox.Text, out int count)
+                && count > 0
+                && count <= capacity.MaximumCount;
+            previewButton.IsEnabled = validCount;
+            capacityText.Text = L(
+                $"Capacité : {capacity.MaximumCount} patch(s) 1:1 ({capacity.TxAvailable} TX / {capacity.RxAvailable} RX).",
+                $"Capacity: {capacity.MaximumCount} one-to-one subscription(s) ({capacity.TxAvailable} Tx / {capacity.RxAvailable} Rx).");
+            capacityText.Foreground = validCount ? ResourceBrush("MutedTextBrush") : ResourceBrush("WarningBrush");
+        }
+        catch (InvalidOperationException exception)
+        {
+            previewButton.IsEnabled = false;
+            capacityText.Text = exception.Message;
+            capacityText.Foreground = ResourceBrush("WarningBrush");
+        }
     }
 
     private void UpdateMatrixHint(int displayedSourceCount, int displayedTargetCount)
@@ -738,7 +1070,7 @@ public sealed partial class PatchWorkspaceDialog : Window
             "Stage assignments, then apply them in a single operation.");
         FindControl<TextBlock>("TxDeviceLabel")!.Text = L("Machine émettrice TX", "Tx transmitting device");
         FindControl<TextBlock>("RxDeviceLabel")!.Text = L("Machine réceptrice RX", "Rx receiving device");
-        FindControl<TabItem>("AssignmentTab")!.Header = L("Glisser-déposer et série", "Drag and drop / sequential");
+        FindControl<TabItem>("AssignmentTab")!.Header = L("Sélection et Patch 1:1", "Selection and one-to-one patch");
         FindControl<TabItem>("MatrixTab")!.Header = L("Grille de patch", "Patch matrix");
         FindControl<TextBlock>("TxListHeading")!.Text = L("Canaux TX disponibles", "Available Tx channels");
         FindControl<TextBlock>("RxListHeading")!.Text = L("Canaux RX et source actuelle", "Rx channels and current source");
@@ -747,15 +1079,33 @@ public sealed partial class PatchWorkspaceDialog : Window
             "Select one or more Tx channels, then drop them on the first Rx.");
         FindControl<Button>("AssignSequentialButton")!.Content = L("Affecter à partir du RX sélectionné", "Assign from selected Rx");
         FindControl<Button>("RemoveSelectedRxButton")!.Content = L("Déconnecter le RX sélectionné", "Disconnect selected Rx");
+        FindControl<TextBlock>("OneToOneHeading")!.Text = L("Patch 1:1", "One-to-one patch");
+        FindControl<TextBlock>("OneToOneFirstRxLabel")!.Text = L("Premier RX", "First Rx");
+        FindControl<TextBlock>("OneToOneFirstTxLabel")!.Text = L("Premier TX", "First Tx");
+        FindControl<TextBlock>("OneToOneCountLabel")!.Text = L("Nombre", "Count");
+        FindControl<Button>("PreviewOneToOneButton")!.Content = L(
+            "Prévisualiser et ajouter au lot",
+            "Preview and add to batch");
+        FindControl<Button>("MatrixZoomFitButton")!.Content = L("Ajuster", "Fit");
         FindControl<Button>("ResetPendingButton")!.Content = L("Annuler les changements visuels", "Discard visual changes");
         FindControl<Button>("CancelButton")!.Content = L("Fermer sans appliquer", "Close without applying");
         FindControl<Button>("ApplyButton")!.Content = L("Appliquer au projet", "Apply to project");
 
         AutomationProperties.SetName(FindControl<ComboBox>("TxDeviceCombo")!, FindControl<TextBlock>("TxDeviceLabel")!.Text);
         AutomationProperties.SetName(FindControl<ComboBox>("RxDeviceCombo")!, FindControl<TextBlock>("RxDeviceLabel")!.Text);
+        string swapName = L(
+            "Inverser les machines TX et RX sans créer de patch inverse",
+            "Swap the Tx and Rx devices without creating reverse subscriptions");
+        ToolTip.SetTip(FindControl<Button>("SwapDeviceSelectionButton")!, swapName);
+        AutomationProperties.SetName(FindControl<Button>("SwapDeviceSelectionButton")!, swapName);
         AutomationProperties.SetName(FindControl<ListBox>("TxChannelList")!, FindControl<TextBlock>("TxListHeading")!.Text);
         AutomationProperties.SetName(FindControl<ListBox>("RxChannelList")!, FindControl<TextBlock>("RxListHeading")!.Text);
         AutomationProperties.SetName(FindControl<Grid>("MatrixPanel")!, FindControl<TabItem>("MatrixTab")!.Header?.ToString() ?? string.Empty);
+        AutomationProperties.SetName(FindControl<Button>("PreviewOneToOneButton")!, FindControl<Button>("PreviewOneToOneButton")!.Content?.ToString() ?? string.Empty);
+        AutomationProperties.SetName(FindControl<Button>("MatrixZoomOutButton")!, L("Réduire le zoom de la grille", "Zoom out of the matrix"));
+        AutomationProperties.SetName(FindControl<Button>("MatrixZoomResetButton")!, L("Réinitialiser le zoom de la grille", "Reset matrix zoom"));
+        AutomationProperties.SetName(FindControl<Button>("MatrixZoomInButton")!, L("Augmenter le zoom de la grille", "Zoom into the matrix"));
+        AutomationProperties.SetName(FindControl<Button>("MatrixZoomFitButton")!, L("Ajuster la grille à la fenêtre", "Fit matrix to window"));
     }
 
     private void SetInfo(string message, bool warning = false)
@@ -799,6 +1149,23 @@ public sealed partial class PatchWorkspaceDialog : Window
     }
 
     private string L(string french, string english) => _language == UiLanguage.English ? english : french;
+
+    private static string TranslateSwapError(string? french)
+    {
+        if (string.IsNullOrWhiteSpace(french))
+        {
+            return "Unable to swap the selected devices.";
+        }
+        if (french.Contains("verrouillée", StringComparison.OrdinalIgnoreCase))
+        {
+            return "The Rx device is locked in this window.";
+        }
+        if (french.Contains("Sélectionnez", StringComparison.OrdinalIgnoreCase))
+        {
+            return "Select a Tx device and an Rx device before swapping them.";
+        }
+        return "The selected devices cannot be swapped because one of them does not support the required channel direction.";
+    }
 
     private sealed class PatchRxListItem(PatchTargetDescriptor target, string display)
         : System.ComponentModel.INotifyPropertyChanged

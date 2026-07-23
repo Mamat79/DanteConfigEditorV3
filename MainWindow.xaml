@@ -1535,7 +1535,8 @@
                                     <ScrollViewer x:Name="SynopticScrollViewer"
                                                   Grid.Row="1"
                                                   HorizontalScrollBarVisibility="Auto"
-                                                  VerticalScrollBarVisibility="Auto">
+                                                  VerticalScrollBarVisibility="Auto"
+                                                  PreviewMouseWheel="SynopticScrollViewer_PreviewMouseWheel">
                                         <Canvas x:Name="SynopticCanvas"
                                                 Width="900"
                                                 Height="560"

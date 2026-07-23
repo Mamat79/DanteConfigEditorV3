@@ -618,17 +618,49 @@ public partial class MainWindow
 
     private void ResetSynopticZoomButton_Click(object sender, RoutedEventArgs e)
     {
-        SynopticZoomSlider.Value = 1;
+        SetSynopticZoomPreservingCenter(1);
     }
 
     private void ZoomOutSynopticButton_Click(object sender, RoutedEventArgs e)
     {
-        SynopticZoomSlider.Value = Math.Max(SynopticZoomSlider.Minimum, SynopticZoomSlider.Value - 0.25);
+        SetSynopticZoomPreservingCenter(SynopticZoomSlider.Value - 0.25);
     }
 
     private void ZoomInSynopticButton_Click(object sender, RoutedEventArgs e)
     {
-        SynopticZoomSlider.Value = Math.Min(SynopticZoomSlider.Maximum, SynopticZoomSlider.Value + 0.25);
+        SetSynopticZoomPreservingCenter(SynopticZoomSlider.Value + 0.25);
+    }
+
+    private void SynopticScrollViewer_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
+    {
+        if ((Keyboard.Modifiers & ModifierKeys.Control) == 0)
+        {
+            return;
+        }
+
+        SetSynopticZoomPreservingCenter(SynopticZoomSlider.Value + (e.Delta > 0 ? 0.1 : -0.1));
+        e.Handled = true;
+    }
+
+    private void SetSynopticZoomPreservingCenter(double requestedValue)
+    {
+        double horizontalRatio = SynopticScrollViewer.ExtentWidth <= 0
+            ? 0.5
+            : (SynopticScrollViewer.HorizontalOffset + (SynopticScrollViewer.ViewportWidth / 2))
+                / SynopticScrollViewer.ExtentWidth;
+        double verticalRatio = SynopticScrollViewer.ExtentHeight <= 0
+            ? 0.5
+            : (SynopticScrollViewer.VerticalOffset + (SynopticScrollViewer.ViewportHeight / 2))
+                / SynopticScrollViewer.ExtentHeight;
+        SynopticZoomSlider.Value = Math.Clamp(
+            requestedValue,
+            SynopticZoomSlider.Minimum,
+            SynopticZoomSlider.Maximum);
+        SynopticScrollViewer.UpdateLayout();
+        SynopticScrollViewer.ScrollToHorizontalOffset(
+            (horizontalRatio * SynopticScrollViewer.ExtentWidth) - (SynopticScrollViewer.ViewportWidth / 2));
+        SynopticScrollViewer.ScrollToVerticalOffset(
+            (verticalRatio * SynopticScrollViewer.ExtentHeight) - (SynopticScrollViewer.ViewportHeight / 2));
     }
 
     private void FitSynopticZoomButton_Click(object sender, RoutedEventArgs e)
