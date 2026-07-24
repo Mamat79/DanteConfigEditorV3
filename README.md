@@ -17,12 +17,6 @@ La V3.5 est développée et testée dans la branche `v3.5`. La V3.4.2 officielle
 
 > **Import et export de labels en JSON, CSV, DMT XLSX/ODS pour dLive et Avantis, A&H CSV et Yamaha CL/QL ZIP/CSV.** Les modèles natifs sont inclus dans l'application : aucun fichier modèle externe n'est nécessaire pour exporter.
 
-## Un grand merci à Tobias Grupe
-
-Un grand merci à **[Tobias Grupe (@togrupe)](https://github.com/togrupe)** pour le temps consacré à tester Dante Config Editor, pour ses captures et retours précis, ainsi que pour ses nombreuses idées d'amélioration. Ses propositions sur les en-têtes TX/RX fixes, le patch 1:1, le bouton Flip, la navigation au clavier, les performances de la matrice et les échanges de labels avec DMT ont directement contribué à faire progresser la V3.5.
-
-Tobias développe également **[dLive MIDI Tools](https://github.com/togrupe/dlive-midi-tools)**, projet avec lequel les fonctions d'import et d'export de labels de DCE ont été pensées et testées.
-
 ## Origine et développement assisté
 
 Dante Config Editor est né d'une tentative de pallier ce qui me manquait dans Dante Controller. À l'origine, c'était un petit logiciel personnel écrit manuellement pour répondre à un besoin de terrain : vérifier rapidement une configuration Dante sans devoir ouvrir successivement toutes les pages du logiciel. L'objectif était de disposer d'une vue d'ensemble unique des devices, latences, fréquences d'échantillonnage, modes réseau, Preferred Master, adresses IP, etc, puis de pouvoir corriger au besoin les valeurs présentes dans le preset.
@@ -466,7 +460,11 @@ Pour lancer les tests automatiques :
 
 Remerciement à **Charles Bouticourt** pour l'idée de la fonction `Atomic Bomb`.
 
-Merci tout particulièrement à **[Tobias Grupe (@togrupe)](https://github.com/togrupe)** pour ses tests, ses retours détaillés, ses idées et sa contribution aux échanges avec **[dLive MIDI Tools](https://github.com/togrupe/dlive-midi-tools)**.
+### Un grand merci à Tobias Grupe
+
+Un grand merci à **[Tobias Grupe (@togrupe)](https://github.com/togrupe)** pour le temps consacré à tester Dante Config Editor, pour ses captures et retours précis, ainsi que pour ses nombreuses idées d'amélioration. Ses propositions sur les en-têtes TX/RX fixes, le patch 1:1, le bouton Flip, la navigation au clavier, les performances de la matrice et les échanges de labels avec DMT ont directement contribué à faire progresser la V3.5.
+
+Tobias développe également **[dLive MIDI Tools](https://github.com/togrupe/dlive-midi-tools)**, projet avec lequel les fonctions d'import et d'export de labels de DCE ont été pensées et testées.
 
 ---
 
