@@ -135,11 +135,7 @@ The macOS builds are ad hoc signed but are not notarized with an Apple Developer
 
 - `main` contains the official V3.4 source for Windows and macOS.
 - `v3.5` contains the development version and its Windows/macOS workflows; it does not replace the stable release yet.
-- Immutable tag `v3.4` identifies the source used for the distributed applications and is marked `Latest`.
-- Historical Release [`v3.3`](https://github.com/Mamat79/DanteConfigEditorV3/releases/tag/v3.3) remains downloadable with its own files and presentation videos.
-- Historical Release [`v3.2`](https://github.com/Mamat79/DanteConfigEditorV3/releases/tag/v3.2) remains downloadable with its own files.
-- V3.08 and V3.09 Release pages were removed at the maintainer's request; their tags and commits remain in Git history.
-- The V3.1 Release is removed at the maintainer's request; its source history remains in Git.
+- Immutable tag `v3.4.2` identifies the source of the official Release currently marked `Latest`.
 - Every version uses a separate immutable tag under the [release policy](RELEASE_POLICY.md).
 - Each Release contains the files built for its own tagged source.
 - Functional history remains available through the commits and `CHANGELOG_V3.md`.

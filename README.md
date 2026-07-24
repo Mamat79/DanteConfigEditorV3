@@ -170,11 +170,7 @@ L'installateur V3.5 remplace uniquement une V3.5 déjà installée. Il possède 
 
 - La branche `main` contient la V3.4 officielle pour Windows et macOS.
 - La branche `v3.5` contient la version de développement et ses workflows Windows/macOS ; elle ne remplace pas encore la release stable.
-- Le tag immuable `v3.4` identifie le code source des applications distribuées dans la Release V3.4, marquée `Latest`.
-- La Release historique [`v3.3`](https://github.com/Mamat79/DanteConfigEditorV3/releases/tag/v3.3) reste téléchargeable avec ses propres fichiers et ses vidéos de présentation.
-- La Release historique [`v3.2`](https://github.com/Mamat79/DanteConfigEditorV3/releases/tag/v3.2) reste téléchargeable avec ses propres fichiers.
-- La Release V3.1 est retirée à la demande du mainteneur ; son historique source reste dans Git.
-- Les pages de Releases V3.08 et V3.09 ont été retirées à la demande du mainteneur ; leurs tags et commits restent dans l'historique Git.
+- Le tag immuable `v3.4.2` identifie le code source de la Release officielle actuellement marquée `Latest`.
 - Chaque version utilise un tag immuable distinct selon [la politique de publication](RELEASE_POLICY.md).
 - L'historique fonctionnel reste également consultable dans les commits de `main` et dans `CHANGELOG_V3.md`.
 
@@ -473,6 +469,6 @@ Tobias développe également **[dLive MIDI Tools](https://github.com/togrupe/dli
 The complete English presentation is kept in a separate section so that both languages remain easy to read:
 
 - **[Open the complete English README](README_EN.md)**
-- **[Download the stable Dante Config Editor V3.3](https://github.com/Mamat79/DanteConfigEditorV3/releases/tag/v3.3)**
+- **[Download the stable Dante Config Editor V3.4.2](https://github.com/Mamat79/DanteConfigEditorV3/releases/tag/v3.4.2)**
 - **[Read the full English guide (PDF)](docs/Notice_DanteConfigEditorV3_EN.pdf)** or the [English quick start](docs/QuickStart_DanteConfigEditorV3_EN.pdf).
 - **[Open the dLive MIDI Tools (DMT) project](https://github.com/togrupe/dlive-midi-tools)**
