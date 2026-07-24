@@ -94,10 +94,10 @@ public sealed class PatchWorkspaceUiContractTests
         Assert.Equal(2, CountOccurrences(xaml, "PreviewMouseLeftButtonDown=\"InlineChannelNameTextBox_PreviewMouseLeftButtonDown\""));
         Assert.Contains("ChannelSeriesThumb_DragStarted", xaml, StringComparison.Ordinal);
         Assert.Contains("ChannelSeriesThumb_DragCompleted", xaml, StringComparison.Ordinal);
-        Assert.Contains("MatrixTxHeader_MouseLeftButtonDown", codeBehind, StringComparison.Ordinal);
+        Assert.Contains("MatrixTxHeader_Click", codeBehind, StringComparison.Ordinal);
         Assert.Contains("MinHeight=\"230\"", xaml, StringComparison.Ordinal);
         Assert.Contains("ColumnHeaderHeight=\"132\"", xaml, StringComparison.Ordinal);
-        Assert.Contains("Text = source.Display", codeBehind, StringComparison.Ordinal);
+        Assert.Contains("Content = source.Display", codeBehind, StringComparison.Ordinal);
         Assert.Contains("LayoutTransform = new RotateTransform(-90)", codeBehind, StringComparison.Ordinal);
         Assert.Contains("MatrixSeriesThumb_DragStarted", codeBehind, StringComparison.Ordinal);
         Assert.Contains("MatrixSeriesThumb_DragCompleted", codeBehind, StringComparison.Ordinal);
@@ -111,6 +111,42 @@ public sealed class PatchWorkspaceUiContractTests
         Assert.Contains("row.Cells[sourceIndex]", codeBehind, StringComparison.Ordinal);
         Assert.Contains("EasyPatchWorkspace_InlineChannelNavigationRequested", File.ReadAllText(RepositoryFile("MainWindow.xaml.cs")), StringComparison.Ordinal);
         Assert.Contains("ExtendEasyPatchChannelSeries", File.ReadAllText(RepositoryFile("MainWindow.xaml.cs")), StringComparison.Ordinal);
+        Assert.Contains("label.Click += MatrixTxHeader_Click", codeBehind, StringComparison.Ordinal);
+        Assert.Contains("sender is Button { Tag: PatchSourceDescriptor source }", codeBehind, StringComparison.Ordinal);
+        Assert.Contains("OpenMatrixTxRenameEditor", codeBehind, StringComparison.Ordinal);
+        Assert.Contains("Dispatcher.BeginInvoke(new Action(() => OpenMatrixTxRenameEditor", codeBehind, StringComparison.Ordinal);
+        Assert.Contains("args.Key == Key.Enter", codeBehind, StringComparison.Ordinal);
+        Assert.Contains("args.Key == Key.Tab", codeBehind, StringComparison.Ordinal);
+        Assert.Contains("ModifierKeys.Shift", codeBehind, StringComparison.Ordinal);
+        Assert.Contains("ChannelSeriesHandleVisibilityConverter", xaml, StringComparison.Ordinal);
+        Assert.Contains("source.CanExtendNameSeries ? Visibility.Visible : Visibility.Collapsed", codeBehind, StringComparison.Ordinal);
+        Assert.Contains("e.Canceled", codeBehind, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void DevicePatchButtonsUseTheRequestedTwoByTwoOrder()
+    {
+        XDocument document = XDocument.Parse(File.ReadAllText(RepositoryFile("MainWindow.xaml")));
+        XNamespace xamlNamespace = "http://schemas.microsoft.com/winfx/2006/xaml";
+        XElement actionGrid = NamedElement(document, xamlNamespace, "DevicePatchActionGrid");
+
+        string[] names = actionGrid.Elements()
+            .Select(element => element.Attribute(xamlNamespace + "Name")?.Value)
+            .Where(name => name is not null)
+            .Cast<string>()
+            .ToArray();
+        string[] labels = actionGrid.Elements()
+            .Select(element => element.Attribute("Content")?.Value)
+            .Where(label => label is not null)
+            .Cast<string>()
+            .ToArray();
+
+        Assert.Equal(
+            ["ResetDeviceRxPatchesButton", "ResetDeviceTxPatchesButton", "ResetDevicePatchesButton", "DeleteDeviceButton"],
+            names);
+        Assert.Equal(["Reset RX", "Reset TX", "Reset RX/TX", "Supprimer"], labels);
+        Assert.Equal("2", actionGrid.Attribute("Columns")?.Value);
+        Assert.Contains("ChannelSeriesHandleVisibilityConverter", File.ReadAllText(RepositoryFile("MainWindow.xaml")), StringComparison.Ordinal);
     }
 
     [Fact]

@@ -9,6 +9,8 @@ public sealed record PatchSourceDescriptor(
     public string Display => $"{DanteId:000} - {ChannelName}";
 
     public string FullDisplay => $"{DeviceName} / {Display}";
+
+    public bool CanExtendNameSeries => ChannelNameSeriesService.CanExtend(ChannelName);
 }
 
 public sealed record PatchTargetDescriptor(
@@ -20,6 +22,8 @@ public sealed record PatchTargetDescriptor(
     public string Display => $"{DanteId:000} - {ChannelName}";
 
     public string FullDisplay => $"{DeviceName} / {Display}";
+
+    public bool CanExtendNameSeries => ChannelNameSeriesService.CanExtend(ChannelName);
 }
 
 public sealed record PlannedPatchAssignment(

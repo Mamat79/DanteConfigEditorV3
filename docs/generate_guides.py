@@ -492,6 +492,10 @@ def full_guide(language: str) -> None:
             *bullets([
                 "Les canaux TX/RX peuvent être renommés individuellement ou par plage avec {00}, {000}, {n} et {device}.",
                 "Le renommage d'un TX met à jour tous les alias de subscription reconnus dans le projet.",
+                "Dans les listes RX/TX, cliquez dans le nom puis utilisez Entrée pour valider, Tab pour valider et passer au canal suivant, Maj+Tab pour revenir au précédent, ou Échap pour annuler l'édition.",
+                "Dans la matrice Easy patch, cliquez sur un libellé TX vertical pour le renommer. Entrée, Tab, Maj+Tab et Échap suivent le même fonctionnement que dans les listes.",
+                "La poignée de recopie apparaît uniquement quand le nom se termine par un nombre. Mic 4 et Mic 04 sont prolongeables ; Mic, Mic gauche et Mic 4 principal ne le sont pas.",
+                "La recopie conserve le texte avant le nombre et les zéros initiaux : Mic 04 devient Mic 05, Mic 06, etc. Aucun canal n'est modifié si le glissement est annulé.",
                 "Les Dante Id ne sont pas renumérotés. Le marqueur local subscribed_device=\".\" est conservé.",
                 "L'onglet Easy patch affiche les RX à gauche et les TX à droite. Les menus et flèches permettent de changer rapidement de machine.",
                 "Sélectionnez autant de TX que de RX pour un appariement un-à-un, ou un seul TX pour alimenter plusieurs RX.",
@@ -504,6 +508,16 @@ def full_guide(language: str) -> None:
                 "Les changements ajoutés au lot restent en attente jusqu'à Appliquer tout le lot. Ils sont alors exécutés en une seule étape d'annulation.",
                 "Dans Détail machine, le menu supérieur passe à une autre machine et protège les modifications non appliquées.",
             ]),
+            Spacer(1, 2 * mm),
+            data_table(
+                ["Départ", "Poignée", "Résultat"],
+                [
+                    ["Mic 4  [tirer]", "Visible", "Mic 5, Mic 6, Mic 7..."],
+                    ["Mic 04  [tirer]", "Visible", "Mic 05, Mic 06, Mic 07..."],
+                    ["Mic gauche", "Masquée", "Aucune recopie proposée"],
+                ],
+                [50, 35, 85],
+            ),
             para("9. Ajouter un XML au projet", "h1"),
             *bullets([
                 "Les machines dont le nom est unique sont toujours importées.",
@@ -739,6 +753,10 @@ def full_guide(language: str) -> None:
             *bullets([
                 "TX/RX channels can be renamed individually or by range with {00}, {000}, {n}, and {device}.",
                 "Renaming a Tx channel updates every recognized subscription alias in the project.",
+                "In Rx/Tx lists, click the name, then press Enter to validate, Tab to validate and move forward, Shift+Tab to move backward, or Escape to cancel the edit.",
+                "In the Easy patch matrix, click a vertical Tx label to rename it. Enter, Tab, Shift+Tab, and Escape behave exactly as they do in the lists.",
+                "The fill handle appears only when the name ends with a number. Mic 4 and Mic 04 can be extended; Mic, Mic left, and Mic 4 main cannot.",
+                "Fill keeps the text before the number and any leading zeroes: Mic 04 becomes Mic 05, Mic 06, and so on. Cancelling the drag changes no channel.",
                 "Dante IDs are not renumbered. The local subscribed_device=\".\" marker is preserved.",
                 "The Easy patch tab shows Rx channels on the left and Tx channels on the right. Menus and arrows switch devices quickly.",
                 "Select equal Tx and Rx counts for one-to-one mapping, or one Tx to feed several Rx channels.",
@@ -751,6 +769,16 @@ def full_guide(language: str) -> None:
                 "Changes added to the batch remain pending until Apply entire batch. They are then executed in one undo step.",
                 "In Device details, the top menu switches devices and protects unapplied changes.",
             ]),
+            Spacer(1, 2 * mm),
+            data_table(
+                ["Starting name", "Handle", "Result"],
+                [
+                    ["Mic 4  [drag]", "Visible", "Mic 5, Mic 6, Mic 7..."],
+                    ["Mic 04  [drag]", "Visible", "Mic 05, Mic 06, Mic 07..."],
+                    ["Mic left", "Hidden", "No fill action offered"],
+                ],
+                [50, 35, 85],
+            ),
             para("9. Add XML to project", "h1"),
             *bullets([
                 "Devices with unique names are always imported.",

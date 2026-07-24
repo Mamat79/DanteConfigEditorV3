@@ -1,5 +1,13 @@
 # Changelog V3
 
+## V3.5 - ajustements de renommage et d'ergonomie
+
+- Réorganise les actions machine en deux lignes : Reset RX, Reset TX, Reset RX/TX et Supprimer.
+- Rend les libellés TX verticaux de la matrice Easy patch éditables au clic avec Entrée, Tab et Maj+Tab.
+- Affiche la poignée de recopie uniquement pour les noms terminés par un nombre.
+- Conserve les zéros initiaux pendant la recopie, par exemple `Mic 04` vers `Mic 05`.
+- Complète les notices françaises et anglaises avec les méthodes de renommage et des exemples.
+
 ## 2026-07-23 - Version 3.5 en développement
 
 - Matrice macOS mise à jour cellule par cellule sans reconstruction complète après chaque clic.

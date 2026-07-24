@@ -85,6 +85,8 @@ Chaque vidéo dure 55 secondes, sans voix ni piste audio, avec le texte directem
 - Affiche une page Patch pour visualiser et modifier les abonnements RX vers TX lorsque le format XML le permet.
 - Ajoute l'onglet Windows `Easy patch` avec RX à gauche, TX à droite, navigation rapide entre machines, lot prévisualisé cumulatif, plages strictes, résolution explicite des conflits et matrice interactive compacte avec glissement en série.
 - Dans `Easy patch`, propose un bouton `FLIP TX ⇄ RX` très visible, un patch `1:1` accessible depuis `Sélection et plage` ou directement depuis la grille, et la navigation Tab/Maj+Tab pendant le renommage.
+- Dans la matrice `Easy patch`, un clic sur un libellé TX vertical ouvre son renommage direct ; Entrée valide, Tab/Maj+Tab naviguent, Échap annule.
+- La poignée de recopie n'apparaît que pour un nom terminé par un nombre et conserve les zéros initiaux (`Mic 04` devient `Mic 05`, `Mic 06`, etc.).
 - Met à jour les patchs RX quand un canal TX utilisé est renommé.
 - Crée une sauvegarde du fichier source et de toute destination existante avant sauvegarde.
 - Sauvegarde via un fichier temporaire relu puis un remplacement atomique de la destination.

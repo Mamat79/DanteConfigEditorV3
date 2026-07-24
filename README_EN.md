@@ -85,6 +85,8 @@ Each video lasts 55 seconds, with no voice-over or audio track, and uses text bu
 - Supports cumulative patch previews, direct apply, strict ranges and explicit conflict handling.
 - Displays a compact interactive TX/RX patch matrix with horizontal, vertical and diagonal gestures.
 - In `Easy patch`, provides a highly visible `FLIP TX ⇄ RX` button, one-to-one patching from either `Selection and range` or the matrix itself, and Tab/Shift+Tab navigation while renaming.
+- In the `Easy patch` matrix, clicking a vertical Tx label opens direct rename; Enter validates, Tab/Shift+Tab navigate, and Escape cancels.
+- The fill handle appears only when a name ends with a number and preserves leading zeroes (`Mic 04` becomes `Mic 05`, `Mic 06`, and so on).
 - Opens a device details window to edit formats, IP data, channel names and RX patches.
 - Applies global actions only to the selected or locked target scope.
 - Resets all RX patches, TX references, or both for a device.

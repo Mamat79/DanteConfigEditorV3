@@ -500,6 +500,12 @@ public partial class PatchWorkspaceView : UserControl
 
         FrameworkElementFactory rxSeries = BuildMatrixSeriesThumbFactory("Target", Cursors.SizeNS);
         rxSeries.SetValue(FrameworkElement.HorizontalAlignmentProperty, HorizontalAlignment.Right);
+        rxSeries.SetBinding(
+            UIElement.VisibilityProperty,
+            new Binding("Target.CanExtendNameSeries")
+            {
+                Converter = new BooleanToVisibilityConverter()
+            });
         rxPanel.AppendChild(rxSeries);
 
         MatrixGrid.Columns.Add(new DataGridTemplateColumn
@@ -546,32 +552,37 @@ public partial class PatchWorkspaceView : UserControl
             Height = 126 * _matrixZoom,
             Tag = source
         };
-        TextBlock label = new()
+        Button label = new()
         {
-            Text = source.Display,
+            Content = source.Display,
+            Tag = source,
             Width = 112 * _matrixZoom,
-            TextWrapping = TextWrapping.NoWrap,
-            TextTrimming = TextTrimming.CharacterEllipsis,
-            TextAlignment = TextAlignment.Center,
             FontSize = Math.Max(8, 10 * _matrixZoom),
             FontWeight = FontWeights.SemiBold,
             Cursor = _renameChannelAction is null ? Cursors.Arrow : Cursors.IBeam,
             HorizontalAlignment = HorizontalAlignment.Center,
             VerticalAlignment = VerticalAlignment.Center,
             Margin = new Thickness(0, 0, 0, 10 * _matrixZoom),
-            LayoutTransform = new RotateTransform(-90)
+            Padding = new Thickness(0),
+            Background = Brushes.Transparent,
+            BorderBrush = Brushes.Transparent,
+            BorderThickness = new Thickness(0),
+            Foreground = (Brush)FindResource("TextBrush"),
+            LayoutTransform = new RotateTransform(-90),
+            IsEnabled = _renameChannelAction is not null
         };
-        label.MouseLeftButtonDown += MatrixTxHeader_MouseLeftButtonDown;
+        label.Click += MatrixTxHeader_Click;
         panel.Children.Add(label);
 
         Thumb series = BuildMatrixSeriesThumb(source, Cursors.SizeWE);
+        series.Visibility = source.CanExtendNameSeries ? Visibility.Visible : Visibility.Collapsed;
         series.HorizontalAlignment = HorizontalAlignment.Stretch;
         series.VerticalAlignment = VerticalAlignment.Bottom;
         panel.Children.Add(series);
 
         ToolTipService.SetToolTip(panel, L(
-            $"{source.FullDisplay}. Double-cliquez pour renommer ; tirez la poignée pour étendre la série.",
-            $"{source.FullDisplay}. Double-click to rename; drag the handle to extend the series."));
+            $"{source.FullDisplay}. Cliquez pour renommer ; tirez la poignée si le nom se termine par un numéro.",
+            $"{source.FullDisplay}. Click to rename; drag the handle when the name ends with a number."));
         AutomationProperties.SetName(panel, source.FullDisplay);
         return panel;
     }
@@ -614,16 +625,14 @@ public partial class PatchWorkspaceView : UserControl
         return thumb;
     }
 
-    private void MatrixTxHeader_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    private void MatrixTxHeader_Click(object sender, RoutedEventArgs e)
     {
-        if (e.ClickCount < 2 || _renameChannelAction is null
-            || sender is not TextBlock { Parent: FrameworkElement { Tag: PatchSourceDescriptor source } } label)
+        if (_renameChannelAction is not null
+            && sender is Button { Tag: PatchSourceDescriptor source } label)
         {
-            return;
+            e.Handled = true;
+            Dispatcher.BeginInvoke(new Action(() => OpenMatrixTxRenameEditor(source, label)));
         }
-
-        e.Handled = true;
-        OpenMatrixTxRenameEditor(source, label);
     }
 
     private void OpenMatrixTxRenameEditor(PatchSourceDescriptor source, FrameworkElement placementTarget)
@@ -632,7 +641,9 @@ public partial class PatchWorkspaceView : UserControl
         {
             Text = source.ChannelName,
             MinWidth = 180,
-            Padding = new Thickness(6, 4, 6, 4)
+            Padding = new Thickness(6, 4, 6, 4),
+            Background = Brushes.White,
+            Foreground = Brushes.Black
         };
         Border frame = new()
         {
@@ -1729,11 +1740,24 @@ public partial class PatchWorkspaceView : UserControl
                     "Sélectionnez au moins un canal numéroté avant de tirer la poignée de série.",
                     "Select at least one numbered channel before dragging the series handle."),
                 warning: true);
+            return;
         }
+
+        SetInfo(
+            L(
+                "Aperçu de série actif : déposez la poignée sur le dernier canal à renommer. Échap annule.",
+                "Series preview active: drop the handle on the last channel to rename. Escape cancels."),
+            warning: false);
     }
 
     private void ChannelSeriesThumb_DragCompleted(object sender, DragCompletedEventArgs e)
     {
+        if (e.Canceled)
+        {
+            SetInfo(L("Renommage en série annulé.", "Series rename cancelled."), warning: false);
+            return;
+        }
+
         if (_extendChannelSeriesAction is null || _channelSeriesKind is null
             || string.IsNullOrWhiteSpace(_channelSeriesDeviceName) || _channelSeriesSeeds.Length == 0)
         {
@@ -1785,10 +1809,25 @@ public partial class PatchWorkspaceView : UserControl
                 _matrixSeriesSeeds = [source.DanteId];
                 break;
         }
+
+        if (_matrixSeriesSeeds.Length > 0)
+        {
+            SetInfo(
+                L(
+                    "Aperçu de série actif dans la grille : déposez sur le dernier canal à renommer. Échap annule.",
+                    "Matrix series preview active: drop on the last channel to rename. Escape cancels."),
+                warning: false);
+        }
     }
 
     private void MatrixSeriesThumb_DragCompleted(object sender, DragCompletedEventArgs e)
     {
+        if (e.Canceled)
+        {
+            SetInfo(L("Renommage en série annulé.", "Series rename cancelled."), warning: false);
+            return;
+        }
+
         if (_extendChannelSeriesAction is null || _matrixSeriesKind is null
             || string.IsNullOrWhiteSpace(_matrixSeriesDeviceName) || _matrixSeriesSeeds.Length == 0)
         {
@@ -2189,6 +2228,8 @@ public partial class PatchWorkspaceView : UserControl
     private sealed record PatchTxListItem(PatchSourceDescriptor Source)
     {
         public string ChannelName => Source.ChannelName;
+
+        public bool CanExtendNameSeries => Source.CanExtendNameSeries;
     }
 
     private sealed record PatchPreviewRow(

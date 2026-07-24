@@ -2,9 +2,11 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="clr-namespace:DanteConfigEditor"
+             xmlns:converters="clr-namespace:DanteConfigEditor.Converters"
              xmlns:automation="clr-namespace:System.Windows.Automation;assembly=PresentationCore"
              MinWidth="900">
     <UserControl.Resources>
+        <converters:ChannelSeriesHandleVisibilityConverter x:Key="ChannelSeriesHandleVisibilityConverter" />
         <SolidColorBrush x:Key="WindowBackgroundBrush" Color="#10141F" />
         <SolidColorBrush x:Key="SurfaceBrush" Color="#171D2B" />
         <SolidColorBrush x:Key="SurfaceAltBrush" Color="#202838" />
@@ -382,6 +384,7 @@
                                            Margin="5,0,0,0"
                                            Cursor="SizeNS"
                                            Tag="{Binding}"
+                                           Visibility="{Binding ChannelName, Converter={StaticResource ChannelSeriesHandleVisibilityConverter}}"
                                            ToolTip="Étendre la série de noms jusqu'ici"
                                            DragStarted="ChannelSeriesThumb_DragStarted"
                                            DragCompleted="ChannelSeriesThumb_DragCompleted">
@@ -573,6 +576,7 @@
                                            Margin="5,0,0,0"
                                            Cursor="SizeNS"
                                            Tag="{Binding}"
+                                           Visibility="{Binding ChannelName, Converter={StaticResource ChannelSeriesHandleVisibilityConverter}}"
                                            ToolTip="Étendre la série de noms jusqu'ici"
                                            DragStarted="ChannelSeriesThumb_DragStarted"
                                            DragCompleted="ChannelSeriesThumb_DragCompleted">
